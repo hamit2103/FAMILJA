@@ -88,7 +88,18 @@ async function login() {
 
   if (error) {
     console.error(error);
-    showMessage(loginMessage, "Kodi nuk është i saktë.", "error");
+    const raw = (error.message || "").toLowerCase();
+    let message = "Nuk mund të hyhet. Kontrollo kodin.";
+    if (raw.includes("invalid login credentials")) {
+      message = "Kodi nuk përputhet me këtë llogari.";
+    } else if (raw.includes("email not confirmed")) {
+      message = "Llogaria në Supabase nuk është konfirmuar ende.";
+    } else if (raw.includes("rate limit")) {
+      message = "Shumë tentativa. Prit pak dhe provo përsëri.";
+    } else if (error.message) {
+      message = "Gabim: " + error.message;
+    }
+    showMessage(loginMessage, message, "error");
   } else {
     showMessage(loginMessage, "");
   }
