@@ -44,6 +44,48 @@ let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
 
+const lightbox = document.createElement("div");
+lightbox.className = "lightbox hidden";
+lightbox.setAttribute("role", "dialog");
+lightbox.setAttribute("aria-modal", "true");
+lightbox.setAttribute("aria-label", "Foto në ekran të plotë");
+
+const lightboxImage = document.createElement("img");
+lightboxImage.alt = "Foto";
+
+const lightboxClose = document.createElement("button");
+lightboxClose.type = "button";
+lightboxClose.className = "lightbox-close";
+lightboxClose.setAttribute("aria-label", "Mbyll");
+lightboxClose.textContent = "×";
+
+lightbox.appendChild(lightboxImage);
+lightbox.appendChild(lightboxClose);
+document.body.appendChild(lightbox);
+
+function openLightbox(url, alt = "Foto") {
+  lightboxImage.src = url;
+  lightboxImage.alt = alt;
+  lightbox.classList.remove("hidden");
+  document.body.classList.add("lightbox-open");
+}
+
+function closeLightbox() {
+  lightbox.classList.add("hidden");
+  lightboxImage.src = "";
+  document.body.classList.remove("lightbox-open");
+}
+
+lightboxClose.addEventListener("click", closeLightbox);
+lightbox.addEventListener("click", (event) => {
+  if (event.target === lightbox) closeLightbox();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !lightbox.classList.contains("hidden")) {
+    closeLightbox();
+  }
+});
+
 function setMode(next) {
   mode = next;
   familyMode.classList.toggle("active", next === "family");
@@ -164,6 +206,8 @@ async function loadMedia() {
         preview.loading = "lazy";
         preview.alt = item.name || "Foto";
         preview.src = url;
+        preview.title = "Preke për ta zmadhuar";
+        preview.addEventListener("click", () => openLightbox(url, item.name || "Foto"));
       }
 
       card.appendChild(preview);
