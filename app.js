@@ -8,6 +8,7 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const IMAGE_MAX_DIMENSION = 1920;
 const IMAGE_QUALITY = 0.78;
 const IMAGE_OPTIMIZE_MIN_SIZE = 350 * 1024;
+const FAMILY_PHOTO_LIMIT = 3;
 
 const configured =
   SUPABASE_URL &&
@@ -38,6 +39,8 @@ const mediaCount = $("mediaCount");
 const uploadBtn = $("uploadBtn");
 const mediaInput = $("mediaInput");
 const uploadStatus = $("uploadStatus");
+const uploadTitle = $("uploadTitle");
+const uploadHint = $("uploadHint");
 const logoutBtn = $("logoutBtn");
 const refreshBtn = $("refreshBtn");
 const installBtn = $("installBtn");
@@ -61,6 +64,7 @@ let mode = "family";
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
+let mediaItems = [];
 
 const PRESENCE_DEVICE_KEY = "pajaziti-presence-device";
 let presenceDeviceId = localStorage.getItem(PRESENCE_DEVICE_KEY);
@@ -214,7 +218,7 @@ async function loadInfo() {
   infoCount.textContent = String(data.length);
   infoEmpty.classList.toggle("hidden", data.length > 0);
 
-  for (const item of data) {
+  for (const item of mediaItems) {
     const card = document.createElement("article");
     card.className = "info-item";
 
@@ -306,6 +310,88 @@ infoSendBtn.addEventListener("click", async () => {
 const savedInfoName = localStorage.getItem("pajaziti-info-name");
 if (savedInfoName) infoName.value = savedInfoName;
 
+
+function familyFolderPrefix() {
+  return "family/" + presenceDeviceId + "/";
+}
+
+function isOwnFamilyPhoto(item) {
+  return (
+    !isAdmin() &&
+    (item?.type || "").startsWith("image/") &&
+    (item?.storage_path || "").startsWith(familyFolderPrefix())
+  );
+}
+
+function ownFamilyPhotoCount(items = mediaItems) {
+  return items.filter((item) =>
+    (item?.type || "").startsWith("image/") &&
+    (item?.storage_path || "").startsWith(familyFolderPrefix())
+  ).length;
+}
+
+function updateUploadPanel(items = mediaItems) {
+  if (!currentUser) return;
+
+  if (isAdmin()) {
+    uploadTitle.textContent = "Shto foto ose video";
+    uploadHint.textContent = "Administratori mund të ngarkojë foto dhe video.";
+    mediaInput.accept = "image/*,video/*";
+    uploadBtn.disabled = false;
+    return;
+  }
+
+  const used = ownFamilyPhotoCount(items);
+  const remaining = Math.max(0, FAMILY_PHOTO_LIMIT - used);
+
+  uploadTitle.textContent = "Shto fotot e tua";
+  uploadHint.textContent =
+    "Ke ngarkuar " + used + "/" + FAMILY_PHOTO_LIMIT +
+    " foto. Mund të shtosh edhe " + remaining + ".";
+  mediaInput.accept = "image/*";
+  uploadBtn.disabled = remaining === 0;
+
+  if (remaining === 0) {
+    showMessage(
+      uploadStatus,
+      "E ke arritur kufirin prej 3 fotove. Fshi një nga fotot e tua për të ngarkuar një tjetër.",
+      ""
+    );
+  }
+}
+
+async function deleteMediaItem(item) {
+  if (!supabase || !currentUser) return;
+
+  if (!isAdmin() && !isOwnFamilyPhoto(item)) {
+    alert("Mund të fshish vetëm fotot që ke ngarkuar vetë.");
+    return;
+  }
+
+  if (!confirm("Ta fshij këtë material?")) return;
+
+  const { error: storageError } = await supabase.storage
+    .from(BUCKET)
+    .remove([item.storage_path]);
+
+  if (storageError) {
+    alert("Nuk u fshi skedari: " + storageError.message);
+    return;
+  }
+
+  const { error: dbError } = await supabase
+    .from("media")
+    .delete()
+    .eq("id", item.id);
+
+  if (dbError) {
+    alert("Nuk u fshi regjistri: " + dbError.message);
+    return;
+  }
+
+  await loadMedia();
+}
+
 async function signedUrl(path) {
   const { data, error } = await supabase.storage
     .from(BUCKET)
@@ -332,8 +418,10 @@ async function loadMedia() {
     return;
   }
 
-  mediaCount.textContent = String(data.length);
-  emptyState.classList.toggle("hidden", data.length > 0);
+  mediaItems = data || [];
+  mediaCount.textContent = String(mediaItems.length);
+  emptyState.classList.toggle("hidden", mediaItems.length > 0);
+  updateUploadPanel(mediaItems);
 
   for (const item of data) {
     const card = document.createElement("article");
@@ -377,32 +465,12 @@ async function loadMedia() {
       download.textContent = "Shkarko";
       actions.appendChild(download);
 
-      if (isAdmin()) {
+      if (isAdmin() || isOwnFamilyPhoto(item)) {
         const del = document.createElement("button");
         del.type = "button";
         del.className = "danger";
         del.textContent = "Fshi";
-        del.addEventListener("click", async () => {
-          if (!confirm("Ta fshij këtë material?")) return;
-
-          const { error: storageError } = await supabase.storage
-            .from(BUCKET)
-            .remove([item.storage_path]);
-
-          if (storageError) {
-            alert("Nuk u fshi skedari: " + storageError.message);
-            return;
-          }
-
-          const { error: dbError } = await supabase
-            .from("media")
-            .delete()
-            .eq("id", item.id);
-
-          if (dbError) {
-            alert("Nuk u fshi regjistri: " + dbError.message);
-          }
-        });
+        del.addEventListener("click", () => deleteMediaItem(item));
         actions.appendChild(del);
       }
 
@@ -480,15 +548,60 @@ async function optimizeImage(file) {
 }
 
 uploadBtn.addEventListener("click", async () => {
-  if (!supabase || !isAdmin()) return;
+  if (!supabase || !currentUser) return;
 
   const files = Array.from(mediaInput.files);
   if (!files.length) {
     return showMessage(
       uploadStatus,
-      "Zgjidh së paku një foto ose video.",
+      isAdmin() ? "Zgjidh së paku një foto ose video." : "Zgjidh së paku një foto.",
       "error"
     );
+  }
+
+  if (!isAdmin()) {
+    const nonImages = files.filter((file) => !(file.type || "").startsWith("image/"));
+    if (nonImages.length) {
+      return showMessage(
+        uploadStatus,
+        "Anëtarët e familjes mund të ngarkojnë vetëm foto.",
+        "error"
+      );
+    }
+
+    const { count, error: countError } = await supabase
+      .from("media")
+      .select("id", { count: "exact", head: true })
+      .like("storage_path", familyFolderPrefix() + "%");
+
+    if (countError) {
+      return showMessage(
+        uploadStatus,
+        "Nuk munda ta kontrolloj kufirin e fotove: " + countError.message,
+        "error"
+      );
+    }
+
+    const used = count || 0;
+    const remaining = Math.max(0, FAMILY_PHOTO_LIMIT - used);
+
+    if (remaining === 0) {
+      updateUploadPanel(mediaItems);
+      return showMessage(
+        uploadStatus,
+        "E ke arritur kufirin prej 3 fotove. Fshi një foto tënden për të ngarkuar një tjetër.",
+        "error"
+      );
+    }
+
+    if (files.length > remaining) {
+      return showMessage(
+        uploadStatus,
+        "Mund të ngarkosh vetëm " + remaining +
+          " foto të tjera. Kufiri është 3 foto për person/pajisje.",
+        "error"
+      );
+    }
   }
 
   uploadBtn.disabled = true;
@@ -514,8 +627,7 @@ uploadBtn.addEventListener("click", async () => {
         showMessage(
           uploadStatus,
           originalFile.name +
-            " është mbi 50 MB edhe pas optimizimit dhe u anashkalua. " +
-            "Kufiri i Supabase Free është 50 MB për skedar.",
+            " është mbi 50 MB edhe pas optimizimit dhe u anashkalua.",
           "error"
         );
         continue;
@@ -527,9 +639,12 @@ uploadBtn.addEventListener("click", async () => {
       );
 
       const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+      const ownerFolder = isAdmin()
+        ? "admin/" + currentUser.id + "/"
+        : familyFolderPrefix();
+
       const path =
-        currentUser.id +
-        "/" +
+        ownerFolder +
         Date.now() +
         "_" +
         Math.random().toString(36).slice(2, 8) +
@@ -563,21 +678,17 @@ uploadBtn.addEventListener("click", async () => {
     mediaInput.value = "";
 
     if (done > 0) {
-      let message = "U ngarkuan " + done + " materiale.";
+      let message = "U ngarkuan " + done + (done === 1 ? " foto/material." : " materiale.");
       if (savedBytes > 0) {
-        message += " U kursyen rreth " + formatBytes(savedBytes) + " hapësirë nga fotot.";
+        message += " U kursyen rreth " + formatBytes(savedBytes) + " hapësirë.";
       }
       if (skipped > 0) {
-        message += " " + skipped + " skedarë u anashkaluan sepse ishin mbi 50 MB.";
+        message += " " + skipped + " skedarë u anashkaluan.";
       }
       showMessage(uploadStatus, message, "success");
       await loadMedia();
     } else {
-      showMessage(
-        uploadStatus,
-        "Asnjë skedar nuk u ngarkua. Videot/skedarët duhet të jenë maksimum 50 MB secili.",
-        "error"
-      );
+      showMessage(uploadStatus, "Asnjë skedar nuk u ngarkua.", "error");
     }
   } catch (e) {
     console.error(e);
@@ -587,7 +698,11 @@ uploadBtn.addEventListener("click", async () => {
       "error"
     );
   } finally {
-    uploadBtn.disabled = false;
+    if (isAdmin()) {
+      uploadBtn.disabled = false;
+    } else {
+      updateUploadPanel(mediaItems);
+    }
   }
 });
 
@@ -655,7 +770,9 @@ async function applySession(session) {
 
   if (!signedIn) {
     gallery.innerHTML = "";
+    mediaItems = [];
     mediaCount.textContent = "0";
+    uploadStatus.textContent = "";
     if (onlineCount) onlineCount.textContent = "0";
     if (realtimeChannel && supabase) {
       supabase.removeChannel(realtimeChannel);
@@ -664,8 +781,9 @@ async function applySession(session) {
     return;
   }
 
-  adminPanel.classList.toggle("hidden", !isAdmin());
+  adminPanel.classList.remove("hidden");
   roleLabel.textContent = isAdmin() ? "Administrator" : "Anëtar i familjes";
+  uploadStatus.textContent = "";
   await loadMedia();
   startRealtime();
 }
