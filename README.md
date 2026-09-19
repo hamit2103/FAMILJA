@@ -1,26 +1,31 @@
-# Familja PWA
+# Familja PWA — Supabase Free
 
-Ky është versioni i ri i Familja si Progressive Web App (PWA), i bërë për t'u përdorur direkt nga telefoni.
+Aplikacioni Familja tani përdor **Supabase Free** për:
+- hyrjen me kod (Supabase Auth)
+- ruajtjen private të fotove/videove (Supabase Storage)
+- listën e materialeve (Postgres)
+- përditësime realtime në telefonat e tjerë
 
-## Çfarë bën
-- Hyrje me kod për familjen
-- Hyrje të veçantë për administratorin
-- Foto dhe video në Firebase Storage
-- Lista e materialeve në Firestore
-- Vetëm administratori mund të ngarkojë ose fshijë
-- Anëtarët mund të shohin dhe shkarkojnë
-- Mund të instalohet në Android nga browser-i si aplikacion
+## Pse u ndryshua
+Firebase Storage kërkonte Blaze/billing. Ky version nuk ka nevojë për Firebase Storage.
 
-## Firebase setup
-Projekti: familja-9e838
+## Kufijtë falas aktualë të Supabase
+- 1 GB file storage
+- 5 GB egress
+- maksimum 50 MB për një skedar
+- 2 projekte aktive falas
 
-Duhet:
-1. Firebase Authentication -> Email/Password ON
-2. Krijo familja@familja.local me kodin që do t'ua japësh familjarëve
-3. Krijo admin@familja.local me kodin tënd të administratorit
-4. Krijo Firestore Database
-5. Krijo Storage
-6. Vendos rregullat nga firebase/firestore.rules dhe firebase/storage.rules
-7. Publiko faqen me HTTPS
+Kur tejkalohen kufijtë e planit Free, shërbimi kufizohet derisa të ulësh përdorimin ose të kalosh vetë në plan me pagesë; nuk kalon vetë në Pro.
 
-Mos vendos foto/video private brenda GitHub-it.
+## Setup
+1. Krijo projekt falas në Supabase.
+2. Te Authentication krijo:
+   - familja@familja.local
+   - admin@familja.local
+3. Te SQL Editor ekzekuto të gjithë skedarin `supabase/setup.sql`.
+4. Te Project Settings kopjo:
+   - Project URL
+   - anon/public key
+5. Vendosi te `app-config.js`.
+
+Mos vendos kurrë service_role key në GitHub ose në aplikacion.
