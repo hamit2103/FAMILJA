@@ -306,26 +306,110 @@ lightbox.appendChild(lightboxImage);
 lightbox.appendChild(lightboxClose);
 document.body.appendChild(lightbox);
 
-function openLightbox(url, alt = "Foto") {
-  lightboxImage.src = url;
-  lightboxImage.alt = alt;
+let lightboxItems = [];
+let lightboxIndex = 0;
+let lightboxTouchStartX = 0;
+let lightboxTouchStartY = 0;
+
+function collectLightboxItems() {
+  return Array.from(gallery.querySelectorAll(".media-card img")).map((img) => ({
+    url: img.currentSrc || img.src,
+    alt: img.alt || t("photo")
+  }));
+}
+
+function showLightboxImage(index) {
+  if (!lightboxItems.length) return;
+
+  const total = lightboxItems.length;
+  lightboxIndex = ((index % total) + total) % total;
+
+  const item = lightboxItems[lightboxIndex];
+  lightboxImage.src = item.url;
+  lightboxImage.alt = item.alt || t("photo");
+}
+
+function openLightbox(url, alt = "") {
+  lightboxItems = collectLightboxItems();
+
+  let index = lightboxItems.findIndex((item) => item.url === url);
+  if (index < 0) {
+    lightboxItems.unshift({ url, alt: alt || t("photo") });
+    index = 0;
+  }
+
+  showLightboxImage(index);
   lightbox.classList.remove("hidden");
   document.body.classList.add("lightbox-open");
+}
+
+function nextLightboxImage() {
+  if (lightboxItems.length > 1) {
+    showLightboxImage(lightboxIndex + 1);
+  }
+}
+
+function previousLightboxImage() {
+  if (lightboxItems.length > 1) {
+    showLightboxImage(lightboxIndex - 1);
+  }
 }
 
 function closeLightbox() {
   lightbox.classList.add("hidden");
   lightboxImage.src = "";
+  lightboxItems = [];
   document.body.classList.remove("lightbox-open");
 }
 
 lightboxClose.addEventListener("click", closeLightbox);
+
 lightbox.addEventListener("click", (event) => {
   if (event.target === lightbox) closeLightbox();
 });
+
+lightbox.addEventListener(
+  "touchstart",
+  (event) => {
+    const touch = event.changedTouches?.[0];
+    if (!touch) return;
+    lightboxTouchStartX = touch.clientX;
+    lightboxTouchStartY = touch.clientY;
+  },
+  { passive: true }
+);
+
+lightbox.addEventListener(
+  "touchend",
+  (event) => {
+    const touch = event.changedTouches?.[0];
+    if (!touch) return;
+
+    const diffX = touch.clientX - lightboxTouchStartX;
+    const diffY = touch.clientY - lightboxTouchStartY;
+
+    if (Math.abs(diffX) < 50 || Math.abs(diffX) <= Math.abs(diffY)) return;
+
+    // Sipas kërkesës: rrëshqit djathtas = fotoja tjetër,
+    // rrëshqit majtas = fotoja paraprake.
+    if (diffX > 0) {
+      nextLightboxImage();
+    } else {
+      previousLightboxImage();
+    }
+  },
+  { passive: true }
+);
+
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !lightbox.classList.contains("hidden")) {
+  if (lightbox.classList.contains("hidden")) return;
+
+  if (event.key === "Escape") {
     closeLightbox();
+  } else if (event.key === "ArrowRight") {
+    nextLightboxImage();
+  } else if (event.key === "ArrowLeft") {
+    previousLightboxImage();
   }
 });
 
