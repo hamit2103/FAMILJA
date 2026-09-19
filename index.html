@@ -53,6 +53,7 @@
       <nav class="app-tabs" aria-label="Menu">
         <button id="galleryTab" class="app-tab active" type="button">📷 Foto</button>
         <button id="infoTab" class="app-tab" type="button">ℹ️ Informacion</button>
+        <button id="prayerTab" class="app-tab" type="button">🕌 Namazi</button>
       </nav>
 
       <section id="galleryView">
@@ -117,6 +118,28 @@
         <section id="infoEmpty" class="card empty">
           <h2>Ende nuk ka informacion</h2>
           <p class="muted">Shkruaj mesazhin e parë më sipër.</p>
+        </section>
+      </section>
+
+      <section id="prayerView" class="hidden">
+        <section class="card prayer-card">
+          <div class="prayer-heading">
+            <div>
+              <h2>🕌 Koha e namazit</h2>
+              <p id="prayerLocation" class="muted small">Zgjidh vendndodhjen e telefonit.</p>
+            </div>
+            <button id="prayerLocationBtn" class="secondary" type="button">Vendndodhja</button>
+          </div>
+          <p class="muted small prayer-method">Ora llogaritet sipas vendndodhjes së telefonit me metodën Diyanet.</p>
+          <div id="prayerNext" class="prayer-next hidden"></div>
+          <div id="prayerStatus" class="message"></div>
+        </section>
+
+        <section id="prayerList" class="prayer-list"></section>
+
+        <section class="card prayer-note">
+          <strong>🔔 Alarmet janë sipas dëshirës.</strong>
+          <p class="muted small">Aktivizo vetëm namazet për të cilat dëshiron njoftim në këtë telefon.</p>
         </section>
       </section>
     </section>
