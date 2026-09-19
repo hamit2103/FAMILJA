@@ -25,6 +25,156 @@ const supabase = configured
 
 const $ = (id) => document.getElementById(id);
 
+const LANGUAGE_KEY = "pajaziti-language";
+const I18N = {
+  sq: {
+    "language.label":"Gjuha","app.subtitle":"Album privat për foto dhe video","mode.family":"Familja","mode.admin":"Admin",
+    "login.label":"Kodi i hyrjes","login.placeholder":"Shkruaj kodin","login.adminPlaceholder":"Kodi i administratorit","login.familyPlaceholder":"Kodi i familjes",
+    "login.button":"Hyr","install.app":"Instalo aplikacionin","install.short":"Instalo","share":"Ndaje linkun","logout":"Dil","online":"Online:",
+    "auth.note":"Kodi kontrollohet përmes Supabase Authentication. Fotot dhe videot ruhen privatisht në Supabase dhe nuk ruhen në telefonin e vizitorit, përveç nëse ai zgjedh t’i shkarkojë.",
+    "tabs.photos":"Foto","tabs.info":"Informacion","tabs.prayer":"Namazi","upload.addPhoto":"Shto foto","upload.addMedia":"Shto foto ose video",
+    "upload.adminHint":"Administratori mund të ngarkojë foto dhe video.","upload.familyTitle":"Shto fotot e tua","upload.button":"Ngarko",
+    "upload.familyHint":"Ke ngarkuar {used}/3 foto. Mund të shtosh edhe {remaining}.","storage.title":"Hapësira e përdorur",
+    "storage.adminOnly":"E dukshme vetëm për administratorin","materials":" materiale","refresh":"Rifresko",
+    "empty.mediaTitle":"Ende nuk ka materiale","empty.mediaBody":"Kur administratori të ngarkojë foto ose video, ato do të shfaqen këtu automatikisht.",
+    "info.title":"Informacion","info.familyWrite":"Çdo anëtar i familjes mund të shkruajë këtu.","info.name":"Emri","info.namePlaceholder":"Shkruaj emrin tënd",
+    "info.message":"Mesazhi","info.messagePlaceholder":"Shkruaj informacionin...","info.publish":"Publiko","info.notes":" shënime",
+    "info.emptyTitle":"Ende nuk ka informacion","info.emptyBody":"Shkruaj mesazhin e parë më sipër.","role.admin":"Administrator","role.family":"Anëtar i familjes",
+    "download":"Shkarko","delete":"Fshi","material":"Material","photo":"Foto","confirm.delete":"Ta fshij këtë material?","confirm.deleteInfo":"Ta fshij këtë informacion?",
+    "prayer.title":"Koha e namazit","prayer.locationPrompt":"Zgjidh vendndodhjen e telefonit.","prayer.locationBtn":"Vendndodhja",
+    "prayer.method":"Ora llogaritet sipas vendndodhjes së telefonit me metodën Diyanet.","prayer.alarmTitle":"🔔 Alarmet janë sipas dëshirës.",
+    "prayer.alarmBody":"Aktivizo vetëm namazet për të cilat dëshiron njoftim në këtë telefon. Në APK Android alarmi regjistrohet në sistem dhe punon edhe kur aplikacioni është i mbyllur.",
+    "prayer.Fajr":"Sabahu","prayer.Dhuhr":"Dreka","prayer.Asr":"Ikindia","prayer.Maghrib":"Akshami","prayer.Isha":"Jacia",
+    "prayer.next":"Namazi i radhës: {name} në {time}","prayer.nextTomorrow":"Namazi i radhës: Sabahu nesër","prayer.zone":"Zona: {zone}",
+    "alarm.on":"🔔 Alarm ON","alarm.off":"🔕 Alarm OFF","alarm.activating":"Po regjistroj alarmin sistemor për {name}…","alarm.activated":"Alarmi sistemor për {name} u aktivizua.",
+    "alarm.webActivated":t("alarm.webActivated"),"alarm.disabled":"Alarmi për {name} u çaktivizua.",
+    "alarm.title":"🕌 Koha e namazit","alarm.body":"Është koha e {name} ({time}).","alarm.stop":"Ndalo","alarm.channel":"Alarmet e namazit","alarm.channelDesc":"Alarm për kohën e namazit",
+    "login.enterCode":"Shkruaj kodin.","login.checking":"Po kontrolloj kodin…","login.badCode":"Kodi nuk përputhet me këtë llogari.","login.emailUnconfirmed":"Llogaria në Supabase nuk është konfirmuar ende.",
+    "login.rateLimit":"Shumë tentativa. Prit pak dhe provo përsëri.","login.failed":"Nuk mund të hyhet. Kontrollo kodin.",
+    "info.enterName":"Shkruaj emrin.","info.enterMessage":"Shkruaj mesazhin.","info.publishing":"Po publikohet...","info.published":"U publikua.",
+    "family.limit":t("family.limit"),"family.onlyOwnDelete":"Mund të fshish vetëm fotot që ke ngarkuar vetë.",
+    "family.onlyPhotos":t("family.onlyPhotos"),"family.remaining":"Mund të ngarkosh vetëm {remaining} foto të tjera. Kufiri është 3 foto për person/pajisje.",
+    "upload.chooseMedia":"Zgjidh së paku një foto ose video.","upload.choosePhoto":"Zgjidh së paku një foto.","upload.none":"Asnjë skedar nuk u ngarkua.",
+    "upload.done":"U ngarkuan {count} materiale.","location.permission":"Duhet ta lejosh vendndodhjen për oraret e namazit.","location.notFound":"Vendndodhja nuk u gjet. Provo përsëri.",
+    "location.timeout":"Vendndodhja vonoi shumë. Provo përsëri.","location.loading":"Po marr vendndodhjen…","prayer.loading":"Po marr oraret…","prayer.updated":"Oraret u përditësuan.",
+    "share.text":"Hape dhe instalo aplikacionin PAJAZITI.","share.copied":"Linku u kopjua. Tani mund ta dërgosh."
+  },
+  de: {
+    "language.label":"Sprache","app.subtitle":"Privates Album für Fotos und Videos","mode.family":"Familie","mode.admin":"Admin",
+    "login.label":"Zugangscode","login.placeholder":"Code eingeben","login.adminPlaceholder":"Administrator-Code","login.familyPlaceholder":"Familien-Code",
+    "login.button":"Anmelden","install.app":"App installieren","install.short":"Installieren","share":"Link teilen","logout":"Abmelden","online":"Online:",
+    "auth.note":"Der Code wird über Supabase Authentication geprüft. Fotos und Videos werden privat in Supabase gespeichert und nicht auf dem Gerät des Besuchers gespeichert, außer er lädt sie herunter.",
+    "tabs.photos":"Fotos","tabs.info":"Information","tabs.prayer":"Gebet","upload.addPhoto":"Foto hinzufügen","upload.addMedia":"Foto oder Video hinzufügen",
+    "upload.adminHint":"Der Administrator kann Fotos und Videos hochladen.","upload.familyTitle":"Deine Fotos hinzufügen","upload.button":"Hochladen",
+    "upload.familyHint":"Du hast {used}/3 Fotos hochgeladen. Du kannst noch {remaining} hinzufügen.","storage.title":"Verwendeter Speicher",
+    "storage.adminOnly":"Nur für den Administrator sichtbar","materials":" Medien","refresh":"Aktualisieren",
+    "empty.mediaTitle":"Noch keine Medien","empty.mediaBody":"Wenn der Administrator Fotos oder Videos hochlädt, erscheinen sie hier automatisch.",
+    "info.title":"Information","info.familyWrite":"Jedes Familienmitglied kann hier schreiben.","info.name":"Name","info.namePlaceholder":"Deinen Namen eingeben",
+    "info.message":"Nachricht","info.messagePlaceholder":"Information eingeben...","info.publish":"Veröffentlichen","info.notes":" Einträge",
+    "info.emptyTitle":"Noch keine Informationen","info.emptyBody":"Schreibe oben die erste Nachricht.","role.admin":"Administrator","role.family":"Familienmitglied",
+    "download":"Herunterladen","delete":"Löschen","material":"Medium","photo":"Foto","confirm.delete":"Dieses Medium löschen?","confirm.deleteInfo":"Diese Information löschen?",
+    "prayer.title":"Gebetszeiten","prayer.locationPrompt":"Standort des Telefons auswählen.","prayer.locationBtn":"Standort",
+    "prayer.method":"Die Zeiten werden anhand des Telefonstandorts nach der Diyanet-Methode berechnet.","prayer.alarmTitle":"🔔 Alarme sind optional.",
+    "prayer.alarmBody":"Aktiviere nur die Gebete, für die du auf diesem Telefon eine Benachrichtigung möchtest. In der Android-APK wird der Alarm im System registriert und funktioniert auch bei geschlossener App.",
+    "prayer.Fajr":"Fajr","prayer.Dhuhr":"Dhuhr","prayer.Asr":"Asr","prayer.Maghrib":"Maghrib","prayer.Isha":"Isha",
+    "prayer.next":"Nächstes Gebet: {name} um {time}","prayer.nextTomorrow":"Nächstes Gebet: Fajr morgen","prayer.zone":"Zone: {zone}",
+    "alarm.on":"🔔 Alarm AN","alarm.off":"🔕 Alarm AUS","alarm.activating":"Systemalarm für {name} wird eingerichtet…","alarm.activated":"Systemalarm für {name} wurde aktiviert.",
+    "alarm.webActivated":"Alarm aktiviert. Für einen Alarm auch bei geschlossener App verwende die Android-APK.","alarm.disabled":"Alarm für {name} wurde deaktiviert.",
+    "alarm.title":"🕌 Gebetszeit","alarm.body":"Es ist Zeit für {name} ({time}).","alarm.stop":"Stoppen","alarm.channel":"Gebetsalarme","alarm.channelDesc":"Alarm zur Gebetszeit",
+    "login.enterCode":"Code eingeben.","login.checking":"Code wird geprüft…","login.badCode":"Der Code passt nicht zu diesem Konto.","login.emailUnconfirmed":"Das Supabase-Konto wurde noch nicht bestätigt.",
+    "login.rateLimit":"Zu viele Versuche. Warte kurz und versuche es erneut.","login.failed":"Anmeldung nicht möglich. Prüfe den Code.",
+    "info.enterName":"Name eingeben.","info.enterMessage":"Nachricht eingeben.","info.publishing":"Wird veröffentlicht...","info.published":"Veröffentlicht.",
+    "family.limit":"Du hast das Limit von 3 Fotos erreicht. Lösche eines deiner Fotos, um ein neues hochzuladen.","family.onlyOwnDelete":"Du kannst nur Fotos löschen, die du selbst hochgeladen hast.",
+    "family.onlyPhotos":"Familienmitglieder können nur Fotos hochladen.","family.remaining":"Du kannst nur noch {remaining} Foto(s) hochladen. Das Limit beträgt 3 Fotos pro Person/Gerät.",
+    "upload.chooseMedia":"Wähle mindestens ein Foto oder Video aus.","upload.choosePhoto":"Wähle mindestens ein Foto aus.","upload.none":"Keine Datei wurde hochgeladen.",
+    "upload.done":"{count} Medien wurden hochgeladen.","location.permission":"Erlaube den Standortzugriff für die Gebetszeiten.","location.notFound":"Standort nicht gefunden. Versuche es erneut.",
+    "location.timeout":"Standortabfrage dauerte zu lange. Versuche es erneut.","location.loading":"Standort wird ermittelt…","prayer.loading":"Gebetszeiten werden geladen…","prayer.updated":"Gebetszeiten wurden aktualisiert.",
+    "share.text":"Öffne und installiere die PAJAZITI-App.","share.copied":"Link wurde kopiert. Du kannst ihn jetzt senden."
+  },
+  tr: {
+    "language.label":"Dil","app.subtitle":"Fotoğraf ve videolar için özel albüm","mode.family":"Aile","mode.admin":"Yönetici",
+    "login.label":"Giriş kodu","login.placeholder":"Kodu gir","login.adminPlaceholder":"Yönetici kodu","login.familyPlaceholder":"Aile kodu",
+    "login.button":"Giriş yap","install.app":"Uygulamayı yükle","install.short":"Yükle","share":"Bağlantıyı paylaş","logout":"Çıkış","online":"Çevrimiçi:",
+    "auth.note":"Kod Supabase Authentication üzerinden kontrol edilir. Fotoğraf ve videolar Supabase'de özel olarak saklanır ve ziyaretçi indirmeyi seçmedikçe telefonuna kaydedilmez.",
+    "tabs.photos":"Fotoğraflar","tabs.info":"Bilgi","tabs.prayer":"Namaz","upload.addPhoto":"Fotoğraf ekle","upload.addMedia":"Fotoğraf veya video ekle",
+    "upload.adminHint":"Yönetici fotoğraf ve video yükleyebilir.","upload.familyTitle":"Fotoğraflarını ekle","upload.button":"Yükle",
+    "upload.familyHint":"{used}/3 fotoğraf yükledin. {remaining} tane daha ekleyebilirsin.","storage.title":"Kullanılan alan",
+    "storage.adminOnly":"Yalnızca yönetici görebilir","materials":" medya","refresh":"Yenile",
+    "empty.mediaTitle":"Henüz medya yok","empty.mediaBody":"Yönetici fotoğraf veya video yüklediğinde burada otomatik olarak görünecek.",
+    "info.title":"Bilgi","info.familyWrite":"Her aile üyesi buraya yazabilir.","info.name":"İsim","info.namePlaceholder":"Adını yaz",
+    "info.message":"Mesaj","info.messagePlaceholder":"Bilgiyi yaz...","info.publish":"Yayınla","info.notes":" not",
+    "info.emptyTitle":"Henüz bilgi yok","info.emptyBody":"Yukarıya ilk mesajı yaz.","role.admin":"Yönetici","role.family":"Aile üyesi",
+    "download":"İndir","delete":"Sil","material":"Medya","photo":"Fotoğraf","confirm.delete":"Bu medya silinsin mi?","confirm.deleteInfo":"Bu bilgi silinsin mi?",
+    "prayer.title":"Namaz vakitleri","prayer.locationPrompt":"Telefonun konumunu seç.","prayer.locationBtn":"Konum",
+    "prayer.method":"Vakitler telefonun konumuna göre Diyanet yöntemiyle hesaplanır.","prayer.alarmTitle":"🔔 Alarmlar isteğe bağlıdır.",
+    "prayer.alarmBody":"Bu telefonda bildirim almak istediğin namazlar için alarmı aç. Android APK'da alarm sisteme kaydedilir ve uygulama kapalıyken de çalışır.",
+    "prayer.Fajr":"Sabah","prayer.Dhuhr":"Öğle","prayer.Asr":"İkindi","prayer.Maghrib":"Akşam","prayer.Isha":"Yatsı",
+    "prayer.next":"Sıradaki namaz: {name} {time}","prayer.nextTomorrow":"Sıradaki namaz: Sabah yarın","prayer.zone":"Bölge: {zone}",
+    "alarm.on":"🔔 Alarm AÇIK","alarm.off":"🔕 Alarm KAPALI","alarm.activating":"{name} için sistem alarmı ayarlanıyor…","alarm.activated":"{name} için sistem alarmı etkinleştirildi.",
+    "alarm.webActivated":"Alarm etkinleştirildi. Uygulama kapalıyken de çalması için Android APK'yı kullan.","alarm.disabled":"{name} alarmı kapatıldı.",
+    "alarm.title":"🕌 Namaz vakti","alarm.body":"{name} vakti geldi ({time}).","alarm.stop":"Durdur","alarm.channel":"Namaz alarmları","alarm.channelDesc":"Namaz vakti alarmı",
+    "login.enterCode":"Kodu gir.","login.checking":"Kod kontrol ediliyor…","login.badCode":"Kod bu hesapla eşleşmiyor.","login.emailUnconfirmed":"Supabase hesabı henüz doğrulanmamış.",
+    "login.rateLimit":"Çok fazla deneme. Biraz bekleyip tekrar dene.","login.failed":"Giriş yapılamadı. Kodu kontrol et.",
+    "info.enterName":"Adını yaz.","info.enterMessage":"Mesajını yaz.","info.publishing":"Yayınlanıyor...","info.published":"Yayınlandı.",
+    "family.limit":"3 fotoğraf sınırına ulaştın. Yeni fotoğraf yüklemek için kendi fotoğraflarından birini sil.","family.onlyOwnDelete":"Yalnızca kendin yüklediğin fotoğrafları silebilirsin.",
+    "family.onlyPhotos":"Aile üyeleri yalnızca fotoğraf yükleyebilir.","family.remaining":"Yalnızca {remaining} fotoğraf daha yükleyebilirsin. Sınır kişi/cihaz başına 3 fotoğraftır.",
+    "upload.chooseMedia":"En az bir fotoğraf veya video seç.","upload.choosePhoto":"En az bir fotoğraf seç.","upload.none":"Hiçbir dosya yüklenmedi.",
+    "upload.done":"{count} medya yüklendi.","location.permission":"Namaz vakitleri için konum izni vermelisin.","location.notFound":"Konum bulunamadı. Tekrar dene.",
+    "location.timeout":"Konum çok geç yanıt verdi. Tekrar dene.","location.loading":"Konum alınıyor…","prayer.loading":"Namaz vakitleri alınıyor…","prayer.updated":"Namaz vakitleri güncellendi.",
+    "share.text":"PAJAZITI uygulamasını aç ve yükle.","share.copied":"Bağlantı kopyalandı. Şimdi gönderebilirsin."
+  }
+};
+
+let currentLanguage = localStorage.getItem(LANGUAGE_KEY) || "sq";
+if (!I18N[currentLanguage]) currentLanguage = "sq";
+
+function t(key, vars = {}) {
+  let value = I18N[currentLanguage]?.[key] ?? I18N.sq[key] ?? key;
+  for (const [name, replacement] of Object.entries(vars)) {
+    value = value.replaceAll("{" + name + "}", String(replacement));
+  }
+  return value;
+}
+
+function prayerLabel(key) {
+  return t("prayer." + key);
+}
+
+function applyLanguage(language = currentLanguage) {
+  if (!I18N[language]) language = "sq";
+  currentLanguage = language;
+  localStorage.setItem(LANGUAGE_KEY, language);
+  document.documentElement.lang = language;
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+
+  const loginSelect = document.getElementById("languageSelectLogin");
+  const appSelect = document.getElementById("languageSelectApp");
+  if (loginSelect) loginSelect.value = language;
+  if (appSelect) appSelect.value = language;
+
+  if (typeof mode !== "undefined" && codeInput) {
+    codeInput.placeholder = mode === "admin"
+      ? t("login.adminPlaceholder")
+      : t("login.familyPlaceholder");
+  }
+
+  if (currentUser) {
+    roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
+    updateUploadPanel(mediaItems);
+    renderPrayerTimes();
+    updateNextPrayer();
+    loadMedia().catch(console.warn);
+    loadInfo().catch(console.warn);
+  }
+}
+
+
 const loginView = $("loginView");
 const appView = $("appView");
 const familyMode = $("familyMode");
@@ -62,6 +212,8 @@ const infoList = $("infoList");
 const infoEmpty = $("infoEmpty");
 const infoCount = $("infoCount");
 const onlineCount = $("onlineCount");
+const languageSelectLogin = $("languageSelectLogin");
+const languageSelectApp = $("languageSelectApp");
 const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
@@ -71,6 +223,10 @@ const prayerLocationBtn = $("prayerLocationBtn");
 const prayerNext = $("prayerNext");
 const prayerStatus = $("prayerStatus");
 const prayerList = $("prayerList");
+
+languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
+languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
+applyLanguage(currentLanguage);
 
 let mode = "family";
 let realtimeChannel = null;
@@ -89,11 +245,11 @@ const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
 const PRAYER_ALARMS_KEY = "pajaziti-prayer-alarms";
 const PRAYER_LAST_ALERT_KEY = "pajaziti-prayer-last-alert";
 const PRAYERS = [
-  { key: "Fajr", label: "Sabahu" },
-  { key: "Dhuhr", label: "Dreka" },
-  { key: "Asr", label: "Ikindia" },
-  { key: "Maghrib", label: "Akshami" },
-  { key: "Isha", label: "Jacia" }
+  { key: "Fajr" },
+  { key: "Dhuhr" },
+  { key: "Asr" },
+  { key: "Maghrib" },
+  { key: "Isha" }
 ];
 
 let prayerAlarms = (() => {
@@ -180,7 +336,7 @@ function setMode(next) {
   adminMode.classList.toggle("active", next === "admin");
   codeInput.value = "";
   codeInput.placeholder =
-    next === "admin" ? "Kodi i administratorit" : "Kodi i familjes";
+    next === "admin" ? t("login.adminPlaceholder") : t("login.familyPlaceholder");
   loginMessage.textContent = "";
 }
 familyMode.addEventListener("click", () => setMode("family"));
@@ -205,10 +361,10 @@ async function login() {
   }
 
   const code = codeInput.value.trim();
-  if (!code) return showMessage(loginMessage, "Shkruaj kodin.", "error");
+  if (!code) return showMessage(loginMessage, t("login.enterCode"), "error");
 
   loginBtn.disabled = true;
-  showMessage(loginMessage, "Po kontrolloj kodin…");
+  showMessage(loginMessage, t("login.checking"));
 
   const email = mode === "admin" ? ADMIN_EMAIL : FAMILY_EMAIL;
   const { error } = await supabase.auth.signInWithPassword({
@@ -219,13 +375,13 @@ async function login() {
   if (error) {
     console.error(error);
     const raw = (error.message || "").toLowerCase();
-    let message = "Nuk mund të hyhet. Kontrollo kodin.";
+    let message = t("login.failed");
     if (raw.includes("invalid login credentials")) {
-      message = "Kodi nuk përputhet me këtë llogari.";
+      message = t("login.badCode");
     } else if (raw.includes("email not confirmed")) {
-      message = "Llogaria në Supabase nuk është konfirmuar ende.";
+      message = t("login.emailUnconfirmed");
     } else if (raw.includes("rate limit")) {
-      message = "Shumë tentativa. Prit pak dhe provo përsëri.";
+      message = t("login.rateLimit");
     } else if (error.message) {
       message = "Gabim: " + error.message;
     }
@@ -275,7 +431,7 @@ async function loadInfo() {
     const left = document.createElement("div");
     const author = document.createElement("div");
     author.className = "info-author";
-    author.textContent = item.author || "Familja";
+    author.textContent = item.author || t("mode.family");
 
     const time = document.createElement("div");
     time.className = "info-time";
@@ -296,9 +452,9 @@ async function loadInfo() {
       const del = document.createElement("button");
       del.type = "button";
       del.className = "info-delete";
-      del.textContent = "Fshi";
+      del.textContent = t("delete");
       del.addEventListener("click", async () => {
-        if (!confirm("Ta fshij këtë informacion?")) return;
+        if (!confirm(t("confirm.deleteInfo"))) return;
         const { error: delError } = await supabase
           .from("information")
           .delete()
@@ -325,14 +481,14 @@ infoSendBtn.addEventListener("click", async () => {
   const message = infoText.value.trim();
 
   if (!author) {
-    return showMessage(infoStatus, "Shkruaj emrin.", "error");
+    return showMessage(infoStatus, t("info.enterName"), "error");
   }
   if (!message) {
-    return showMessage(infoStatus, "Shkruaj mesazhin.", "error");
+    return showMessage(infoStatus, t("info.enterMessage"), "error");
   }
 
   infoSendBtn.disabled = true;
-  showMessage(infoStatus, "Po publikohet...");
+  showMessage(infoStatus, t("info.publishing"));
 
   const { error } = await supabase.from("information").insert({
     author,
@@ -350,7 +506,7 @@ infoSendBtn.addEventListener("click", async () => {
 
   localStorage.setItem("pajaziti-info-name", author);
   infoText.value = "";
-  showMessage(infoStatus, "U publikua.", "success");
+  showMessage(infoStatus, t("info.published"), "success");
   await loadInfo();
 });
 
@@ -417,9 +573,9 @@ function getPhoneLocation() {
       ),
       (error) => {
         let message = "Nuk u mor vendndodhja.";
-        if (error?.code === 1) message = "Duhet ta lejosh vendndodhjen për oraret e namazit.";
-        if (error?.code === 2) message = "Vendndodhja nuk u gjet. Provo përsëri.";
-        if (error?.code === 3) message = "Vendndodhja vonoi shumë. Provo përsëri.";
+        if (error?.code === 1) message = t("location.permission");
+        if (error?.code === 2) message = t("location.notFound");
+        if (error?.code === 3) message = t("location.timeout");
         reject(new Error(message));
       },
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 6 * 60 * 60 * 1000 }
@@ -450,7 +606,7 @@ async function fetchPrayerTimes(coords) {
   prayerTimingsDate = localDateKey(date);
   prayerTimezone = json.data.meta?.timezone || "Europe/Berlin";
 
-  prayerLocation.textContent = "Zona: " + prayerTimezone;
+  prayerLocation.textContent = t("prayer.zone", { zone: prayerTimezone });
   renderPrayerTimes();
   updateNextPrayer();
 
@@ -475,12 +631,12 @@ async function loadPrayerTimes(forceLocation = false) {
 
   try {
     prayerLocationBtn.disabled = true;
-    showMessage(prayerStatus, forceLocation ? "Po marr vendndodhjen…" : "Po marr oraret…");
+    showMessage(prayerStatus, forceLocation ? t("location.loading") : t("prayer.loading"));
 
     if (!coords) coords = await getPhoneLocation();
     await fetchPrayerTimes(coords);
 
-    showMessage(prayerStatus, "Oraret u përditësuan.", "success");
+    showMessage(prayerStatus, t("prayer.updated"), "success");
   } catch (error) {
     console.error("Prayer times failed", error);
     showMessage(prayerStatus, error?.message || "Nuk u morën oraret.", "error");
@@ -601,8 +757,9 @@ async function scheduleNativePrayer(prayer) {
 
   window.AndroidPrayer.schedulePrayer(
     prayer.key,
-    prayer.label,
-    JSON.stringify(times)
+    prayerLabel(prayer.key),
+    JSON.stringify(times),
+    currentLanguage
   );
   return true;
 }
@@ -661,7 +818,7 @@ function renderPrayerTimes() {
 
     const name = document.createElement("div");
     name.className = "prayer-name";
-    name.textContent = prayer.label;
+    name.textContent = prayerLabel(prayer.key);
 
     const time = document.createElement("div");
     time.className = "prayer-time";
@@ -670,7 +827,7 @@ function renderPrayerTimes() {
     const alarm = document.createElement("button");
     alarm.type = "button";
     alarm.className = "prayer-alarm" + (prayerAlarms[prayer.key] ? " active" : "");
-    alarm.textContent = prayerAlarms[prayer.key] ? "🔔 Alarm ON" : "🔕 Alarm OFF";
+    alarm.textContent = prayerAlarms[prayer.key] ? t("alarm.on") : t("alarm.off");
     alarm.addEventListener("click", async () => {
       const next = !prayerAlarms[prayer.key];
       alarm.disabled = true;
@@ -684,18 +841,18 @@ function renderPrayerTimes() {
           if (isNativePrayerApp()) {
             showMessage(
               prayerStatus,
-              "Po regjistroj alarmin sistemor për " + prayer.label + "…"
+              t("alarm.activating", { name: prayerLabel(prayer.key) })
             );
             await scheduleNativePrayer(prayer);
             showMessage(
               prayerStatus,
-              "Alarmi sistemor për " + prayer.label + " u aktivizua.",
+              t("alarm.activated", { name: prayerLabel(prayer.key) }),
               "success"
             );
           } else {
             showMessage(
               prayerStatus,
-              "Alarmi u aktivizua. Për alarm edhe kur app-i është i mbyllur përdor APK Android.",
+              t("alarm.webActivated"),
               "success"
             );
           }
@@ -709,7 +866,7 @@ function renderPrayerTimes() {
 
           showMessage(
             prayerStatus,
-            "Alarmi për " + prayer.label + " u çaktivizua."
+            t("alarm.disabled", { name: prayerLabel(prayer.key) })
           );
         }
       } catch (error) {
@@ -759,10 +916,10 @@ function updateNextPrayer() {
   }
 
   if (!next) {
-    prayerNext.textContent = "Namazi i radhës: Sabahu nesër";
+    prayerNext.textContent = t("prayer.nextTomorrow");
   } else {
     prayerNext.textContent =
-      "Namazi i radhës: " + next.label + " në " + prayerTimings[next.key];
+      t("prayer.next", { name: prayerLabel(next.key), time: prayerTimings[next.key] });
   }
   prayerNext.classList.remove("hidden");
 }
@@ -790,8 +947,8 @@ function playPrayerAlarmTone() {
 }
 
 async function notifyPrayer(prayer, time) {
-  const title = "🕌 Koha e namazit";
-  const body = "Është koha e " + prayer.label + " (" + time + ").";
+  const title = t("alarm.title");
+  const body = t("alarm.body", { name: prayerLabel(prayer.key), time });
 
   try {
     if ("serviceWorker" in navigator && "Notification" in window && Notification.permission === "granted") {
@@ -879,8 +1036,8 @@ function updateUploadPanel(items = mediaItems) {
   if (!currentUser) return;
 
   if (isAdmin()) {
-    uploadTitle.textContent = "Shto foto ose video";
-    uploadHint.textContent = "Administratori mund të ngarkojë foto dhe video.";
+    uploadTitle.textContent = t("upload.addMedia");
+    uploadHint.textContent = t("upload.adminHint");
     mediaInput.accept = "image/*,video/*";
     uploadBtn.disabled = false;
     return;
@@ -889,17 +1046,15 @@ function updateUploadPanel(items = mediaItems) {
   const used = ownFamilyPhotoCount(items);
   const remaining = Math.max(0, FAMILY_PHOTO_LIMIT - used);
 
-  uploadTitle.textContent = "Shto fotot e tua";
-  uploadHint.textContent =
-    "Ke ngarkuar " + used + "/" + FAMILY_PHOTO_LIMIT +
-    " foto. Mund të shtosh edhe " + remaining + ".";
+  uploadTitle.textContent = t("upload.familyTitle");
+  uploadHint.textContent = t("upload.familyHint", { used, remaining });
   mediaInput.accept = "image/*";
   uploadBtn.disabled = remaining === 0;
 
   if (remaining === 0) {
     showMessage(
       uploadStatus,
-      "E ke arritur kufirin prej 3 fotove. Fshi një nga fotot e tua për të ngarkuar një tjetër.",
+      t("family.limit"),
       ""
     );
   }
@@ -909,11 +1064,11 @@ async function deleteMediaItem(item) {
   if (!supabase || !currentUser) return;
 
   if (!isAdmin() && !isOwnFamilyPhoto(item)) {
-    alert("Mund të fshish vetëm fotot që ke ngarkuar vetë.");
+    alert(t("family.onlyOwnDelete"));
     return;
   }
 
-  if (!confirm("Ta fshij këtë material?")) return;
+  if (!confirm(t("confirm.delete"))) return;
 
   const { error: storageError } = await supabase.storage
     .from(BUCKET)
@@ -985,9 +1140,9 @@ async function loadMedia() {
       } else {
         preview = document.createElement("img");
         preview.loading = "lazy";
-        preview.alt = item.name || "Foto";
+        preview.alt = item.name || t("photo");
         preview.src = url;
-        preview.title = "Preke për ta zmadhuar";
+        preview.title = t("photo");
         preview.addEventListener("click", () => openLightbox(url, item.name || "Foto"));
       }
 
@@ -998,7 +1153,7 @@ async function loadMedia() {
 
       const name = document.createElement("div");
       name.className = "media-name";
-      name.textContent = item.name || "Material";
+      name.textContent = item.name || t("material");
       meta.appendChild(name);
 
       const actions = document.createElement("div");
@@ -1008,14 +1163,14 @@ async function loadMedia() {
       download.href = url;
       download.target = "_blank";
       download.rel = "noopener";
-      download.textContent = "Shkarko";
+      download.textContent = t("download");
       actions.appendChild(download);
 
       if (isAdmin() || isOwnFamilyPhoto(item)) {
         const del = document.createElement("button");
         del.type = "button";
         del.className = "danger";
-        del.textContent = "Fshi";
+        del.textContent = t("delete");
         del.addEventListener("click", () => deleteMediaItem(item));
         actions.appendChild(del);
       }
@@ -1126,7 +1281,7 @@ uploadBtn.addEventListener("click", async () => {
   if (!files.length) {
     return showMessage(
       uploadStatus,
-      isAdmin() ? "Zgjidh së paku një foto ose video." : "Zgjidh së paku një foto.",
+      isAdmin() ? t("upload.chooseMedia") : t("upload.choosePhoto"),
       "error"
     );
   }
@@ -1136,7 +1291,7 @@ uploadBtn.addEventListener("click", async () => {
     if (nonImages.length) {
       return showMessage(
         uploadStatus,
-        "Anëtarët e familjes mund të ngarkojnë vetëm foto.",
+        t("family.onlyPhotos"),
         "error"
       );
     }
@@ -1169,8 +1324,7 @@ uploadBtn.addEventListener("click", async () => {
     if (files.length > remaining) {
       return showMessage(
         uploadStatus,
-        "Mund të ngarkosh vetëm " + remaining +
-          " foto të tjera. Kufiri është 3 foto për person/pajisje.",
+        t("family.remaining", { remaining }),
         "error"
       );
     }
@@ -1260,7 +1414,7 @@ uploadBtn.addEventListener("click", async () => {
       showMessage(uploadStatus, message, "success");
       await loadMedia();
     } else {
-      showMessage(uploadStatus, "Asnjë skedar nuk u ngarkua.", "error");
+      showMessage(uploadStatus, t("upload.none"), "error");
     }
   } catch (e) {
     console.error(e);
@@ -1360,7 +1514,7 @@ async function applySession(session) {
 
   adminPanel.classList.remove("hidden");
   if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
-  roleLabel.textContent = isAdmin() ? "Administrator" : "Anëtar i familjes";
+  roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
   uploadStatus.textContent = "";
   await loadMedia();
   const savedCoords = savedPrayerCoords();
@@ -1414,18 +1568,18 @@ shareBtn.addEventListener("click", async () => {
     if (navigator.share) {
       await navigator.share({
         title: "PAJAZITI",
-        text: "Hape dhe instalo aplikacionin PAJAZITI.",
+        text: t("share.text"),
         url
       });
       return;
     }
     await navigator.clipboard.writeText(url);
-    showMessage(loginMessage, "Linku u kopjua. Tani mund ta dërgosh.", "success");
+    showMessage(loginMessage, t("share.copied"), "success");
   } catch (e) {
     if (e?.name !== "AbortError") {
       try {
         await navigator.clipboard.writeText(url);
-        showMessage(loginMessage, "Linku u kopjua. Tani mund ta dërgosh.", "success");
+        showMessage(loginMessage, t("share.copied"), "success");
       } catch (_) {
         showMessage(loginMessage, "Linku: " + url, "");
       }
