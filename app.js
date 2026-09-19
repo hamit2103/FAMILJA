@@ -49,8 +49,10 @@ const installLoginBtn = $("installLoginBtn");
 const shareBtn = $("shareBtn");
 const galleryTab = $("galleryTab");
 const infoTab = $("infoTab");
+const prayerTab = $("prayerTab");
 const galleryView = $("galleryView");
 const infoView = $("infoView");
+const prayerView = $("prayerView");
 const infoName = $("infoName");
 const infoText = $("infoText");
 const infoSendBtn = $("infoSendBtn");
@@ -64,12 +66,41 @@ const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
 const storageBar = $("storageBar");
+const prayerLocation = $("prayerLocation");
+const prayerLocationBtn = $("prayerLocationBtn");
+const prayerNext = $("prayerNext");
+const prayerStatus = $("prayerStatus");
+const prayerList = $("prayerList");
 
 let mode = "family";
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
 let mediaItems = [];
+let prayerTimings = null;
+let prayerTimingsDate = "";
+let prayerTimezone = "";
+let prayerCheckTimer = null;
+let prayerAudioContext = null;
+
+const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
+const PRAYER_ALARMS_KEY = "pajaziti-prayer-alarms";
+const PRAYER_LAST_ALERT_KEY = "pajaziti-prayer-last-alert";
+const PRAYERS = [
+  { key: "Fajr", label: "Sabahu" },
+  { key: "Dhuhr", label: "Dreka" },
+  { key: "Asr", label: "Ikindia" },
+  { key: "Maghrib", label: "Akshami" },
+  { key: "Isha", label: "Jacia" }
+];
+
+let prayerAlarms = (() => {
+  try {
+    return JSON.parse(localStorage.getItem(PRAYER_ALARMS_KEY) || "{}");
+  } catch (_) {
+    return {};
+  }
+})();
 
 const PRESENCE_DEVICE_KEY = "pajaziti-presence-device";
 let presenceDeviceId = localStorage.getItem(PRESENCE_DEVICE_KEY);
@@ -122,15 +153,24 @@ document.addEventListener("keydown", (event) => {
 });
 
 function setSection(next) {
+  const showGallery = next === "gallery";
   const showInfo = next === "info";
-  galleryTab.classList.toggle("active", !showInfo);
+  const showPrayer = next === "prayer";
+
+  galleryTab.classList.toggle("active", showGallery);
   infoTab.classList.toggle("active", showInfo);
-  galleryView.classList.toggle("hidden", showInfo);
+  prayerTab.classList.toggle("active", showPrayer);
+
+  galleryView.classList.toggle("hidden", !showGallery);
   infoView.classList.toggle("hidden", !showInfo);
+  prayerView.classList.toggle("hidden", !showPrayer);
+
   if (showInfo) loadInfo();
+  if (showPrayer) loadPrayerTimes(false);
 }
 galleryTab.addEventListener("click", () => setSection("gallery"));
 infoTab.addEventListener("click", () => setSection("info"));
+prayerTab.addEventListener("click", () => setSection("prayer"));
 
 function setMode(next) {
   mode = next;
@@ -315,6 +355,308 @@ infoSendBtn.addEventListener("click", async () => {
 const savedInfoName = localStorage.getItem("pajaziti-info-name");
 if (savedInfoName) infoName.value = savedInfoName;
 
+
+
+function localDateKey(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + d;
+}
+
+function apiDate(date = new Date()) {
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  return d + "-" + m + "-" + y;
+}
+
+function cleanPrayerTime(value) {
+  const match = String(value || "").match(/\b(\d{1,2}:\d{2})\b/);
+  return match ? match[1].padStart(5, "0") : "--:--";
+}
+
+function savedPrayerCoords() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(PRAYER_COORDS_KEY) || "null");
+    if (
+      parsed &&
+      Number.isFinite(Number(parsed.latitude)) &&
+      Number.isFinite(Number(parsed.longitude))
+    ) {
+      return {
+        latitude: Number(parsed.latitude),
+        longitude: Number(parsed.longitude)
+      };
+    }
+  } catch (_) {}
+  return null;
+}
+
+function savePrayerCoords(latitude, longitude) {
+  const coords = {
+    latitude: Number(Number(latitude).toFixed(4)),
+    longitude: Number(Number(longitude).toFixed(4))
+  };
+  localStorage.setItem(PRAYER_COORDS_KEY, JSON.stringify(coords));
+  return coords;
+}
+
+function getPhoneLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("Ky telefon nuk e mbështet vendndodhjen."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve(
+        savePrayerCoords(position.coords.latitude, position.coords.longitude)
+      ),
+      (error) => {
+        let message = "Nuk u mor vendndodhja.";
+        if (error?.code === 1) message = "Duhet ta lejosh vendndodhjen për oraret e namazit.";
+        if (error?.code === 2) message = "Vendndodhja nuk u gjet. Provo përsëri.";
+        if (error?.code === 3) message = "Vendndodhja vonoi shumë. Provo përsëri.";
+        reject(new Error(message));
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 6 * 60 * 60 * 1000 }
+    );
+  });
+}
+
+async function fetchPrayerTimes(coords) {
+  const date = new Date();
+  const url = new URL("https://api.aladhan.com/v1/timings/" + apiDate(date));
+  url.searchParams.set("latitude", coords.latitude);
+  url.searchParams.set("longitude", coords.longitude);
+  url.searchParams.set("method", "13");
+  url.searchParams.set("school", "1");
+
+  const response = await fetch(url.toString(), { cache: "no-store" });
+  if (!response.ok) throw new Error("Nuk u morën oraret e namazit.");
+
+  const json = await response.json();
+  if (json?.code !== 200 || !json?.data?.timings) {
+    throw new Error("Oraret e namazit nuk u kthyen si duhet.");
+  }
+
+  prayerTimings = {};
+  for (const prayer of PRAYERS) {
+    prayerTimings[prayer.key] = cleanPrayerTime(json.data.timings[prayer.key]);
+  }
+  prayerTimingsDate = localDateKey(date);
+  prayerTimezone = json.data.meta?.timezone || "Europe/Berlin";
+
+  prayerLocation.textContent = "Zona: " + prayerTimezone;
+  renderPrayerTimes();
+  updateNextPrayer();
+}
+
+async function loadPrayerTimes(forceLocation = false) {
+  if (!currentUser) return;
+
+  let coords = forceLocation ? null : savedPrayerCoords();
+
+  if (!coords && !forceLocation) {
+    prayerLocation.textContent = "Preke “Vendndodhja” për oraret e sakta.";
+    prayerStatus.textContent = "";
+    if (!prayerTimings) prayerList.innerHTML = "";
+    return;
+  }
+
+  try {
+    prayerLocationBtn.disabled = true;
+    showMessage(prayerStatus, forceLocation ? "Po marr vendndodhjen…" : "Po marr oraret…");
+
+    if (!coords) coords = await getPhoneLocation();
+    await fetchPrayerTimes(coords);
+
+    showMessage(prayerStatus, "Oraret u përditësuan.", "success");
+  } catch (error) {
+    console.error("Prayer times failed", error);
+    showMessage(prayerStatus, error?.message || "Nuk u morën oraret.", "error");
+  } finally {
+    prayerLocationBtn.disabled = false;
+  }
+}
+
+prayerLocationBtn.addEventListener("click", () => loadPrayerTimes(true));
+
+function savePrayerAlarms() {
+  localStorage.setItem(PRAYER_ALARMS_KEY, JSON.stringify(prayerAlarms));
+}
+
+async function requestAlarmPermission() {
+  try {
+    if ("Notification" in window && Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+
+    if (!prayerAudioContext && (window.AudioContext || window.webkitAudioContext)) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      prayerAudioContext = new AudioCtx();
+    }
+    if (prayerAudioContext?.state === "suspended") {
+      await prayerAudioContext.resume();
+    }
+  } catch (error) {
+    console.warn("Alarm permission/audio", error);
+  }
+}
+
+function renderPrayerTimes() {
+  prayerList.innerHTML = "";
+  if (!prayerTimings) return;
+
+  for (const prayer of PRAYERS) {
+    const row = document.createElement("article");
+    row.className = "prayer-item";
+
+    const name = document.createElement("div");
+    name.className = "prayer-name";
+    name.textContent = prayer.label;
+
+    const time = document.createElement("div");
+    time.className = "prayer-time";
+    time.textContent = prayerTimings[prayer.key] || "--:--";
+
+    const alarm = document.createElement("button");
+    alarm.type = "button";
+    alarm.className = "prayer-alarm" + (prayerAlarms[prayer.key] ? " active" : "");
+    alarm.textContent = prayerAlarms[prayer.key] ? "🔔 Alarm ON" : "🔕 Alarm OFF";
+    alarm.addEventListener("click", async () => {
+      const next = !prayerAlarms[prayer.key];
+      if (next) await requestAlarmPermission();
+      prayerAlarms[prayer.key] = next;
+      savePrayerAlarms();
+      renderPrayerTimes();
+      checkPrayerAlarms();
+    });
+
+    row.appendChild(name);
+    row.appendChild(time);
+    row.appendChild(alarm);
+    prayerList.appendChild(row);
+  }
+}
+
+function timeToMinutes(value) {
+  const [h, m] = String(value || "").split(":").map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  return h * 60 + m;
+}
+
+function updateNextPrayer() {
+  if (!prayerTimings) {
+    prayerNext.classList.add("hidden");
+    return;
+  }
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  let next = null;
+
+  for (const prayer of PRAYERS) {
+    const mins = timeToMinutes(prayerTimings[prayer.key]);
+    if (mins !== null && mins >= nowMinutes) {
+      next = prayer;
+      break;
+    }
+  }
+
+  if (!next) {
+    prayerNext.textContent = "Namazi i radhës: Sabahu nesër";
+  } else {
+    prayerNext.textContent =
+      "Namazi i radhës: " + next.label + " në " + prayerTimings[next.key];
+  }
+  prayerNext.classList.remove("hidden");
+}
+
+function playPrayerAlarmTone() {
+  try {
+    if (!prayerAudioContext) return;
+    const now = prayerAudioContext.currentTime;
+
+    for (let i = 0; i < 3; i++) {
+      const oscillator = prayerAudioContext.createOscillator();
+      const gain = prayerAudioContext.createGain();
+      oscillator.frequency.value = 740;
+      gain.gain.setValueAtTime(0.0001, now + i * 0.55);
+      gain.gain.exponentialRampToValueAtTime(0.22, now + i * 0.55 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.55 + 0.35);
+      oscillator.connect(gain);
+      gain.connect(prayerAudioContext.destination);
+      oscillator.start(now + i * 0.55);
+      oscillator.stop(now + i * 0.55 + 0.38);
+    }
+  } catch (error) {
+    console.warn("Alarm tone failed", error);
+  }
+}
+
+async function notifyPrayer(prayer, time) {
+  const title = "🕌 Koha e namazit";
+  const body = "Është koha e " + prayer.label + " (" + time + ").";
+
+  try {
+    if ("serviceWorker" in navigator && "Notification" in window && Notification.permission === "granted") {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification(title, {
+        body,
+        icon: "./icon.svg",
+        badge: "./icon.svg",
+        tag: "prayer-" + prayer.key + "-" + localDateKey(),
+        vibrate: [250, 120, 250, 120, 400]
+      });
+    }
+  } catch (error) {
+    console.warn("Prayer notification failed", error);
+  }
+
+  if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 400]);
+  playPrayerAlarmTone();
+  showMessage(prayerStatus, body, "success");
+}
+
+async function checkPrayerAlarms() {
+  const coords = savedPrayerCoords();
+  if (!coords) return;
+
+  const today = localDateKey();
+  if (!prayerTimings || prayerTimingsDate !== today) {
+    try {
+      await fetchPrayerTimes(coords);
+    } catch (error) {
+      console.warn("Prayer refresh failed", error);
+      return;
+    }
+  }
+
+  updateNextPrayer();
+
+  const now = new Date();
+  const current = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+
+  for (const prayer of PRAYERS) {
+    if (!prayerAlarms[prayer.key]) continue;
+    if (prayerTimings[prayer.key] !== current) continue;
+
+    const alertKey = today + ":" + prayer.key;
+    if (localStorage.getItem(PRAYER_LAST_ALERT_KEY) === alertKey) continue;
+
+    localStorage.setItem(PRAYER_LAST_ALERT_KEY, alertKey);
+    await notifyPrayer(prayer, current);
+    break;
+  }
+}
+
+function startPrayerAlarmChecker() {
+  if (prayerCheckTimer) clearInterval(prayerCheckTimer);
+  prayerCheckTimer = setInterval(checkPrayerAlarms, 20000);
+  checkPrayerAlarms();
+}
 
 function familyFolderPrefix() {
   return "family/" + presenceDeviceId + "/";
@@ -807,6 +1149,10 @@ async function applySession(session) {
     uploadStatus.textContent = "";
     if (storageCard) storageCard.classList.add("hidden");
     if (onlineCount) onlineCount.textContent = "0";
+    if (prayerCheckTimer) {
+      clearInterval(prayerCheckTimer);
+      prayerCheckTimer = null;
+    }
     if (realtimeChannel && supabase) {
       supabase.removeChannel(realtimeChannel);
       realtimeChannel = null;
@@ -819,6 +1165,11 @@ async function applySession(session) {
   roleLabel.textContent = isAdmin() ? "Administrator" : "Anëtar i familjes";
   uploadStatus.textContent = "";
   await loadMedia();
+  const savedCoords = savedPrayerCoords();
+  if (savedCoords) {
+    fetchPrayerTimes(savedCoords).catch((error) => console.warn("Prayer preload failed", error));
+  }
+  startPrayerAlarmChecker();
   startRealtime();
 }
 
