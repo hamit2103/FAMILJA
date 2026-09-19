@@ -5,6 +5,9 @@ const FAMILY_EMAIL = "familja@familja.local";
 const ADMIN_EMAIL = "admin@familja.local";
 const BUCKET = "familja-media";
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const IMAGE_MAX_DIMENSION = 1920;
+const IMAGE_QUALITY = 0.78;
+const IMAGE_OPTIMIZE_MIN_SIZE = 350 * 1024;
 
 const configured =
   SUPABASE_URL &&
@@ -403,6 +406,70 @@ async function loadMedia() {
   }
 }
 
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 MB";
+  if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+async function optimizeImage(file) {
+  if (!(file?.type || "").startsWith("image/")) {
+    return { file, savedBytes: 0, optimized: false };
+  }
+
+  if (
+    file.type === "image/gif" ||
+    file.type === "image/svg+xml" ||
+    file.size < IMAGE_OPTIMIZE_MIN_SIZE
+  ) {
+    return { file, savedBytes: 0, optimized: false };
+  }
+
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+    const longest = Math.max(bitmap.width, bitmap.height);
+    const scale = Math.min(1, IMAGE_MAX_DIMENSION / longest);
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return { file, savedBytes: 0, optimized: false };
+
+    ctx.drawImage(bitmap, 0, 0, width, height);
+
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/webp", IMAGE_QUALITY)
+    );
+
+    if (!blob || blob.size >= file.size * 0.95) {
+      return { file, savedBytes: 0, optimized: false };
+    }
+
+    const baseName = file.name.replace(/\.[^.]+$/, "") || "foto";
+    const optimizedFile = new File([blob], baseName + ".webp", {
+      type: "image/webp",
+      lastModified: file.lastModified
+    });
+
+    return {
+      file: optimizedFile,
+      savedBytes: Math.max(0, file.size - optimizedFile.size),
+      optimized: true
+    };
+  } catch (error) {
+    console.warn("Foto nuk u optimizua, po ngarkohet origjinali.", error);
+    return { file, savedBytes: 0, optimized: false };
+  } finally {
+    if (bitmap?.close) bitmap.close();
+  }
+}
+
 uploadBtn.addEventListener("click", async () => {
   if (!supabase || !isAdmin()) return;
 
@@ -415,24 +482,39 @@ uploadBtn.addEventListener("click", async () => {
     );
   }
 
-  for (const file of files) {
-    if (file.size > MAX_FILE_SIZE) {
-      return showMessage(
-        uploadStatus,
-        file.name + " është mbi 50 MB. Plani falas lejon maksimum 50 MB për skedar.",
-        "error"
-      );
-    }
-  }
-
   uploadBtn.disabled = true;
   let done = 0;
+  let skipped = 0;
+  let savedBytes = 0;
 
   try {
-    for (const file of files) {
+    for (const originalFile of files) {
+      if ((originalFile.type || "").startsWith("image/")) {
+        showMessage(
+          uploadStatus,
+          "Po optimizoj foton " + (done + skipped + 1) + "/" + files.length + ": " + originalFile.name
+        );
+      }
+
+      const prepared = await optimizeImage(originalFile);
+      const file = prepared.file;
+      savedBytes += prepared.savedBytes;
+
+      if (file.size > MAX_FILE_SIZE) {
+        skipped++;
+        showMessage(
+          uploadStatus,
+          originalFile.name +
+            " është mbi 50 MB edhe pas optimizimit dhe u anashkalua. " +
+            "Kufiri i Supabase Free është 50 MB për skedar.",
+          "error"
+        );
+        continue;
+      }
+
       showMessage(
         uploadStatus,
-        "Po ngarkoj " + (done + 1) + "/" + files.length + ": " + file.name
+        "Po ngarkoj " + (done + 1) + "/" + files.length + ": " + originalFile.name
       );
 
       const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
@@ -456,7 +538,7 @@ uploadBtn.addEventListener("click", async () => {
       if (uploadError) throw uploadError;
 
       const { error: insertError } = await supabase.from("media").insert({
-        name: file.name,
+        name: originalFile.name,
         type: file.type,
         storage_path: path
       });
@@ -470,8 +552,24 @@ uploadBtn.addEventListener("click", async () => {
     }
 
     mediaInput.value = "";
-    showMessage(uploadStatus, "U ngarkuan " + done + " materiale.", "success");
-    await loadMedia();
+
+    if (done > 0) {
+      let message = "U ngarkuan " + done + " materiale.";
+      if (savedBytes > 0) {
+        message += " U kursyen rreth " + formatBytes(savedBytes) + " hapësirë nga fotot.";
+      }
+      if (skipped > 0) {
+        message += " " + skipped + " skedarë u anashkaluan sepse ishin mbi 50 MB.";
+      }
+      showMessage(uploadStatus, message, "success");
+      await loadMedia();
+    } else {
+      showMessage(
+        uploadStatus,
+        "Asnjë skedar nuk u ngarkua. Videot/skedarët duhet të jenë maksimum 50 MB secili.",
+        "error"
+      );
+    }
   } catch (e) {
     console.error(e);
     showMessage(
