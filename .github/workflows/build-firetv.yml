@@ -1,4 +1,4 @@
-name: Build Fire TV APK
+name: Build Android APK
 
 on:
   push:
@@ -29,24 +29,25 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Build APK
+      - name: Build universal Android APK
         run: gradle -p firetv assembleDebug
 
       - name: Publish APK into website
         run: |
+          cp firetv/app/build/outputs/apk/debug/app-debug.apk pajaziti-android.apk
           cp firetv/app/build/outputs/apk/debug/app-debug.apk pajaziti-firetv.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pajaziti-firetv.apk
+          git add pajaziti-android.apk pajaziti-firetv.apk
           if git diff --cached --quiet; then
             echo "APK unchanged"
           else
-            git commit -m "Publish Fire TV APK"
+            git commit -m "Publish Android APK"
             git push
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pajaziti-firetv
+          name: pajaziti-android
           path: firetv/app/build/outputs/apk/debug/app-debug.apk
