@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="Familja – album privat për foto dhe video">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>Familja</title>
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="card auth-card">
+      <div class="logo">F</div>
+      <h1>Familja</h1>
+      <p class="muted">Album privat për foto dhe video</p>
+
+      <div class="mode-switch">
+        <button id="familyMode" class="mode active" type="button">Familja</button>
+        <button id="adminMode" class="mode" type="button">Admin</button>
+      </div>
+
+      <label for="codeInput">Kodi i hyrjes</label>
+      <input id="codeInput" type="password" inputmode="text" autocomplete="current-password" placeholder="Shkruaj kodin">
+      <button id="loginBtn" class="primary" type="button">Hyr</button>
+      <p id="loginMessage" class="message"></p>
+
+      <p class="small muted">Kodi kontrollohet përmes Firebase Authentication. Fotot dhe videot nuk ruhen në telefonin e vizitorit, përveç nëse ai zgjedh t’i shkarkojë.</p>
+    </section>
+
+    <section id="appView" class="hidden">
+      <header class="topbar">
+        <div>
+          <h1>Familja</h1>
+          <p id="roleLabel" class="muted"></p>
+        </div>
+        <div class="top-actions">
+          <button id="installBtn" class="secondary hidden" type="button">Instalo</button>
+          <button id="logoutBtn" class="secondary" type="button">Dil</button>
+        </div>
+      </header>
+
+      <section id="adminPanel" class="card hidden">
+        <h2>Shto foto ose video</h2>
+        <input id="mediaInput" type="file" accept="image/*,video/*" multiple>
+        <button id="uploadBtn" class="primary" type="button">Ngarko</button>
+        <div id="uploadStatus" class="message"></div>
+      </section>
+
+      <section class="toolbar">
+        <div>
+          <strong id="mediaCount">0</strong>
+          <span class="muted"> materiale</span>
+        </div>
+        <button id="refreshBtn" class="secondary" type="button">Rifresko</button>
+      </section>
+
+      <section id="gallery" class="gallery"></section>
+      <section id="emptyState" class="card empty">
+        <h2>Ende nuk ka materiale</h2>
+        <p class="muted">Kur administratori të ngarkojë foto ose video, ato do të shfaqen këtu automatikisht.</p>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
