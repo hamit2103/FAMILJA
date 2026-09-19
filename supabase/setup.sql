@@ -11,6 +11,21 @@ create table if not exists public.media (
 
 alter table public.media enable row level security;
 
+-- Projekti u krijua me "Automatically expose new tables" OFF,
+-- prandaj japim vetëm privilegjet që i duhen rolit authenticated.
+grant select, insert, update, delete on table public.media to authenticated;
+
+-- Për kolonën identity.
+do $$
+declare
+  seq_name text;
+begin
+  select pg_get_serial_sequence('public.media', 'id') into seq_name;
+  if seq_name is not null then
+    execute format('grant usage, select on sequence %s to authenticated', seq_name);
+  end if;
+end $$;
+
 drop policy if exists "Familja can read media" on public.media;
 create policy "Familja can read media"
 on public.media
