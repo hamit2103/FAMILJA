@@ -100,3 +100,73 @@ body.lightbox-open { overflow: hidden; }
 .share-install-actions .secondary {
   width: 100%;
 }
+
+
+.app-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.app-tab {
+  min-height: 52px;
+  border: 0;
+  border-radius: 16px;
+  background: #e5e7eb;
+  color: #111827;
+  font-weight: 800;
+  font-size: 16px;
+}
+.app-tab.active {
+  background: #7c3aed;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(124,58,237,.28);
+}
+.info-compose textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 110px;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  padding: 14px;
+  background: #fff;
+  font: inherit;
+}
+.info-list {
+  display: grid;
+  gap: 12px;
+}
+.info-item {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 6px 22px rgba(0,0,0,.06);
+}
+.info-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.info-author {
+  font-weight: 800;
+}
+.info-time {
+  font-size: 12px;
+  color: #6b7280;
+}
+.info-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.info-delete {
+  margin-top: 12px;
+  border: 0;
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-weight: 700;
+}
