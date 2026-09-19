@@ -34,11 +34,19 @@ to authenticated
 using (true);
 
 drop policy if exists "Admin can insert media" on public.media;
-create policy "Admin can insert media"
+drop policy if exists "Family can insert media" on public.media;
+create policy "Family can insert media"
 on public.media
 for insert
 to authenticated
-with check (auth.email() = 'admin@familja.local');
+with check (
+  auth.email() = 'admin@familja.local'
+  or (
+    auth.email() = 'familja@familja.local'
+    and type like 'image/%'
+    and storage_path like 'family/%'
+  )
+);
 
 drop policy if exists "Admin can update media" on public.media;
 create policy "Admin can update media"
@@ -49,11 +57,18 @@ using (auth.email() = 'admin@familja.local')
 with check (auth.email() = 'admin@familja.local');
 
 drop policy if exists "Admin can delete media" on public.media;
-create policy "Admin can delete media"
+drop policy if exists "Family can delete own-path media" on public.media;
+create policy "Family can delete own-path media"
 on public.media
 for delete
 to authenticated
-using (auth.email() = 'admin@familja.local');
+using (
+  auth.email() = 'admin@familja.local'
+  or (
+    auth.email() = 'familja@familja.local'
+    and storage_path like 'family/%'
+  )
+);
 
 insert into storage.buckets (id, name, public, file_size_limit)
 values ('familja-media', 'familja-media', false, 52428800)
@@ -69,13 +84,20 @@ to authenticated
 using (bucket_id = 'familja-media');
 
 drop policy if exists "Admin can upload storage" on storage.objects;
-create policy "Admin can upload storage"
+drop policy if exists "Family can upload storage" on storage.objects;
+create policy "Family can upload storage"
 on storage.objects
 for insert
 to authenticated
 with check (
   bucket_id = 'familja-media'
-  and auth.email() = 'admin@familja.local'
+  and (
+    auth.email() = 'admin@familja.local'
+    or (
+      auth.email() = 'familja@familja.local'
+      and name like 'family/%'
+    )
+  )
 );
 
 drop policy if exists "Admin can update storage" on storage.objects;
@@ -93,13 +115,20 @@ with check (
 );
 
 drop policy if exists "Admin can delete storage" on storage.objects;
-create policy "Admin can delete storage"
+drop policy if exists "Family can delete own-path storage" on storage.objects;
+create policy "Family can delete own-path storage"
 on storage.objects
 for delete
 to authenticated
 using (
   bucket_id = 'familja-media'
-  and auth.email() = 'admin@familja.local'
+  and (
+    auth.email() = 'admin@familja.local'
+    or (
+      auth.email() = 'familja@familja.local'
+      and name like 'family/%'
+    )
+  )
 );
 
 do $$
