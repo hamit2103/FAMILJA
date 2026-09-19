@@ -17,6 +17,7 @@ public final class PrayerAlarmScheduler {
     private static final String ENABLED_KEYS = "enabled_keys";
     private static final String SCHEDULE_PREFIX = "schedule_";
     private static final String LABEL_PREFIX = "label_";
+    private static final String LANGUAGE_PREFIX = "language_";
 
     private PrayerAlarmScheduler() {}
 
@@ -45,7 +46,8 @@ public final class PrayerAlarmScheduler {
         Context context,
         String prayerKey,
         String label,
-        String timesJson
+        String timesJson,
+        String language
     ) {
         try {
             JSONArray input = new JSONArray(timesJson);
@@ -66,6 +68,7 @@ public final class PrayerAlarmScheduler {
             prefs.edit()
                 .putString(SCHEDULE_PREFIX + prayerKey, future.toString())
                 .putString(LABEL_PREFIX + prayerKey, label)
+                .putString(LANGUAGE_PREFIX + prayerKey, language)
                 .putStringSet(ENABLED_KEYS, keys)
                 .apply();
 
@@ -76,7 +79,7 @@ public final class PrayerAlarmScheduler {
     public static void cancel(Context context, String prayerKey) {
         AlarmManager manager =
             (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = alarmPendingIntent(context, prayerKey, 0L, "");
+        PendingIntent pendingIntent = alarmPendingIntent(context, prayerKey, 0L, "", "sq");
 
         if (manager != null) {
             manager.cancel(pendingIntent);
@@ -91,6 +94,7 @@ public final class PrayerAlarmScheduler {
         prefs.edit()
             .remove(SCHEDULE_PREFIX + prayerKey)
             .remove(LABEL_PREFIX + prayerKey)
+            .remove(LANGUAGE_PREFIX + prayerKey)
             .putStringSet(ENABLED_KEYS, keys)
             .apply();
     }
@@ -134,6 +138,7 @@ public final class PrayerAlarmScheduler {
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String raw = prefs.getString(SCHEDULE_PREFIX + prayerKey, "[]");
         String label = prefs.getString(LABEL_PREFIX + prayerKey, prayerKey);
+        String language = prefs.getString(LANGUAGE_PREFIX + prayerKey, "sq");
         long now = System.currentTimeMillis();
         long next = 0L;
 
@@ -155,7 +160,7 @@ public final class PrayerAlarmScheduler {
         if (manager == null) return;
 
         PendingIntent pendingIntent =
-            alarmPendingIntent(context, prayerKey, next, label);
+            alarmPendingIntent(context, prayerKey, next, label, language);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (manager.canScheduleExactAlarms()) {
@@ -190,12 +195,14 @@ public final class PrayerAlarmScheduler {
         Context context,
         String prayerKey,
         long at,
-        String label
+        String label,
+        String language
     ) {
         Intent intent = new Intent(context, PrayerAlarmReceiver.class);
         intent.setAction("com.pajaziti.familja.PRAYER_" + prayerKey);
         intent.putExtra("prayerKey", prayerKey);
         intent.putExtra("label", label);
+        intent.putExtra("language", language);
         intent.putExtra("at", at);
 
         int requestCode = 0x4000 + (prayerKey.hashCode() & 0x0fff);
