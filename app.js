@@ -82,6 +82,8 @@ let prayerTimingsDate = "";
 let prayerTimezone = "";
 let prayerCheckTimer = null;
 let prayerAudioContext = null;
+let nativeCalendarCache = null;
+let nativeCalendarCacheKey = "";
 
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
 const PRAYER_ALARMS_KEY = "pajaziti-prayer-alarms";
@@ -451,6 +453,12 @@ async function fetchPrayerTimes(coords) {
   prayerLocation.textContent = "Zona: " + prayerTimezone;
   renderPrayerTimes();
   updateNextPrayer();
+
+  if (isNativePrayerApp()) {
+    refreshNativePrayerSchedules().catch((error) =>
+      console.warn("Native prayer refresh failed", error)
+    );
+  }
 }
 
 async function loadPrayerTimes(forceLocation = false) {
@@ -487,8 +495,146 @@ function savePrayerAlarms() {
   localStorage.setItem(PRAYER_ALARMS_KEY, JSON.stringify(prayerAlarms));
 }
 
+function isNativePrayerApp() {
+  try {
+    return !!(window.AndroidPrayer && window.AndroidPrayer.isNativeAndroid());
+  } catch (_) {
+    return false;
+  }
+}
+
+function monthKey(year, month) {
+  return year + "-" + String(month).padStart(2, "0");
+}
+
+async function fetchPrayerCalendarMonth(coords, year, month) {
+  const url = new URL(
+    "https://api.aladhan.com/v1/calendar/" + year + "/" + month
+  );
+  url.searchParams.set("latitude", coords.latitude);
+  url.searchParams.set("longitude", coords.longitude);
+  url.searchParams.set("method", "13");
+  url.searchParams.set("school", "1");
+
+  const response = await fetch(url.toString(), { cache: "no-store" });
+  if (!response.ok) throw new Error("Nuk u mor kalendari i namazit.");
+
+  const json = await response.json();
+  if (json?.code !== 200 || !Array.isArray(json?.data)) {
+    throw new Error("Kalendari i namazit nuk u kthye si duhet.");
+  }
+
+  return json.data;
+}
+
+async function getNativePrayerCalendar(coords) {
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  const thisMonth = now.getMonth() + 1;
+  const nextDate = new Date(thisYear, thisMonth, 1);
+  const nextYear = nextDate.getFullYear();
+  const nextMonth = nextDate.getMonth() + 1;
+
+  const key =
+    coords.latitude + "," + coords.longitude + ":" +
+    monthKey(thisYear, thisMonth) + ":" +
+    monthKey(nextYear, nextMonth);
+
+  if (nativeCalendarCache && nativeCalendarCacheKey === key) {
+    return nativeCalendarCache;
+  }
+
+  const [current, next] = await Promise.all([
+    fetchPrayerCalendarMonth(coords, thisYear, thisMonth),
+    fetchPrayerCalendarMonth(coords, nextYear, nextMonth)
+  ]);
+
+  nativeCalendarCache = [...current, ...next];
+  nativeCalendarCacheKey = key;
+  return nativeCalendarCache;
+}
+
+function prayerTimestampFromCalendarDay(day, prayerKey) {
+  const gregorian = day?.date?.gregorian?.date || "";
+  const match = gregorian.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (!match) return null;
+
+  const time = cleanPrayerTime(day?.timings?.[prayerKey]);
+  const parts = time.split(":").map(Number);
+  if (
+    parts.length !== 2 ||
+    !Number.isFinite(parts[0]) ||
+    !Number.isFinite(parts[1])
+  ) return null;
+
+  const timestamp = new Date(
+    Number(match[3]),
+    Number(match[2]) - 1,
+    Number(match[1]),
+    parts[0],
+    parts[1],
+    0,
+    0
+  ).getTime();
+
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+async function scheduleNativePrayer(prayer) {
+  if (!isNativePrayerApp()) return false;
+
+  const coords = savedPrayerCoords();
+  if (!coords) {
+    throw new Error("Zgjidh fillimisht vendndodhjen.");
+  }
+
+  const calendar = await getNativePrayerCalendar(coords);
+  const now = Date.now() - 60_000;
+  const times = calendar
+    .map((day) => prayerTimestampFromCalendarDay(day, prayer.key))
+    .filter((value) => Number.isFinite(value) && value > now)
+    .slice(0, 45);
+
+  if (!times.length) {
+    throw new Error("Nuk u gjetën orare të ardhshme për " + prayer.label + ".");
+  }
+
+  window.AndroidPrayer.schedulePrayer(
+    prayer.key,
+    prayer.label,
+    JSON.stringify(times)
+  );
+  return true;
+}
+
+async function refreshNativePrayerSchedules() {
+  if (!isNativePrayerApp()) return;
+
+  const coords = savedPrayerCoords();
+  if (!coords) return;
+
+  for (const prayer of PRAYERS) {
+    if (!prayerAlarms[prayer.key]) continue;
+    try {
+      await scheduleNativePrayer(prayer);
+    } catch (error) {
+      console.warn("Native prayer schedule failed", prayer.key, error);
+    }
+  }
+}
+
+window.addEventListener("androidPrayerReady", () => {
+  refreshNativePrayerSchedules().catch(console.warn);
+});
+
+
 async function requestAlarmPermission() {
   try {
+    if (isNativePrayerApp()) {
+      window.AndroidPrayer.requestAlarmPermissions();
+      return;
+    }
+
     if ("Notification" in window && Notification.permission === "default") {
       await Notification.requestPermission();
     }
@@ -527,11 +673,58 @@ function renderPrayerTimes() {
     alarm.textContent = prayerAlarms[prayer.key] ? "🔔 Alarm ON" : "🔕 Alarm OFF";
     alarm.addEventListener("click", async () => {
       const next = !prayerAlarms[prayer.key];
-      if (next) await requestAlarmPermission();
-      prayerAlarms[prayer.key] = next;
-      savePrayerAlarms();
-      renderPrayerTimes();
-      checkPrayerAlarms();
+      alarm.disabled = true;
+
+      try {
+        if (next) {
+          await requestAlarmPermission();
+          prayerAlarms[prayer.key] = true;
+          savePrayerAlarms();
+
+          if (isNativePrayerApp()) {
+            showMessage(
+              prayerStatus,
+              "Po regjistroj alarmin sistemor për " + prayer.label + "…"
+            );
+            await scheduleNativePrayer(prayer);
+            showMessage(
+              prayerStatus,
+              "Alarmi sistemor për " + prayer.label + " u aktivizua.",
+              "success"
+            );
+          } else {
+            showMessage(
+              prayerStatus,
+              "Alarmi u aktivizua. Për alarm edhe kur app-i është i mbyllur përdor APK Android.",
+              "success"
+            );
+          }
+        } else {
+          prayerAlarms[prayer.key] = false;
+          savePrayerAlarms();
+
+          if (isNativePrayerApp()) {
+            window.AndroidPrayer.cancelPrayer(prayer.key);
+          }
+
+          showMessage(
+            prayerStatus,
+            "Alarmi për " + prayer.label + " u çaktivizua."
+          );
+        }
+      } catch (error) {
+        prayerAlarms[prayer.key] = false;
+        savePrayerAlarms();
+        console.error("Prayer alarm toggle failed", error);
+        showMessage(
+          prayerStatus,
+          error?.message || "Alarmi nuk u regjistrua.",
+          "error"
+        );
+      } finally {
+        renderPrayerTimes();
+        checkPrayerAlarms();
+      }
     });
 
     row.appendChild(name);
@@ -621,6 +814,11 @@ async function notifyPrayer(prayer, time) {
 }
 
 async function checkPrayerAlarms() {
+  if (isNativePrayerApp()) {
+    updateNextPrayer();
+    return;
+  }
+
   const coords = savedPrayerCoords();
   if (!coords) return;
 
