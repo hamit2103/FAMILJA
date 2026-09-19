@@ -14,7 +14,8 @@ jobs:
       - name: Recreate project archive
         shell: bash
         run: |
-          base64 --decode source/Familja-Android.zip.b64 > Familja-Android.zip
+          cat archive/chunk01.b64 archive/chunk02.b64 archive/chunk03.b64 archive/chunk04.b64               archive/chunk05.b64 archive/chunk06.b64 archive/chunk07.b64 archive/chunk08.b64               > Familja-Android.zip.b64
+          base64 --decode Familja-Android.zip.b64 > Familja-Android.zip
           unzip -t Familja-Android.zip
           unzip -q Familja-Android.zip
 
