@@ -1,6 +1,8 @@
 name: Build Familja APK
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -11,14 +13,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Recreate project archive
-        shell: bash
-        run: |
-          cat archive/chunk01.b64 archive/chunk02.b64 archive/chunk03.b64 archive/chunk04.b64               archive/chunk05.b64 archive/chunk06.b64 archive/chunk07.b64 archive/chunk08.b64               > Familja-Android.zip.b64
-          base64 --decode Familja-Android.zip.b64 > Familja-Android.zip
-          unzip -t Familja-Android.zip
-          unzip -q Familja-Android.zip
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -28,24 +22,23 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK
+      - name: Install Android SDK packages
         shell: bash
         run: |
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Set up Gradle 8.13
+      - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.13"
+          gradle-version: "8.9"
 
       - name: Build debug APK
-        working-directory: Familja
         run: gradle --no-daemon :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Familja-debug-apk
-          path: Familja/app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
