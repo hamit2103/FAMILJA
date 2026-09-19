@@ -1,23 +1,23 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDSSYWLztQOxUs52ojGyS6c1ys559pBrlU",
-  authDomain: "familja-9e838.firebaseapp.com",
-  projectId: "familja-9e838",
-  storageBucket: "familja-9e838.firebasestorage.app",
-  messagingSenderId: "113229526674"
-};
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
 
 const FAMILY_EMAIL = "familja@familja.local";
 const ADMIN_EMAIL = "admin@familja.local";
+const BUCKET = "familja-media";
+const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+const configured =
+  SUPABASE_URL &&
+  SUPABASE_ANON_KEY &&
+  !SUPABASE_URL.includes("PASTE_") &&
+  !SUPABASE_ANON_KEY.includes("PASTE_");
+
+const supabase = configured
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    })
+  : null;
+
 const $ = (id) => document.getElementById(id);
 
 const loginView = $("loginView");
@@ -40,179 +40,311 @@ const refreshBtn = $("refreshBtn");
 const installBtn = $("installBtn");
 
 let mode = "family";
-let unsubscribeMedia = null;
+let realtimeChannel = null;
 let installPrompt = null;
+let currentUser = null;
 
 function setMode(next) {
   mode = next;
   familyMode.classList.toggle("active", next === "family");
   adminMode.classList.toggle("active", next === "admin");
   codeInput.value = "";
-  codeInput.placeholder = next === "admin" ? "Kodi i administratorit" : "Kodi i familjes";
+  codeInput.placeholder =
+    next === "admin" ? "Kodi i administratorit" : "Kodi i familjes";
   loginMessage.textContent = "";
 }
 familyMode.addEventListener("click", () => setMode("family"));
 adminMode.addEventListener("click", () => setMode("admin"));
 
-function showMessage(el, text, kind) {
+function showMessage(el, text, kind = "") {
   el.textContent = text;
   el.className = "message" + (kind ? " " + kind : "");
 }
 
-loginBtn.addEventListener("click", async () => {
+function isAdmin() {
+  return currentUser?.email === ADMIN_EMAIL;
+}
+
+async function login() {
+  if (!configured) {
+    return showMessage(
+      loginMessage,
+      "Supabase nuk është lidhur ende. Duhet Project URL dhe anon key.",
+      "error"
+    );
+  }
+
   const code = codeInput.value.trim();
   if (!code) return showMessage(loginMessage, "Shkruaj kodin.", "error");
+
   loginBtn.disabled = true;
   showMessage(loginMessage, "Po kontrolloj kodin…");
-  try {
-    const email = mode === "admin" ? ADMIN_EMAIL : FAMILY_EMAIL;
-    await signInWithEmailAndPassword(auth, email, code);
+
+  const email = mode === "admin" ? ADMIN_EMAIL : FAMILY_EMAIL;
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password: code
+  });
+
+  if (error) {
+    console.error(error);
+    showMessage(loginMessage, "Kodi nuk është i saktë.", "error");
+  } else {
     showMessage(loginMessage, "");
-  } catch (e) {
-    console.error(e);
-    showMessage(loginMessage, "Kodi nuk është i saktë ose Firebase Authentication nuk është aktivizuar ende.", "error");
-  } finally {
-    loginBtn.disabled = false;
   }
-});
+  loginBtn.disabled = false;
+}
 
+loginBtn.addEventListener("click", login);
 codeInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") loginBtn.click();
+  if (e.key === "Enter") login();
 });
 
-logoutBtn.addEventListener("click", () => signOut(auth));
-refreshBtn.addEventListener("click", () => startMediaListener());
+logoutBtn.addEventListener("click", async () => {
+  if (supabase) await supabase.auth.signOut();
+});
 
-async function startMediaListener() {
-  if (unsubscribeMedia) unsubscribeMedia();
+refreshBtn.addEventListener("click", loadMedia);
+
+async function signedUrl(path) {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(path, 60 * 60);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+async function loadMedia() {
+  if (!supabase || !currentUser) return;
+
   gallery.innerHTML = "";
-  try {
-    const q = query(collection(db, "media"), orderBy("createdAt", "desc"));
-    unsubscribeMedia = onSnapshot(q, async (snap) => {
-      gallery.innerHTML = "";
-      mediaCount.textContent = String(snap.size);
-      emptyState.classList.toggle("hidden", snap.size > 0);
-      for (const d of snap.docs) {
-        const item = d.data();
-        const card = document.createElement("article");
-        card.className = "media-card";
-        try {
-          const url = await getDownloadURL(ref(storage, item.storagePath));
-          let preview;
-          if ((item.type || "").startsWith("video/")) {
-            preview = document.createElement("video");
-            preview.controls = true;
-            preview.preload = "metadata";
-            preview.src = url;
-          } else {
-            preview = document.createElement("img");
-            preview.loading = "lazy";
-            preview.alt = item.name || "Foto";
-            preview.src = url;
-          }
-          card.appendChild(preview);
+  const { data, error } = await supabase
+    .from("media")
+    .select("id,name,type,storage_path,created_at")
+    .order("created_at", { ascending: false });
 
-          const meta = document.createElement("div");
-          meta.className = "media-meta";
+  if (error) {
+    console.error(error);
+    emptyState.classList.remove("hidden");
+    emptyState.querySelector("h2").textContent = "Supabase nuk është gati ende";
+    emptyState.querySelector("p").textContent =
+      "Duhet të ekzekutohet skedari supabase/setup.sql në SQL Editor.";
+    return;
+  }
 
-          const name = document.createElement("div");
-          name.className = "media-name";
-          name.textContent = item.name || "Material";
-          meta.appendChild(name);
+  mediaCount.textContent = String(data.length);
+  emptyState.classList.toggle("hidden", data.length > 0);
 
-          const actions = document.createElement("div");
-          actions.className = "media-actions";
+  for (const item of data) {
+    const card = document.createElement("article");
+    card.className = "media-card";
 
-          const download = document.createElement("a");
-          download.href = url;
-          download.target = "_blank";
-          download.rel = "noopener";
-          download.textContent = "Shkarko";
-          actions.appendChild(download);
+    try {
+      const url = await signedUrl(item.storage_path);
+      let preview;
 
-          if (auth.currentUser && auth.currentUser.email === ADMIN_EMAIL) {
-            const del = document.createElement("button");
-            del.type = "button";
-            del.className = "danger";
-            del.textContent = "Fshi";
-            del.addEventListener("click", async () => {
-              if (!confirm("Ta fshij këtë material?")) return;
-              try {
-                await deleteObject(ref(storage, item.storagePath));
-                await deleteDoc(doc(db, "media", d.id));
-              } catch (e) {
-                alert("Nuk u fshi: " + (e && e.message ? e.message : e));
-              }
-            });
-            actions.appendChild(del);
-          }
-
-          meta.appendChild(actions);
-          card.appendChild(meta);
-          gallery.appendChild(card);
-        } catch (e) {
-          console.error("Media load failed", e);
-        }
+      if ((item.type || "").startsWith("video/")) {
+        preview = document.createElement("video");
+        preview.controls = true;
+        preview.preload = "metadata";
+        preview.src = url;
+      } else {
+        preview = document.createElement("img");
+        preview.loading = "lazy";
+        preview.alt = item.name || "Foto";
+        preview.src = url;
       }
-    }, (e) => {
-      console.error(e);
-      emptyState.classList.remove("hidden");
-      emptyState.querySelector("h2").textContent = "Firebase nuk është gati ende";
-      emptyState.querySelector("p").textContent = "Duhet të aktivizohen Firestore, Storage dhe rregullat e sigurisë.";
-    });
-  } catch (e) {
-    console.error(e);
+
+      card.appendChild(preview);
+
+      const meta = document.createElement("div");
+      meta.className = "media-meta";
+
+      const name = document.createElement("div");
+      name.className = "media-name";
+      name.textContent = item.name || "Material";
+      meta.appendChild(name);
+
+      const actions = document.createElement("div");
+      actions.className = "media-actions";
+
+      const download = document.createElement("a");
+      download.href = url;
+      download.target = "_blank";
+      download.rel = "noopener";
+      download.textContent = "Shkarko";
+      actions.appendChild(download);
+
+      if (isAdmin()) {
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "danger";
+        del.textContent = "Fshi";
+        del.addEventListener("click", async () => {
+          if (!confirm("Ta fshij këtë material?")) return;
+
+          const { error: storageError } = await supabase.storage
+            .from(BUCKET)
+            .remove([item.storage_path]);
+
+          if (storageError) {
+            alert("Nuk u fshi skedari: " + storageError.message);
+            return;
+          }
+
+          const { error: dbError } = await supabase
+            .from("media")
+            .delete()
+            .eq("id", item.id);
+
+          if (dbError) {
+            alert("Nuk u fshi regjistri: " + dbError.message);
+          }
+        });
+        actions.appendChild(del);
+      }
+
+      meta.appendChild(actions);
+      card.appendChild(meta);
+      gallery.appendChild(card);
+    } catch (e) {
+      console.error("Media load failed", e);
+    }
   }
 }
 
 uploadBtn.addEventListener("click", async () => {
+  if (!supabase || !isAdmin()) return;
+
   const files = Array.from(mediaInput.files);
-  if (!files.length) return showMessage(uploadStatus, "Zgjidh së paku një foto ose video.", "error");
-  if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) return;
+  if (!files.length) {
+    return showMessage(
+      uploadStatus,
+      "Zgjidh së paku një foto ose video.",
+      "error"
+    );
+  }
+
+  for (const file of files) {
+    if (file.size > MAX_FILE_SIZE) {
+      return showMessage(
+        uploadStatus,
+        file.name + " është mbi 50 MB. Plani falas lejon maksimum 50 MB për skedar.",
+        "error"
+      );
+    }
+  }
 
   uploadBtn.disabled = true;
   let done = 0;
+
   try {
     for (const file of files) {
-      showMessage(uploadStatus, "Po ngarkoj " + (done + 1) + "/" + files.length + ": " + file.name);
+      showMessage(
+        uploadStatus,
+        "Po ngarkoj " + (done + 1) + "/" + files.length + ": " + file.name
+      );
+
       const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
-      const path = "media/" + Date.now() + "_" + Math.random().toString(36).slice(2,8) + "_" + safe;
-      const target = ref(storage, path);
-      await uploadBytes(target, file, { contentType: file.type });
-      await addDoc(collection(db, "media"), {
+      const path =
+        currentUser.id +
+        "/" +
+        Date.now() +
+        "_" +
+        Math.random().toString(36).slice(2, 8) +
+        "_" +
+        safe;
+
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, {
+          cacheControl: "3600",
+          contentType: file.type,
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { error: insertError } = await supabase.from("media").insert({
         name: file.name,
         type: file.type,
-        storagePath: path,
-        createdAt: serverTimestamp()
+        storage_path: path
       });
+
+      if (insertError) {
+        await supabase.storage.from(BUCKET).remove([path]);
+        throw insertError;
+      }
+
       done++;
     }
+
     mediaInput.value = "";
     showMessage(uploadStatus, "U ngarkuan " + done + " materiale.", "success");
+    await loadMedia();
   } catch (e) {
     console.error(e);
-    showMessage(uploadStatus, "Ngarkimi dështoi: " + (e && e.message ? e.message : e), "error");
+    showMessage(
+      uploadStatus,
+      "Ngarkimi dështoi: " + (e?.message || e),
+      "error"
+    );
   } finally {
     uploadBtn.disabled = false;
   }
 });
 
-onAuthStateChanged(auth, (user) => {
-  const signedIn = !!user;
+function startRealtime() {
+  if (!supabase) return;
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+
+  realtimeChannel = supabase
+    .channel("familja-media-live")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "media" },
+      () => loadMedia()
+    )
+    .subscribe();
+}
+
+async function applySession(session) {
+  currentUser = session?.user || null;
+  const signedIn = !!currentUser;
+
   loginView.classList.toggle("hidden", signedIn);
   appView.classList.toggle("hidden", !signedIn);
 
   if (!signedIn) {
-    if (unsubscribeMedia) unsubscribeMedia();
     gallery.innerHTML = "";
+    mediaCount.textContent = "0";
+    if (realtimeChannel && supabase) {
+      supabase.removeChannel(realtimeChannel);
+      realtimeChannel = null;
+    }
     return;
   }
 
-  const isAdmin = user.email === ADMIN_EMAIL;
-  adminPanel.classList.toggle("hidden", !isAdmin);
-  roleLabel.textContent = isAdmin ? "Administrator" : "Anëtar i familjes";
-  startMediaListener();
-});
+  adminPanel.classList.toggle("hidden", !isAdmin());
+  roleLabel.textContent = isAdmin() ? "Administrator" : "Anëtar i familjes";
+  await loadMedia();
+  startRealtime();
+}
+
+if (supabase) {
+  const { data } = await supabase.auth.getSession();
+  await applySession(data.session);
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    setTimeout(() => applySession(session), 0);
+  });
+} else {
+  showMessage(
+    loginMessage,
+    "Kodi i aplikacionit është kaluar në Supabase Free. Tani duhet vetëm ta lidhim projektin Supabase.",
+    ""
+  );
+}
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
