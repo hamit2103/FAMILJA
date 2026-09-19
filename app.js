@@ -55,11 +55,20 @@ const infoRefreshBtn = $("infoRefreshBtn");
 const infoList = $("infoList");
 const infoEmpty = $("infoEmpty");
 const infoCount = $("infoCount");
+const onlineCount = $("onlineCount");
 
 let mode = "family";
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
+
+const PRESENCE_DEVICE_KEY = "pajaziti-presence-device";
+let presenceDeviceId = localStorage.getItem(PRESENCE_DEVICE_KEY);
+if (!presenceDeviceId) {
+  presenceDeviceId =
+    (globalThis.crypto?.randomUUID?.() || ("device_" + Math.random().toString(36).slice(2) + Date.now()));
+  localStorage.setItem(PRESENCE_DEVICE_KEY, presenceDeviceId);
+}
 
 const lightbox = document.createElement("div");
 lightbox.className = "lightbox hidden";
@@ -582,12 +591,39 @@ uploadBtn.addEventListener("click", async () => {
   }
 });
 
+function updateOnlineCount() {
+  if (!onlineCount || !realtimeChannel) return;
+  const state = realtimeChannel.presenceState();
+  onlineCount.textContent = String(Object.keys(state).length);
+}
+
 function startRealtime() {
-  if (!supabase) return;
+  if (!supabase || !currentUser) return;
   if (realtimeChannel) supabase.removeChannel(realtimeChannel);
 
+  if (onlineCount) onlineCount.textContent = "0";
+
   realtimeChannel = supabase
-    .channel("familja-live")
+    .channel("familja-live", {
+      config: {
+        presence: { key: presenceDeviceId }
+      }
+    })
+    .on(
+      "presence",
+      { event: "sync" },
+      updateOnlineCount
+    )
+    .on(
+      "presence",
+      { event: "join" },
+      updateOnlineCount
+    )
+    .on(
+      "presence",
+      { event: "leave" },
+      updateOnlineCount
+    )
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "media" },
@@ -598,7 +634,16 @@ function startRealtime() {
       { event: "*", schema: "public", table: "information" },
       () => loadInfo()
     )
-    .subscribe();
+    .subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await realtimeChannel.track({
+          device_id: presenceDeviceId,
+          role: isAdmin() ? "admin" : "family",
+          online_at: new Date().toISOString()
+        });
+        updateOnlineCount();
+      }
+    });
 }
 
 async function applySession(session) {
@@ -611,6 +656,7 @@ async function applySession(session) {
   if (!signedIn) {
     gallery.innerHTML = "";
     mediaCount.textContent = "0";
+    if (onlineCount) onlineCount.textContent = "0";
     if (realtimeChannel && supabase) {
       supabase.removeChannel(realtimeChannel);
       realtimeChannel = null;
