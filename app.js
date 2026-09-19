@@ -40,6 +40,18 @@ const refreshBtn = $("refreshBtn");
 const installBtn = $("installBtn");
 const installLoginBtn = $("installLoginBtn");
 const shareBtn = $("shareBtn");
+const galleryTab = $("galleryTab");
+const infoTab = $("infoTab");
+const galleryView = $("galleryView");
+const infoView = $("infoView");
+const infoName = $("infoName");
+const infoText = $("infoText");
+const infoSendBtn = $("infoSendBtn");
+const infoStatus = $("infoStatus");
+const infoRefreshBtn = $("infoRefreshBtn");
+const infoList = $("infoList");
+const infoEmpty = $("infoEmpty");
+const infoCount = $("infoCount");
 
 let mode = "family";
 let realtimeChannel = null;
@@ -87,6 +99,17 @@ document.addEventListener("keydown", (event) => {
     closeLightbox();
   }
 });
+
+function setSection(next) {
+  const showInfo = next === "info";
+  galleryTab.classList.toggle("active", !showInfo);
+  infoTab.classList.toggle("active", showInfo);
+  galleryView.classList.toggle("hidden", showInfo);
+  infoView.classList.toggle("hidden", !showInfo);
+  if (showInfo) loadInfo();
+}
+galleryTab.addEventListener("click", () => setSection("gallery"));
+infoTab.addEventListener("click", () => setSection("info"));
 
 function setMode(next) {
   mode = next;
@@ -160,6 +183,116 @@ logoutBtn.addEventListener("click", async () => {
 });
 
 refreshBtn.addEventListener("click", loadMedia);
+
+async function loadInfo() {
+  if (!supabase || !currentUser) return;
+
+  const { data, error } = await supabase
+    .from("information")
+    .select("id,author,message,created_at,user_id")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    showMessage(infoStatus, "Informacioni nuk është gati ende.", "error");
+    return;
+  }
+
+  infoList.innerHTML = "";
+  infoCount.textContent = String(data.length);
+  infoEmpty.classList.toggle("hidden", data.length > 0);
+
+  for (const item of data) {
+    const card = document.createElement("article");
+    card.className = "info-item";
+
+    const head = document.createElement("div");
+    head.className = "info-head";
+
+    const left = document.createElement("div");
+    const author = document.createElement("div");
+    author.className = "info-author";
+    author.textContent = item.author || "Familja";
+
+    const time = document.createElement("div");
+    time.className = "info-time";
+    time.textContent = new Date(item.created_at).toLocaleString("sq-AL");
+
+    left.appendChild(author);
+    left.appendChild(time);
+    head.appendChild(left);
+
+    card.appendChild(head);
+
+    const text = document.createElement("div");
+    text.className = "info-text";
+    text.textContent = item.message || "";
+    card.appendChild(text);
+
+    if (isAdmin()) {
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "info-delete";
+      del.textContent = "Fshi";
+      del.addEventListener("click", async () => {
+        if (!confirm("Ta fshij këtë informacion?")) return;
+        const { error: delError } = await supabase
+          .from("information")
+          .delete()
+          .eq("id", item.id);
+        if (delError) {
+          alert("Nuk u fshi: " + delError.message);
+          return;
+        }
+        await loadInfo();
+      });
+      card.appendChild(del);
+    }
+
+    infoList.appendChild(card);
+  }
+}
+
+infoRefreshBtn.addEventListener("click", loadInfo);
+
+infoSendBtn.addEventListener("click", async () => {
+  if (!supabase || !currentUser) return;
+
+  const author = infoName.value.trim();
+  const message = infoText.value.trim();
+
+  if (!author) {
+    return showMessage(infoStatus, "Shkruaj emrin.", "error");
+  }
+  if (!message) {
+    return showMessage(infoStatus, "Shkruaj mesazhin.", "error");
+  }
+
+  infoSendBtn.disabled = true;
+  showMessage(infoStatus, "Po publikohet...");
+
+  const { error } = await supabase.from("information").insert({
+    author,
+    message,
+    user_id: currentUser.id
+  });
+
+  infoSendBtn.disabled = false;
+
+  if (error) {
+    console.error(error);
+    showMessage(infoStatus, "Publikimi dështoi: " + error.message, "error");
+    return;
+  }
+
+  localStorage.setItem("pajaziti-info-name", author);
+  infoText.value = "";
+  showMessage(infoStatus, "U publikua.", "success");
+  await loadInfo();
+});
+
+const savedInfoName = localStorage.getItem("pajaziti-info-name");
+if (savedInfoName) infoName.value = savedInfoName;
 
 async function signedUrl(path) {
   const { data, error } = await supabase.storage
@@ -356,11 +489,16 @@ function startRealtime() {
   if (realtimeChannel) supabase.removeChannel(realtimeChannel);
 
   realtimeChannel = supabase
-    .channel("familja-media-live")
+    .channel("familja-live")
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "media" },
       () => loadMedia()
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "information" },
+      () => loadInfo()
     )
     .subscribe();
 }
