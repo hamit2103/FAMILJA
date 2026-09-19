@@ -27,7 +27,7 @@ input[type="password"], input[type="text"], input[type="file"] {
 .secondary { background: #e5e7eb; color: #111827; }
 .mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 22px; padding: 5px; background: #f3f4f6; border-radius: 16px; }
 .mode { background: transparent; color: #6b7280; }
-.mode.active { background: #fff; color: #111827; box-shadow: 0 3px 12px rgba(0,0,0,.08); }
+.mode.active { background: #7c3aed; color: #fff; box-shadow: 0 3px 14px rgba(124,58,237,.30); }
 .message { min-height: 22px; margin: 12px 0 0; color: #374151; font-size: 14px; }
 .message.error { color: #b91c1c; }
 .message.success { color: #047857; }
