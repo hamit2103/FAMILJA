@@ -201,3 +201,33 @@ begin
     alter publication supabase_realtime add table public.information;
   end if;
 end $$;
+
+
+-- Admin-only storage usage meter (bytes used in familja-media).
+create or replace function public.admin_storage_usage()
+returns bigint
+language sql
+security definer
+set search_path = public, storage
+as $$
+  select
+    case
+      when auth.email() = 'admin@familja.local' then
+        coalesce(
+          sum(
+            case
+              when (metadata->>'size') ~ '^[0-9]+$'
+              then (metadata->>'size')::bigint
+              else 0
+            end
+          ),
+          0
+        )::bigint
+      else 0::bigint
+    end
+  from storage.objects
+  where bucket_id = 'familja-media';
+$$;
+
+revoke all on function public.admin_storage_usage() from public;
+grant execute on function public.admin_storage_usage() to authenticated;
