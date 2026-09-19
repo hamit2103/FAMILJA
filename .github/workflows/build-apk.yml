@@ -14,7 +14,8 @@ jobs:
       - name: Recreate project archive
         shell: bash
         run: |
-          cat source/Familja-Android.zip.b64.part1               source/Familja-Android.zip.b64.part2               source/Familja-Android.zip.b64.part3               source/Familja-Android.zip.b64.part4               | base64 --decode > Familja-Android.zip
+          base64 --decode source/Familja-Android.zip.b64 > Familja-Android.zip
+          unzip -t Familja-Android.zip
           unzip -q Familja-Android.zip
 
       - name: Set up JDK 17
