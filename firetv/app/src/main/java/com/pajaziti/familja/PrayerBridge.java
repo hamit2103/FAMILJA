@@ -38,13 +38,15 @@ public class PrayerBridge {
     public void schedulePrayer(
         String prayerKey,
         String label,
-        String timesJson
+        String timesJson,
+        String language
     ) {
         PrayerAlarmScheduler.saveSchedule(
             activity,
             prayerKey,
             label,
-            timesJson
+            timesJson,
+            language
         );
     }
 
