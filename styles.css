@@ -90,3 +90,13 @@ input[type="password"], input[type="text"], input[type="file"] {
   z-index: 10000;
 }
 body.lightbox-open { overflow: hidden; }
+
+.share-install-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.share-install-actions .secondary {
+  width: 100%;
+}
