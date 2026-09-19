@@ -56,9 +56,10 @@
       </nav>
 
       <section id="galleryView">
-        <section id="adminPanel" class="card hidden">
-          <h2>Shto foto ose video</h2>
-          <input id="mediaInput" type="file" accept="image/*,video/*" multiple>
+        <section id="adminPanel" class="card">
+          <h2 id="uploadTitle">Shto foto</h2>
+          <p id="uploadHint" class="muted small"></p>
+          <input id="mediaInput" type="file" accept="image/*" multiple>
           <button id="uploadBtn" class="primary" type="button">Ngarko</button>
           <div id="uploadStatus" class="message"></div>
         </section>
