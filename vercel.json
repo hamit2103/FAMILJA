@@ -15,5 +15,12 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/tv.apk",
+      "destination": "/pajaziti-firetv.apk",
+      "permanent": false
+    }
   ]
 }
