@@ -46,25 +46,59 @@
         </div>
       </header>
 
-      <section id="adminPanel" class="card hidden">
-        <h2>Shto foto ose video</h2>
-        <input id="mediaInput" type="file" accept="image/*,video/*" multiple>
-        <button id="uploadBtn" class="primary" type="button">Ngarko</button>
-        <div id="uploadStatus" class="message"></div>
+      <nav class="app-tabs" aria-label="Menu">
+        <button id="galleryTab" class="app-tab active" type="button">📷 Foto</button>
+        <button id="infoTab" class="app-tab" type="button">ℹ️ Informacion</button>
+      </nav>
+
+      <section id="galleryView">
+        <section id="adminPanel" class="card hidden">
+          <h2>Shto foto ose video</h2>
+          <input id="mediaInput" type="file" accept="image/*,video/*" multiple>
+          <button id="uploadBtn" class="primary" type="button">Ngarko</button>
+          <div id="uploadStatus" class="message"></div>
+        </section>
+
+        <section class="toolbar">
+          <div>
+            <strong id="mediaCount">0</strong>
+            <span class="muted"> materiale</span>
+          </div>
+          <button id="refreshBtn" class="secondary" type="button">Rifresko</button>
+        </section>
+
+        <section id="gallery" class="gallery"></section>
+        <section id="emptyState" class="card empty">
+          <h2>Ende nuk ka materiale</h2>
+          <p class="muted">Kur administratori të ngarkojë foto ose video, ato do të shfaqen këtu automatikisht.</p>
+        </section>
       </section>
 
-      <section class="toolbar">
-        <div>
-          <strong id="mediaCount">0</strong>
-          <span class="muted"> materiale</span>
-        </div>
-        <button id="refreshBtn" class="secondary" type="button">Rifresko</button>
-      </section>
+      <section id="infoView" class="hidden">
+        <section class="card info-compose">
+          <h2>ℹ️ Informacion</h2>
+          <p class="muted">Çdo anëtar i familjes mund të shkruajë këtu.</p>
+          <label for="infoName">Emri</label>
+          <input id="infoName" type="text" maxlength="40" autocomplete="name" placeholder="Shkruaj emrin tënd">
+          <label for="infoText">Mesazhi</label>
+          <textarea id="infoText" maxlength="1000" rows="4" placeholder="Shkruaj informacionin..."></textarea>
+          <button id="infoSendBtn" class="primary" type="button">Publiko</button>
+          <div id="infoStatus" class="message"></div>
+        </section>
 
-      <section id="gallery" class="gallery"></section>
-      <section id="emptyState" class="card empty">
-        <h2>Ende nuk ka materiale</h2>
-        <p class="muted">Kur administratori të ngarkojë foto ose video, ato do të shfaqen këtu automatikisht.</p>
+        <section class="toolbar">
+          <div>
+            <strong id="infoCount">0</strong>
+            <span class="muted"> shënime</span>
+          </div>
+          <button id="infoRefreshBtn" class="secondary" type="button">Rifresko</button>
+        </section>
+
+        <section id="infoList" class="info-list"></section>
+        <section id="infoEmpty" class="card empty">
+          <h2>Ende nuk ka informacion</h2>
+          <p class="muted">Shkruaj mesazhin e parë më sipër.</p>
+        </section>
       </section>
     </section>
   </main>
