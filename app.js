@@ -226,7 +226,6 @@ const prayerList = $("prayerList");
 
 languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
-applyLanguage(currentLanguage);
 
 let mode = "family";
 let realtimeChannel = null;
@@ -259,6 +258,8 @@ let prayerAlarms = (() => {
     return {};
   }
 })();
+
+applyLanguage(currentLanguage);
 
 const PRESENCE_DEVICE_KEY = "pajaziti-presence-device";
 let presenceDeviceId = localStorage.getItem(PRESENCE_DEVICE_KEY);
