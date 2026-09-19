@@ -58,11 +58,11 @@ const I18N = {
     "upload.done":"U ngarkuan {count} materiale.","location.permission":"Duhet ta lejosh vendndodhjen për oraret e namazit.","location.notFound":"Vendndodhja nuk u gjet. Provo përsëri.",
     "location.timeout":"Vendndodhja vonoi shumë. Provo përsëri.","location.loading":"Po marr vendndodhjen…","prayer.loading":"Po marr oraret…","prayer.updated":"Oraret u përditësuan.",
     "share.text":"Hape dhe instalo aplikacionin PAJAZITI.","share.copied":"Linku u kopjua. Tani mund ta dërgosh.",
-    "error.supabaseNotLinked":t("error.supabaseNotLinked"),"error.infoNotReady":"Informacioni nuk është gati ende.","error.publishFailed":"Publikimi dështoi: {error}",
+    "error.supabaseNotLinked":"Supabase nuk është lidhur ende. Duhet Project URL dhe anon key.","error.infoNotReady":"Informacioni nuk është gati ende.","error.publishFailed":"Publikimi dështoi: {error}",
     "error.locationUnsupported":"Ky telefon nuk e mbështet vendndodhjen.","error.prayerFetch":"Nuk u morën oraret e namazit.","prayer.locationTap":"Preke “Vendndodhja” për oraret e sakta.",
     "error.futureTimes":"Nuk u gjetën orare të ardhshme për {name}.","error.supabaseNotReady":"Supabase nuk është gati ende","error.runSql":"Duhet të ekzekutohet skedari supabase/setup.sql në SQL Editor.",
     "error.storageSql":"Matësi kërkon përditësimin e SQL.","error.fileTooLarge":"{name} është mbi 50 MB edhe pas optimizimit dhe u anashkalua.","upload.savedSpace":"U kursyen rreth {size} hapësirë.",
-    "upload.skipped":"{count} skedarë u anashkaluan.","error.uploadFailed":"Ngarkimi dështoi: {error}","error.setupSupabase":t("error.setupSupabase"),
+    "upload.skipped":"{count} skedarë u anashkaluan.","error.uploadFailed":"Ngarkimi dështoi: {error}","error.setupSupabase":"Kodi i aplikacionit është kaluar në Supabase Free. Tani duhet vetëm ta lidhim projektin Supabase.",
     "install.chrome":"Në Chrome, hap menunë ⋮ dhe zgjidh “Install app” ose “Add to Home screen”."
   },
   de: {
