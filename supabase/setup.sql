@@ -38,22 +38,22 @@ create policy "Admin can insert media"
 on public.media
 for insert
 to authenticated
-with check ((auth.jwt() ->> 'email') = 'admin@familja.local');
+with check (auth.email() = 'admin@familja.local');
 
 drop policy if exists "Admin can update media" on public.media;
 create policy "Admin can update media"
 on public.media
 for update
 to authenticated
-using ((auth.jwt() ->> 'email') = 'admin@familja.local')
-with check ((auth.jwt() ->> 'email') = 'admin@familja.local');
+using (auth.email() = 'admin@familja.local')
+with check (auth.email() = 'admin@familja.local');
 
 drop policy if exists "Admin can delete media" on public.media;
 create policy "Admin can delete media"
 on public.media
 for delete
 to authenticated
-using ((auth.jwt() ->> 'email') = 'admin@familja.local');
+using (auth.email() = 'admin@familja.local');
 
 insert into storage.buckets (id, name, public, file_size_limit)
 values ('familja-media', 'familja-media', false, 52428800)
@@ -75,7 +75,7 @@ for insert
 to authenticated
 with check (
   bucket_id = 'familja-media'
-  and (auth.jwt() ->> 'email') = 'admin@familja.local'
+  and auth.email() = 'admin@familja.local'
 );
 
 drop policy if exists "Admin can update storage" on storage.objects;
@@ -85,11 +85,11 @@ for update
 to authenticated
 using (
   bucket_id = 'familja-media'
-  and (auth.jwt() ->> 'email') = 'admin@familja.local'
+  and auth.email() = 'admin@familja.local'
 )
 with check (
   bucket_id = 'familja-media'
-  and (auth.jwt() ->> 'email') = 'admin@familja.local'
+  and auth.email() = 'admin@familja.local'
 );
 
 drop policy if exists "Admin can delete storage" on storage.objects;
@@ -99,7 +99,7 @@ for delete
 to authenticated
 using (
   bucket_id = 'familja-media'
-  and (auth.jwt() ->> 'email') = 'admin@familja.local'
+  and auth.email() = 'admin@familja.local'
 );
 
 do $$
