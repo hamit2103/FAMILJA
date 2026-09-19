@@ -38,6 +38,8 @@ const uploadStatus = $("uploadStatus");
 const logoutBtn = $("logoutBtn");
 const refreshBtn = $("refreshBtn");
 const installBtn = $("installBtn");
+const installLoginBtn = $("installLoginBtn");
+const shareBtn = $("shareBtn");
 
 let mode = "family";
 let realtimeChannel = null;
@@ -405,14 +407,47 @@ window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   installPrompt = e;
   installBtn.classList.remove("hidden");
+  installLoginBtn.classList.remove("hidden");
 });
 
-installBtn.addEventListener("click", async () => {
-  if (!installPrompt) return;
+async function triggerInstall() {
+  if (!installPrompt) {
+    alert("Në Chrome, hap menunë ⋮ dhe zgjidh “Install app” ose “Add to Home screen”.");
+    return;
+  }
   installPrompt.prompt();
   await installPrompt.userChoice;
   installPrompt = null;
   installBtn.classList.add("hidden");
+  installLoginBtn.classList.add("hidden");
+}
+
+installBtn.addEventListener("click", triggerInstall);
+installLoginBtn.addEventListener("click", triggerInstall);
+
+shareBtn.addEventListener("click", async () => {
+  const url = new URL("./", window.location.href).href;
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: "PAJAZITI",
+        text: "Hape dhe instalo aplikacionin PAJAZITI.",
+        url
+      });
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    showMessage(loginMessage, "Linku u kopjua. Tani mund ta dërgosh.", "success");
+  } catch (e) {
+    if (e?.name !== "AbortError") {
+      try {
+        await navigator.clipboard.writeText(url);
+        showMessage(loginMessage, "Linku u kopjua. Tani mund ta dërgosh.", "success");
+      } catch (_) {
+        showMessage(loginMessage, "Linku: " + url, "");
+      }
+    }
+  }
 });
 
 if ("serviceWorker" in navigator) {
