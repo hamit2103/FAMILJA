@@ -38,11 +38,15 @@ public class PrayerAlarmService extends Service {
         String label = intent != null
             ? intent.getStringExtra("label")
             : "Namazi";
+        String language = intent != null
+            ? intent.getStringExtra("language")
+            : "sq";
         if (label == null || label.trim().isEmpty()) {
             label = "Namazi";
         }
+        if (language == null) language = "sq";
 
-        Notification notification = buildNotification(label);
+        Notification notification = buildNotification(label, language);
         startForeground(NOTIFICATION_ID, notification);
 
         acquireWakeLock();
@@ -55,7 +59,7 @@ public class PrayerAlarmService extends Service {
         return START_NOT_STICKY;
     }
 
-    private Notification buildNotification(String label) {
+    private Notification buildNotification(String label, String language) {
         Intent openIntent = new Intent(this, MainActivity.class);
         int immutable = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
             ? PendingIntent.FLAG_IMMUTABLE
@@ -83,8 +87,8 @@ public class PrayerAlarmService extends Service {
 
         builder
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("🕌 Koha e namazit")
-            .setContentText("Është koha e " + label + ".")
+            .setContentTitle(notificationTitle(language))
+            .setContentText(notificationBody(language, label))
             .setContentIntent(contentIntent)
             .setAutoCancel(true)
             .setCategory(Notification.CATEGORY_ALARM)
@@ -92,11 +96,29 @@ public class PrayerAlarmService extends Service {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                "Ndalo",
+                stopText(language),
                 stopPendingIntent
             );
 
         return builder.build();
+    }
+
+    private String notificationTitle(String language) {
+        if ("de".equals(language)) return "🕌 Gebetszeit";
+        if ("tr".equals(language)) return "🕌 Namaz vakti";
+        return "🕌 Koha e namazit";
+    }
+
+    private String notificationBody(String language, String label) {
+        if ("de".equals(language)) return "Es ist Zeit für " + label + ".";
+        if ("tr".equals(language)) return label + " vakti geldi.";
+        return "Është koha e " + label + ".";
+    }
+
+    private String stopText(String language) {
+        if ("de".equals(language)) return "Stoppen";
+        if ("tr".equals(language)) return "Durdur";
+        return "Ndalo";
     }
 
     private void createNotificationChannel() {
