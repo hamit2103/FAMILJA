@@ -47,17 +47,23 @@ const I18N = {
     "prayer.Fajr":"Sabahu","prayer.Dhuhr":"Dreka","prayer.Asr":"Ikindia","prayer.Maghrib":"Akshami","prayer.Isha":"Jacia",
     "prayer.next":"Namazi i radhës: {name} në {time}","prayer.nextTomorrow":"Namazi i radhës: Sabahu nesër","prayer.zone":"Zona: {zone}",
     "alarm.on":"🔔 Alarm ON","alarm.off":"🔕 Alarm OFF","alarm.activating":"Po regjistroj alarmin sistemor për {name}…","alarm.activated":"Alarmi sistemor për {name} u aktivizua.",
-    "alarm.webActivated":t("alarm.webActivated"),"alarm.disabled":"Alarmi për {name} u çaktivizua.",
+    "alarm.webActivated":"Alarmi u aktivizua. Për alarm edhe kur app-i është i mbyllur përdor APK Android.","alarm.disabled":"Alarmi për {name} u çaktivizua.",
     "alarm.title":"🕌 Koha e namazit","alarm.body":"Është koha e {name} ({time}).","alarm.stop":"Ndalo","alarm.channel":"Alarmet e namazit","alarm.channelDesc":"Alarm për kohën e namazit",
     "login.enterCode":"Shkruaj kodin.","login.checking":"Po kontrolloj kodin…","login.badCode":"Kodi nuk përputhet me këtë llogari.","login.emailUnconfirmed":"Llogaria në Supabase nuk është konfirmuar ende.",
     "login.rateLimit":"Shumë tentativa. Prit pak dhe provo përsëri.","login.failed":"Nuk mund të hyhet. Kontrollo kodin.",
     "info.enterName":"Shkruaj emrin.","info.enterMessage":"Shkruaj mesazhin.","info.publishing":"Po publikohet...","info.published":"U publikua.",
-    "family.limit":t("family.limit"),"family.onlyOwnDelete":"Mund të fshish vetëm fotot që ke ngarkuar vetë.",
-    "family.onlyPhotos":t("family.onlyPhotos"),"family.remaining":"Mund të ngarkosh vetëm {remaining} foto të tjera. Kufiri është 3 foto për person/pajisje.",
+    "family.limit":"E ke arritur kufirin prej 3 fotove. Fshi një nga fotot e tua për të ngarkuar një tjetër.","family.onlyOwnDelete":"Mund të fshish vetëm fotot që ke ngarkuar vetë.",
+    "family.onlyPhotos":"Anëtarët e familjes mund të ngarkojnë vetëm foto.","family.remaining":"Mund të ngarkosh vetëm {remaining} foto të tjera. Kufiri është 3 foto për person/pajisje.",
     "upload.chooseMedia":"Zgjidh së paku një foto ose video.","upload.choosePhoto":"Zgjidh së paku një foto.","upload.none":"Asnjë skedar nuk u ngarkua.",
     "upload.done":"U ngarkuan {count} materiale.","location.permission":"Duhet ta lejosh vendndodhjen për oraret e namazit.","location.notFound":"Vendndodhja nuk u gjet. Provo përsëri.",
     "location.timeout":"Vendndodhja vonoi shumë. Provo përsëri.","location.loading":"Po marr vendndodhjen…","prayer.loading":"Po marr oraret…","prayer.updated":"Oraret u përditësuan.",
-    "share.text":"Hape dhe instalo aplikacionin PAJAZITI.","share.copied":"Linku u kopjua. Tani mund ta dërgosh."
+    "share.text":"Hape dhe instalo aplikacionin PAJAZITI.","share.copied":"Linku u kopjua. Tani mund ta dërgosh.",
+    "error.supabaseNotLinked":t("error.supabaseNotLinked"),"error.infoNotReady":"Informacioni nuk është gati ende.","error.publishFailed":"Publikimi dështoi: {error}",
+    "error.locationUnsupported":"Ky telefon nuk e mbështet vendndodhjen.","error.prayerFetch":"Nuk u morën oraret e namazit.","prayer.locationTap":"Preke “Vendndodhja” për oraret e sakta.",
+    "error.futureTimes":"Nuk u gjetën orare të ardhshme për {name}.","error.supabaseNotReady":"Supabase nuk është gati ende","error.runSql":"Duhet të ekzekutohet skedari supabase/setup.sql në SQL Editor.",
+    "error.storageSql":"Matësi kërkon përditësimin e SQL.","error.fileTooLarge":"{name} është mbi 50 MB edhe pas optimizimit dhe u anashkalua.","upload.savedSpace":"U kursyen rreth {size} hapësirë.",
+    "upload.skipped":"{count} skedarë u anashkaluan.","error.uploadFailed":"Ngarkimi dështoi: {error}","error.setupSupabase":t("error.setupSupabase"),
+    "install.chrome":"Në Chrome, hap menunë ⋮ dhe zgjidh “Install app” ose “Add to Home screen”."
   },
   de: {
     "language.label":"Sprache","app.subtitle":"Privates Album für Fotos und Videos","mode.family":"Familie","mode.admin":"Admin",
@@ -89,7 +95,13 @@ const I18N = {
     "upload.chooseMedia":"Wähle mindestens ein Foto oder Video aus.","upload.choosePhoto":"Wähle mindestens ein Foto aus.","upload.none":"Keine Datei wurde hochgeladen.",
     "upload.done":"{count} Medien wurden hochgeladen.","location.permission":"Erlaube den Standortzugriff für die Gebetszeiten.","location.notFound":"Standort nicht gefunden. Versuche es erneut.",
     "location.timeout":"Standortabfrage dauerte zu lange. Versuche es erneut.","location.loading":"Standort wird ermittelt…","prayer.loading":"Gebetszeiten werden geladen…","prayer.updated":"Gebetszeiten wurden aktualisiert.",
-    "share.text":"Öffne und installiere die PAJAZITI-App.","share.copied":"Link wurde kopiert. Du kannst ihn jetzt senden."
+    "share.text":"Öffne und installiere die PAJAZITI-App.","share.copied":"Link wurde kopiert. Du kannst ihn jetzt senden.",
+    "error.supabaseNotLinked":"Supabase ist noch nicht verbunden. Project URL und anon key werden benötigt.","error.infoNotReady":"Die Informationen sind noch nicht verfügbar.","error.publishFailed":"Veröffentlichen fehlgeschlagen: {error}",
+    "error.locationUnsupported":"Dieses Telefon unterstützt keinen Standortzugriff.","error.prayerFetch":"Gebetszeiten konnten nicht geladen werden.","prayer.locationTap":"Tippe auf „Standort“ für genaue Gebetszeiten.",
+    "error.futureTimes":"Keine zukünftigen Zeiten für {name} gefunden.","error.supabaseNotReady":"Supabase ist noch nicht bereit","error.runSql":"Die Datei supabase/setup.sql muss im SQL Editor ausgeführt werden.",
+    "error.storageSql":"Der Speicherzähler benötigt das SQL-Update.","error.fileTooLarge":"{name} ist auch nach der Optimierung größer als 50 MB und wurde übersprungen.","upload.savedSpace":"Etwa {size} Speicher wurden gespart.",
+    "upload.skipped":"{count} Datei(en) wurden übersprungen.","error.uploadFailed":"Upload fehlgeschlagen: {error}","error.setupSupabase":"Die App wurde auf Supabase Free umgestellt. Jetzt muss nur noch das Supabase-Projekt verbunden werden.",
+    "install.chrome":"Öffne in Chrome das Menü ⋮ und wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“."
   },
   tr: {
     "language.label":"Dil","app.subtitle":"Fotoğraf ve videolar için özel albüm","mode.family":"Aile","mode.admin":"Yönetici",
@@ -121,7 +133,13 @@ const I18N = {
     "upload.chooseMedia":"En az bir fotoğraf veya video seç.","upload.choosePhoto":"En az bir fotoğraf seç.","upload.none":"Hiçbir dosya yüklenmedi.",
     "upload.done":"{count} medya yüklendi.","location.permission":"Namaz vakitleri için konum izni vermelisin.","location.notFound":"Konum bulunamadı. Tekrar dene.",
     "location.timeout":"Konum çok geç yanıt verdi. Tekrar dene.","location.loading":"Konum alınıyor…","prayer.loading":"Namaz vakitleri alınıyor…","prayer.updated":"Namaz vakitleri güncellendi.",
-    "share.text":"PAJAZITI uygulamasını aç ve yükle.","share.copied":"Bağlantı kopyalandı. Şimdi gönderebilirsin."
+    "share.text":"PAJAZITI uygulamasını aç ve yükle.","share.copied":"Bağlantı kopyalandı. Şimdi gönderebilirsin.",
+    "error.supabaseNotLinked":"Supabase henüz bağlı değil. Project URL ve anon key gerekiyor.","error.infoNotReady":"Bilgi bölümü henüz hazır değil.","error.publishFailed":"Yayınlama başarısız: {error}",
+    "error.locationUnsupported":"Bu telefon konum özelliğini desteklemiyor.","error.prayerFetch":"Namaz vakitleri alınamadı.","prayer.locationTap":"Doğru namaz vakitleri için “Konum”a dokun.",
+    "error.futureTimes":"{name} için gelecek vakit bulunamadı.","error.supabaseNotReady":"Supabase henüz hazır değil","error.runSql":"supabase/setup.sql dosyası SQL Editor'de çalıştırılmalı.",
+    "error.storageSql":"Depolama göstergesi SQL güncellemesini gerektiriyor.","error.fileTooLarge":"{name}, optimizasyondan sonra da 50 MB'tan büyük olduğu için atlandı.","upload.savedSpace":"Yaklaşık {size} alan tasarrufu sağlandı.",
+    "upload.skipped":"{count} dosya atlandı.","error.uploadFailed":"Yükleme başarısız: {error}","error.setupSupabase":"Uygulama Supabase Free'a geçirildi. Şimdi yalnızca Supabase projesinin bağlanması gerekiyor.",
+    "install.chrome":"Chrome'da ⋮ menüsünü aç ve “Uygulamayı yükle” veya “Ana ekrana ekle” seçeneğini seç."
   }
 };
 
@@ -273,7 +291,7 @@ const lightbox = document.createElement("div");
 lightbox.className = "lightbox hidden";
 lightbox.setAttribute("role", "dialog");
 lightbox.setAttribute("aria-modal", "true");
-lightbox.setAttribute("aria-label", "Foto në ekran të plotë");
+lightbox.setAttribute("aria-label", t("photo"));
 
 const lightboxImage = document.createElement("img");
 lightboxImage.alt = "Foto";
@@ -281,7 +299,7 @@ lightboxImage.alt = "Foto";
 const lightboxClose = document.createElement("button");
 lightboxClose.type = "button";
 lightboxClose.className = "lightbox-close";
-lightboxClose.setAttribute("aria-label", "Mbyll");
+lightboxClose.setAttribute("aria-label", "×");
 lightboxClose.textContent = "×";
 
 lightbox.appendChild(lightboxImage);
@@ -356,7 +374,7 @@ async function login() {
   if (!configured) {
     return showMessage(
       loginMessage,
-      "Supabase nuk është lidhur ende. Duhet Project URL dhe anon key.",
+      t("error.supabaseNotLinked"),
       "error"
     );
   }
@@ -414,7 +432,7 @@ async function loadInfo() {
 
   if (error) {
     console.error(error);
-    showMessage(infoStatus, "Informacioni nuk është gati ende.", "error");
+    showMessage(infoStatus, t("error.infoNotReady"), "error");
     return;
   }
 
@@ -501,7 +519,7 @@ infoSendBtn.addEventListener("click", async () => {
 
   if (error) {
     console.error(error);
-    showMessage(infoStatus, "Publikimi dështoi: " + error.message, "error");
+    showMessage(infoStatus, t("error.publishFailed", { error: error.message }), "error");
     return;
   }
 
@@ -564,7 +582,7 @@ function savePrayerCoords(latitude, longitude) {
 function getPhoneLocation() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("Ky telefon nuk e mbështet vendndodhjen."));
+      reject(new Error(t("error.locationUnsupported")));
       return;
     }
 
@@ -593,7 +611,7 @@ async function fetchPrayerTimes(coords) {
   url.searchParams.set("school", "1");
 
   const response = await fetch(url.toString(), { cache: "no-store" });
-  if (!response.ok) throw new Error("Nuk u morën oraret e namazit.");
+  if (!response.ok) throw new Error(t("error.prayerFetch"));
 
   const json = await response.json();
   if (json?.code !== 200 || !json?.data?.timings) {
@@ -624,7 +642,7 @@ async function loadPrayerTimes(forceLocation = false) {
   let coords = forceLocation ? null : savedPrayerCoords();
 
   if (!coords && !forceLocation) {
-    prayerLocation.textContent = "Preke “Vendndodhja” për oraret e sakta.";
+    prayerLocation.textContent = t("prayer.locationTap");
     prayerStatus.textContent = "";
     if (!prayerTimings) prayerList.innerHTML = "";
     return;
@@ -640,7 +658,7 @@ async function loadPrayerTimes(forceLocation = false) {
     showMessage(prayerStatus, t("prayer.updated"), "success");
   } catch (error) {
     console.error("Prayer times failed", error);
-    showMessage(prayerStatus, error?.message || "Nuk u morën oraret.", "error");
+    showMessage(prayerStatus, error?.message || t("error.prayerFetch"), "error");
   } finally {
     prayerLocationBtn.disabled = false;
   }
@@ -753,7 +771,7 @@ async function scheduleNativePrayer(prayer) {
     .slice(0, 45);
 
   if (!times.length) {
-    throw new Error("Nuk u gjetën orare të ardhshme për " + prayer.label + ".");
+    throw new Error(t("error.futureTimes", { name: prayerLabel(prayer.key) }));
   }
 
   window.AndroidPrayer.schedulePrayer(
@@ -1113,9 +1131,8 @@ async function loadMedia() {
   if (error) {
     console.error(error);
     emptyState.classList.remove("hidden");
-    emptyState.querySelector("h2").textContent = "Supabase nuk është gati ende";
-    emptyState.querySelector("p").textContent =
-      "Duhet të ekzekutohet skedari supabase/setup.sql në SQL Editor.";
+    emptyState.querySelector("h2").textContent = t("error.supabaseNotReady");
+    emptyState.querySelector("p").textContent = t("error.runSql");
     return;
   }
 
@@ -1196,7 +1213,7 @@ async function updateStorageUsage() {
 
   if (error) {
     console.error("Storage usage failed", error);
-    storageUsed.textContent = "Matësi kërkon përditësimin e SQL.";
+    storageUsed.textContent = t("error.storageSql");
     storagePercent.textContent = "—";
     storageBar.style.width = "0%";
     return;
@@ -1317,7 +1334,7 @@ uploadBtn.addEventListener("click", async () => {
       updateUploadPanel(mediaItems);
       return showMessage(
         uploadStatus,
-        "E ke arritur kufirin prej 3 fotove. Fshi një foto tënden për të ngarkuar një tjetër.",
+        t("family.limit"),
         "error"
       );
     }
@@ -1353,8 +1370,7 @@ uploadBtn.addEventListener("click", async () => {
         skipped++;
         showMessage(
           uploadStatus,
-          originalFile.name +
-            " është mbi 50 MB edhe pas optimizimit dhe u anashkalua.",
+          t("error.fileTooLarge", { name: originalFile.name }),
           "error"
         );
         continue;
@@ -1407,10 +1423,10 @@ uploadBtn.addEventListener("click", async () => {
     if (done > 0) {
       let message = "U ngarkuan " + done + (done === 1 ? " foto/material." : " materiale.");
       if (savedBytes > 0) {
-        message += " U kursyen rreth " + formatBytes(savedBytes) + " hapësirë.";
+        message += " " + t("upload.savedSpace", { size: formatBytes(savedBytes) });
       }
       if (skipped > 0) {
-        message += " " + skipped + " skedarë u anashkaluan.";
+        message += " " + t("upload.skipped", { count: skipped });
       }
       showMessage(uploadStatus, message, "success");
       await loadMedia();
@@ -1421,7 +1437,7 @@ uploadBtn.addEventListener("click", async () => {
     console.error(e);
     showMessage(
       uploadStatus,
-      "Ngarkimi dështoi: " + (e?.message || e),
+      t("error.uploadFailed", { error: (e?.message || e) }),
       "error"
     );
   } finally {
@@ -1536,7 +1552,7 @@ if (supabase) {
 } else {
   showMessage(
     loginMessage,
-    "Kodi i aplikacionit është kaluar në Supabase Free. Tani duhet vetëm ta lidhim projektin Supabase.",
+    t("error.setupSupabase"),
     ""
   );
 }
@@ -1550,7 +1566,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
 
 async function triggerInstall() {
   if (!installPrompt) {
-    alert("Në Chrome, hap menunë ⋮ dhe zgjidh “Install app” ose “Add to Home screen”.");
+    alert(t("install.chrome"));
     return;
   }
   installPrompt.prompt();
