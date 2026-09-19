@@ -1,7 +1,6 @@
-// Këto dy vlera merren te Supabase:
-// Project Settings -> Data API / API Keys
-// ANON key është e sigurt për frontend kur RLS/policies janë aktive.
-// MOS vendos kurrë service_role key këtu.
+// Supabase public frontend config for Familja.
+// Publishable key is safe to use in the browser when RLS policies are enabled.
+// Never place a service_role or secret key here.
 
-export const SUPABASE_URL = "PASTE_SUPABASE_PROJECT_URL_HERE";
-export const SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY_HERE";
+export const SUPABASE_URL = "https://htuzevfjmctmjngrdrrg.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_103MOyFUNJ097_HbthW21Q_wDTi-dYH";
