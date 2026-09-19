@@ -9,6 +9,7 @@ const IMAGE_MAX_DIMENSION = 1920;
 const IMAGE_QUALITY = 0.78;
 const IMAGE_OPTIMIZE_MIN_SIZE = 350 * 1024;
 const FAMILY_PHOTO_LIMIT = 3;
+const FREE_STORAGE_LIMIT_BYTES = 1024 * 1024 * 1024;
 
 const configured =
   SUPABASE_URL &&
@@ -59,6 +60,10 @@ const infoList = $("infoList");
 const infoEmpty = $("infoEmpty");
 const infoCount = $("infoCount");
 const onlineCount = $("onlineCount");
+const storageCard = $("storageCard");
+const storageUsed = $("storageUsed");
+const storagePercent = $("storagePercent");
+const storageBar = $("storageBar");
 
 let mode = "family";
 let realtimeChannel = null;
@@ -218,7 +223,7 @@ async function loadInfo() {
   infoCount.textContent = String(data.length);
   infoEmpty.classList.toggle("hidden", data.length > 0);
 
-  for (const item of mediaItems) {
+  for (const item of data) {
     const card = document.createElement("article");
     card.className = "info-item";
 
@@ -422,6 +427,7 @@ async function loadMedia() {
   mediaCount.textContent = String(mediaItems.length);
   emptyState.classList.toggle("hidden", mediaItems.length > 0);
   updateUploadPanel(mediaItems);
+  await updateStorageUsage();
 
   for (const item of data) {
     const card = document.createElement("article");
@@ -483,6 +489,32 @@ async function loadMedia() {
   }
 }
 
+
+async function updateStorageUsage() {
+  if (!storageCard || !currentUser) return;
+
+  storageCard.classList.toggle("hidden", !isAdmin());
+  if (!isAdmin()) return;
+
+  const { data, error } = await supabase.rpc("admin_storage_usage");
+
+  if (error) {
+    console.error("Storage usage failed", error);
+    storageUsed.textContent = "Matësi kërkon përditësimin e SQL.";
+    storagePercent.textContent = "—";
+    storageBar.style.width = "0%";
+    return;
+  }
+
+  const used = Number(data || 0);
+  const percent = Math.min(100, Math.max(0, (used / FREE_STORAGE_LIMIT_BYTES) * 100));
+
+  storageUsed.textContent =
+    formatBytes(used) + " / 1 GB";
+  storagePercent.textContent =
+    (percent < 1 && used > 0 ? percent.toFixed(1) : Math.round(percent)) + "%";
+  storageBar.style.width = percent + "%";
+}
 
 function formatBytes(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) return "0 MB";
@@ -773,6 +805,7 @@ async function applySession(session) {
     mediaItems = [];
     mediaCount.textContent = "0";
     uploadStatus.textContent = "";
+    if (storageCard) storageCard.classList.add("hidden");
     if (onlineCount) onlineCount.textContent = "0";
     if (realtimeChannel && supabase) {
       supabase.removeChannel(realtimeChannel);
@@ -782,6 +815,7 @@ async function applySession(session) {
   }
 
   adminPanel.classList.remove("hidden");
+  if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
   roleLabel.textContent = isAdmin() ? "Administrator" : "Anëtar i familjes";
   uploadStatus.textContent = "";
   await loadMedia();
