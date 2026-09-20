@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
@@ -26,7 +27,8 @@ public class MainActivity extends Activity {
     private static final int REQ_NOTIFICATIONS = 1003;
 
     private WebView webView;
-    private ValueCallback<Uri[]> filePathCallback;
+    private View customView;
+    private WebChromeClient.CustomViewCallback customViewCallback;    private ValueCallback<Uri[]> filePathCallback;
     private GeolocationPermissions.Callback geoCallback;
     private String geoOrigin;
     private boolean openExactAfterNotification = false;
@@ -84,6 +86,19 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public void onShowCustomView(
+                View view,
+                WebChromeClient.CustomViewCallback callback
+            ) {
+                showFullscreenVideo(view, callback);
+            }
+
+            @Override
+            public void onHideCustomView() {
+                hideFullscreenVideo();
+            }
+
+            @Override
             public boolean onShowFileChooser(
                 WebView webView,
                 ValueCallback<Uri[]> filePathCallbackParam,
@@ -113,6 +128,63 @@ public class MainActivity extends Activity {
         }
 
         webView.post(() -> webView.requestFocus(View.FOCUS_DOWN));
+    }
+
+    private void enterImmersiveFullscreen() {
+        getWindow().setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        );
+        getWindow().getDecorView().setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_FULLSCREEN |
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY |
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        );
+    }
+
+    private void showFullscreenVideo(
+        View view,
+        WebChromeClient.CustomViewCallback callback
+    ) {
+        if (customView != null) {
+            hideFullscreenVideo();
+        }
+
+        customView = view;
+        customViewCallback = callback;
+
+        ViewGroup decorView = (ViewGroup) getWindow().getDecorView();
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        decorView.addView(customView, params);
+
+        webView.setVisibility(View.GONE);
+        enterImmersiveFullscreen();
+    }
+
+    private void hideFullscreenVideo() {
+        if (customView == null) return;
+
+        ViewGroup parent = (ViewGroup) customView.getParent();
+        if (parent != null) {
+            parent.removeView(customView);
+        }
+
+        customView = null;
+        webView.setVisibility(View.VISIBLE);
+        webView.requestFocus(View.FOCUS_DOWN);
+
+        if (customViewCallback != null) {
+            customViewCallback.onCustomViewHidden();
+            customViewCallback = null;
+        }
+
+        enterImmersiveFullscreen();
     }
 
     public void requestAlarmPermissions() {
@@ -165,6 +237,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        enterImmersiveFullscreen();
         if (webView != null) {
             webView.post(() ->
                 webView.evaluateJavascript(
@@ -220,6 +293,10 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && customView != null) {
+            hideFullscreenVideo();
+            return true;
+        }
         if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
             webView.goBack();
             return true;
@@ -229,6 +306,9 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (customView != null) {
+            hideFullscreenVideo();
+        }
         if (webView != null) {
             webView.destroy();
         }
