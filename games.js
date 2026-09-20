@@ -19,9 +19,9 @@ if (!deviceId) {
 }
 
 const TXT = {
-  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Degërxhik",timer:"Kral i Sekondave",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",soloTimer:"🤖 Luaj vetë",practiceOnly:"Stërvitje kundër kompjuterit — nuk hyn në renditjen javore.",you:"Ti",opponents:"Kundërshtarët",active:"Në lojë",soundOn:"🔊 Zëri ON",soundOff:"🔇 Zëri OFF",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe, hiq një gur të kundërshtarit.",error:"Gabim"},
-  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Degërxhik",timer:"Sekundenkönig",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",soloTimer:"🤖 Alleine spielen",practiceOnly:"Training gegen den Computer — zählt nicht für die Wochenrangliste.",you:"Du",opponents:"Gegner",active:"Im Spiel",soundOn:"🔊 Ton AN",soundOff:"🔇 Ton AUS",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Dreierreihe darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
-  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",soloTimer:"🤖 Tek başına oyna",practiceOnly:"Bilgisayara karşı antrenman — haftalık sıralamaya sayılmaz.",you:"Sen",opponents:"Rakipler",active:"Oyunda",soundOn:"🔊 Ses AÇIK",soundOff:"🔇 Ses KAPALI",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
+  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Degërxhik",timer:"Kral i Sekondave",tetris:"Tetris",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",soloTimer:"🤖 Luaj vetë",practiceOnly:"Stërvitje kundër kompjuterit — nuk hyn në renditjen javore.",you:"Ti",opponents:"Kundërshtarët",active:"Në lojë",soundOn:"🔊 Zëri ON",soundOff:"🔇 Zëri OFF",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe, hiq një gur të kundërshtarit.",error:"Gabim"},
+  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Degërxhik",timer:"Sekundenkönig",tetris:"Tetris",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",soloTimer:"🤖 Alleine spielen",practiceOnly:"Training gegen den Computer — zählt nicht für die Wochenrangliste.",you:"Du",opponents:"Gegner",active:"Im Spiel",soundOn:"🔊 Ton AN",soundOff:"🔇 Ton AUS",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Dreierreihe darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
+  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",tetris:"Tetris",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",soloTimer:"🤖 Tek başına oyna",practiceOnly:"Bilgisayara karşı antrenman — haftalık sıralamaya sayılmaz.",you:"Sen",opponents:"Rakipler",active:"Oyunda",soundOn:"🔊 Ses AÇIK",soundOff:"🔇 Ses KAPALI",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
 };
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
@@ -245,21 +245,26 @@ function renderLobby(msg=""){
         <div class="games-choice">
           <button class="game-choice ${selectedType==="chess"?"active":""}" data-game="chess">♟️ ${tr("chess")}</button>
           <button class="game-choice ${selectedType==="morris"?"active":""}" data-game="morris">🟣 ${tr("morris")}</button>
-          <button class="game-choice ${selectedType==="timer"?"active":""}" data-game="timer">⏱️ ${tr("timer")}</button>
+          <button class="game-choice ${selectedType==="timer"?"active":""}" data-game="timer">⏱️ ${tr("timer")}</button>\n          <button class="game-choice ${selectedType==="tetris"?"active":""}" data-game="tetris">🧱 ${tr("tetris")}</button>
         </div>
 
         ${selectedType==="timer" ? `
           <input id="timerPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TIMER_NAME_KEY)||"")}">
           <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
+        ` : selectedType==="tetris" ? `
+          <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
+          <div class="game-help">⬅️ ➡️ lëviz · ⤾ rrotullo · ⬇️ shpejto · ⏬ zbrit menjëherë</div>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        <div class="game-help">🌐 ${tr("online")}</div>
-        <button id="createGame" class="secondary" type="button">${tr("create")}</button>
-        <div class="game-join-row">
-          <input id="joinCode" type="text" maxlength="8" placeholder="${tr("code")}">
-          <button id="joinGame" class="secondary" type="button">${tr("join")}</button>
-        </div>
+        ${selectedType==="tetris" ? "" : `
+          <div class="game-help">🌐 ${tr("online")}</div>
+          <button id="createGame" class="secondary" type="button">${tr("create")}</button>
+          <div class="game-join-row">
+            <input id="joinCode" type="text" maxlength="8" placeholder="${tr("code")}">
+            <button id="joinGame" class="secondary" type="button">${tr("join")}</button>
+          </div>
+        `}
         <div id="gameMessage" class="message">${msg}</div>
       </section>
       ${selectedType==="timer" ? `<section id="timerLeaderboard" class="card timer-leaderboard"><div class="muted">${tr("weekly")}…</div></section>` : ""}
@@ -969,6 +974,296 @@ function computerMorrisMove(){
   room.state=st;
   renderRoom();
 }
+
+
+const TETRIS_COLS=10;
+const TETRIS_ROWS=20;
+const TETRIS_HIGH_KEY="pajaziti-tetris-high";
+const TETROMINOES=[
+  {name:"I",m:[[1,1,1,1]]},
+  {name:"O",m:[[1,1],[1,1]]},
+  {name:"T",m:[[0,1,0],[1,1,1]]},
+  {name:"S",m:[[0,1,1],[1,1,0]]},
+  {name:"Z",m:[[1,1,0],[0,1,1]]},
+  {name:"J",m:[[1,0,0],[1,1,1]]},
+  {name:"L",m:[[0,0,1],[1,1,1]]}
+];
+let tetris=null;
+let tetrisTimer=null;
+let tetrisKeyHandler=null;
+
+function stopTetris(){
+  if(tetrisTimer){ clearInterval(tetrisTimer); tetrisTimer=null; }
+  if(tetrisKeyHandler){ document.removeEventListener("keydown",tetrisKeyHandler); tetrisKeyHandler=null; }
+}
+
+function tetrisPiece(){
+  const p=TETROMINOES[Math.floor(Math.random()*TETROMINOES.length)];
+  return {
+    name:p.name,
+    m:p.m.map(row=>row.slice()),
+    x:Math.floor((TETRIS_COLS-p.m[0].length)/2),
+    y:-1
+  };
+}
+
+function tetrisRotate(matrix){
+  return matrix[0].map((_,i)=>matrix.map(row=>row[i]).reverse());
+}
+
+function tetrisCollides(piece,dx=0,dy=0,matrix=piece.m){
+  for(let r=0;r<matrix.length;r++){
+    for(let c=0;c<matrix[r].length;c++){
+      if(!matrix[r][c]) continue;
+      const x=piece.x+c+dx;
+      const y=piece.y+r+dy;
+      if(x<0||x>=TETRIS_COLS||y>=TETRIS_ROWS) return true;
+      if(y>=0 && tetris.board[y][x]) return true;
+    }
+  }
+  return false;
+}
+
+function tetrisMerge(){
+  const p=tetris.current;
+  p.m.forEach((row,r)=>row.forEach((v,c)=>{
+    if(!v) return;
+    const y=p.y+r;
+    const x=p.x+c;
+    if(y>=0 && y<TETRIS_ROWS) tetris.board[y][x]=p.name;
+  }));
+}
+
+function tetrisClearLines(){
+  let cleared=0;
+  for(let r=TETRIS_ROWS-1;r>=0;r--){
+    if(tetris.board[r].every(Boolean)){
+      tetris.board.splice(r,1);
+      tetris.board.unshift(Array(TETRIS_COLS).fill(null));
+      cleared++;
+      r++;
+    }
+  }
+  if(!cleared) return;
+  const points=[0,100,300,500,800][cleared]||1200;
+  tetris.lines+=cleared;
+  tetris.score+=points*tetris.level;
+  tetris.level=1+Math.floor(tetris.lines/10);
+  const high=Math.max(Number(localStorage.getItem(TETRIS_HIGH_KEY)||0),tetris.score);
+  localStorage.setItem(TETRIS_HIGH_KEY,String(high));
+  tetrisRestartTimer();
+}
+
+function tetrisSpawn(){
+  tetris.current=tetrisPiece();
+  if(tetrisCollides(tetris.current,0,0)){
+    tetris.gameOver=true;
+    stopTetris();
+  }
+}
+
+function tetrisStep(){
+  if(!tetris || tetris.paused || tetris.gameOver) return;
+  if(!tetrisCollides(tetris.current,0,1)){
+    tetris.current.y++;
+  }else{
+    tetrisMerge();
+    tetrisClearLines();
+    tetrisSpawn();
+  }
+  renderTetrisBoard();
+}
+
+function tetrisRestartTimer(){
+  if(tetrisTimer) clearInterval(tetrisTimer);
+  if(!tetris || tetris.paused || tetris.gameOver) return;
+  const speed=Math.max(110,700-(tetris.level-1)*55);
+  tetrisTimer=setInterval(tetrisStep,speed);
+}
+
+function tetrisMove(dx){
+  if(!tetris || tetris.paused || tetris.gameOver) return;
+  if(!tetrisCollides(tetris.current,dx,0)) tetris.current.x+=dx;
+  renderTetrisBoard();
+}
+
+function tetrisSoftDrop(){
+  if(!tetris || tetris.paused || tetris.gameOver) return;
+  if(!tetrisCollides(tetris.current,0,1)){
+    tetris.current.y++;
+    tetris.score+=1;
+  }else{
+    tetrisStep();
+    return;
+  }
+  renderTetrisBoard();
+}
+
+function tetrisHardDrop(){
+  if(!tetris || tetris.paused || tetris.gameOver) return;
+  let n=0;
+  while(!tetrisCollides(tetris.current,0,1)){
+    tetris.current.y++;
+    n++;
+  }
+  tetris.score+=n*2;
+  tetrisMerge();
+  tetrisClearLines();
+  tetrisSpawn();
+  renderTetrisBoard();
+}
+
+function tetrisTurn(){
+  if(!tetris || tetris.paused || tetris.gameOver) return;
+  const rotated=tetrisRotate(tetris.current.m);
+  for(const kick of [0,-1,1,-2,2]){
+    if(!tetrisCollides(tetris.current,kick,0,rotated)){
+      tetris.current.x+=kick;
+      tetris.current.m=rotated;
+      break;
+    }
+  }
+  renderTetrisBoard();
+}
+
+function tetrisPause(){
+  if(!tetris || tetris.gameOver) return;
+  tetris.paused=!tetris.paused;
+  if(tetris.paused){
+    if(tetrisTimer){clearInterval(tetrisTimer);tetrisTimer=null;}
+  }else{
+    tetrisRestartTimer();
+  }
+  renderTetrisBoard();
+}
+
+function renderTetrisBoard(){
+  if(!tetris) return;
+  const boardEl=document.getElementById("tetrisBoard");
+  if(!boardEl) return;
+
+  const visible=tetris.board.map(row=>row.slice());
+  const p=tetris.current;
+  if(p && !tetris.gameOver){
+    p.m.forEach((row,r)=>row.forEach((v,c)=>{
+      if(!v) return;
+      const y=p.y+r,x=p.x+c;
+      if(y>=0&&y<TETRIS_ROWS&&x>=0&&x<TETRIS_COLS) visible[y][x]=p.name;
+    }));
+  }
+
+  boardEl.innerHTML=visible.flatMap((row,r)=>row.map((v,c)=>
+    `<div class="tetris-cell${v?" filled piece-"+v:""}"></div>`
+  )).join("");
+
+  const score=document.getElementById("tetrisScore");
+  const lines=document.getElementById("tetrisLines");
+  const level=document.getElementById("tetrisLevel");
+  const high=document.getElementById("tetrisHigh");
+  if(score) score.textContent=String(tetris.score);
+  if(lines) lines.textContent=String(tetris.lines);
+  if(level) level.textContent=String(tetris.level);
+  if(high) high.textContent=String(Math.max(Number(localStorage.getItem(TETRIS_HIGH_KEY)||0),tetris.score));
+
+  const pause=document.getElementById("tetrisPause");
+  if(pause) pause.textContent=tetris.paused?"▶️ Vazhdo":"⏸️ Pauzë";
+
+  const overlay=document.getElementById("tetrisOverlay");
+  if(overlay){
+    overlay.classList.toggle("hidden",!tetris.gameOver&&!tetris.paused);
+    overlay.innerHTML=tetris.gameOver
+      ? `<div><strong>Game Over</strong><br><span>Score: ${tetris.score}</span></div>`
+      : tetris.paused ? "<strong>Pauzë</strong>" : "";
+  }
+}
+
+function startTetrisGame(){
+  if(channel){supabase.removeChannel(channel);channel=null;}
+  if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
+  stopTetris();
+  room=null;
+  selected=null;
+
+  tetris={
+    board:Array.from({length:TETRIS_ROWS},()=>Array(TETRIS_COLS).fill(null)),
+    current:null,
+    score:0,
+    lines:0,
+    level:1,
+    paused:false,
+    gameOver:false
+  };
+  tetrisSpawn();
+
+  root.innerHTML=`
+    <div class="games-shell tetris-shell">
+      <section class="card tetris-card">
+        <div class="game-room-head">
+          <div>
+            <div class="muted small">🧱</div>
+            <div class="game-room-code">Tetris</div>
+          </div>
+          <button id="tetrisBack" class="secondary" type="button">${tr("backGames")}</button>
+        </div>
+
+        <div class="tetris-stats">
+          <div><span>Score</span><strong id="tetrisScore">0</strong></div>
+          <div><span>Lines</span><strong id="tetrisLines">0</strong></div>
+          <div><span>Level</span><strong id="tetrisLevel">1</strong></div>
+          <div><span>Best</span><strong id="tetrisHigh">${localStorage.getItem(TETRIS_HIGH_KEY)||0}</strong></div>
+        </div>
+
+        <div class="tetris-board-wrap">
+          <div id="tetrisBoard" class="tetris-board"></div>
+          <div id="tetrisOverlay" class="tetris-overlay hidden"></div>
+        </div>
+
+        <div class="tetris-controls">
+          <button type="button" data-tetris="left">⬅️</button>
+          <button type="button" data-tetris="rotate">⤾</button>
+          <button type="button" data-tetris="right">➡️</button>
+          <button type="button" data-tetris="down">⬇️</button>
+          <button type="button" data-tetris="drop">⏬</button>
+        </div>
+
+        <div class="tetris-actions">
+          <button id="tetrisPause" class="secondary" type="button">⏸️ Pauzë</button>
+          <button id="tetrisNew" class="primary" type="button">🔄 ${tr("newGame")}</button>
+        </div>
+      </section>
+    </div>`;
+
+  document.getElementById("tetrisBack").onclick=()=>{stopTetris();tetris=null;renderLobby();};
+  document.getElementById("tetrisPause").onclick=tetrisPause;
+  document.getElementById("tetrisNew").onclick=startTetrisGame;
+  root.querySelectorAll("[data-tetris]").forEach(btn=>{
+    const action=btn.dataset.tetris;
+    const run=()=>{
+      if(action==="left")tetrisMove(-1);
+      else if(action==="right")tetrisMove(1);
+      else if(action==="rotate")tetrisTurn();
+      else if(action==="down")tetrisSoftDrop();
+      else if(action==="drop")tetrisHardDrop();
+    };
+    btn.addEventListener("click",run);
+  });
+
+  tetrisKeyHandler=(event)=>{
+    if(!root.contains(document.getElementById("tetrisBoard"))) return;
+    if(["ArrowLeft","ArrowRight","ArrowDown","ArrowUp"," ","p","P"].includes(event.key)) event.preventDefault();
+    if(event.key==="ArrowLeft")tetrisMove(-1);
+    else if(event.key==="ArrowRight")tetrisMove(1);
+    else if(event.key==="ArrowDown")tetrisSoftDrop();
+    else if(event.key==="ArrowUp")tetrisTurn();
+    else if(event.key===" ")tetrisHardDrop();
+    else if(event.key==="p"||event.key==="P")tetrisPause();
+  };
+  document.addEventListener("keydown",tetrisKeyHandler);
+
+  renderTetrisBoard();
+  tetrisRestartTimer();
+}
+
 
 function activate(){
   if(tabLabel)tabLabel.textContent=tr("games");
