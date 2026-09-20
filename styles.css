@@ -885,3 +885,26 @@ body.lightbox-open { overflow: hidden; }
     flex-direction:column;
   }
 }
+
+
+/* Tetris touch gestures */
+.tetris-board{
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+}
+.tetris-board.tetris-dragging{
+  outline:3px solid rgba(255,255,255,.75);
+  outline-offset:2px;
+}
+.tetris-touch-help{
+  text-align:center;
+  font-weight:750;
+  font-size:14px;
+  line-height:1.4;
+  color:#4b5563;
+  background:rgba(255,255,255,.72);
+  border-radius:12px;
+  padding:9px 10px;
+}
