@@ -13,6 +13,13 @@ const TV_NAME_KEY = "pajaziti-tv-last-name";
 const TV_LOCAL_PLAYLIST_KEY = "pajaziti-tv-local-playlist";
 const ADMIN_EMAIL = "admin@familja.local";
 
+const FREE_TV_PLAYLISTS = [
+  { title:"🇩🇪 Gjermani", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/de.m3u" },
+  { title:"🇦🇱 Shqipëri", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/al.m3u" },
+  { title:"🇽🇰 Kosovë", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/xk.m3u" },
+  { title:"🇹🇷 Turqi", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/tr.m3u" }
+];
+
 const TXT = {
   sq:{
     tv:"TV", brand:"Shtime TV", live:"Live TV", movies:"Filmat", series:"Serialet", replay:"Përsëritje",
@@ -215,6 +222,15 @@ function renderSourceCards(){
   const wrap=document.getElementById("tvSources");
   if(!wrap) return;
   const local=getLocalSource();
+  const freeCards=FREE_TV_PLAYLISTS.map((source,index)=>`
+    <div class="tv-source-card tv-free-source">
+      <div>
+        <strong>${esc(source.title)}</strong>
+        <div class="muted small">Free / publik</div>
+      </div>
+      <button class="secondary" type="button" data-free-tv="${index}">Hape</button>
+    </div>`).join("");
+
   wrap.innerHTML=`
     <div class="tv-source-card">
       <div><strong>🌐 ${tr("shared")}</strong><div class="muted small">${sharedRecord ? new Date(sharedRecord.updated_at).toLocaleString() : tr("noShared")}</div></div>
@@ -223,9 +239,18 @@ function renderSourceCards(){
     <div class="tv-source-card">
       <div><strong>📱 ${tr("local")}</strong><div class="muted small">${local ? "✓" : "—"}</div></div>
       <button id="tvUseLocal" class="secondary" type="button" ${local?"":"disabled"}>${tr("useLocal")}</button>
-    </div>`;
+    </div>
+    <div class="tv-free-source-title"><strong>🌍 Kanale free sipas shtetit</strong></div>
+    ${freeCards}`;
+
   document.getElementById("tvUseShared")?.addEventListener("click",()=>useSource(sharedRecord));
   document.getElementById("tvUseLocal")?.addEventListener("click",()=>useSource(local));
+  wrap.querySelectorAll("[data-free-tv]").forEach((button)=>{
+    button.addEventListener("click",()=>{
+      const source=FREE_TV_PLAYLISTS[Number(button.dataset.freeTv)];
+      if(source) useSource(source);
+    });
+  });
 }
 
 function setPlayerStatus(text="",kind=""){
