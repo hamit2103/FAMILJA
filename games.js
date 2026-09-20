@@ -246,7 +246,8 @@ function renderLobby(msg=""){
         <div class="games-choice">
           <button class="game-choice ${selectedType==="chess"?"active":""}" data-game="chess">♟️ ${tr("chess")}</button>
           <button class="game-choice ${selectedType==="morris"?"active":""}" data-game="morris">🟣 ${tr("morris")}</button>
-          <button class="game-choice ${selectedType==="timer"?"active":""}" data-game="timer">⏱️ ${tr("timer")}</button>\n          <button class="game-choice ${selectedType==="tetris"?"active":""}" data-game="tetris">🧱 ${tr("tetris")}</button>
+          <button class="game-choice ${selectedType==="timer"?"active":""}" data-game="timer">⏱️ ${tr("timer")}</button>
+          <button class="game-choice ${selectedType==="tetris"?"active":""}" data-game="tetris">🧱 ${tr("tetris")}</button>
         </div>
 
         ${selectedType==="timer" ? `
@@ -280,8 +281,22 @@ function renderLobby(msg=""){
   if(timerName) timerName.addEventListener("input",()=>localStorage.setItem(TIMER_NAME_KEY,timerName.value.trim()));
   const timerSoloButton=document.getElementById("timerSoloGame");
   if(timerSoloButton) timerSoloButton.onclick=startTimerSoloGame;
-  document.getElementById("createGame").onclick=createRoom;
-  document.getElementById("joinGame").onclick=joinRoom;
+
+  const tetrisNameInput=document.getElementById("tetrisPlayerName");
+  if(tetrisNameInput){
+    tetrisNameInput.addEventListener("input",()=>localStorage.setItem(TETRIS_NAME_KEY,tetrisNameInput.value.trim().slice(0,24)));
+  }
+
+  const tetrisButton=document.getElementById("tetrisGame");
+  if(tetrisButton) tetrisButton.onclick=startTetrisGame;
+
+  const createButton=document.getElementById("createGame");
+  if(createButton) createButton.onclick=createRoom;
+
+  const joinButton=document.getElementById("joinGame");
+  if(joinButton) joinButton.onclick=joinRoom;
+
+  if(selectedType==="tetris") loadTetrisLeaderboard("tetrisLobbyLeaderboard");
 }
 
 function startTimerSoloGame(){
