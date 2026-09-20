@@ -838,3 +838,50 @@ body.lightbox-open { overflow: hidden; }
   .tetris-board-wrap{width:min(100%,330px)}
   .tetris-controls button{min-height:50px;font-size:22px}
 }
+
+
+/* Tetris shared leaderboard */
+.tetris-leaderboard,
+.tetris-leaderboard-mini{
+  margin-top:10px;
+  padding:14px;
+  border-radius:16px;
+  background:#fff;
+}
+.tetris-leaderboard h3,
+.tetris-leaderboard-mini h3{
+  margin:0 0 10px;
+}
+.tetris-ranking{
+  display:grid;
+  gap:8px;
+}
+.tetris-rank-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:#f3f4f6;
+}
+.tetris-rank-row:first-child{
+  background:#fef3c7;
+}
+.tetris-rank-row span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:800;
+}
+.tetris-rank-row strong{
+  white-space:nowrap;
+  font-size:13px;
+}
+@media(max-width:520px){
+  .tetris-rank-row{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+}
