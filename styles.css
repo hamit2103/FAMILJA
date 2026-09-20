@@ -1361,3 +1361,29 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
     grid-template-columns:1fr;
   }
 }
+
+
+/* Chat */
+.chat-head-card{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.chat-plan-badge{padding:9px 13px;border-radius:999px;background:#e5e7eb;font-weight:900}
+.chat-profile-card,.chat-compose-card{display:grid;gap:10px}
+.chat-name-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.chat-name-row input,.chat-compose-card textarea{
+  width:100%;border:1px solid #d1d5db;border-radius:14px;padding:12px;font:inherit;background:#fff
+}
+.chat-premium-card{display:grid;gap:12px;border:1px solid #f5c542;background:#fffbea}
+.paypal-buy-btn{
+  border:0;border-radius:14px;padding:13px 16px;background:#ffc439;color:#111827;
+  font-weight:900;font-size:16px
+}
+.chat-compose-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.chat-list{display:grid;gap:10px;max-height:58vh;overflow:auto;padding:4px 0 24px}
+.chat-message{position:relative;max-width:88%;padding:11px 13px;border-radius:16px;background:#f3f4f6}
+.chat-message.mine{margin-left:auto;background:#dbeafe}
+.chat-message-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:5px}
+.chat-message-body{white-space:pre-wrap;word-break:break-word}
+.chat-delete-btn{margin-top:8px;border:0;border-radius:10px;padding:7px 10px;background:#fee2e2;color:#991b1b;font-weight:800}
+@media(max-width:560px){
+  .chat-name-row{grid-template-columns:1fr}
+  .chat-message{max-width:94%}
+}
