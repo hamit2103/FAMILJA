@@ -1606,3 +1606,12 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
     width:100%;
   }
 }
+
+.war-audio-status{
+  grid-column:1/-1;
+  min-height:16px;
+  font-size:11px;
+  text-align:center;
+  color:#fde68a;
+  font-weight:800;
+}
