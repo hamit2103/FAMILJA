@@ -22,6 +22,7 @@ import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -36,7 +37,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-app/";
+    private static final String APP_URL = "https://appassets.androidplatform.net/assets/index.html";
+    private static final String APP_ASSET_HOST = "appassets.androidplatform.net";
     private static final String UPDATE_INFO_URL = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-update";
     private static final int REQ_LOCATION = 1001;
     private static final int REQ_FILES = 1002;
@@ -87,6 +89,21 @@ public class MainActivity extends Activity {
 
         webView.addJavascriptInterface(new PrayerBridge(this), "AndroidPrayer");
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(
+                WebView view,
+                WebResourceRequest request
+            ) {
+                WebResourceResponse local = openBundledAsset(request.getUrl());
+                return local != null ? local : super.shouldInterceptRequest(view, request);
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                WebResourceResponse local = openBundledAsset(Uri.parse(url));
+                return local != null ? local : super.shouldInterceptRequest(view, url);
+            }
+
             @Override
             public void onReceivedError(
                 WebView view,
@@ -185,6 +202,37 @@ public class MainActivity extends Activity {
     }
 
 
+    private WebResourceResponse openBundledAsset(Uri uri) {
+        if (uri == null || !APP_ASSET_HOST.equals(uri.getHost())) return null;
+
+        String path = uri.getPath();
+        if (path == null || !path.startsWith("/assets/")) return null;
+
+        String assetPath = path.substring("/assets/".length());
+        if (assetPath.isEmpty()) assetPath = "index.html";
+
+        try {
+            return new WebResourceResponse(
+                mimeTypeFor(assetPath),
+                "UTF-8",
+                getAssets().open(assetPath)
+            );
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String mimeTypeFor(String path) {
+        String p = path.toLowerCase();
+        if (p.endsWith(".html")) return "text/html";
+        if (p.endsWith(".css")) return "text/css";
+        if (p.endsWith(".js")) return "application/javascript";
+        if (p.endsWith(".webmanifest")) return "application/manifest+json";
+        if (p.endsWith(".svg")) return "image/svg+xml";
+        if (p.endsWith(".m3u")) return "audio/x-mpegurl";
+        return "application/octet-stream";
+    }
+
     private void showLoadErrorPage() {
         if (webView == null || isFinishing()) return;
 
@@ -216,7 +264,10 @@ public class MainActivity extends Activity {
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL(UPDATE_INFO_URL + "?t=" + System.currentTimeMillis());
+                URL url = new URL(
+                    UPDATE_INFO_URL + "?package=" + Uri.encode(getPackageName()) +
+                    "&t=" + System.currentTimeMillis()
+                );
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setConnectTimeout(8000);
                 connection.setReadTimeout(8000);
