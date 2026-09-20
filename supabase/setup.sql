@@ -176,11 +176,15 @@ to authenticated
 using (true);
 
 drop policy if exists "Family can write information" on public.information;
-create policy "Family can write information"
+drop policy if exists "Admin can write information" on public.information;
+create policy "Admin can write information"
 on public.information
 for insert
 to authenticated
-with check (user_id = auth.uid());
+with check (
+  user_id = auth.uid()
+  and auth.email() = 'admin@familja.local'
+);
 
 drop policy if exists "Admin can delete information" on public.information;
 create policy "Admin can delete information"
