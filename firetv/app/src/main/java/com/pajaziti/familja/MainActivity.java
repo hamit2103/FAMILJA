@@ -20,6 +20,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -84,7 +86,19 @@ public class MainActivity extends Activity {
         settings.setGeolocationEnabled(true);
 
         webView.addJavascriptInterface(new PrayerBridge(this), "AndroidPrayer");
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onReceivedError(
+                WebView view,
+                WebResourceRequest request,
+                WebResourceError error
+            ) {
+                super.onReceivedError(view, request, error);
+                if (request != null && request.isForMainFrame()) {
+                    showLoadErrorPage();
+                }
+            }
+        });
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -157,15 +171,35 @@ public class MainActivity extends Activity {
         webView.post(() -> webView.requestFocus(View.FOCUS_DOWN));
 
         IntentFilter updateFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(updateDownloadReceiver, updateFilter, Context.RECEIVER_EXPORTED);
-        } else {
-            registerReceiver(updateDownloadReceiver, updateFilter);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(updateDownloadReceiver, updateFilter, Context.RECEIVER_EXPORTED);
+            } else {
+                registerReceiver(updateDownloadReceiver, updateFilter);
+            }
+        } catch (Exception ignored) {
+            // The app must still open even if a device blocks dynamic receiver registration.
         }
 
         webView.postDelayed(this::checkForUpdates, 1800);
     }
 
+
+    private void showLoadErrorPage() {
+        if (webView == null || isFinishing()) return;
+
+        String html =
+            "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>" +
+            "<style>body{font-family:sans-serif;background:#111827;color:#fff;margin:0;padding:28px}" +
+            ".box{max-width:520px;margin:12vh auto;background:#1f2937;border-radius:18px;padding:22px}" +
+            "button{width:100%;padding:14px;border:0;border-radius:12px;background:#dc2626;color:#fff;font-weight:700;font-size:16px}</style>" +
+            "</head><body><div class='box'><h2>PAJAZITI</h2>" +
+            "<p>Aplikacioni u hap, por faqja nuk u ngarkua. Kontrollo internetin dhe provo përsëri.</p>" +
+            "<button onclick=\"location.href='" + APP_URL + "'\">Provo përsëri</button>" +
+            "</div></body></html>";
+
+        webView.loadDataWithBaseURL(APP_URL, html, "text/html", "UTF-8", null);
+    }
 
     private long currentVersionCode() {
         try {
