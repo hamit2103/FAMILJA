@@ -534,7 +534,6 @@ async function saveSharedMenuOrder(){
 menuOrderSave?.addEventListener("click",saveSharedMenuOrder);
 
 function setSection(next) {
-  if (next === "gallery" && !isAdmin()) next = "info";
   activeSection = next;
   const showGallery = next === "gallery";
   const showInfo = next === "info";
@@ -1382,7 +1381,7 @@ async function signedUrl(path) {
 }
 
 async function loadMedia() {
-  if (!supabase || !currentUser || !isAdmin()) return;
+  if (!supabase || !currentUser) return;
 
   gallery.innerHTML = "";
   const { data, error } = await supabase
@@ -1446,7 +1445,7 @@ async function loadMedia() {
       download.textContent = t("download");
       actions.appendChild(download);
 
-      if (isAdmin() || isOwnFamilyPhoto(item)) {
+      if (isAdmin()) {
         const del = document.createElement("button");
         del.type = "button";
         del.className = "danger";
@@ -1777,7 +1776,6 @@ async function applySession(session) {
 
   loginView.classList.toggle("hidden", signedIn);
   appView.classList.toggle("hidden", !signedIn);
-  galleryTab?.classList.toggle("hidden", !signedIn || !isAdmin());
   infoCompose?.classList.toggle("hidden", !signedIn || !isAdmin());
   menuOrderAdmin?.classList.toggle("hidden", !signedIn || !isAdmin());
   if (isAdmin()) infoUnreadBadge?.classList.add("hidden");
@@ -1805,8 +1803,8 @@ async function applySession(session) {
   if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
   roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
   uploadStatus.textContent = "";
-  setSection(isAdmin() ? "gallery" : "info");
-  if (isAdmin()) await loadMedia();
+  setSection("gallery");
+  await loadMedia();
   await loadSharedMenuOrder();
   const savedCoords = savedPrayerCoords();
   if (savedCoords) {
