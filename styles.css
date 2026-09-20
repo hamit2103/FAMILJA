@@ -1203,3 +1203,51 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+
+/* Radio language folders */
+.radio-folder-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+.radio-folder-card{
+  border:0;
+  border-radius:20px;
+  min-height:145px;
+  padding:18px 14px;
+  background:#fff;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:8px;
+  box-shadow:0 7px 22px rgba(0,0,0,.08);
+  color:#111827;
+}
+.radio-folder-card:active{transform:scale(.98)}
+.radio-folder-flag{font-size:46px;line-height:1}
+.radio-folder-card strong{font-size:20px}
+.radio-folder-card small{color:#6b7280;font-weight:750}
+.radio-folder-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:6px 0 12px;
+}
+.radio-folder-select{
+  width:100%;
+  min-height:48px;
+  border:1px solid #d1d5db;
+  border-radius:14px;
+  padding:0 12px;
+  background:#fff;
+  font:inherit;
+}
+@media(max-width:520px){
+  .radio-folder-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .radio-folder-card{min-height:125px;padding:14px 10px}
+  .radio-folder-flag{font-size:38px}
+  .radio-folder-card strong{font-size:17px}
+}
