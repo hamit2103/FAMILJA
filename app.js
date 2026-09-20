@@ -176,8 +176,14 @@ function applyLanguage(language = currentLanguage) {
   if (loginSelect) loginSelect.value = language;
   if (appSelect) appSelect.value = language;
 
+  if (typeof mode !== "undefined" && codeInput) {
+    codeInput.placeholder = mode === "admin"
+      ? t("login.adminPlaceholder")
+      : t("login.familyPlaceholder");
+  }
+
   if (currentUser) {
-    roleLabel.textContent = roleDisplayName();
+    roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
     updateUploadPanel(mediaItems);
     renderPrayerTimes();
     updateNextPrayer();
@@ -189,8 +195,9 @@ function applyLanguage(language = currentLanguage) {
 
 const loginView = $("loginView");
 const appView = $("appView");
-const usernameInput = $("usernameInput");
-const passwordInput = $("passwordInput");
+const familyMode = $("familyMode");
+const adminMode = $("adminMode");
+const codeInput = $("codeInput");
 const loginBtn = $("loginBtn");
 const loginMessage = $("loginMessage");
 const adminPanel = $("adminPanel");
@@ -213,13 +220,11 @@ const infoTab = $("infoTab");
 const prayerTab = $("prayerTab");
 const gamesTab = $("gamesTab");
 const tvTab = $("tvTab");
-const accountsTab = $("accountsTab");
 const galleryView = $("galleryView");
 const infoView = $("infoView");
 const prayerView = $("prayerView");
 const gamesView = $("gamesView");
 const tvView = $("tvView");
-const accountsView = $("accountsView");
 const infoName = $("infoName");
 const infoText = $("infoText");
 const infoSendBtn = $("infoSendBtn");
@@ -240,26 +245,14 @@ const prayerLocationBtn = $("prayerLocationBtn");
 const prayerNext = $("prayerNext");
 const prayerStatus = $("prayerStatus");
 const prayerList = $("prayerList");
-const accountRoleText = $("accountRoleText");
-const accountCreditsBadge = $("accountCreditsBadge");
-const newUsername = $("newUsername");
-const newPassword = $("newPassword");
-const newRole = $("newRole");
-const newRoleWrap = $("newRoleWrap");
-const newCredits = $("newCredits");
-const newCreditsWrap = $("newCreditsWrap");
-const createAccountBtn = $("createAccountBtn");
-const accountStatus = $("accountStatus");
-const refreshAccountsBtn = $("refreshAccountsBtn");
-const accountsList = $("accountsList");
 
 languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
 
+let mode = "family";
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
-let currentProfile = null;
 let mediaItems = [];
 let prayerTimings = null;
 let prayerTimingsDate = "";
@@ -430,34 +423,41 @@ function setSection(next) {
   const showPrayer = next === "prayer";
   const showGames = next === "games";
   const showTv = next === "tv";
-  const showAccounts = next === "accounts";
 
   galleryTab.classList.toggle("active", showGallery);
   infoTab.classList.toggle("active", showInfo);
   prayerTab.classList.toggle("active", showPrayer);
   gamesTab.classList.toggle("active", showGames);
   tvTab.classList.toggle("active", showTv);
-  accountsTab?.classList.toggle("active", showAccounts);
 
   galleryView.classList.toggle("hidden", !showGallery);
   infoView.classList.toggle("hidden", !showInfo);
   prayerView.classList.toggle("hidden", !showPrayer);
   gamesView.classList.toggle("hidden", !showGames);
   tvView.classList.toggle("hidden", !showTv);
-  accountsView?.classList.toggle("hidden", !showAccounts);
 
   if (showInfo) loadInfo();
   if (showPrayer) loadPrayerTimes(false);
   if (showGames) window.PajazitiGames?.activate?.();
   if (showTv) window.PajazitiTV?.activate?.();
-  if (showAccounts) loadAccounts();
 }
 galleryTab.addEventListener("click", () => setSection("gallery"));
 infoTab.addEventListener("click", () => setSection("info"));
 prayerTab.addEventListener("click", () => setSection("prayer"));
 gamesTab.addEventListener("click", () => setSection("games"));
 tvTab.addEventListener("click", () => setSection("tv"));
-accountsTab?.addEventListener("click", () => setSection("accounts"));
+
+function setMode(next) {
+  mode = next;
+  familyMode.classList.toggle("active", next === "family");
+  adminMode.classList.toggle("active", next === "admin");
+  codeInput.value = "";
+  codeInput.placeholder =
+    next === "admin" ? t("login.adminPlaceholder") : t("login.familyPlaceholder");
+  loginMessage.textContent = "";
+}
+familyMode.addEventListener("click", () => setMode("family"));
+adminMode.addEventListener("click", () => setMode("admin"));
 
 function showMessage(el, text, kind = "") {
   el.textContent = text;
@@ -465,65 +465,43 @@ function showMessage(el, text, kind = "") {
 }
 
 function isAdmin() {
-  return currentProfile?.role === "super_admin";
-}
-
-function isReseller() {
-  return currentProfile?.role === "reseller";
-}
-
-function canManageAccounts() {
-  return isAdmin() || isReseller();
-}
-
-function roleDisplayName() {
-  if (isAdmin()) return "Super Admin";
-  if (isReseller()) return "Reseller";
-  return currentProfile?.username ? "User: " + currentProfile.username : t("role.family");
-}
-
-function loginEmailForUsername(username) {
-  const normalized = username.trim().toLowerCase();
-  if (normalized === "admin") return ADMIN_EMAIL;
-  if (normalized === "familja") return FAMILY_EMAIL;
-  return normalized + "@familja.app";
-}
-
-async function loadCurrentProfile() {
-  if (!supabase || !currentUser) return null;
-  const { data, error } = await supabase
-    .from("app_profiles")
-    .select("user_id,username,role,credits,active")
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
-  if (error) throw error;
-  return data || null;
+  return currentUser?.email === ADMIN_EMAIL;
 }
 
 async function login() {
   if (!configured) {
-    return showMessage(loginMessage, t("error.supabaseNotLinked"), "error");
+    return showMessage(
+      loginMessage,
+      t("error.supabaseNotLinked"),
+      "error"
+    );
   }
 
-  const username = usernameInput.value.trim().toLowerCase();
-  const password = passwordInput.value;
-  if (!username || !password) {
-    return showMessage(loginMessage, "Shkruaj username dhe password.", "error");
-  }
+  const code = codeInput.value.trim();
+  if (!code) return showMessage(loginMessage, t("login.enterCode"), "error");
 
   loginBtn.disabled = true;
   showMessage(loginMessage, t("login.checking"));
 
+  const email = mode === "admin" ? ADMIN_EMAIL : FAMILY_EMAIL;
   const { error } = await supabase.auth.signInWithPassword({
-    email: loginEmailForUsername(username),
-    password
+    email,
+    password: code
   });
 
   if (error) {
     console.error(error);
     const raw = (error.message || "").toLowerCase();
-    let message = "Username ose password është gabim.";
-    if (raw.includes("rate limit")) message = t("login.rateLimit");
+    let message = t("login.failed");
+    if (raw.includes("invalid login credentials")) {
+      message = t("login.badCode");
+    } else if (raw.includes("email not confirmed")) {
+      message = t("login.emailUnconfirmed");
+    } else if (raw.includes("rate limit")) {
+      message = t("login.rateLimit");
+    } else if (error.message) {
+      message = "Gabim: " + error.message;
+    }
     showMessage(loginMessage, message, "error");
   } else {
     showMessage(loginMessage, "");
@@ -532,10 +510,7 @@ async function login() {
 }
 
 loginBtn.addEventListener("click", login);
-usernameInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") passwordInput.focus();
-});
-passwordInput.addEventListener("keydown", (e) => {
+codeInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") login();
 });
 
@@ -1156,7 +1131,7 @@ function startPrayerAlarmChecker() {
 }
 
 function familyFolderPrefix() {
-  return "family/" + (currentUser?.id || "unknown") + "/";
+  return "family/" + presenceDeviceId + "/";
 }
 
 function isOwnFamilyPhoto(item) {
@@ -1627,203 +1602,14 @@ function startRealtime() {
     });
 }
 
-
-function updateAccountManagerHeader() {
-  if (!currentProfile) return;
-  accountsTab?.classList.toggle("hidden", !canManageAccounts());
-  if (!canManageAccounts() && !accountsView?.classList.contains("hidden")) {
-    setSection("gallery");
-  }
-
-  if (isAdmin()) {
-    accountRoleText.textContent = "Super Admin · mund të krijojë reseller dhe user.";
-    accountCreditsBadge.textContent = "Kredite: ∞";
-    newRoleWrap.classList.remove("hidden");
-  } else if (isReseller()) {
-    accountRoleText.textContent = "Reseller · 1 kredit përdoret për çdo user të ri.";
-    accountCreditsBadge.textContent = "Kredite: " + Number(currentProfile.credits || 0);
-    newRole.value = "user";
-    newRoleWrap.classList.add("hidden");
-    newCreditsWrap.classList.add("hidden");
-  }
-}
-
-newRole?.addEventListener("change", () => {
-  newCreditsWrap.classList.toggle("hidden", !(isAdmin() && newRole.value === "reseller"));
-});
-
-async function callAccountAdmin(payload) {
-  const { data, error } = await supabase.functions.invoke("account-admin", { body: payload });
-  if (error) throw error;
-  if (data?.error) {
-    const err = new Error(data.error);
-    err.code = data.error;
-    throw err;
-  }
-  return data;
-}
-
-function accountErrorText(error) {
-  const code = error?.code || error?.message || "";
-  if (code.includes("NO_CREDITS")) return "Nuk ke kredi të mjaftueshme.";
-  if (code.includes("USERNAME_EXISTS")) return "Ky username ekziston.";
-  if (code.includes("INVALID_USERNAME")) return "Username: 3–32 shkronja/numra, mund të ketë . _ -";
-  if (code.includes("INVALID_PASSWORD")) return "Password duhet të ketë së paku 6 karaktere.";
-  if (code.includes("INVALID_AMOUNT")) return "Shuma e kredive nuk është valide.";
-  return "Veprimi dështoi. Provo përsëri.";
-}
-
-async function loadAccounts() {
-  if (!supabase || !currentUser || !canManageAccounts()) return;
-  accountsList.innerHTML = '<p class="muted">Po ngarkohen...</p>';
-  try {
-    const data = await callAccountAdmin({ action: "list" });
-    const users = data?.users || [];
-    accountsList.innerHTML = "";
-    if (!users.length) {
-      accountsList.innerHTML = '<p class="muted">Ende nuk ka llogari të krijuara.</p>';
-      return;
-    }
-
-    for (const item of users) {
-      const row = document.createElement("div");
-      row.className = "account-row";
-
-      const main = document.createElement("div");
-      main.className = "account-main";
-      const title = document.createElement("strong");
-      title.textContent = item.username;
-      const meta = document.createElement("span");
-      meta.className = "muted small";
-      meta.textContent =
-        (item.role === "reseller" ? "Reseller" : "User") +
-        (item.role === "reseller" ? " · " + Number(item.credits || 0) + " kredi" : "") +
-        (item.active ? " · Aktiv" : " · Bllokuar");
-      main.append(title, meta);
-      row.appendChild(main);
-
-      const actions = document.createElement("div");
-      actions.className = "account-actions";
-
-      if (isAdmin() && item.role === "reseller") {
-        const amount = document.createElement("input");
-        amount.type = "number";
-        amount.min = "1";
-        amount.max = "1000000";
-        amount.placeholder = "+ kredi";
-        amount.className = "credit-input";
-
-        const add = document.createElement("button");
-        add.type = "button";
-        add.className = "secondary";
-        add.textContent = "Shto";
-        add.addEventListener("click", async () => {
-          const n = Number(amount.value);
-          if (!Number.isInteger(n) || n <= 0) return;
-          add.disabled = true;
-          try {
-            await callAccountAdmin({ action: "add_credits", user_id: item.user_id, amount: n });
-            await loadAccounts();
-          } catch (e) {
-            showMessage(accountStatus, accountErrorText(e), "error");
-          } finally {
-            add.disabled = false;
-          }
-        });
-        actions.append(amount, add);
-      }
-
-      if (isAdmin()) {
-        const toggle = document.createElement("button");
-        toggle.type = "button";
-        toggle.className = item.active ? "danger" : "secondary";
-        toggle.textContent = item.active ? "Blloko" : "Aktivizo";
-        toggle.addEventListener("click", async () => {
-          toggle.disabled = true;
-          try {
-            await callAccountAdmin({ action: "set_active", user_id: item.user_id, active: !item.active });
-            await loadAccounts();
-          } catch (e) {
-            showMessage(accountStatus, accountErrorText(e), "error");
-          } finally {
-            toggle.disabled = false;
-          }
-        });
-        actions.appendChild(toggle);
-      }
-
-      row.appendChild(actions);
-      accountsList.appendChild(row);
-    }
-  } catch (e) {
-    console.error(e);
-    accountsList.innerHTML = "";
-    showMessage(accountStatus, accountErrorText(e), "error");
-  }
-}
-
-createAccountBtn?.addEventListener("click", async () => {
-  if (!canManageAccounts()) return;
-  const username = newUsername.value.trim().toLowerCase();
-  const password = newPassword.value;
-  const role = isAdmin() ? newRole.value : "user";
-  const credits = role === "reseller" ? Number(newCredits.value || 0) : 0;
-
-  createAccountBtn.disabled = true;
-  showMessage(accountStatus, "Po krijohet...");
-  try {
-    const result = await callAccountAdmin({
-      action: "create",
-      username,
-      password,
-      role,
-      credits
-    });
-    if (result?.caller) currentProfile = result.caller;
-    newUsername.value = "";
-    newPassword.value = "";
-    newCredits.value = "0";
-    showMessage(accountStatus, "Llogaria u krijua me sukses.", "success");
-    updateAccountManagerHeader();
-    await loadAccounts();
-  } catch (e) {
-    console.error(e);
-    showMessage(accountStatus, accountErrorText(e), "error");
-  } finally {
-    createAccountBtn.disabled = false;
-  }
-});
-
-refreshAccountsBtn?.addEventListener("click", loadAccounts);
-
 async function applySession(session) {
   currentUser = session?.user || null;
-  currentProfile = null;
-  let signedIn = !!currentUser;
-
-  if (signedIn) {
-    try {
-      currentProfile = await loadCurrentProfile();
-      if (!currentProfile || !currentProfile.active) {
-        await supabase.auth.signOut();
-        currentUser = null;
-        currentProfile = null;
-        signedIn = false;
-      }
-    } catch (error) {
-      console.error("Profile load failed", error);
-      await supabase.auth.signOut();
-      currentUser = null;
-      currentProfile = null;
-      signedIn = false;
-    }
-  }
+  const signedIn = !!currentUser;
 
   loginView.classList.toggle("hidden", signedIn);
   appView.classList.toggle("hidden", !signedIn);
 
   if (!signedIn) {
-    accountsTab?.classList.add("hidden");
     gallery.innerHTML = "";
     mediaItems = [];
     mediaCount.textContent = "0";
@@ -1843,8 +1629,7 @@ async function applySession(session) {
 
   adminPanel.classList.remove("hidden");
   if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
-  roleLabel.textContent = roleDisplayName();
-  updateAccountManagerHeader();
+  roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
   uploadStatus.textContent = "";
   await loadMedia();
   const savedCoords = savedPrayerCoords();
