@@ -848,3 +848,51 @@ begin
     alter publication supabase_realtime add table public.radio_stations;
   end if;
 end $$;
+
+
+-- Shared Tetris leaderboard.
+create table if not exists public.tetris_scores (
+  device_id text primary key,
+  display_name text not null check (char_length(display_name) between 1 and 24),
+  best_score integer not null default 0 check (best_score >= 0),
+  best_lines integer not null default 0 check (best_lines >= 0),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.tetris_scores enable row level security;
+grant select, insert, update on table public.tetris_scores to authenticated;
+
+drop policy if exists "Family can read tetris scores" on public.tetris_scores;
+create policy "Family can read tetris scores"
+on public.tetris_scores
+for select
+to authenticated
+using (true);
+
+drop policy if exists "Family can insert tetris scores" on public.tetris_scores;
+create policy "Family can insert tetris scores"
+on public.tetris_scores
+for insert
+to authenticated
+with check (true);
+
+drop policy if exists "Family can update tetris scores" on public.tetris_scores;
+create policy "Family can update tetris scores"
+on public.tetris_scores
+for update
+to authenticated
+using (true)
+with check (true);
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'tetris_scores'
+  ) then
+    alter publication supabase_realtime add table public.tetris_scores;
+  end if;
+end $$;
