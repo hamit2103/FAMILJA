@@ -231,3 +231,48 @@ $$;
 
 revoke all on function public.admin_storage_usage() from public;
 grant execute on function public.admin_storage_usage() to authenticated;
+
+
+-- Online games: Chess and Nine Men's Morris
+create table if not exists public.game_rooms (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique check (char_length(code) between 4 and 8),
+  game_type text not null check (game_type in ('chess','morris')),
+  player1_device text not null,
+  player2_device text,
+  state jsonb not null default '{}'::jsonb,
+  status text not null default 'waiting' check (status in ('waiting','active','finished')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.game_rooms enable row level security;
+grant select, insert, update, delete on table public.game_rooms to authenticated;
+
+drop policy if exists "Authenticated can read game rooms" on public.game_rooms;
+create policy "Authenticated can read game rooms"
+on public.game_rooms for select to authenticated using (true);
+
+drop policy if exists "Authenticated can create game rooms" on public.game_rooms;
+create policy "Authenticated can create game rooms"
+on public.game_rooms for insert to authenticated with check (true);
+
+drop policy if exists "Authenticated can update game rooms" on public.game_rooms;
+create policy "Authenticated can update game rooms"
+on public.game_rooms for update to authenticated using (true) with check (true);
+
+drop policy if exists "Authenticated can delete game rooms" on public.game_rooms;
+create policy "Authenticated can delete game rooms"
+on public.game_rooms for delete to authenticated using (true);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime'
+      and schemaname='public'
+      and tablename='game_rooms'
+  ) then
+    alter publication supabase_realtime add table public.game_rooms;
+  end if;
+end $$;
