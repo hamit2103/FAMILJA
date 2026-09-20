@@ -397,6 +397,115 @@ function warFinishIfNeeded(){
   return false;
 }
 
+
+async function ensureWarAudio(){
+  try{
+    if(!gameAudioContext){
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtx) return null;
+      gameAudioContext=new AudioCtx();
+    }
+    if(gameAudioContext.state==="suspended") await gameAudioContext.resume();
+    return gameAudioContext;
+  }catch(_){
+    return null;
+  }
+}
+
+function warNoise(ctx,{delay=0,duration=.12,gain=.5,filterType="lowpass",frequency=1800}={}){
+  const start=ctx.currentTime+delay;
+  const length=Math.max(1,Math.floor(ctx.sampleRate*duration));
+  const buffer=ctx.createBuffer(1,length,ctx.sampleRate);
+  const data=buffer.getChannelData(0);
+  for(let i=0;i<length;i++){
+    const decay=1-(i/length);
+    data[i]=(Math.random()*2-1)*decay;
+  }
+  const src=ctx.createBufferSource();
+  const filter=ctx.createBiquadFilter();
+  const amp=ctx.createGain();
+  src.buffer=buffer;
+  filter.type=filterType;
+  filter.frequency.setValueAtTime(frequency,start);
+  amp.gain.setValueAtTime(.0001,start);
+  amp.gain.exponentialRampToValueAtTime(Math.max(.001,gain),start+.004);
+  amp.gain.exponentialRampToValueAtTime(.0001,start+duration);
+  src.connect(filter);
+  filter.connect(amp);
+  amp.connect(ctx.destination);
+  src.start(start);
+  src.stop(start+duration+.02);
+}
+
+function warLowBoom(ctx,{delay=0,duration=.28,startFreq=120,endFreq=42,gain=.55}={}){
+  const start=ctx.currentTime+delay;
+  const osc=ctx.createOscillator();
+  const amp=ctx.createGain();
+  osc.type="sine";
+  osc.frequency.setValueAtTime(startFreq,start);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(20,endFreq),start+duration);
+  amp.gain.setValueAtTime(.0001,start);
+  amp.gain.exponentialRampToValueAtTime(gain,start+.008);
+  amp.gain.exponentialRampToValueAtTime(.0001,start+duration);
+  osc.connect(amp);
+  amp.connect(ctx.destination);
+  osc.start(start);
+  osc.stop(start+duration+.03);
+}
+
+function playWarSound(kind){
+  ensureWarAudio().then(ctx=>{
+    if(!ctx) return;
+
+    if(kind==="attack"){
+      warNoise(ctx,{duration:.075,gain:.72,filterType:"highpass",frequency:900});
+      warLowBoom(ctx,{duration:.11,startFreq:150,endFreq:58,gain:.42});
+      warNoise(ctx,{delay:.055,duration:.055,gain:.28,filterType:"bandpass",frequency:2200});
+      if(navigator.vibrate) navigator.vibrate(28);
+    }else if(kind==="tank"){
+      warNoise(ctx,{duration:.18,gain:.75,filterType:"lowpass",frequency:1500});
+      warLowBoom(ctx,{duration:.48,startFreq:105,endFreq:30,gain:.78});
+      warNoise(ctx,{delay:.08,duration:.30,gain:.30,filterType:"lowpass",frequency:650});
+      if(navigator.vibrate) navigator.vibrate([55,25,85]);
+    }else if(kind==="rocket"){
+      warNoise(ctx,{duration:.28,gain:.38,filterType:"bandpass",frequency:1100});
+      warLowBoom(ctx,{delay:.23,duration:.58,startFreq:92,endFreq:24,gain:.86});
+      warNoise(ctx,{delay:.23,duration:.38,gain:.82,filterType:"lowpass",frequency:1200});
+      if(navigator.vibrate) navigator.vibrate([45,120,110]);
+    }else if(kind==="defend"){
+      const start=ctx.currentTime;
+      const osc=ctx.createOscillator();
+      const amp=ctx.createGain();
+      osc.type="triangle";
+      osc.frequency.setValueAtTime(260,start);
+      osc.frequency.exponentialRampToValueAtTime(780,start+.16);
+      amp.gain.setValueAtTime(.0001,start);
+      amp.gain.exponentialRampToValueAtTime(.18,start+.02);
+      amp.gain.exponentialRampToValueAtTime(.0001,start+.20);
+      osc.connect(amp);
+      amp.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start+.22);
+    }else if(kind==="medkit"){
+      const start=ctx.currentTime;
+      [520,660,820].forEach((f,i)=>{
+        const osc=ctx.createOscillator();
+        const amp=ctx.createGain();
+        osc.type="sine";
+        osc.frequency.value=f;
+        const t=start+i*.07;
+        amp.gain.setValueAtTime(.0001,t);
+        amp.gain.exponentialRampToValueAtTime(.12,t+.01);
+        amp.gain.exponentialRampToValueAtTime(.0001,t+.08);
+        osc.connect(amp);
+        amp.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t+.10);
+      });
+    }
+  });
+}
+
 function warPlayerAction(action){
   const s=warGameState;
   if(!s || s.over || s.turn!=="player") return;
@@ -406,25 +515,30 @@ function warPlayerAction(action){
   if(action==="attack"){
     if(p.energy<10){ s.message="Nuk ke energji të mjaftueshme."; return renderWarGame(); }
     p.energy-=10;
+    playWarSound("attack");
     const d=warApplyDamage(e,14+Math.random()*10);
     s.message="🔫 Sulmove kundërshtarin për "+d+" dëme.";
   }else if(action==="tank"){
     if(p.energy<25){ s.message="Duhet të kesh 25 energji për Tank."; return renderWarGame(); }
     p.energy-=25;
+    playWarSound("tank");
     const d=warApplyDamage(e,24+Math.random()*14);
     s.message="🪖 Tanku goditi për "+d+" dëme.";
   }else if(action==="rocket"){
     if(p.energy<40){ s.message="Duhet të kesh 40 energji për Raketë."; return renderWarGame(); }
     p.energy-=40;
+    playWarSound("rocket");
     const d=warApplyDamage(e,36+Math.random()*18);
     s.message="🚀 Raketa goditi për "+d+" dëme!";
   }else if(action==="defend"){
+    playWarSound("defend");
     p.shield=warClamp(p.shield+25,0,100);
     p.energy=warClamp(p.energy+8,0,100);
     s.message="🛡️ Mburoja u forcua.";
   }else if(action==="medkit"){
     if(p.energy<20){ s.message="Duhet të kesh 20 energji për Medkit."; return renderWarGame(); }
     p.energy-=20;
+    playWarSound("medkit");
     p.hp=warClamp(p.hp+25,0,100);
     s.message="🩹 Riktheve shëndetin.";
   }
@@ -451,22 +565,27 @@ function warEnemyTurn(){
 
   if(action==="medkit"){
     e.energy-=20;
+    playWarSound("medkit");
     e.hp=warClamp(e.hp+22,0,100);
     s.message="🤖 Kundërshtari përdori Medkit.";
   }else if(action==="defend"){
+    playWarSound("defend");
     e.shield=warClamp(e.shield+22,0,100);
     e.energy=warClamp(e.energy+8,0,100);
     s.message="🤖 Kundërshtari ngriti mburojën.";
   }else if(action==="rocket"){
     e.energy-=40;
+    playWarSound("rocket");
     const d=warApplyDamage(p,32+Math.random()*18);
     s.message="🚀 Kundërshtari të goditi me raketë: "+d+" dëme.";
   }else if(action==="tank"){
     e.energy-=25;
+    playWarSound("tank");
     const d=warApplyDamage(p,22+Math.random()*14);
     s.message="🪖 Tanku i kundërshtarit: "+d+" dëme.";
   }else{
     e.energy=Math.max(0,e.energy-10);
+    playWarSound("attack");
     const d=warApplyDamage(p,12+Math.random()*10);
     s.message="🔫 Kundërshtari sulmoi: "+d+" dëme.";
   }
