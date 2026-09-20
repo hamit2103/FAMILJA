@@ -12,6 +12,7 @@ const LANG_KEY = "pajaziti-language";
 const TIMER_NAME_KEY = "pajaziti-timer-name";
 const TIMER_SOUND_KEY = "pajaziti-timer-sound";
 const TETRIS_NAME_KEY = "pajaziti-tetris-name";
+const TETRIS_SOUND_KEY = "pajaziti-tetris-sound";
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -38,6 +39,7 @@ let timerPhaseTimeout=null;
 let gameAudioContext=null;
 let lastTimerSoundKey="";
 let timerSoundEnabled=localStorage.getItem(TIMER_SOUND_KEY)!=="off";
+let tetrisSoundEnabled=localStorage.getItem(TETRIS_SOUND_KEY)!=="off";
 
 async function ensureGameAudio(){
   if(!timerSoundEnabled) return null;
@@ -89,6 +91,59 @@ function playTimerSound(kind){
     soundTone(220,0.30,0.17);
   }else{
     soundTone(520,0.12,0);
+  }
+}
+
+function tetrisTone(frequency,duration=0.08,delay=0,type="square",gainValue=0.07){
+  if(!tetrisSoundEnabled) return;
+  ensureGameAudio().then(ctx=>{
+    if(!ctx) return;
+    const start=ctx.currentTime+delay;
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.type=type;
+    osc.frequency.setValueAtTime(frequency,start);
+    gain.gain.setValueAtTime(0.0001,start);
+    gain.gain.exponentialRampToValueAtTime(gainValue,start+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001,start+duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start+duration+0.02);
+  });
+}
+
+function playTetrisSound(kind){
+  if(!tetrisSoundEnabled) return;
+  if(kind==="move"){
+    tetrisTone(180,0.035,0,"square",0.03);
+  }else if(kind==="rotate"){
+    tetrisTone(300,0.05,0,"square",0.04);
+    tetrisTone(420,0.05,0.04,"square",0.035);
+  }else if(kind==="drop"){
+    tetrisTone(150,0.05,0,"sawtooth",0.05);
+    tetrisTone(110,0.07,0.04,"sawtooth",0.045);
+  }else if(kind==="line"){
+    tetrisTone(523,0.08,0,"square",0.06);
+    tetrisTone(659,0.08,0.08,"square",0.06);
+    tetrisTone(784,0.12,0.16,"square",0.07);
+  }else if(kind==="gameover"){
+    tetrisTone(330,0.12,0,"sawtooth",0.06);
+    tetrisTone(247,0.15,0.12,"sawtooth",0.06);
+    tetrisTone(165,0.24,0.27,"sawtooth",0.06);
+  }else if(kind==="start"){
+    tetrisTone(440,0.07,0,"square",0.05);
+    tetrisTone(660,0.07,0.08,"square",0.05);
+    tetrisTone(880,0.12,0.16,"square",0.06);
+  }
+}
+
+function setTetrisSound(enabled){
+  tetrisSoundEnabled=!!enabled;
+  localStorage.setItem(TETRIS_SOUND_KEY,tetrisSoundEnabled?"on":"off");
+  if(tetrisSoundEnabled){
+    ensureGameAudio();
+    playTetrisSound("rotate");
   }
 }
 
@@ -1075,6 +1130,7 @@ function tetrisClearLines(){
     }
   }
   if(!cleared) return;
+  playTetrisSound("line");
   const points=[0,100,300,500,800][cleared]||1200;
   tetris.lines+=cleared;
   tetris.score+=points*tetris.level;
@@ -1114,7 +1170,7 @@ function tetrisRestartTimer(){
 
 function tetrisMove(dx){
   if(!tetris || tetris.paused || tetris.gameOver) return;
-  if(!tetrisCollides(tetris.current,dx,0)) tetris.current.x+=dx;
+  if(!tetrisCollides(tetris.current,dx,0)) { tetris.current.x+=dx; playTetrisSound("move"); }
   renderTetrisBoard();
 }
 
@@ -1138,6 +1194,7 @@ function tetrisHardDrop(){
     n++;
   }
   tetris.score+=n*2;
+  playTetrisSound("drop");
   tetrisMerge();
   tetrisClearLines();
   tetrisSpawn();
@@ -1151,6 +1208,7 @@ function tetrisTurn(){
     if(!tetrisCollides(tetris.current,kick,0,rotated)){
       tetris.current.x+=kick;
       tetris.current.m=rotated;
+      playTetrisSound("rotate");
       break;
     }
   }
@@ -1323,6 +1381,7 @@ function startTetrisGame(){
 
         <div class="tetris-actions">
           <button id="tetrisPause" class="secondary" type="button">⏸️ Pauzë</button>
+          <button id="tetrisSound" class="secondary" type="button">${tetrisSoundEnabled?"🔊 Zëri ON":"🔇 Zëri OFF"}</button>
           <button id="tetrisNew" class="primary" type="button">🔄 ${tr("newGame")}</button>
         </div>
 
@@ -1334,6 +1393,8 @@ function startTetrisGame(){
 
   document.getElementById("tetrisBack").onclick=()=>{stopTetris();tetris=null;renderLobby();};
   document.getElementById("tetrisPause").onclick=tetrisPause;
+  const tetrisSoundBtn=document.getElementById("tetrisSound");
+  if(tetrisSoundBtn) tetrisSoundBtn.onclick=()=>{ setTetrisSound(!tetrisSoundEnabled); tetrisSoundBtn.textContent=tetrisSoundEnabled?"🔊 Zëri ON":"🔇 Zëri OFF"; };
   document.getElementById("tetrisNew").onclick=startTetrisGame;
   root.querySelectorAll("[data-tetris]").forEach(btn=>{
     const action=btn.dataset.tetris;
@@ -1361,6 +1422,7 @@ function startTetrisGame(){
 
   renderTetrisBoard();
   loadTetrisLeaderboard();
+  playTetrisSound("start");
   tetrisRestartTimer();
 }
 
