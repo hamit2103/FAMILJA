@@ -7,7 +7,7 @@
   <meta name="description" content="PAJAZITI – album privat për foto dhe video">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=50">
+  <link rel="stylesheet" href="styles.css?v=51">
   <title>PAJAZITI</title>
   <style>
     /* Inline menu-order hotfix */
@@ -101,6 +101,7 @@
         <button id="gamesTab" class="app-tab" type="button"><span>🎮 </span><span id="gamesTabLabel">Lojëra</span></button>
         <button id="tvTab" class="app-tab" type="button"><span>📺 </span><span id="tvTabLabel">TV</span></button>
         <button id="radioTab" class="app-tab" type="button"><span>📻 </span><span id="radioTabLabel">Radio</span></button>
+        <button id="chatTab" class="app-tab" type="button"><span>💬 </span><span>Chat</span></button>
       </nav>
 
       <section id="menuOrderAdmin" class="menu-order-admin hidden">
@@ -192,6 +193,49 @@
         <div id="radioRoot"></div>
       </section>
 
+      <section id="chatView" class="hidden">
+        <section class="card chat-head-card">
+          <div>
+            <h2>💬 Chat</h2>
+            <p class="muted small">3 mesazhe falas në ditë. Premium: 9 € për 1 vit, pa kufi.</p>
+          </div>
+          <div id="chatPlanBadge" class="chat-plan-badge">Po kontrollohet...</div>
+        </section>
+
+        <section class="card chat-profile-card">
+          <label for="chatName">Emri / llogaria jote</label>
+          <div class="chat-name-row">
+            <input id="chatName" type="text" maxlength="32" autocomplete="nickname" placeholder="Shkruaj emrin">
+            <button id="chatSaveNameBtn" class="secondary" type="button">Ruaj emrin</button>
+          </div>
+          <p class="muted small">Ky emër do të shfaqet pranë mesazheve të tua.</p>
+        </section>
+
+        <section id="chatPremiumCard" class="card chat-premium-card">
+          <div>
+            <strong>Premium Chat – 9 € / 1 vit</strong>
+            <p class="muted small">Pas pagesës së suksesshme me PayPal aktivizohet automatikisht shkrimi pa kufi.</p>
+          </div>
+          <button id="chatBuyBtn" class="paypal-buy-btn" type="button">Paguaj 9 € me PayPal</button>
+          <div id="chatPaymentStatus" class="message"></div>
+        </section>
+
+        <section class="card chat-compose-card">
+          <textarea id="chatText" maxlength="500" rows="3" placeholder="Shkruaj mesazhin..."></textarea>
+          <div class="chat-compose-bottom">
+            <span id="chatLimitText" class="muted small"></span>
+            <button id="chatSendBtn" class="primary" type="button">Dërgo</button>
+          </div>
+          <div id="chatStatus" class="message"></div>
+        </section>
+
+        <section class="toolbar">
+          <strong>Mesazhet</strong>
+          <button id="chatRefreshBtn" class="secondary" type="button">Rifresko</button>
+        </section>
+        <section id="chatList" class="chat-list"></section>
+      </section>
+
       <section id="prayerView" class="hidden">
         <section class="card prayer-card">
           <div class="prayer-heading">
@@ -262,14 +306,15 @@
       window.__PAJAZITI_MENU_ORDER_HOTFIX__ = true;
 
       const ADMIN_EMAIL = "admin@familja.local";
-      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab"];
+      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab","chatTab"];
       const LABELS = {
         galleryTab:"📢 Reklama",
         infoTab:"ℹ️ Informacion",
         prayerTab:"🕌 Namazi",
         gamesTab:"🎮 Lojëra",
         tvTab:"📺 TV",
-        radioTab:"📻 Radio"
+        radioTab:"📻 Radio",
+        chatTab:"💬 Chat"
       };
 
       const supa = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -374,10 +419,10 @@
       await load();
     }
   </script>
-  <script type="module" src="app.js?v=50"></script>
-  <script type="module" src="games.js?v=50"></script>
-  <script type="module" src="tv.js?v=50"></script>
-  <script type="module" src="radio.js?v=50"></script>
+  <script type="module" src="app.js?v=51"></script>
+  <script type="module" src="games.js?v=51"></script>
+  <script type="module" src="tv.js?v=51"></script>
+  <script type="module" src="radio.js?v=51"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
