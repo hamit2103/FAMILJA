@@ -95,7 +95,7 @@
       </header>
 
       <nav id="appTabs" class="app-tabs" aria-label="Menu">
-        <button id="galleryTab" class="app-tab active" type="button"><span>📷 </span><span data-i18n="tabs.photos">Foto</span></button>
+        <button id="galleryTab" class="app-tab active" type="button"><span>📢 </span><span data-i18n="tabs.photos">Reklama</span></button>
         <button id="infoTab" class="app-tab info-tab-button" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span><span id="infoUnreadBadge" class="info-unread-badge hidden">0</span></button>
         <button id="prayerTab" class="app-tab" type="button"><span>🕌 </span><span data-i18n="tabs.prayer">Namazi</span></button>
         <button id="gamesTab" class="app-tab" type="button"><span>🎮 </span><span id="gamesTabLabel">Lojëra</span></button>
@@ -115,7 +115,7 @@
 
       <section id="galleryView">
         <section id="adminPanel" class="card">
-          <h2 id="uploadTitle" data-i18n="upload.addPhoto">Shto foto</h2>
+          <h2 id="uploadTitle" data-i18n="upload.addPhoto">Shto reklamë</h2>
           <p id="uploadHint" class="muted small"></p>
           <input id="mediaInput" type="file" accept="image/*" multiple>
           <button id="uploadBtn" class="primary" type="button" data-i18n="upload.button">Ngarko</button>
@@ -146,8 +146,8 @@
 
         <section id="gallery" class="gallery"></section>
         <section id="emptyState" class="card empty">
-          <h2 data-i18n="empty.mediaTitle">Ende nuk ka materiale</h2>
-          <p class="muted" data-i18n="empty.mediaBody">Kur administratori të ngarkojë foto ose video, ato do të shfaqen këtu automatikisht.</p>
+          <h2 data-i18n="empty.mediaTitle">Ende nuk ka reklama</h2>
+          <p class="muted" data-i18n="empty.mediaBody">Kur administratori të ngarkojë një reklamë, ajo do të shfaqet këtu.</p>
         </section>
       </section>
 
@@ -227,7 +227,7 @@
       const ADMIN_EMAIL = "admin@familja.local";
       const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab"];
       const LABELS = {
-        galleryTab:"📷 Foto",
+        galleryTab:"📢 Reklama",
         infoTab:"ℹ️ Informacion",
         prayerTab:"🕌 Namazi",
         gamesTab:"🎮 Lojëra",
