@@ -1029,3 +1029,12 @@ body.tetris-fullscreen-active .tetris-board{
 .info-admin-message .info-author{
   color:#1d4ed8;
 }
+
+
+/* Information admin compatibility fallback */
+#infoCompose.hidden{
+  display:none !important;
+}
+body:has(#adminPanel:not(.hidden)) #infoCompose.hidden{
+  display:block !important;
+}
