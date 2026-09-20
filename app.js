@@ -30,7 +30,7 @@ const I18N = {
   sq: {
     "language.label":"Gjuha","app.subtitle":"Album privat për foto dhe video","mode.family":"Familja","mode.admin":"Admin",
     "login.label":"Kodi i hyrjes","login.placeholder":"Shkruaj kodin","login.adminPlaceholder":"Kodi i administratorit","login.familyPlaceholder":"Kodi i familjes",
-    "login.button":"Hyr","install.app":"Instalo aplikacionin","install.short":"Instalo","share":"Ndaje linkun","logout":"Dil","online":"Online:",
+    "login.button":"Hyr","install.app":"Instalo aplikacionin","install.short":"Instalo","share":"Ndaje APK-në","logout":"Dil","online":"Online:",
     "auth.note":"Kodi kontrollohet përmes Supabase Authentication. Fotot dhe videot ruhen privatisht në Supabase dhe nuk ruhen në telefonin e vizitorit, përveç nëse ai zgjedh t’i shkarkojë.",
     "tabs.photos":"Foto","tabs.info":"Informacion","tabs.prayer":"Namazi","upload.addPhoto":"Shto foto","upload.addMedia":"Shto foto ose video",
     "upload.adminHint":"Administratori mund të ngarkojë foto dhe video.","upload.familyTitle":"Shto fotot e tua","upload.button":"Ngarko",
@@ -57,7 +57,7 @@ const I18N = {
     "upload.chooseMedia":"Zgjidh së paku një foto ose video.","upload.choosePhoto":"Zgjidh së paku një foto.","upload.none":"Asnjë skedar nuk u ngarkua.",
     "upload.done":"U ngarkuan {count} materiale.","location.permission":"Duhet ta lejosh vendndodhjen për oraret e namazit.","location.notFound":"Vendndodhja nuk u gjet. Provo përsëri.",
     "location.timeout":"Vendndodhja vonoi shumë. Provo përsëri.","location.loading":"Po marr vendndodhjen…","prayer.loading":"Po marr oraret…","prayer.updated":"Oraret u përditësuan.",
-    "share.text":"Hape dhe instalo aplikacionin PAJAZITI.","share.copied":"Linku u kopjua. Tani mund ta dërgosh.",
+    "share.text":"Shkarko dhe instalo APK-në PAJAZITI në Android.","share.copied":"Linku i APK-së u kopjua. Tani mund ta dërgosh.",
     "error.supabaseNotLinked":"Supabase nuk është lidhur ende. Duhet Project URL dhe anon key.","error.infoNotReady":"Informacioni nuk është gati ende.","error.publishFailed":"Publikimi dështoi: {error}",
     "error.locationUnsupported":"Ky telefon nuk e mbështet vendndodhjen.","error.prayerFetch":"Nuk u morën oraret e namazit.","prayer.locationTap":"Preke “Vendndodhja” për oraret e sakta.",
     "error.futureTimes":"Nuk u gjetën orare të ardhshme për {name}.","error.supabaseNotReady":"Supabase nuk është gati ende","error.runSql":"Duhet të ekzekutohet skedari supabase/setup.sql në SQL Editor.",
@@ -68,7 +68,7 @@ const I18N = {
   de: {
     "language.label":"Sprache","app.subtitle":"Privates Album für Fotos und Videos","mode.family":"Familie","mode.admin":"Admin",
     "login.label":"Zugangscode","login.placeholder":"Code eingeben","login.adminPlaceholder":"Administrator-Code","login.familyPlaceholder":"Familien-Code",
-    "login.button":"Anmelden","install.app":"App installieren","install.short":"Installieren","share":"Link teilen","logout":"Abmelden","online":"Online:",
+    "login.button":"Anmelden","install.app":"App installieren","install.short":"Installieren","share":"APK teilen","logout":"Abmelden","online":"Online:",
     "auth.note":"Der Code wird über Supabase Authentication geprüft. Fotos und Videos werden privat in Supabase gespeichert und nicht auf dem Gerät des Besuchers gespeichert, außer er lädt sie herunter.",
     "tabs.photos":"Fotos","tabs.info":"Information","tabs.prayer":"Gebet","upload.addPhoto":"Foto hinzufügen","upload.addMedia":"Foto oder Video hinzufügen",
     "upload.adminHint":"Der Administrator kann Fotos und Videos hochladen.","upload.familyTitle":"Deine Fotos hinzufügen","upload.button":"Hochladen",
@@ -95,7 +95,7 @@ const I18N = {
     "upload.chooseMedia":"Wähle mindestens ein Foto oder Video aus.","upload.choosePhoto":"Wähle mindestens ein Foto aus.","upload.none":"Keine Datei wurde hochgeladen.",
     "upload.done":"{count} Medien wurden hochgeladen.","location.permission":"Erlaube den Standortzugriff für die Gebetszeiten.","location.notFound":"Standort nicht gefunden. Versuche es erneut.",
     "location.timeout":"Standortabfrage dauerte zu lange. Versuche es erneut.","location.loading":"Standort wird ermittelt…","prayer.loading":"Gebetszeiten werden geladen…","prayer.updated":"Gebetszeiten wurden aktualisiert.",
-    "share.text":"Öffne und installiere die PAJAZITI-App.","share.copied":"Link wurde kopiert. Du kannst ihn jetzt senden.",
+    "share.text":"Lade die PAJAZITI-APK herunter und installiere sie auf Android.","share.copied":"Der APK-Link wurde kopiert. Du kannst ihn jetzt senden.",
     "error.supabaseNotLinked":"Supabase ist noch nicht verbunden. Project URL und anon key werden benötigt.","error.infoNotReady":"Die Informationen sind noch nicht verfügbar.","error.publishFailed":"Veröffentlichen fehlgeschlagen: {error}",
     "error.locationUnsupported":"Dieses Telefon unterstützt keinen Standortzugriff.","error.prayerFetch":"Gebetszeiten konnten nicht geladen werden.","prayer.locationTap":"Tippe auf „Standort“ für genaue Gebetszeiten.",
     "error.futureTimes":"Keine zukünftigen Zeiten für {name} gefunden.","error.supabaseNotReady":"Supabase ist noch nicht bereit","error.runSql":"Die Datei supabase/setup.sql muss im SQL Editor ausgeführt werden.",
@@ -106,7 +106,7 @@ const I18N = {
   tr: {
     "language.label":"Dil","app.subtitle":"Fotoğraf ve videolar için özel albüm","mode.family":"Aile","mode.admin":"Yönetici",
     "login.label":"Giriş kodu","login.placeholder":"Kodu gir","login.adminPlaceholder":"Yönetici kodu","login.familyPlaceholder":"Aile kodu",
-    "login.button":"Giriş yap","install.app":"Uygulamayı yükle","install.short":"Yükle","share":"Bağlantıyı paylaş","logout":"Çıkış","online":"Çevrimiçi:",
+    "login.button":"Giriş yap","install.app":"Uygulamayı yükle","install.short":"Yükle","share":"APK'yı paylaş","logout":"Çıkış","online":"Çevrimiçi:",
     "auth.note":"Kod Supabase Authentication üzerinden kontrol edilir. Fotoğraf ve videolar Supabase'de özel olarak saklanır ve ziyaretçi indirmeyi seçmedikçe telefonuna kaydedilmez.",
     "tabs.photos":"Fotoğraflar","tabs.info":"Bilgi","tabs.prayer":"Namaz","upload.addPhoto":"Fotoğraf ekle","upload.addMedia":"Fotoğraf veya video ekle",
     "upload.adminHint":"Yönetici fotoğraf ve video yükleyebilir.","upload.familyTitle":"Fotoğraflarını ekle","upload.button":"Yükle",
@@ -133,7 +133,7 @@ const I18N = {
     "upload.chooseMedia":"En az bir fotoğraf veya video seç.","upload.choosePhoto":"En az bir fotoğraf seç.","upload.none":"Hiçbir dosya yüklenmedi.",
     "upload.done":"{count} medya yüklendi.","location.permission":"Namaz vakitleri için konum izni vermelisin.","location.notFound":"Konum bulunamadı. Tekrar dene.",
     "location.timeout":"Konum çok geç yanıt verdi. Tekrar dene.","location.loading":"Konum alınıyor…","prayer.loading":"Namaz vakitleri alınıyor…","prayer.updated":"Namaz vakitleri güncellendi.",
-    "share.text":"PAJAZITI uygulamasını aç ve yükle.","share.copied":"Bağlantı kopyalandı. Şimdi gönderebilirsin.",
+    "share.text":"PAJAZITI APK dosyasını indir ve Android'e yükle.","share.copied":"APK bağlantısı kopyalandı. Şimdi gönderebilirsin.",
     "error.supabaseNotLinked":"Supabase henüz bağlı değil. Project URL ve anon key gerekiyor.","error.infoNotReady":"Bilgi bölümü henüz hazır değil.","error.publishFailed":"Yayınlama başarısız: {error}",
     "error.locationUnsupported":"Bu telefon konum özelliğini desteklemiyor.","error.prayerFetch":"Namaz vakitleri alınamadı.","prayer.locationTap":"Doğru namaz vakitleri için “Konum”a dokun.",
     "error.futureTimes":"{name} için gelecek vakit bulunamadı.","error.supabaseNotReady":"Supabase henüz hazır değil","error.runSql":"supabase/setup.sql dosyası SQL Editor'de çalıştırılmalı.",
@@ -1678,7 +1678,7 @@ installBtn.addEventListener("click", triggerInstall);
 installLoginBtn.addEventListener("click", triggerInstall);
 
 shareBtn.addEventListener("click", async () => {
-  const url = new URL("./", window.location.href).href;
+  const url = new URL("/pajaziti-android.apk", window.location.origin).href;
   try {
     if (navigator.share) {
       await navigator.share({
