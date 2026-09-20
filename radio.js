@@ -3,6 +3,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
 
 const ADMIN_EMAIL = "admin@familja.local";
 const TABLE = "radio_shared_station";
+const ZERI_SHTIMES_PROXY = `${SUPABASE_URL}/functions/v1/zeri-shtimes-radio`;
 const RADIO_PROXY_URL = `${SUPABASE_URL}/functions/v1/radio-proxy`;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true }
