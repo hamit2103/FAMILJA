@@ -721,3 +721,64 @@ begin
     alter publication supabase_realtime add table public.tv_shared_playlist;
   end if;
 end $$;
+
+
+-- Shared Radio station. Everyone can listen; only admin can publish/change it.
+create table if not exists public.radio_shared_station (
+  id smallint primary key default 1 check (id = 1),
+  title text not null default 'Radio',
+  stream_url text not null,
+  updated_at timestamptz not null default now(),
+  updated_by uuid default auth.uid()
+);
+
+alter table public.radio_shared_station enable row level security;
+grant select, insert, update, delete on table public.radio_shared_station to authenticated;
+
+drop policy if exists "Family can read shared radio" on public.radio_shared_station;
+create policy "Family can read shared radio"
+on public.radio_shared_station
+for select
+to authenticated
+using (true);
+
+drop policy if exists "Admin can publish shared radio" on public.radio_shared_station;
+create policy "Admin can publish shared radio"
+on public.radio_shared_station
+for insert
+to authenticated
+with check (
+  id = 1
+  and auth.email() = 'admin@familja.local'
+);
+
+drop policy if exists "Admin can update shared radio" on public.radio_shared_station;
+create policy "Admin can update shared radio"
+on public.radio_shared_station
+for update
+to authenticated
+using (auth.email() = 'admin@familja.local')
+with check (
+  id = 1
+  and auth.email() = 'admin@familja.local'
+);
+
+drop policy if exists "Admin can delete shared radio" on public.radio_shared_station;
+create policy "Admin can delete shared radio"
+on public.radio_shared_station
+for delete
+to authenticated
+using (auth.email() = 'admin@familja.local');
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'radio_shared_station'
+  ) then
+    alter publication supabase_realtime add table public.radio_shared_station;
+  end if;
+end $$;
