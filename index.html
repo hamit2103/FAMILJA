@@ -71,6 +71,7 @@
         <button id="galleryTab" class="app-tab active" type="button"><span>📷 </span><span data-i18n="tabs.photos">Foto</span></button>
         <button id="infoTab" class="app-tab" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span></button>
         <button id="prayerTab" class="app-tab" type="button"><span>🕌 </span><span data-i18n="tabs.prayer">Namazi</span></button>
+        <button id="gamesTab" class="app-tab" type="button"><span>🎮 </span><span id="gamesTabLabel">Lojëra</span></button>
       </nav>
 
       <section id="galleryView">
@@ -141,6 +142,10 @@
         </section>
       </section>
 
+      <section id="gamesView" class="hidden">
+        <div id="gamesRoot"></div>
+      </section>
+
       <section id="prayerView" class="hidden">
         <section class="card prayer-card">
           <div class="prayer-heading">
@@ -167,5 +172,6 @@
   </main>
 
   <script type="module" src="app.js"></script>
+  <script type="module" src="games.js"></script>
 </body>
 </html>
