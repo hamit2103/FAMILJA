@@ -136,7 +136,7 @@ function showAdminStatus(text, kind = "") {
   el.textContent = text || "";
 }
 
-function selectStation(station) {
+async function selectStation(station) {
   if (!station?.stream_url) return;
 
   currentStationId = station.id;
@@ -150,12 +150,19 @@ function selectStation(station) {
   if (liveText) liveText.textContent = title;
 
   if (player) {
-    player.pause();
-    player.src = station.stream_url;
-    player.load();
+    try {
+      player.pause();
+      player.src = station.stream_url;
+      player.load();
+      showStatus("Po lidhet me radion...");
+      await player.play();
+      showStatus("Radioja po luan.", "success");
+    } catch (error) {
+      console.error("Radio play failed", error);
+      showStatus("Radioja nuk u nis automatikisht. Provo përsëri.", "error");
+    }
   }
 
-  showStatus("Preke Play për ta dëgjuar radion.", "success");
   renderStationList();
 }
 
