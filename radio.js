@@ -3,6 +3,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
 
 const ADMIN_EMAIL = "admin@familja.local";
 const TABLE = "radio_shared_station";
+const RADIO_PROXY_URL = `${SUPABASE_URL}/functions/v1/radio-proxy`;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, autoRefreshToken: true }
 });
@@ -66,6 +67,14 @@ function render() {
   `;
 
   document.getElementById("radioSaveBtn")?.addEventListener("click", saveStation);
+
+  const player = document.getElementById("radioPlayer");
+  player?.addEventListener("playing", () => {
+    showStatus("Radioja po luan.", "success");
+  });
+  player?.addEventListener("error", () => {
+    showStatus("Radioja nuk po lidhet për momentin. Provo përsëri pas pak.", "error");
+  });
 }
 
 function showStatus(text, kind = "") {
@@ -134,7 +143,8 @@ async function applyStation(station) {
   if (nameInput) nameInput.value = title;
   if (urlInput) urlInput.value = station.stream_url;
 
-  const playable = await resolvePlaylistUrl(station.stream_url);
+  const resolved = await resolvePlaylistUrl(station.stream_url);
+  const playable = /^http:\/\//i.test(resolved) ? RADIO_PROXY_URL : resolved;
   if (player && player.src !== playable) {
     player.pause();
     player.src = playable;
