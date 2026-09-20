@@ -356,6 +356,7 @@ function groupsForMode(){
 }
 
 async function loadFromUrl(){
+  if(!isAdmin()) return;
   const input=document.getElementById("tvUrl");
   const status=document.getElementById("tvStatus");
   const url=(input?.value||"").trim();
@@ -374,7 +375,7 @@ async function loadFromUrl(){
 }
 
 async function loadFromFile(file){
-  if(!file) return;
+  if(!isAdmin() || !file) return;
   const status=document.getElementById("tvStatus");
   if(status) status.textContent=tr("loading");
   try{
@@ -664,11 +665,13 @@ function render(){
         </div>
       </section>
 
-      <section class="card tv-control-card">
+      ${isAdmin() ? `
+      <section class="card tv-control-card tv-admin-only">
         <h2>${tr("title")}</h2>
+        <div class="tv-admin-private-note">🔒 Vetëm administratori i sheh dhe i ndryshon linkat.</div>
         <label for="tvUrl">${tr("url")}</label>
         <div class="tv-url-row">
-          <input id="tvUrl" type="text" inputmode="url" placeholder="${tr("urlPlaceholder")}" value="${esc(localStorage.getItem(TV_URL_KEY)||"")}">
+          <input id="tvUrl" type="password" inputmode="url" autocomplete="off" placeholder="${tr("urlPlaceholder")}" value="${esc(localStorage.getItem(TV_URL_KEY)||"")}">
           <button id="tvLoadUrl" class="primary" type="button">${tr("loadUrl")}</button>
         </div>
 
@@ -677,10 +680,10 @@ function render(){
 
         <div class="tv-share-actions">
           <button id="tvSaveLocal" class="secondary" type="button">${tr("saveLocal")}</button>
-          ${isAdmin() ? `<button id="tvPublishAll" class="primary" type="button">${tr("publish")}</button>` : ""}
+          <button id="tvPublishAll" class="primary" type="button">${tr("publish")}</button>
         </div>
         <div id="tvStatus" class="message"></div>
-      </section>
+      </section>` : ""}
 
       <section class="card">
         <div id="tvSources" class="tv-sources"></div>
@@ -708,10 +711,13 @@ function render(){
     renderChannels();
   });
 
-  document.getElementById("tvLoadUrl").onclick=loadFromUrl;
-  document.getElementById("tvFile").onchange=e=>loadFromFile(e.target.files?.[0]);
+  const tvLoadUrlBtn=document.getElementById("tvLoadUrl");
+  if(tvLoadUrlBtn) tvLoadUrlBtn.onclick=loadFromUrl;
+  const tvFileInput=document.getElementById("tvFile");
+  if(tvFileInput) tvFileInput.onchange=e=>loadFromFile(e.target.files?.[0]);
 
-  document.getElementById("tvSaveLocal").onclick=()=>{
+  const tvSaveLocalBtn=document.getElementById("tvSaveLocal");
+  if(tvSaveLocalBtn) tvSaveLocalBtn.onclick=()=>{
     if(pendingSource){
       saveLocalSource(pendingSource);
       document.getElementById("tvStatus").textContent=tr("savedLocal");

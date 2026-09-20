@@ -341,5 +341,27 @@
   <script type="module" src="games.js"></script>
   <script type="module" src="tv.js"></script>
   <script type="module" src="radio.js"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
+
+    const PAJAZITI_TV_LINK_PRIVACY_HOTFIX = true;
+    const privacyClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth:{persistSession:true,autoRefreshToken:true}
+    });
+
+    async function enforceTvLinkPrivacy(){
+      const {data}=await privacyClient.auth.getSession();
+      const isAdmin=data.session?.user?.email==="admin@familja.local";
+      document.querySelectorAll(".tv-control-card").forEach((card)=>{
+        card.style.display=isAdmin?"":"none";
+      });
+    }
+
+    const tvPrivacyObserver=new MutationObserver(()=>enforceTvLinkPrivacy());
+    tvPrivacyObserver.observe(document.body,{childList:true,subtree:true});
+    privacyClient.auth.onAuthStateChange(()=>setTimeout(enforceTvLinkPrivacy,0));
+    enforceTvLinkPrivacy();
+  </script>
 </body>
 </html>
