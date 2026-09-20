@@ -502,7 +502,7 @@ async function login() {
 
       const { error: verifyError } = await supabase.auth.verifyOtp({
         token_hash: tokenData.token_hash,
-        type: "magiclink"
+        type: "email"
       });
       if (verifyError) throw verifyError;
       showMessage(loginMessage, "");
