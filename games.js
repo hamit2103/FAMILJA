@@ -21,9 +21,9 @@ if (!deviceId) {
 }
 
 const TXT = {
-  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Degërxhik",timer:"Kral i Sekondave",tetris:"Blloqe",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",soloTimer:"🤖 Luaj vetë",practiceOnly:"Stërvitje kundër kompjuterit — nuk hyn në renditjen javore.",you:"Ti",opponents:"Kundërshtarët",active:"Në lojë",soundOn:"🔊 Zëri ON",soundOff:"🔇 Zëri OFF",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe, hiq një gur të kundërshtarit.",error:"Gabim"},
-  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Degërxhik",timer:"Sekundenkönig",tetris:"Blloqe",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",soloTimer:"🤖 Alleine spielen",practiceOnly:"Training gegen den Computer — zählt nicht für die Wochenrangliste.",you:"Du",opponents:"Gegner",active:"Im Spiel",soundOn:"🔊 Ton AN",soundOff:"🔇 Ton AUS",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Dreierreihe darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
-  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",tetris:"Blloqe",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",soloTimer:"🤖 Tek başına oyna",practiceOnly:"Bilgisayara karşı antrenman — haftalık sıralamaya sayılmaz.",you:"Sen",opponents:"Rakipler",active:"Oyunda",soundOn:"🔊 Ses AÇIK",soundOff:"🔇 Ses KAPALI",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
+  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Degërxhik",timer:"Kral i Sekondave",tetris:"Blloqe",war:"Luftra",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",soloTimer:"🤖 Luaj vetë",practiceOnly:"Stërvitje kundër kompjuterit — nuk hyn në renditjen javore.",you:"Ti",opponents:"Kundërshtarët",active:"Në lojë",soundOn:"🔊 Zëri ON",soundOff:"🔇 Zëri OFF",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe, hiq një gur të kundërshtarit.",error:"Gabim"},
+  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Degërxhik",timer:"Sekundenkönig",tetris:"Blloqe",war:"Krieg",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",soloTimer:"🤖 Alleine spielen",practiceOnly:"Training gegen den Computer — zählt nicht für die Wochenrangliste.",you:"Du",opponents:"Gegner",active:"Im Spiel",soundOn:"🔊 Ton AN",soundOff:"🔇 Ton AUS",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Dreierreihe darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
+  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",tetris:"Blloqe",war:"Savaş",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",soloTimer:"🤖 Tek başına oyna",practiceOnly:"Bilgisayara karşı antrenman — haftalık sıralamaya sayılmaz.",you:"Sen",opponents:"Rakipler",active:"Oyunda",soundOn:"🔊 Ses AÇIK",soundOff:"🔇 Ses KAPALI",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
 };
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
@@ -267,6 +267,216 @@ function roomCode(){
   return Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
 }
 
+
+let warGameState=null;
+
+function warInitialState(){
+  return {
+    player:{name:tr("you"),hp:100,shield:35,energy:100},
+    enemy:{name:tr("computerName"),hp:100,shield:35,energy:100},
+    turn:"player",
+    over:false,
+    message:"Zgjidh veprimin tënd."
+  };
+}
+
+function warClamp(value,min=0,max=100){
+  return Math.max(min,Math.min(max,Math.round(value)));
+}
+
+function warApplyDamage(target,damage){
+  let left=Math.max(0,Math.round(damage));
+  const shieldHit=Math.min(target.shield,left);
+  target.shield=warClamp(target.shield-shieldHit,0,100);
+  left-=shieldHit;
+  target.hp=warClamp(target.hp-left,0,100);
+  return Math.round(damage);
+}
+
+function warPercent(value){
+  return warClamp(value,0,100);
+}
+
+function renderWarGame(){
+  if(!warGameState) warGameState=warInitialState();
+  const s=warGameState;
+  const p=s.player;
+  const e=s.enemy;
+
+  root.innerHTML=`
+    <div class="war-shell">
+      <section class="war-arena">
+        <div class="war-topbar">
+          <button id="warBack" class="war-exit" type="button">← ${tr("backGames")}</button>
+          <strong>⚔️ ${tr("war")}</strong>
+          <span class="war-turn">${s.over ? "FUND" : (s.turn==="player" ? "RADHA JOTE" : "KUNDËRSHTARI")}</span>
+        </div>
+
+        <article class="war-fighter war-enemy-card">
+          <div class="war-fighter-head">
+            <div>
+              <span class="war-side-label">KUNDËRSHTARI</span>
+              <h2>🤖 ${escapeHtml(e.name)}</h2>
+            </div>
+            <strong class="war-hp-number">${e.hp} HP</strong>
+          </div>
+          <div class="war-stat-line"><span>❤️ HP</span><div class="war-meter"><i style="width:${warPercent(e.hp)}%"></i></div><b>${e.hp}</b></div>
+          <div class="war-stat-line shield"><span>🛡️ Mburoja</span><div class="war-meter"><i style="width:${warPercent(e.shield)}%"></i></div><b>${e.shield}</b></div>
+          <div class="war-stat-line energy"><span>⚡ Energjia</span><div class="war-meter"><i style="width:${warPercent(e.energy)}%"></i></div><b>${e.energy}</b></div>
+        </article>
+
+        <div class="war-middle">
+          <div class="war-character" aria-hidden="true">
+            <div class="war-soldier">🪖</div>
+            <div class="war-rifle">︻╦̵̵͇̿̿̿̿╤──</div>
+          </div>
+          <div class="war-vs">VS</div>
+          <p id="warMessage" class="war-message">${escapeHtml(s.message)}</p>
+        </div>
+
+        <article class="war-fighter war-player-card">
+          <div class="war-fighter-head">
+            <div>
+              <span class="war-side-label">TI</span>
+              <h2>🇦🇱 ${escapeHtml(p.name)}</h2>
+            </div>
+            <strong class="war-hp-number">${p.hp} HP</strong>
+          </div>
+          <div class="war-stat-line"><span>❤️ HP</span><div class="war-meter"><i style="width:${warPercent(p.hp)}%"></i></div><b>${p.hp}</b></div>
+          <div class="war-stat-line shield"><span>🛡️ Mburoja</span><div class="war-meter"><i style="width:${warPercent(p.shield)}%"></i></div><b>${p.shield}</b></div>
+          <div class="war-stat-line energy"><span>⚡ Energjia</span><div class="war-meter"><i style="width:${warPercent(p.energy)}%"></i></div><b>${p.energy}</b></div>
+        </article>
+
+        <div class="war-actions">
+          <button data-war-action="attack" type="button">🔫<strong>Sulm</strong><small>-10 ⚡</small></button>
+          <button data-war-action="tank" type="button">🪖<strong>Tank</strong><small>-25 ⚡</small></button>
+          <button data-war-action="rocket" type="button">🚀<strong>Raketë</strong><small>-40 ⚡</small></button>
+          <button data-war-action="defend" type="button">🛡️<strong>Mbrojtje</strong><small>+25 🛡️</small></button>
+          <button data-war-action="medkit" type="button">🩹<strong>Medkit</strong><small>-20 ⚡</small></button>
+        </div>
+
+        ${s.over ? '<button id="warRestart" class="primary war-restart" type="button">🔄 Luaj përsëri</button>' : ""}
+      </section>
+    </div>`;
+
+  document.getElementById("warBack").onclick=()=>{
+    warGameState=null;
+    renderLobby();
+  };
+
+  document.getElementById("warRestart")?.addEventListener("click",()=>{
+    warGameState=warInitialState();
+    renderWarGame();
+  });
+
+  root.querySelectorAll("[data-war-action]").forEach(btn=>{
+    btn.disabled=s.over || s.turn!=="player";
+    btn.onclick=()=>warPlayerAction(btn.dataset.warAction);
+  });
+}
+
+function startWarGame(){
+  warGameState=warInitialState();
+  renderWarGame();
+}
+
+function warFinishIfNeeded(){
+  const s=warGameState;
+  if(s.enemy.hp<=0){
+    s.over=true;
+    s.turn="none";
+    s.message="🏆 Fitove luftën!";
+    return true;
+  }
+  if(s.player.hp<=0){
+    s.over=true;
+    s.turn="none";
+    s.message="💥 Kundërshtari fitoi. Provo përsëri!";
+    return true;
+  }
+  return false;
+}
+
+function warPlayerAction(action){
+  const s=warGameState;
+  if(!s || s.over || s.turn!=="player") return;
+  const p=s.player;
+  const e=s.enemy;
+
+  if(action==="attack"){
+    if(p.energy<10){ s.message="Nuk ke energji të mjaftueshme."; return renderWarGame(); }
+    p.energy-=10;
+    const d=warApplyDamage(e,14+Math.random()*10);
+    s.message="🔫 Sulmove kundërshtarin për "+d+" dëme.";
+  }else if(action==="tank"){
+    if(p.energy<25){ s.message="Duhet të kesh 25 energji për Tank."; return renderWarGame(); }
+    p.energy-=25;
+    const d=warApplyDamage(e,24+Math.random()*14);
+    s.message="🪖 Tanku goditi për "+d+" dëme.";
+  }else if(action==="rocket"){
+    if(p.energy<40){ s.message="Duhet të kesh 40 energji për Raketë."; return renderWarGame(); }
+    p.energy-=40;
+    const d=warApplyDamage(e,36+Math.random()*18);
+    s.message="🚀 Raketa goditi për "+d+" dëme!";
+  }else if(action==="defend"){
+    p.shield=warClamp(p.shield+25,0,100);
+    p.energy=warClamp(p.energy+8,0,100);
+    s.message="🛡️ Mburoja u forcua.";
+  }else if(action==="medkit"){
+    if(p.energy<20){ s.message="Duhet të kesh 20 energji për Medkit."; return renderWarGame(); }
+    p.energy-=20;
+    p.hp=warClamp(p.hp+25,0,100);
+    s.message="🩹 Riktheve shëndetin.";
+  }
+
+  p.energy=warClamp(p.energy+7,0,100);
+  if(warFinishIfNeeded()) return renderWarGame();
+
+  s.turn="enemy";
+  renderWarGame();
+  setTimeout(warEnemyTurn,650);
+}
+
+function warEnemyTurn(){
+  const s=warGameState;
+  if(!s || s.over || s.turn!=="enemy") return;
+  const e=s.enemy;
+  const p=s.player;
+
+  let action="attack";
+  if(e.hp<35 && e.energy>=20 && Math.random()<0.35) action="medkit";
+  else if(e.shield<20 && Math.random()<0.25) action="defend";
+  else if(e.energy>=40 && Math.random()<0.22) action="rocket";
+  else if(e.energy>=25 && Math.random()<0.32) action="tank";
+
+  if(action==="medkit"){
+    e.energy-=20;
+    e.hp=warClamp(e.hp+22,0,100);
+    s.message="🤖 Kundërshtari përdori Medkit.";
+  }else if(action==="defend"){
+    e.shield=warClamp(e.shield+22,0,100);
+    e.energy=warClamp(e.energy+8,0,100);
+    s.message="🤖 Kundërshtari ngriti mburojën.";
+  }else if(action==="rocket"){
+    e.energy-=40;
+    const d=warApplyDamage(p,32+Math.random()*18);
+    s.message="🚀 Kundërshtari të goditi me raketë: "+d+" dëme.";
+  }else if(action==="tank"){
+    e.energy-=25;
+    const d=warApplyDamage(p,22+Math.random()*14);
+    s.message="🪖 Tanku i kundërshtarit: "+d+" dëme.";
+  }else{
+    e.energy=Math.max(0,e.energy-10);
+    const d=warApplyDamage(p,12+Math.random()*10);
+    s.message="🔫 Kundërshtari sulmoi: "+d+" dëme.";
+  }
+
+  e.energy=warClamp(e.energy+9,0,100);
+  if(warFinishIfNeeded()) return renderWarGame();
+  s.turn="player";
+  renderWarGame();
+}
+
 function chessInitial(){
   return {board:[
     ["br","bn","bb","bq","bk","bb","bn","br"],
@@ -303,12 +513,16 @@ function renderLobby(msg=""){
           <button class="game-choice ${selectedType==="morris"?"active":""}" data-game="morris">🟣 ${tr("morris")}</button>
           <button class="game-choice ${selectedType==="timer"?"active":""}" data-game="timer">⏱️ ${tr("timer")}</button>
           <button class="game-choice ${selectedType==="tetris"?"active":""}" data-game="tetris">🧱 ${tr("tetris")}</button>
+          <button class="game-choice ${selectedType==="war"?"active":""}" data-game="war">⚔️ ${tr("war")}</button>
         </div>
 
         ${selectedType==="timer" ? `
           <input id="timerPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TIMER_NAME_KEY)||"")}">
           <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
+        ` : selectedType==="war" ? `
+          <button id="warGame" class="primary" type="button">⚔️ ${tr("war")}</button>
+          <div class="game-help">🪖 Kundërshtari lart · Ti poshtë · Luftë kundër kompjuterit</div>
         ` : selectedType==="tetris" ? `
           <input id="tetrisPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TETRIS_NAME_KEY)||"")}">
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
@@ -316,7 +530,7 @@ function renderLobby(msg=""){
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        ${selectedType==="tetris" ? "" : `
+        ${(selectedType==="tetris" || selectedType==="war") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -344,6 +558,9 @@ function renderLobby(msg=""){
 
   const tetrisButton=document.getElementById("tetrisGame");
   if(tetrisButton) tetrisButton.onclick=startTetrisGame;
+
+  const warButton=document.getElementById("warGame");
+  if(warButton) warButton.onclick=startWarGame;
 
   const createButton=document.getElementById("createGame");
   if(createButton) createButton.onclick=createRoom;
