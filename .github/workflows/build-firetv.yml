@@ -33,6 +33,9 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
+      - name: Decode signing keystore
+        run: base64 -d firetv/pajaziti-release.jks.b64 > firetv/pajaziti-release.jks
+
       - name: Build universal Android APK
         run: gradle -p firetv assembleDebug
 
