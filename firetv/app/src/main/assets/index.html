@@ -7,7 +7,7 @@
   <meta name="description" content="PAJAZITI – album privat për foto dhe video">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=62">
+  <link rel="stylesheet" href="styles.css?v=63">
   <title>PAJAZITI</title>
   <style>
     /* Inline menu-order hotfix */
@@ -103,9 +103,45 @@
             <option value="tr">🇹🇷 TR</option>
           </select>
           <button id="installBtn" class="secondary hidden" type="button" data-i18n="install.short">Instalo</button>
+          <button id="themeBtn" class="secondary theme-open-btn" type="button" aria-label="Ndrysho ngjyrat" title="Ngjyrat">🎨</button>
           <button id="logoutBtn" class="secondary" type="button" data-i18n="logout">Dil</button>
         </div>
       </header>
+
+      <section id="themePanel" class="theme-panel hidden" aria-label="Ngjyrat e mia">
+        <div class="theme-panel-head">
+          <div>
+            <strong>🎨 Ngjyrat e mia</strong>
+            <p>Ndryshimet ruhen vetëm në këtë telefon.</p>
+          </div>
+          <button id="themeCloseBtn" class="secondary theme-close-btn" type="button" aria-label="Mbyll">✕</button>
+        </div>
+
+        <div class="theme-grid">
+          <label class="theme-color-field" for="themeBgColor">
+            <span>Sfondi</span>
+            <input id="themeBgColor" type="color" value="#dc2626">
+          </label>
+          <label class="theme-color-field" for="themeCardColor">
+            <span>Kartat</span>
+            <input id="themeCardColor" type="color" value="#dbeafe">
+          </label>
+          <label class="theme-color-field" for="themeButtonColor">
+            <span>Butonat</span>
+            <input id="themeButtonColor" type="color" value="#e5e7eb">
+          </label>
+          <label class="theme-color-field" for="themeAccentColor">
+            <span>Aktive / ikonat</span>
+            <input id="themeAccentColor" type="color" value="#7c3aed">
+          </label>
+          <label class="theme-color-field" for="themeTextColor">
+            <span>Teksti</span>
+            <input id="themeTextColor" type="color" value="#111827">
+          </label>
+        </div>
+
+        <button id="themeResetBtn" class="secondary theme-reset-btn" type="button">Kthe ngjyrat fillestare</button>
+      </section>
 
       <nav id="appTabs" class="app-tabs" aria-label="Menu">
         <button id="galleryTab" class="app-tab active" type="button"><span>📢 </span><span data-i18n="tabs.photos">Reklama</span></button>
@@ -423,7 +459,7 @@
       await load();
     }
   </script>
-  <script type="module" src="app.js?v=52"></script>
+  <script type="module" src="app.js?v=63"></script>
   <script type="module" src="games.js?v=62"></script>
   <script type="module" src="tv.js?v=52"></script>
   <script type="module" src="radio.js?v=52"></script>

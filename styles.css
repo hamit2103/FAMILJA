@@ -2,6 +2,11 @@
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #111827;
   background: #f3f4f6;
+  --theme-bg: #dc2626;
+  --theme-card: #dbeafe;
+  --theme-button: #e5e7eb;
+  --theme-accent: #7c3aed;
+  --theme-text: #111827;
 }
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100vh; background: #f3f4f6; }
@@ -1981,4 +1986,105 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
   .war-multi-hearts{
     font-size:15px;
   }
+}
+
+
+/* Personal color theme: stored per device/user in localStorage */
+html:has(#appView:not(.hidden)),
+body:has(#appView:not(.hidden)) {
+  background: var(--theme-bg) !important;
+}
+body,
+#appView,
+.topbar,
+.toolbar {
+  color: var(--theme-text);
+}
+.card,
+#menuOrderAdmin {
+  background: var(--theme-card) !important;
+  color: var(--theme-text);
+}
+.logo {
+  background: var(--theme-bg) !important;
+}
+.secondary,
+.app-tab,
+.menu-order-move,
+.theme-panel button.secondary {
+  background: var(--theme-button) !important;
+  color: var(--theme-text) !important;
+}
+.primary,
+.mode.active,
+.app-tab.active,
+#menuOrderSave {
+  background: var(--theme-accent) !important;
+  color: #fff !important;
+}
+.theme-open-btn {
+  min-width: 48px;
+  padding: 0 12px;
+  font-size: 22px;
+}
+.theme-panel {
+  margin: 0 0 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--theme-card);
+  color: var(--theme-text);
+  box-shadow: 0 8px 24px rgba(0,0,0,.14);
+}
+.theme-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.theme-panel-head strong {
+  font-size: 18px;
+}
+.theme-panel-head p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: .72;
+}
+.theme-close-btn {
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+.theme-color-field {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.68);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 750;
+}
+.theme-color-field input[type="color"] {
+  width: 52px;
+  height: 38px;
+  padding: 2px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+.theme-reset-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+@media (max-width: 520px) {
+  .top-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .theme-grid { grid-template-columns: 1fr; }
 }

@@ -255,6 +255,15 @@ const infoCount = $("infoCount");
 const onlineCount = $("onlineCount");
 const languageSelectLogin = $("languageSelectLogin");
 const languageSelectApp = $("languageSelectApp");
+const themeBtn = $("themeBtn");
+const themePanel = $("themePanel");
+const themeCloseBtn = $("themeCloseBtn");
+const themeResetBtn = $("themeResetBtn");
+const themeBgColor = $("themeBgColor");
+const themeCardColor = $("themeCardColor");
+const themeButtonColor = $("themeButtonColor");
+const themeAccentColor = $("themeAccentColor");
+const themeTextColor = $("themeTextColor");
 const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
@@ -283,6 +292,95 @@ const chatList = $("chatList");
 
 languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
+
+const PERSONAL_THEME_KEY = "pajaziti_personal_theme_v1";
+const DEFAULT_PERSONAL_THEME = {
+  bg: "#dc2626",
+  card: "#dbeafe",
+  button: "#e5e7eb",
+  accent: "#7c3aed",
+  text: "#111827"
+};
+
+function isThemeColor(value) {
+  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+}
+
+function normalizePersonalTheme(value = {}) {
+  const result = { ...DEFAULT_PERSONAL_THEME };
+  for (const key of Object.keys(result)) {
+    if (isThemeColor(value?.[key])) result[key] = value[key];
+  }
+  return result;
+}
+
+function readPersonalTheme() {
+  try {
+    return normalizePersonalTheme(JSON.parse(localStorage.getItem(PERSONAL_THEME_KEY) || "{}"));
+  } catch {
+    return { ...DEFAULT_PERSONAL_THEME };
+  }
+}
+
+function syncThemeInputs(theme) {
+  if (themeBgColor) themeBgColor.value = theme.bg;
+  if (themeCardColor) themeCardColor.value = theme.card;
+  if (themeButtonColor) themeButtonColor.value = theme.button;
+  if (themeAccentColor) themeAccentColor.value = theme.accent;
+  if (themeTextColor) themeTextColor.value = theme.text;
+}
+
+function applyPersonalTheme(value, persist = true) {
+  const theme = normalizePersonalTheme(value);
+  const root = document.documentElement;
+  root.style.setProperty("--theme-bg", theme.bg);
+  root.style.setProperty("--theme-card", theme.card);
+  root.style.setProperty("--theme-button", theme.button);
+  root.style.setProperty("--theme-accent", theme.accent);
+  root.style.setProperty("--theme-text", theme.text);
+
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme.bg);
+  syncThemeInputs(theme);
+
+  if (persist) {
+    localStorage.setItem(PERSONAL_THEME_KEY, JSON.stringify(theme));
+  }
+}
+
+function themeFromInputs() {
+  return normalizePersonalTheme({
+    bg: themeBgColor?.value,
+    card: themeCardColor?.value,
+    button: themeButtonColor?.value,
+    accent: themeAccentColor?.value,
+    text: themeTextColor?.value
+  });
+}
+
+applyPersonalTheme(readPersonalTheme(), false);
+
+themeBtn?.addEventListener("click", () => {
+  themePanel?.classList.toggle("hidden");
+  if (!themePanel?.classList.contains("hidden")) {
+    syncThemeInputs(readPersonalTheme());
+  }
+});
+
+themeCloseBtn?.addEventListener("click", () => {
+  themePanel?.classList.add("hidden");
+});
+
+[themeBgColor, themeCardColor, themeButtonColor, themeAccentColor, themeTextColor]
+  .filter(Boolean)
+  .forEach((input) => {
+    input.addEventListener("input", () => applyPersonalTheme(themeFromInputs()));
+    input.addEventListener("change", () => applyPersonalTheme(themeFromInputs()));
+  });
+
+themeResetBtn?.addEventListener("click", () => {
+  localStorage.removeItem(PERSONAL_THEME_KEY);
+  applyPersonalTheme(DEFAULT_PERSONAL_THEME, false);
+});
 
 let mode = "family";
 let realtimeChannel = null;
