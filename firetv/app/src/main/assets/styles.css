@@ -2113,3 +2113,34 @@ body,
   color:#dc2626;
   filter:drop-shadow(0 0 9px #ef4444);
 }
+
+/* War victory celebration */
+.war-victory-celebration{
+  position:fixed;
+  inset:0;
+  z-index:30000;
+  pointer-events:none;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  background:rgba(2,6,23,0);
+  opacity:0;
+  transition:opacity .25s ease,background .25s ease;
+}
+.war-victory-celebration.show{opacity:1;background:rgba(2,6,23,.30)}
+.war-victory-title,.war-victory-name{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%) scale(.65);
+  opacity:0;
+  text-align:center;
+  text-shadow:0 4px 18px rgba(0,0,0,.42);
+}
+.war-victory-title{top:34%;font-size:clamp(34px,9vw,72px);font-weight:1000;color:#facc15}
+.war-victory-name{top:47%;font-size:clamp(22px,6vw,44px);font-weight:950;color:#fff}
+.war-victory-celebration.show .war-victory-title{animation:warVictoryPop .6s cubic-bezier(.2,1.4,.4,1) forwards}
+.war-victory-celebration.show .war-victory-name{animation:warVictoryPop .6s .14s cubic-bezier(.2,1.4,.4,1) forwards}
+.war-victory-stars{position:absolute;inset:0}
+.war-victory-stars span{position:absolute;left:var(--x);top:-12%;font-size:clamp(24px,5vw,46px);opacity:0;animation:warStarFall 2.25s var(--d) ease-in forwards;filter:drop-shadow(0 4px 8px rgba(0,0,0,.28))}
+@keyframes warVictoryPop{0%{opacity:0;transform:translateX(-50%) scale(.55)}70%{opacity:1;transform:translateX(-50%) scale(1.12)}100%{opacity:1;transform:translateX(-50%) scale(1)}}
+@keyframes warStarFall{0%{opacity:0;transform:translate3d(0,-5vh,0) rotate(0deg) scale(.7)}12%{opacity:1}100%{opacity:0;transform:translate3d(var(--drift),112vh,0) rotate(760deg) scale(1.15)}}

@@ -46,6 +46,7 @@ let lastTimerSoundKey="";
 let timerSoundEnabled=localStorage.getItem(TIMER_SOUND_KEY)!=="off";
 let tetrisSoundEnabled=localStorage.getItem(TETRIS_SOUND_KEY)!=="off";
 let warSoundEnabled=localStorage.getItem(WAR_SOUND_KEY)!=="off";
+let warVictoryShownKey="";
 
 async function ensureGameAudio(){
   if(!timerSoundEnabled) return null;
@@ -544,6 +545,14 @@ function renderWarMultiGame(){
       </section>
     </div>`;
 
+  if(warMultiRoom.status==="finished" && warMultiRoom.winner_device===deviceId){
+    const winner=warMultiPlayers.find(p=>p.device_id===deviceId);
+    requestAnimationFrame(()=>showWarVictoryCelebration(
+      "online-"+warMultiRoom.id+"-"+(warMultiRoom.action_seq||0),
+      winner?.display_name||"Fituesi"
+    ));
+  }
+
   root.querySelectorAll("[data-war-target]").forEach(btn=>{
     btn.onclick=()=>{
       if(!myTurn) return;
@@ -967,6 +976,13 @@ function renderWarGame(){
     btn.disabled=s.over||s.turn!=="player";
     btn.onclick=()=>warPlayerAction(btn.dataset.warAction);
   });
+
+  if(s.over && s.enemy.hp<=0 && s.player.hp>0){
+    requestAnimationFrame(()=>showWarVictoryCelebration(
+      "solo-"+warGames()+"-"+s.player.name,
+      s.player.name
+    ));
+  }
 }
 
 async function startWarGame(){
@@ -1078,7 +1094,7 @@ function warWavUrl(kind){
   if(warMediaUrls[kind]) return warMediaUrls[kind];
 
   const sampleRate=22050;
-  const duration=kind==="rocket" ? .85 : kind==="tank" ? .62 : kind==="attack" ? .18 : .24;
+  const duration=kind==="victory" ? 1.45 : kind==="rocket" ? .85 : kind==="tank" ? .62 : kind==="attack" ? .18 : .24;
   const samples=Math.floor(sampleRate*duration);
   const bytes=new ArrayBuffer(44+samples*2);
   const view=new DataView(bytes);
@@ -1182,6 +1198,20 @@ function playWarWebAudio(kind){
         osc.connect(amp); amp.connect(ctx.destination);
         osc.start(t); osc.stop(t+.10);
       });
+    }else if(kind==="victory"){
+      const now=ctx.currentTime;
+      [523.25,659.25,783.99,1046.5,1318.5].forEach((freq,i)=>{
+        const osc=ctx.createOscillator();
+        const amp=ctx.createGain();
+        osc.type=i<3?"triangle":"sine";
+        osc.frequency.value=freq;
+        const t=now+i*.18;
+        amp.gain.setValueAtTime(.0001,t);
+        amp.gain.exponentialRampToValueAtTime(.20,t+.015);
+        amp.gain.exponentialRampToValueAtTime(.0001,t+.24);
+        osc.connect(amp); amp.connect(ctx.destination);
+        osc.start(t); osc.stop(t+.27);
+      });
     }
   });
 }
@@ -1211,8 +1241,33 @@ function playWarSound(kind){
   if(kind==="attack" && navigator.vibrate) navigator.vibrate(28);
   if(kind==="tank" && navigator.vibrate) navigator.vibrate([55,25,85]);
   if(kind==="rocket" && navigator.vibrate) navigator.vibrate([45,120,110]);
+  if(kind==="victory" && navigator.vibrate) navigator.vibrate([80,45,80,45,160]);
 }
 
+function showWarVictoryCelebration(key,winnerName="Fituesi"){
+  if(!key || warVictoryShownKey===key) return;
+  warVictoryShownKey=key;
+  playWarSound("victory");
+  document.querySelector(".war-victory-celebration")?.remove();
+  const box=document.createElement("div");
+  box.className="war-victory-celebration";
+  const stars=Array.from({length:28},(_,idx)=>{
+    const left=7+(idx*37)%86;
+    const delay=((idx*11)%28)/100;
+    const drift=((idx*29)%120)-60;
+    const symbol=["⭐","✨","🌟","💫"][idx%4];
+    return '<span style="--x:'+left+'%;--d:'+delay+'s;--drift:'+drift+'px">'+symbol+"</span>";
+  }).join("");
+  box.innerHTML='<div class="war-victory-title">🏆 FITORE! 🏆</div>'+
+    '<div class="war-victory-name">'+escapeHtml(winnerName)+"</div>"+
+    '<div class="war-victory-stars" aria-hidden="true">'+stars+"</div>";
+  document.body.appendChild(box);
+  setTimeout(()=>box.classList.add("show"),20);
+  setTimeout(()=>{
+    box.classList.remove("show");
+    setTimeout(()=>box.remove(),500);
+  },2800);
+}
 function warSoundForAction(action){
   if(action==="bomb"||action==="atom"||action==="azrael"||action==="fire") return "rocket";
   if(action==="helicopter"||action==="drone") return "attack";
