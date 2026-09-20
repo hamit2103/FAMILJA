@@ -37,16 +37,21 @@ jobs:
         run: base64 -d firetv/pajaziti-release.jks.b64 > firetv/pajaziti-release.jks
 
       - name: Build universal Android APK
-        run: gradle -p firetv assembleDebug
+        run: |
+          gradle -p firetv assembleDebug
+          cp firetv/app/build/outputs/apk/debug/app-debug.apk /tmp/pajaziti-android.apk
+          gradle -p firetv clean assembleDebug -PappId=com.pajaziti.familja.fresh
+          cp firetv/app/build/outputs/apk/debug/app-debug.apk /tmp/pajaziti-fresh.apk
 
       - name: Publish APK into website
         run: |
           git pull --rebase origin main
-          cp firetv/app/build/outputs/apk/debug/app-debug.apk pajaziti-android.apk
-          cp firetv/app/build/outputs/apk/debug/app-debug.apk pajaziti-firetv.apk
+          cp /tmp/pajaziti-android.apk pajaziti-android.apk
+          cp /tmp/pajaziti-android.apk pajaziti-firetv.apk
+          cp /tmp/pajaziti-fresh.apk pajaziti-fresh.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pajaziti-android.apk pajaziti-firetv.apk
+          git add pajaziti-android.apk pajaziti-firetv.apk pajaziti-fresh.apk
           if git diff --cached --quiet; then
             echo "APK unchanged"
           else
@@ -58,4 +63,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pajaziti-android
-          path: firetv/app/build/outputs/apk/debug/app-debug.apk
+          path: /tmp/pajaziti-android.apk
