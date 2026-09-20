@@ -1615,3 +1615,37 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
   color:#fde68a;
   font-weight:800;
 }
+
+.war-hearts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  align-items:center;
+  font-size:34px;
+  line-height:1;
+  min-height:42px;
+}
+.war-heart{
+  display:inline-block;
+  filter:drop-shadow(0 3px 7px rgba(0,0,0,.25));
+}
+.war-heart.empty{
+  opacity:.35;
+  filter:none;
+}
+.war-progress{
+  display:grid;
+  justify-items:end;
+  gap:3px;
+}
+.war-progress strong{
+  font-size:15px;
+}
+.war-progress small{
+  font-size:12px;
+  opacity:.8;
+}
+@media(max-width:560px){
+  .war-hearts{font-size:29px;gap:5px}
+  .war-progress strong{font-size:13px}
+}
