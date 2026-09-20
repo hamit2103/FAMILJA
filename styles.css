@@ -1082,3 +1082,66 @@ body:has(#adminPanel:not(.hidden)) #infoCompose.hidden{
 .menu-order-admin .primary{
   margin-top:0;
 }
+
+
+/* TV fullscreen */
+.tv-player-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+#tvFullscreen{
+  white-space:nowrap;
+}
+body.tv-fullscreen-fallback{
+  overflow:hidden;
+}
+body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card{
+  position:fixed;
+  inset:0;
+  z-index:100000;
+  margin:0;
+  padding:0;
+  border-radius:0;
+  background:#000;
+  width:100vw;
+  height:100dvh;
+  max-width:none;
+  display:flex;
+  flex-direction:column;
+}
+body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-now-row{
+  padding:10px 12px;
+  background:#000;
+  color:#fff;
+}
+body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player{
+  flex:1;
+  width:100%;
+  height:100%;
+  min-height:0;
+  object-fit:contain;
+  background:#000;
+}
+body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback{
+  display:none;
+}
+#tvPlayer:fullscreen{
+  width:100vw;
+  height:100vh;
+  object-fit:contain;
+  background:#000;
+}
+@media(max-width:560px){
+  .tv-now-row{
+    align-items:flex-start;
+    gap:8px;
+  }
+  .tv-player-actions{
+    width:100%;
+  }
+  .tv-player-actions button{
+    flex:1;
+  }
+}

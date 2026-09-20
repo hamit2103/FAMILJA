@@ -34,7 +34,7 @@ const TXT = {
     saveLocal:"Ruaje vetëm në këtë telefon", savedLocal:"U ruajt vetëm në këtë telefon.",
     useShared:"Hap listën e përbashkët", useLocal:"Hap listën time", back:"Kthehu te menuja TV",
     replayInfo:"Shfaqen vetëm kanalet që lista M3U i shënon me catch-up/replay.",
-    source:"Burimi", allGroups:"Të gjitha grupet", playerLoading:"Po provoj stream-in…", playerReady:"Stream-i është gati.", playerNetworkError:"Stream-i nuk po përgjigjet ose është bllokuar nga serveri.", playerMediaError:"Player-i pati problem me videon. Po provoj përsëri…", playerFailed:"Ky stream nuk po hapet në këtë pajisje.", retry:"Provo përsëri"
+    source:"Burimi", allGroups:"Të gjitha grupet", playerLoading:"Po provoj stream-in…", playerReady:"Stream-i është gati.", playerNetworkError:"Stream-i nuk po përgjigjet ose është bllokuar nga serveri.", playerMediaError:"Player-i pati problem me videon. Po provoj përsëri…", playerFailed:"Ky stream nuk po hapet në këtë pajisje.", retry:"Provo përsëri", fullscreen:"Ekran i plotë", exitFullscreen:"Dil nga ekrani i plotë"
   },
   de:{
     tv:"TV", brand:"Shtime TV", live:"Live TV", movies:"Filme", series:"Serien", replay:"Replay",
@@ -49,7 +49,7 @@ const TXT = {
     saveLocal:"Nur auf diesem Gerät speichern", savedLocal:"Nur auf diesem Gerät gespeichert.",
     useShared:"Gemeinsame Liste öffnen", useLocal:"Meine Liste öffnen", back:"Zurück zum TV-Menü",
     replayInfo:"Es werden nur Sender angezeigt, die in der M3U-Liste Catch-up/Replay unterstützen.",
-    source:"Quelle", allGroups:"Alle Gruppen", playerLoading:"Stream wird getestet…", playerReady:"Stream ist bereit.", playerNetworkError:"Der Stream antwortet nicht oder wird vom Server blockiert.", playerMediaError:"Der Player hat ein Medienproblem. Erneuter Versuch…", playerFailed:"Dieser Stream kann auf diesem Gerät nicht geöffnet werden.", retry:"Erneut versuchen"
+    source:"Quelle", allGroups:"Alle Gruppen", playerLoading:"Stream wird getestet…", playerReady:"Stream ist bereit.", playerNetworkError:"Der Stream antwortet nicht oder wird vom Server blockiert.", playerMediaError:"Der Player hat ein Medienproblem. Erneuter Versuch…", playerFailed:"Dieser Stream kann auf diesem Gerät nicht geöffnet werden.", retry:"Erneut versuchen", fullscreen:"Vollbild", exitFullscreen:"Vollbild beenden"
   },
   tr:{
     tv:"TV", brand:"Shtime TV", live:"Canlı TV", movies:"Filmler", series:"Diziler", replay:"Tekrar",
@@ -64,7 +64,7 @@ const TXT = {
     saveLocal:"Yalnızca bu telefona kaydet", savedLocal:"Yalnızca bu telefona kaydedildi.",
     useShared:"Ortak listeyi aç", useLocal:"Listemi aç", back:"TV menüsüne dön",
     replayInfo:"Yalnızca M3U listesinde catch-up/replay olarak işaretlenen kanallar gösterilir.",
-    source:"Kaynak", allGroups:"Tüm gruplar", playerLoading:"Yayın deneniyor…", playerReady:"Yayın hazır.", playerNetworkError:"Yayın yanıt vermiyor veya sunucu tarafından engelleniyor.", playerMediaError:"Oynatıcı video hatası verdi. Tekrar deneniyor…", playerFailed:"Bu yayın bu cihazda açılamıyor.", retry:"Tekrar dene"
+    source:"Kaynak", allGroups:"Tüm gruplar", playerLoading:"Yayın deneniyor…", playerReady:"Yayın hazır.", playerNetworkError:"Yayın yanıt vermiyor veya sunucu tarafından engelleniyor.", playerMediaError:"Oynatıcı video hatası verdi. Tekrar deneniyor…", playerFailed:"Bu yayın bu cihazda açılamıyor.", retry:"Tekrar dene", fullscreen:"Tam ekran", exitFullscreen:"Tam ekrandan çık"
   }
 };
 
@@ -265,6 +265,60 @@ function showRetry(channel){
   const btn=document.getElementById("tvRetry");
   if(btn) btn.classList.toggle("hidden",!channel);
 }
+
+async function toggleTvFullscreen(){
+  const video=document.getElementById("tvPlayer");
+  const card=document.getElementById("tvPlayerCard");
+  const button=document.getElementById("tvFullscreen");
+  if(!video || !card) return;
+
+  const inNativeFullscreen=!!document.fullscreenElement;
+  const inFallback=document.body.classList.contains("tv-fullscreen-fallback");
+
+  if(inNativeFullscreen){
+    try{ await document.exitFullscreen(); }catch(_){}
+    return;
+  }
+
+  if(inFallback){
+    document.body.classList.remove("tv-fullscreen-fallback");
+    card.classList.remove("tv-fullscreen-card");
+    if(button) button.textContent="⛶ "+tr("fullscreen");
+    return;
+  }
+
+  try{
+    if(video.requestFullscreen){
+      await video.requestFullscreen();
+      return;
+    }
+    if(video.webkitRequestFullscreen){
+      video.webkitRequestFullscreen();
+      return;
+    }
+    if(video.webkitEnterFullscreen){
+      video.webkitEnterFullscreen();
+      return;
+    }
+  }catch(_){}
+
+  document.body.classList.add("tv-fullscreen-fallback");
+  card.classList.add("tv-fullscreen-card");
+  if(button) button.textContent="✕ "+tr("exitFullscreen");
+}
+
+document.addEventListener("fullscreenchange",()=>{
+  const button=document.getElementById("tvFullscreen");
+  if(button){
+    button.textContent=document.fullscreenElement
+      ? "✕ "+tr("exitFullscreen")
+      : "⛶ "+tr("fullscreen");
+  }
+  if(!document.fullscreenElement){
+    document.body.classList.remove("tv-fullscreen-fallback");
+    document.getElementById("tvPlayerCard")?.classList.remove("tv-fullscreen-card");
+  }
+});
 
 function destroyPlayer(){
   if(hls){ try{hls.destroy();}catch(_){} hls=null; }
@@ -598,7 +652,10 @@ function render(){
       <section id="tvPlayerCard" class="card tv-player-card tv-player-real">
         <div class="tv-now-row">
           <strong id="tvNow">${esc(localStorage.getItem(TV_NAME_KEY)||tr("direct"))}</strong>
-          <button id="tvStop" class="secondary" type="button">${tr("stop")}</button>
+          <div class="tv-player-actions">
+            <button id="tvFullscreen" class="secondary" type="button">⛶ ${tr("fullscreen")}</button>
+            <button id="tvStop" class="secondary" type="button">${tr("stop")}</button>
+          </div>
         </div>
         <video id="tvPlayer" class="tv-player" controls playsinline preload="metadata"></video>
         <div class="tv-player-feedback">
@@ -665,8 +722,11 @@ function render(){
   const publish=document.getElementById("tvPublishAll");
   if(publish) publish.onclick=publishPendingForAll;
 
+  document.getElementById("tvFullscreen").onclick=toggleTvFullscreen;
   document.getElementById("tvStop").onclick=()=>{
     destroyPlayer();
+    document.body.classList.remove("tv-fullscreen-fallback");
+    document.getElementById("tvPlayerCard")?.classList.remove("tv-fullscreen-card");
     setPlayerStatus("");
     showRetry(null);
   };
