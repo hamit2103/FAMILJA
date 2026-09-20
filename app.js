@@ -217,6 +217,7 @@ const refreshBtn = $("refreshBtn");
 const installBtn = $("installBtn");
 const installLoginBtn = $("installLoginBtn");
 const shareBtn = $("shareBtn");
+const appTabs = $("appTabs");
 const galleryTab = $("galleryTab");
 const infoTab = $("infoTab");
 const infoUnreadBadge = $("infoUnreadBadge");
@@ -224,6 +225,10 @@ const prayerTab = $("prayerTab");
 const gamesTab = $("gamesTab");
 const tvTab = $("tvTab");
 const radioTab = $("radioTab");
+const menuOrderAdmin = $("menuOrderAdmin");
+const menuOrderList = $("menuOrderList");
+const menuOrderSave = $("menuOrderSave");
+const menuOrderStatus = $("menuOrderStatus");
 const galleryView = $("galleryView");
 const infoView = $("infoView");
 const prayerView = $("prayerView");
@@ -269,6 +274,15 @@ let prayerAudioContext = null;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
+const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab"];
+const TAB_LABELS = {
+  galleryTab:"📷 Foto",
+  infoTab:"ℹ️ Informacion",
+  prayerTab:"🕌 Namazi",
+  gamesTab:"🎮 Lojëra",
+  tvTab:"📺 TV",
+  radioTab:"📻 Radio"
+};
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
 const PRAYER_ALARMS_KEY = "pajaziti-prayer-alarms";
@@ -425,6 +439,99 @@ document.addEventListener("keydown", (event) => {
     previousLightboxImage();
   }
 });
+
+function normalizeMenuOrder(order){
+  const incoming = Array.isArray(order) ? order.filter((id)=>DEFAULT_TAB_ORDER.includes(id)) : [];
+  return [...new Set([...incoming,...DEFAULT_TAB_ORDER])];
+}
+
+function applyMenuOrder(order){
+  if(!appTabs) return;
+  for(const id of normalizeMenuOrder(order)){
+    const el=document.getElementById(id);
+    if(el) appTabs.appendChild(el);
+  }
+}
+
+function currentMenuOrder(){
+  return Array.from(appTabs?.querySelectorAll(".app-tab") || [])
+    .map((el)=>el.id)
+    .filter((id)=>DEFAULT_TAB_ORDER.includes(id));
+}
+
+function renderMenuOrderAdmin(){
+  if(!menuOrderList || !isAdmin()) return;
+  const order=currentMenuOrder();
+  menuOrderList.innerHTML=order.map((id,index)=>`
+    <div class="menu-order-row" data-menu-id="${id}">
+      <span class="menu-order-name">${TAB_LABELS[id] || id}</span>
+      <div class="menu-order-actions">
+        <button class="secondary menu-order-move" type="button" data-move="up" ${index===0?"disabled":""}>⬆️</button>
+        <button class="secondary menu-order-move" type="button" data-move="down" ${index===order.length-1?"disabled":""}>⬇️</button>
+      </div>
+    </div>
+  `).join("");
+
+  menuOrderList.querySelectorAll(".menu-order-move").forEach((button)=>{
+    button.addEventListener("click",()=>{
+      const row=button.closest(".menu-order-row");
+      const rows=Array.from(menuOrderList.querySelectorAll(".menu-order-row"));
+      const index=rows.indexOf(row);
+      const dir=button.dataset.move;
+      if(dir==="up" && index>0){
+        menuOrderList.insertBefore(row, rows[index-1]);
+      }else if(dir==="down" && index<rows.length-1){
+        menuOrderList.insertBefore(rows[index+1], row);
+      }
+      const nextOrder=Array.from(menuOrderList.querySelectorAll(".menu-order-row")).map((el)=>el.dataset.menuId);
+      applyMenuOrder(nextOrder);
+      renderMenuOrderAdmin();
+    });
+  });
+}
+
+async function loadSharedMenuOrder(){
+  if(!supabase || !currentUser) return;
+  const {data,error}=await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key","tab_order")
+    .maybeSingle();
+
+  if(error){
+    console.warn("Menu order load failed",error);
+    return;
+  }
+
+  applyMenuOrder(data?.value || DEFAULT_TAB_ORDER);
+  if(isAdmin()) renderMenuOrderAdmin();
+}
+
+async function saveSharedMenuOrder(){
+  if(!supabase || !currentUser || !isAdmin()) return;
+  const order=currentMenuOrder();
+  menuOrderSave.disabled=true;
+  showMessage(menuOrderStatus,"Po ruhet...");
+
+  const {error}=await supabase.from("app_settings").upsert({
+    key:"tab_order",
+    value:order,
+    updated_at:new Date().toISOString(),
+    updated_by:currentUser.id
+  },{onConflict:"key"});
+
+  menuOrderSave.disabled=false;
+
+  if(error){
+    console.error(error);
+    showMessage(menuOrderStatus,"Nuk u ruajt: "+error.message,"error");
+    return;
+  }
+
+  showMessage(menuOrderStatus,"U ruajt. Kjo renditje u del të gjithëve.","success");
+}
+
+menuOrderSave?.addEventListener("click",saveSharedMenuOrder);
 
 function setSection(next) {
   activeSection = next;
@@ -1643,6 +1750,11 @@ function startRealtime() {
       { event: "*", schema: "public", table: "information" },
       () => loadInfo({ markRead: activeSection === "info" })
     )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "app_settings" },
+      () => loadSharedMenuOrder()
+    )
     .subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
         await realtimeChannel.track({
@@ -1662,6 +1774,7 @@ async function applySession(session) {
   loginView.classList.toggle("hidden", signedIn);
   appView.classList.toggle("hidden", !signedIn);
   infoCompose?.classList.toggle("hidden", !signedIn || !isAdmin());
+  menuOrderAdmin?.classList.toggle("hidden", !signedIn || !isAdmin());
   if (isAdmin()) infoUnreadBadge?.classList.add("hidden");
 
   if (!signedIn) {
@@ -1688,6 +1801,7 @@ async function applySession(session) {
   roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
   uploadStatus.textContent = "";
   await loadMedia();
+  await loadSharedMenuOrder();
   const savedCoords = savedPrayerCoords();
   if (savedCoords) {
     fetchPrayerTimes(savedCoords).catch((error) => console.warn("Prayer preload failed", error));
