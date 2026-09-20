@@ -1,0 +1,9 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="RTK1.xk" group-title="Kosovo",RTK 1
+https://ub1doy938d.gjirafa.net/live/Gfsqdsr7FewrYClU3ACEGZvCHktt2wse/zykxzq.m3u8
+#EXTINF:-1 tvg-id="RTK2.xk" group-title="Kosovo",RTK 2
+https://ub1doy938d.gjirafa.net/live/Gfsqdsr7FewrYClU3ACEGZvCHktt2wse/zykxz0.m3u8
+#EXTINF:-1 tvg-id="RTK3.xk" group-title="Kosovo",RTK 3
+https://ub1doy938d.gjirafa.net/live/Gfsqdsr7FewrYClU3ACEGZvCHktt2wse/zykxzk.m3u8
+#EXTINF:-1 tvg-id="RTK4.xk" group-title="Kosovo",RTK 4
+https://ub1doy938d.gjirafa.net/live/Gfsqdsr7FewrYClU3ACEGZvCHktt2wse/zykxgt.m3u8
