@@ -881,15 +881,7 @@ function renderWarGame(){
 
   const soldierMarkup=()=>`
     <span class="war-soldier-figure" aria-hidden="true">
-      <span class="war-soldier-helmet"></span>
-      <span class="war-soldier-head"></span>
-      <span class="war-soldier-body"></span>
-      <span class="war-soldier-arm war-soldier-arm-a"></span>
-      <span class="war-soldier-arm war-soldier-arm-b"></span>
-      <span class="war-soldier-hand"></span>
-      <span class="war-rifle-real"></span>
-      <span class="war-soldier-leg war-soldier-leg-a"></span>
-      <span class="war-soldier-leg war-soldier-leg-b"></span>
+      <img class="war-soldier-art" src="./war-soldier.svg" alt="">
     </span>`;
 
   root.innerHTML=`
