@@ -26,11 +26,13 @@
       <h1>PAJAZITI</h1>
       <p class="muted" data-i18n="app.subtitle">Album privat për foto dhe video</p>
 
-      <label for="usernameInput">Username</label>
-      <input id="usernameInput" type="text" inputmode="text" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Shkruaj username">
+      <div class="mode-switch">
+        <button id="familyMode" class="mode active" type="button" data-i18n="mode.family">Familja</button>
+        <button id="adminMode" class="mode" type="button" data-i18n="mode.admin">Admin</button>
+      </div>
 
-      <label for="passwordInput">Password</label>
-      <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Shkruaj password">
+      <label for="codeInput" data-i18n="login.label">Kodi i hyrjes</label>
+      <input id="codeInput" type="password" inputmode="text" autocomplete="current-password" placeholder="Shkruaj kodin" data-i18n-placeholder="login.placeholder">
       <button id="loginBtn" class="primary" type="button" data-i18n="login.button">Hyr</button>
 
       <div class="share-install-actions">
@@ -71,7 +73,6 @@
         <button id="prayerTab" class="app-tab" type="button"><span>🕌 </span><span data-i18n="tabs.prayer">Namazi</span></button>
         <button id="gamesTab" class="app-tab" type="button"><span>🎮 </span><span id="gamesTabLabel">Lojëra</span></button>
         <button id="tvTab" class="app-tab" type="button"><span>📺 </span><span id="tvTabLabel">TV</span></button>
-        <button id="accountsTab" class="app-tab hidden" type="button"><span>👤 </span><span>Përdorues</span></button>
       </nav>
 
       <section id="galleryView">
@@ -148,51 +149,6 @@
 
       <section id="tvView" class="hidden">
         <div id="tvRoot"></div>
-      </section>
-
-      <section id="accountsView" class="hidden">
-        <section class="card account-summary">
-          <div>
-            <h2>👤 Menaxhimi i përdoruesve</h2>
-            <p id="accountRoleText" class="muted small"></p>
-          </div>
-          <div id="accountCreditsBadge" class="credit-badge">Kredite: —</div>
-        </section>
-
-        <section class="card account-create">
-          <h2>Krijo llogari</h2>
-          <div class="account-grid">
-            <div>
-              <label for="newUsername">Username</label>
-              <input id="newUsername" type="text" maxlength="32" autocapitalize="none" spellcheck="false" placeholder="p.sh. besim1">
-            </div>
-            <div>
-              <label for="newPassword">Password</label>
-              <input id="newPassword" type="password" maxlength="72" placeholder="Minimum 6 shkronja">
-            </div>
-            <div id="newRoleWrap">
-              <label for="newRole">Lloji</label>
-              <select id="newRole">
-                <option value="user">User</option>
-                <option value="reseller">Reseller</option>
-              </select>
-            </div>
-            <div id="newCreditsWrap" class="hidden">
-              <label for="newCredits">Kredite fillestare</label>
-              <input id="newCredits" type="number" min="0" max="1000000" value="0">
-            </div>
-          </div>
-          <button id="createAccountBtn" class="primary" type="button">Krijo</button>
-          <div id="accountStatus" class="message"></div>
-        </section>
-
-        <section class="card">
-          <div class="account-list-head">
-            <h2>Llogaritë</h2>
-            <button id="refreshAccountsBtn" class="secondary" type="button">Rifresko</button>
-          </div>
-          <div id="accountsList" class="accounts-list"></div>
-        </section>
       </section>
 
       <section id="prayerView" class="hidden">
