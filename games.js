@@ -18,9 +18,9 @@ if (!deviceId) {
 }
 
 const TXT = {
-  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Mühle",timer:"Kral i Sekondave",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe (mühle), hiq një gur të kundërshtarit.",error:"Gabim"},
-  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Mühle",timer:"Sekundenkönig",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Mühle darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
-  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
+  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Mühle",timer:"Kral i Sekondave",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",soloTimer:"🤖 Luaj vetë",practiceOnly:"Stërvitje kundër kompjuterit — nuk hyn në renditjen javore.",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe (mühle), hiq një gur të kundërshtarit.",error:"Gabim"},
+  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Mühle",timer:"Sekundenkönig",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",soloTimer:"🤖 Alleine spielen",practiceOnly:"Training gegen den Computer — zählt nicht für die Wochenrangliste.",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Mühle darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
+  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",soloTimer:"🤖 Tek başına oyna",practiceOnly:"Bilgisayara karşı antrenman — haftalık sıralamaya sayılmaz.",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
 };
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
@@ -56,7 +56,7 @@ async function fetchRoomById(id){
 }
 
 async function loadTimerPlayers(){
-  if(!room || room.game_type!=="timer") return;
+  if(!room || room.game_type!=="timer" || room.localTimer) return;
   const {data,error}=await supabase.from("timer_players")
     .select("room_id,device_id,display_name,eliminated,stop_ms,joined_at")
     .eq("room_id",room.id)
@@ -151,6 +151,7 @@ function renderLobby(msg=""){
 
         ${selectedType==="timer" ? `
           <input id="timerPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TIMER_NAME_KEY)||"")}">
+          <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
@@ -170,8 +171,57 @@ function renderLobby(msg=""){
   if(computerButton) computerButton.onclick=startComputerGame;
   const timerName=document.getElementById("timerPlayerName");
   if(timerName) timerName.addEventListener("input",()=>localStorage.setItem(TIMER_NAME_KEY,timerName.value.trim()));
+  const timerSoloButton=document.getElementById("timerSoloGame");
+  if(timerSoloButton) timerSoloButton.onclick=startTimerSoloGame;
   document.getElementById("createGame").onclick=createRoom;
   document.getElementById("joinGame").onclick=joinRoom;
+}
+
+function startTimerSoloGame(){
+  const name=timerName();
+  if(!name){ renderLobby(tr("needName")); return; }
+
+  if(channel){ supabase.removeChannel(channel); channel=null; }
+  clearTimerPhaseTimeout();
+
+  room={
+    id:"local-timer",
+    code:"AI",
+    game_type:"timer",
+    player1_device:deviceId,
+    player2_device:"computer",
+    state:{
+      phase:"lobby",
+      round:0,
+      start_at:null,
+      eliminated_device:null,
+      winner_device:null,
+      bot_stop_ms:null
+    },
+    status:"active",
+    localTimer:true
+  };
+
+  timerPlayers=[
+    {
+      room_id:"local-timer",
+      device_id:deviceId,
+      display_name:name,
+      eliminated:false,
+      stop_ms:null,
+      joined_at:new Date().toISOString()
+    },
+    {
+      room_id:"local-timer",
+      device_id:"computer",
+      display_name:tr("computerName"),
+      eliminated:false,
+      stop_ms:null,
+      joined_at:new Date(Date.now()+1).toISOString()
+    }
+  ];
+
+  renderTimerRoom();
 }
 
 function startComputerGame(){
@@ -267,6 +317,7 @@ async function openRoom(r){
 }
 
 function subscribeRoom(){
+  if(room?.localTimer) return;
   if(channel)supabase.removeChannel(channel);
   channel=supabase.channel("game-"+room.id)
     .on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},async payload=>{
@@ -365,6 +416,7 @@ function renderTimerRoom(){
   const active=timerActivePlayers();
   const me=timerPlayer(deviceId);
   const host=room.player1_device===deviceId;
+  const localTimer=!!room.localTimer;
   const startAt=st.start_at ? new Date(st.start_at).getTime() : 0;
   const started=startAt && Date.now()>=startAt;
   const canStop=phase==="countdown" && started && me && !me.eliminated && me.stop_ms==null;
@@ -395,7 +447,7 @@ function renderTimerRoom(){
       <div class="timer-crown">👑</div>
       <div class="timer-big-message">${tr("king")}</div>
       <div class="timer-winner-name">${winner ? escapeHtml(winner.display_name) : ""}</div>
-      <div class="timer-power-win">⚡ +10 ${tr("power")}</div>
+      ${localTimer ? `<div class="game-help">${tr("practiceOnly")}</div>` : `<div class="timer-power-win">⚡ +10 ${tr("power")}</div>`}
       <button id="timerBackGames" class="secondary" type="button">${tr("backGames")}</button>
     `;
   }
@@ -415,10 +467,10 @@ function renderTimerRoom(){
       <section class="card timer-room-card">
         <div class="game-room-head">
           <div>
-            <div class="muted small">${tr("room")} · ${tr("players")} ${timerPlayers.length}/8</div>
-            <div class="game-room-code">${room.code}</div>
+            <div class="muted small">${localTimer ? "🤖 "+tr("computerName") : tr("room")+" · "+tr("players")+" "+timerPlayers.length+"/8"}</div>
+            <div class="game-room-code">${localTimer ? "⏱️ "+tr("timer") : room.code}</div>
           </div>
-          <button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>
+          ${localTimer ? "" : `<button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>`}
         </div>
         <div class="timer-round-label">⏱️ ${tr("timer")} · ${tr("round")} ${st.round||0}</div>
         <div class="timer-center">${center}</div>
@@ -429,7 +481,7 @@ function renderTimerRoom(){
         <div class="timer-player-list">${playersHtml}</div>
       </section>
 
-      <section id="timerRoomLeaderboard" class="card timer-leaderboard"></section>
+      ${localTimer ? `<section class="card"><div class="game-help">${tr("practiceOnly")}</div></section>` : `<section id="timerRoomLeaderboard" class="card timer-leaderboard"></section>`}
 
       <div class="game-actions">
         <button id="leaveGame" class="secondary" type="button">${tr("leave")}</button>
@@ -452,12 +504,35 @@ function renderTimerRoom(){
   if(leave) leave.onclick=()=>{ clearTimerPhaseTimeout(); if(channel)supabase.removeChannel(channel); channel=null; room=null; renderLobby(); };
 
   if(waitingForStart) scheduleTimerPhaseRender();
-  loadTimerLeaderboardInto("timerRoomLeaderboard");
+  if(!localTimer) loadTimerLeaderboardInto("timerRoomLeaderboard");
 }
 
 async function startTimerRound(){
   const button=document.getElementById("startTimerRound");
   if(button) button.disabled=true;
+
+  if(room?.localTimer){
+    const delay=1800+Math.floor(Math.random()*3200);
+    const startAt=Date.now()+delay;
+    const botStop=650+Math.floor(Math.random()*2850);
+
+    for(const player of timerPlayers){
+      player.eliminated=false;
+      player.stop_ms=null;
+    }
+
+    room.state={
+      phase:"countdown",
+      round:(room.state?.round||0)+1,
+      start_at:new Date(startAt).toISOString(),
+      eliminated_device:null,
+      winner_device:null,
+      bot_stop_ms:botStop
+    };
+    renderTimerRoom();
+    return;
+  }
+
   try{
     const {error}=await supabase.rpc("timer_start_round",{p_room:room.id,p_device:deviceId});
     if(error) throw error;
@@ -473,6 +548,39 @@ async function startTimerRound(){
 async function stopTimer(){
   const button=document.getElementById("timerStopButton");
   if(button) button.disabled=true;
+
+  if(room?.localTimer){
+    const startAt=new Date(room.state.start_at).getTime();
+    if(!startAt || Date.now()<startAt){
+      if(button) button.disabled=false;
+      return;
+    }
+
+    const human=Math.max(0,Date.now()-startAt);
+    const bot=Number(room.state.bot_stop_ms)||1500;
+    const me=timerPlayer(deviceId);
+    const computer=timerPlayer("computer");
+
+    if(me) me.stop_ms=human;
+    if(computer) computer.stop_ms=bot;
+
+    const humanWins=human<=bot;
+    const winner=humanWins?deviceId:"computer";
+    const loser=humanWins?"computer":deviceId;
+
+    if(me) me.eliminated=!humanWins;
+    if(computer) computer.eliminated=humanWins;
+
+    room.state={
+      ...room.state,
+      phase:"finished",
+      eliminated_device:loser,
+      winner_device:winner
+    };
+    renderTimerRoom();
+    return;
+  }
+
   try{
     const {error}=await supabase.rpc("timer_submit_stop",{p_room:room.id,p_device:deviceId});
     if(error) throw error;
