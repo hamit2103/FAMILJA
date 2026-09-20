@@ -182,6 +182,12 @@ function applyLanguage(language = currentLanguage) {
       : t("login.familyPlaceholder");
   }
 
+  if (typeof mode !== "undefined" && loginBtn) {
+    loginBtn.textContent = mode === "admin"
+      ? t("login.button")
+      : t("login.userButton");
+  }
+
   if (currentUser) {
     roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
     updateUploadPanel(mediaItems);
