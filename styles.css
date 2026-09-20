@@ -2494,3 +2494,198 @@ body,
   }
   .war-progress-inline small{font-size:9px !important}
 }
+
+
+/* Luftra forest battle visual v68 */
+.war-arena-new,
+.war-multi-arena,
+.war-multi-waiting{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(rgba(4,16,31,.18),rgba(4,16,31,.18)),
+    url("./war-forest.svg") center/cover no-repeat !important;
+  color:#fff !important;
+  box-shadow:0 18px 48px rgba(2,6,23,.42) !important;
+}
+.war-arena-new::before,
+.war-multi-arena::before,
+.war-multi-waiting::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(5,16,31,.08),rgba(5,16,31,.28));
+  z-index:0;
+}
+.war-arena-new>*,
+.war-multi-arena>*,
+.war-multi-waiting>*{position:relative;z-index:1}
+
+.war-arena-new .war-topbar{
+  padding:8px;
+  border-radius:18px;
+  background:rgba(6,24,44,.68);
+  border:1px solid rgba(191,219,254,.2);
+  backdrop-filter:blur(8px);
+}
+.war-arena-new .war-topbar>strong{
+  color:#fff;
+  font-size:22px;
+  letter-spacing:.5px;
+}
+.war-arena-new .war-turn{
+  background:#facc15 !important;
+  color:#111827 !important;
+  font-size:11px;
+}
+.war-arena-new .war-exit{
+  background:rgba(255,255,255,.14) !important;
+  color:#fff !important;
+}
+.war-arena-new .war-sound-toggle{
+  background:#facc15 !important;
+  color:#111827 !important;
+  box-shadow:0 6px 16px rgba(250,204,21,.2);
+}
+
+.war-battle-scene-new{
+  min-height:520px !important;
+  background:rgba(7,24,43,.38) !important;
+  border:1px solid rgba(191,219,254,.22) !important;
+  box-shadow:inset 0 0 40px rgba(2,6,23,.18);
+  backdrop-filter:blur(3px);
+}
+.war-combatant{
+  background:rgba(8,26,46,.52) !important;
+  border:1px solid rgba(191,219,254,.18) !important;
+  color:#fff !important;
+  box-shadow:0 8px 24px rgba(2,6,23,.14);
+}
+.war-combatant-name{color:#fff !important;font-size:15px}
+.war-side-label{color:#bfdbfe;opacity:1}
+.war-compact-hearts{
+  max-width:130px;
+  display:grid !important;
+  grid-template-columns:repeat(4,18px);
+  gap:1px 2px !important;
+  font-size:15px !important;
+}
+.war-compact-hearts .war-heart.empty{
+  opacity:.2;
+  filter:grayscale(1);
+}
+.war-status-compact span{
+  background:rgba(255,255,255,.11) !important;
+  color:#fff !important;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.war-soldier-figure{
+  width:122px !important;
+  height:154px !important;
+  filter:drop-shadow(0 10px 12px rgba(0,0,0,.38)) !important;
+}
+.war-soldier-art{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.war-shooter{
+  width:126px !important;
+  height:158px !important;
+  overflow:visible;
+}
+.war-combatant.burned .war-soldier-art{
+  filter:brightness(.22) grayscale(.5);
+}
+
+.war-weapons-panel{
+  background:rgba(7,18,35,.84) !important;
+  border:1px solid rgba(191,219,254,.15);
+  backdrop-filter:blur(8px);
+}
+.war-side-actions button{
+  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(226,232,240,.94)) !important;
+  color:#0f172a !important;
+  box-shadow:0 8px 18px rgba(2,6,23,.24) !important;
+}
+.war-side-actions button:not(:disabled):active{transform:scale(.97)}
+.war-weapons-title{
+  color:#fde68a !important;
+  letter-spacing:1.1px;
+}
+.war-battle-info{
+  background:rgba(6,24,44,.72) !important;
+  border:1px solid rgba(191,219,254,.16);
+  color:#fff;
+  backdrop-filter:blur(8px);
+}
+.war-battle-info .war-message{color:#e0f2fe !important}
+.war-progress-inline small{color:#bfdbfe !important}
+.war-battle-info .war-vs{
+  color:#facc15 !important;
+  text-shadow:0 3px 12px rgba(0,0,0,.4);
+}
+.war-restart{
+  background:linear-gradient(135deg,#7c3aed,#4f46e5) !important;
+  box-shadow:0 10px 24px rgba(79,70,229,.3);
+}
+
+.war-multi-summary,
+.war-multi-target-hint,
+.war-multi-winner,
+.war-multi-wait-card{
+  backdrop-filter:blur(8px);
+}
+.war-multi-player{
+  background:rgba(7,24,43,.72) !important;
+  color:#fff !important;
+  border-color:rgba(191,219,254,.15) !important;
+}
+.war-multi-player.me{
+  background:rgba(30,64,175,.68) !important;
+}
+.war-multi-status{color:#bfdbfe !important}
+.war-multi-summary{
+  background:rgba(6,24,44,.72) !important;
+  color:#fff !important;
+}
+.war-multi-target-hint{
+  background:rgba(254,243,199,.94) !important;
+}
+.war-multi-wait-card{
+  background:rgba(6,24,44,.78) !important;
+  color:#fff !important;
+}
+.war-multi-wait-list>div{
+  background:rgba(255,255,255,.08) !important;
+  color:#fff;
+}
+
+@media(max-width:560px){
+  .war-battle-scene-new{
+    min-height:500px !important;
+    grid-template-columns:minmax(0,1fr) 116px !important;
+  }
+  .war-combatant{
+    grid-template-columns:minmax(76px,1fr) 102px !important;
+  }
+  .war-shooter{
+    width:102px !important;
+    height:138px !important;
+  }
+  .war-soldier-figure{
+    width:104px !important;
+    height:136px !important;
+  }
+  .war-compact-hearts{
+    grid-template-columns:repeat(4,16px);
+    max-width:76px;
+    font-size:14px !important;
+  }
+  .war-battle-scene-new .war-shot-lane{
+    right:132px !important;
+  }
+}
