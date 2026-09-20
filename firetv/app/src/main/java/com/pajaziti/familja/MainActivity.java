@@ -2,10 +2,16 @@ package com.pajaziti.familja;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.KeyEvent;
@@ -20,8 +26,16 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class MainActivity extends Activity {
     private static final String APP_URL = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-app/";
+    private static final String UPDATE_INFO_URL = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-update";
     private static final int REQ_LOCATION = 1001;
     private static final int REQ_FILES = 1002;
     private static final int REQ_NOTIFICATIONS = 1003;
@@ -32,6 +46,19 @@ public class MainActivity extends Activity {
     private GeolocationPermissions.Callback geoCallback;
     private String geoOrigin;
     private boolean openExactAfterNotification = false;
+    private long updateDownloadId = -1L;
+    private String pendingApkUrl = null;
+    private boolean waitingForInstallPermission = false;
+
+    private final BroadcastReceiver updateDownloadReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(intent.getAction())) return;
+            long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L);
+            if (id != updateDownloadId) return;
+            installDownloadedUpdate();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,6 +155,168 @@ public class MainActivity extends Activity {
         }
 
         webView.post(() -> webView.requestFocus(View.FOCUS_DOWN));
+
+        IntentFilter updateFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(updateDownloadReceiver, updateFilter, Context.RECEIVER_EXPORTED);
+        } else {
+            registerReceiver(updateDownloadReceiver, updateFilter);
+        }
+
+        webView.postDelayed(this::checkForUpdates, 1800);
+    }
+
+
+    private long currentVersionCode() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                return getPackageManager().getPackageInfo(getPackageName(), 0).getLongVersionCode();
+            }
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+        } catch (Exception error) {
+            return 0L;
+        }
+    }
+
+    private void checkForUpdates() {
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            try {
+                URL url = new URL(UPDATE_INFO_URL + "?t=" + System.currentTimeMillis());
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(8000);
+                connection.setReadTimeout(8000);
+                connection.setUseCaches(false);
+                connection.setRequestProperty("Cache-Control", "no-cache");
+                connection.connect();
+
+                if (connection.getResponseCode() != 200) return;
+
+                BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream())
+                );
+                StringBuilder jsonText = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonText.append(line);
+                }
+                reader.close();
+
+                JSONObject json = new JSONObject(jsonText.toString());
+                long latestCode = json.optLong("versionCode", 0L);
+                String latestName = json.optString("versionName", "");
+                String apkUrl = json.optString("apkUrl", "");
+                boolean force = json.optBoolean("force", false);
+
+                if (latestCode <= currentVersionCode() || apkUrl.isEmpty()) return;
+
+                runOnUiThread(() -> showUpdateDialog(latestName, apkUrl, force));
+            } catch (Exception ignored) {
+            } finally {
+                if (connection != null) connection.disconnect();
+            }
+        }).start();
+    }
+
+    private void showUpdateDialog(String versionName, String apkUrl, boolean force) {
+        if (isFinishing()) return;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+            .setTitle("🔄 Ka update të ri")
+            .setMessage(
+                "Versioni " + (versionName.isEmpty() ? "i ri" : versionName) +
+                " është gati. Shtyp “Përditëso tani”."
+            )
+            .setPositiveButton("Përditëso tani", (dialog, which) ->
+                requestInstallPermissionAndDownload(apkUrl)
+            );
+
+        if (!force) {
+            builder.setNegativeButton("Më vonë", null);
+        }
+
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(!force);
+        dialog.setCanceledOnTouchOutside(!force);
+        dialog.show();
+    }
+
+    private void requestInstallPermissionAndDownload(String apkUrl) {
+        pendingApkUrl = apkUrl;
+
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            !getPackageManager().canRequestPackageInstalls()
+        ) {
+            waitingForInstallPermission = true;
+            try {
+                Intent intent = new Intent(
+                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:" + getPackageName())
+                );
+                startActivity(intent);
+            } catch (Exception error) {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+            }
+            return;
+        }
+
+        downloadUpdate(apkUrl);
+    }
+
+    private void downloadUpdate(String apkUrl) {
+        try {
+            DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            if (manager == null) return;
+
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
+            request.setTitle("PAJAZITI Update");
+            request.setDescription("Po shkarkohet versioni i ri…");
+            request.setMimeType("application/vnd.android.package-archive");
+            request.setNotificationVisibility(
+                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            );
+            request.setAllowedOverMetered(true);
+            request.setAllowedOverRoaming(true);
+            request.setDestinationInExternalFilesDir(
+                this,
+                Environment.DIRECTORY_DOWNLOADS,
+                "pajaziti-update.apk"
+            );
+
+            updateDownloadId = manager.enqueue(request);
+            pendingApkUrl = null;
+        } catch (Exception error) {
+            new AlertDialog.Builder(this)
+                .setTitle("Update")
+                .setMessage("Shkarkimi nuk filloi. Provo përsëri.")
+                .setPositiveButton("OK", null)
+                .show();
+        }
+    }
+
+    private void installDownloadedUpdate() {
+        try {
+            DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            if (manager == null) return;
+
+            Uri apkUri = manager.getUriForDownloadedFile(updateDownloadId);
+            if (apkUri == null) return;
+
+            Intent install = new Intent(Intent.ACTION_VIEW);
+            install.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(install);
+        } catch (Exception error) {
+            new AlertDialog.Builder(this)
+                .setTitle("Update")
+                .setMessage("APK-ja u shkarkua, por Android nuk e hapi instalimin.")
+                .setPositiveButton("OK", null)
+                .show();
+        }
     }
 
     private void enterImmersiveFullscreen() {
@@ -238,6 +427,18 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         enterImmersiveFullscreen();
+
+        if (waitingForInstallPermission && pendingApkUrl != null) {
+            if (
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+                getPackageManager().canRequestPackageInstalls()
+            ) {
+                waitingForInstallPermission = false;
+                String url = pendingApkUrl;
+                pendingApkUrl = null;
+                downloadUpdate(url);
+            }
+        }
         if (webView != null) {
             webView.post(() ->
                 webView.evaluateJavascript(
@@ -306,6 +507,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        try {
+            unregisterReceiver(updateDownloadReceiver);
+        } catch (Exception ignored) {
+        }
         if (customView != null) {
             hideFullscreenVideo();
         }
