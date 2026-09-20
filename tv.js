@@ -1,8 +1,17 @@
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
+
 const root = document.getElementById("tvRoot");
 const tabLabel = document.getElementById("tvTabLabel");
 const LANG_KEY = "pajaziti-language";
 const TV_URL_KEY = "pajaziti-tv-url";
 const TV_NAME_KEY = "pajaziti-tv-last-name";
+const TV_LOCAL_PLAYLIST_KEY = "pajaziti-tv-local-playlist";
+const ADMIN_EMAIL = "admin@familja.local";
 
 const TXT = {
   sq:{
@@ -10,21 +19,21 @@ const TXT = {
     loadUrl:"Hape URL", file:"Ngarko skedar M3U", chooseFile:"Zgjidh .m3u / .m3u8", channels:"Kanale",
     search:"Kërko kanal", noChannels:"Nuk ka kanale.", direct:"Stream direkt", loading:"Po ngarkohet…",
     cors:"Kjo URL nuk lejon lexim direkt nga aplikacioni (CORS). Provo skedarin M3U ose një URL tjetër.",
-    invalid:"URL ose lista nuk u lexua.", play:"Luaj", stop:"Ndalo", playlist:"Lista M3U"
+    invalid:"URL ose lista nuk u lexua.", play:"Luaj", stop:"Ndalo", playlist:"Lista M3U", shared:"Lista e përbashkët", local:"Lista ime në këtë telefon", publish:"Publiko për të gjithë", published:"U publikua për të gjithë.", adminOnly:"Vetëm administratori mund ta publikojë për të gjithë.", noShared:"Nuk ka ende listë të përbashkët.", saveLocal:"Ruaje vetëm në këtë telefon", savedLocal:"U ruajt vetëm në këtë telefon.", useShared:"Hap listën e përbashkët", useLocal:"Hap listën time"
   },
   de:{
     tv:"TV", title:"📺 TV / M3U Player", url:"M3U oder URL", urlPlaceholder:"M3U-, M3U8- oder direkte Video-URL einfügen",
     loadUrl:"URL öffnen", file:"M3U-Datei laden", chooseFile:".m3u / .m3u8 auswählen", channels:"Sender",
     search:"Sender suchen", noChannels:"Keine Sender.", direct:"Direkter Stream", loading:"Wird geladen…",
     cors:"Diese URL erlaubt keinen direkten Zugriff aus der App (CORS). Verwende die M3U-Datei oder eine andere URL.",
-    invalid:"URL oder Liste konnte nicht gelesen werden.", play:"Abspielen", stop:"Stoppen", playlist:"M3U-Liste"
+    invalid:"URL oder Liste konnte nicht gelesen werden.", play:"Abspielen", stop:"Stoppen", playlist:"M3U-Liste", shared:"Gemeinsame Liste", local:"Meine Liste auf diesem Gerät", publish:"Für alle veröffentlichen", published:"Für alle veröffentlicht.", adminOnly:"Nur der Administrator kann für alle veröffentlichen.", noShared:"Noch keine gemeinsame Liste.", saveLocal:"Nur auf diesem Gerät speichern", savedLocal:"Nur auf diesem Gerät gespeichert.", useShared:"Gemeinsame Liste öffnen", useLocal:"Meine Liste öffnen"
   },
   tr:{
     tv:"TV", title:"📺 TV / M3U Player", url:"M3U veya URL", urlPlaceholder:"M3U, M3U8 veya doğrudan video URL'si yapıştır",
     loadUrl:"URL'yi aç", file:"M3U dosyası yükle", chooseFile:".m3u / .m3u8 seç", channels:"Kanallar",
     search:"Kanal ara", noChannels:"Kanal yok.", direct:"Doğrudan yayın", loading:"Yükleniyor…",
     cors:"Bu URL uygulamadan doğrudan erişime izin vermiyor (CORS). M3U dosyası veya başka URL dene.",
-    invalid:"URL veya liste okunamadı.", play:"Oynat", stop:"Durdur", playlist:"M3U listesi"
+    invalid:"URL veya liste okunamadı.", play:"Oynat", stop:"Durdur", playlist:"M3U listesi", shared:"Ortak liste", local:"Bu telefondaki listem", publish:"Herkes için yayınla", published:"Herkes için yayınlandı.", adminOnly:"Herkes için yalnızca yönetici yayınlayabilir.", noShared:"Henüz ortak liste yok.", saveLocal:"Yalnızca bu telefona kaydet", savedLocal:"Yalnızca bu telefona kaydedildi.", useShared:"Ortak listeyi aç", useLocal:"Listemi aç"
   }
 };
 
@@ -35,6 +44,115 @@ function esc(v=""){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;
 let channels=[];
 let currentFilter="";
 let hls=null;
+let currentUser=null;
+let sharedRecord=null;
+let pendingSource=null;
+
+async function refreshUser(){
+  const {data}=await supabase.auth.getUser();
+  currentUser=data?.user||null;
+  return currentUser;
+}
+function isAdmin(){ return currentUser?.email===ADMIN_EMAIL; }
+
+function saveLocalSource(source){
+  localStorage.setItem(TV_LOCAL_PLAYLIST_KEY, JSON.stringify(source));
+}
+
+function getLocalSource(){
+  try{return JSON.parse(localStorage.getItem(TV_LOCAL_PLAYLIST_KEY)||"null");}
+  catch(_){return null;}
+}
+
+async function loadSharedRecord(){
+  const {data,error}=await supabase
+    .from("tv_shared_playlist")
+    .select("id,title,source_type,source_value,updated_at")
+    .eq("id",1)
+    .maybeSingle();
+  if(error){ console.warn("shared TV load",error); return null; }
+  sharedRecord=data||null;
+  return sharedRecord;
+}
+
+async function sourceToChannels(source){
+  if(!source) return [];
+  if(source.source_type==="m3u"){
+    return parseM3U(source.source_value);
+  }
+  const url=source.source_value;
+  if(!url) return [];
+  if(!isLikelyPlaylistUrl(url)) return [{name:tr("direct"),logo:"",group:"",url}];
+  try{
+    const res=await fetch(url,{cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const text=await res.text();
+    const parsed=parseM3U(text);
+    if(parsed.length) return parsed;
+    return [{name:tr("direct"),logo:"",group:"",url}];
+  }catch(_){
+    return [{name:tr("direct"),logo:"",group:"",url}];
+  }
+}
+
+async function useSource(source){
+  pendingSource=source;
+  channels=await sourceToChannels(source);
+  renderChannels();
+  if(channels.length===1 && channels[0].name===tr("direct")) playChannel(channels[0]);
+}
+
+async function publishPendingForAll(){
+  const status=document.getElementById("tvStatus");
+  if(!isAdmin()){
+    if(status) status.textContent=tr("adminOnly");
+    return;
+  }
+  if(!pendingSource){
+    const local=getLocalSource();
+    if(local) pendingSource=local;
+  }
+  if(!pendingSource){
+    if(status) status.textContent=tr("invalid");
+    return;
+  }
+  const payload={
+    id:1,
+    title:"TV",
+    source_type:pendingSource.source_type,
+    source_value:pendingSource.source_value,
+    updated_at:new Date().toISOString(),
+    updated_by:currentUser?.id||null
+  };
+  const {error}=await supabase.from("tv_shared_playlist").upsert(payload,{onConflict:"id"});
+  if(error){
+    console.warn(error);
+    if(status) status.textContent=error.message;
+    return;
+  }
+  sharedRecord=payload;
+  if(status) status.textContent=tr("published");
+  renderSourceCards();
+}
+
+function renderSourceCards(){
+  const wrap=document.getElementById("tvSources");
+  if(!wrap) return;
+  const local=getLocalSource();
+  wrap.innerHTML=`
+    <div class="tv-source-card">
+      <div><strong>🌐 ${tr("shared")}</strong><div class="muted small">${sharedRecord ? new Date(sharedRecord.updated_at).toLocaleString() : tr("noShared")}</div></div>
+      <button id="tvUseShared" class="secondary" type="button" ${sharedRecord?"":"disabled"}>${tr("useShared")}</button>
+    </div>
+    <div class="tv-source-card">
+      <div><strong>📱 ${tr("local")}</strong><div class="muted small">${local ? "✓" : "—"}</div></div>
+      <button id="tvUseLocal" class="secondary" type="button" ${local?"":"disabled"}>${tr("useLocal")}</button>
+    </div>`;
+  const a=document.getElementById("tvUseShared");
+  if(a) a.onclick=()=>useSource(sharedRecord);
+  const b=document.getElementById("tvUseLocal");
+  if(b) b.onclick=()=>useSource(local);
+}
 
 function destroyPlayer(){
   if(hls){ try{hls.destroy();}catch(_){} hls=null; }
@@ -81,6 +199,8 @@ async function loadFromUrl(){
   const url=(input?.value||"").trim();
   if(!url) return;
   localStorage.setItem(TV_URL_KEY,url);
+  pendingSource={source_type:"url",source_value:url};
+  saveLocalSource(pendingSource);
   status.textContent=tr("loading");
 
   if(!isLikelyPlaylistUrl(url)){
@@ -128,6 +248,8 @@ async function loadFromFile(file){
   status.textContent=tr("loading");
   try{
     const text=await file.text();
+    pendingSource={source_type:"m3u",source_value:text};
+    saveLocalSource(pendingSource);
     channels=parseM3U(text);
     if(!channels.length) throw new Error("empty");
     renderChannels();
@@ -225,7 +347,15 @@ function render(){
 
         <label for="tvFile">${tr("file")}</label>
         <input id="tvFile" type="file" accept=".m3u,.m3u8,application/x-mpegURL,audio/mpegurl">
+        <div class="tv-share-actions">
+          <button id="tvSaveLocal" class="secondary" type="button">${tr("saveLocal")}</button>
+          ${isAdmin() ? `<button id="tvPublishAll" class="primary" type="button">${tr("publish")}</button>` : ""}
+        </div>
         <div id="tvStatus" class="message"></div>
+      </section>
+
+      <section class="card">
+        <div id="tvSources" class="tv-sources"></div>
       </section>
 
       <section class="card tv-player-card">
@@ -247,12 +377,29 @@ function render(){
 
   document.getElementById("tvLoadUrl").onclick=loadFromUrl;
   document.getElementById("tvFile").onchange=e=>loadFromFile(e.target.files?.[0]);
+  document.getElementById("tvSaveLocal").onclick=()=>{
+    if(pendingSource){
+      saveLocalSource(pendingSource);
+      document.getElementById("tvStatus").textContent=tr("savedLocal");
+      renderSourceCards();
+    }
+  };
+  const publish=document.getElementById("tvPublishAll");
+  if(publish) publish.onclick=publishPendingForAll;
   document.getElementById("tvStop").onclick=destroyPlayer;
   document.getElementById("tvSearch").oninput=e=>{currentFilter=e.target.value;renderChannels();};
   renderChannels();
+  renderSourceCards();
 }
 
-function activate(){ render(); }
+async function activate(){
+  await refreshUser();
+  await loadSharedRecord();
+  render();
+  const local=getLocalSource();
+  if(sharedRecord) await useSource(sharedRecord);
+  else if(local) await useSource(local);
+}
 
 window.PajazitiTV={activate};
 if(tabLabel) tabLabel.textContent=tr("tv");
