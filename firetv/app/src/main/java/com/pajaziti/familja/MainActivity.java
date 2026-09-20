@@ -21,7 +21,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://familja.vercel.app/";
+    private static final String APP_URL = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-app/";
     private static final int REQ_LOCATION = 1001;
     private static final int REQ_FILES = 1002;
     private static final int REQ_NOTIFICATIONS = 1003;
