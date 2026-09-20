@@ -13,6 +13,7 @@ const TIMER_NAME_KEY = "pajaziti-timer-name";
 const TIMER_SOUND_KEY = "pajaziti-timer-sound";
 const TETRIS_NAME_KEY = "pajaziti-tetris-name";
 const TETRIS_SOUND_KEY = "pajaziti-tetris-sound";
+const WAR_SOUND_KEY = "pajaziti-war-sound";
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -40,6 +41,7 @@ let gameAudioContext=null;
 let lastTimerSoundKey="";
 let timerSoundEnabled=localStorage.getItem(TIMER_SOUND_KEY)!=="off";
 let tetrisSoundEnabled=localStorage.getItem(TETRIS_SOUND_KEY)!=="off";
+let warSoundEnabled=localStorage.getItem(WAR_SOUND_KEY)!=="off";
 
 async function ensureGameAudio(){
   if(!timerSoundEnabled) return null;
@@ -185,9 +187,17 @@ function maybePlayTimerStateSound(st,started){
   }
 }
 
-root?.addEventListener("pointerdown",()=>{
+root?.addEventListener("pointerdown",(event)=>{
   if(timerSoundEnabled) ensureGameAudio();
-},{passive:true});
+  if(warSoundEnabled && event.target?.closest?.(".war-shell")){
+    // Android/PWA: audio must be unlocked directly from a user gesture.
+    try{
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;
+      if(AudioCtx && !gameAudioContext) gameAudioContext=new AudioCtx();
+      if(gameAudioContext?.state==="suspended") gameAudioContext.resume().catch(()=>{});
+    }catch(_){}
+  }
+},{passive:true,capture:true});
 
 function escapeHtml(value=""){
   return String(value)
@@ -310,6 +320,7 @@ function renderWarGame(){
           <button id="warBack" class="war-exit" type="button">← ${tr("backGames")}</button>
           <strong>⚔️ ${tr("war")}</strong>
           <span class="war-turn">${s.over ? "FUND" : (s.turn==="player" ? "RADHA JOTE" : "KUNDËRSHTARI")}</span>
+          <button id="warSoundToggle" class="war-sound-toggle" type="button">${warSoundEnabled ? "🔊 Zëri ON" : "🔇 Zëri OFF"}</button>
         </div>
 
         <article class="war-fighter war-enemy-card">
@@ -358,6 +369,16 @@ function renderWarGame(){
         ${s.over ? '<button id="warRestart" class="primary war-restart" type="button">🔄 Luaj përsëri</button>' : ""}
       </section>
     </div>`;
+
+  document.getElementById("warSoundToggle")?.addEventListener("click",async()=>{
+    warSoundEnabled=!warSoundEnabled;
+    localStorage.setItem(WAR_SOUND_KEY,warSoundEnabled?"on":"off");
+    if(warSoundEnabled){
+      await ensureWarAudio();
+      playWarSound("attack");
+    }
+    renderWarGame();
+  });
 
   document.getElementById("warBack").onclick=()=>{
     warGameState=null;
@@ -454,6 +475,7 @@ function warLowBoom(ctx,{delay=0,duration=.28,startFreq=120,endFreq=42,gain=.55}
 }
 
 function playWarSound(kind){
+  if(!warSoundEnabled) return;
   ensureWarAudio().then(ctx=>{
     if(!ctx) return;
 
