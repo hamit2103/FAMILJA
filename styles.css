@@ -550,3 +550,19 @@ body.lightbox-open { overflow: hidden; }
     border-radius:0;
   }
 }
+
+/* Degërxhik - make white pieces highly visible */
+.morris-point.white{
+  background:#ffffff !important;
+  border-color:#111111 !important;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 6px #7c3aed,
+    0 4px 12px rgba(0,0,0,.35) !important;
+}
+.morris-player-white{
+  background:#ffffff !important;
+  color:#000000 !important;
+  border:3px solid #111111 !important;
+  box-shadow:0 4px 14px rgba(0,0,0,.18);
+}
