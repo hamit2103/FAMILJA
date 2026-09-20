@@ -427,3 +427,38 @@ body.lightbox-open { overflow: hidden; }
 .timer-leaderboard h3 { margin: 0 0 10px; }
 .timer-leaderboard h3 + .timer-ranking { margin-bottom: 16px; }
 .timer-champion { margin: 0 0 12px; padding: 10px 12px; border-radius: 13px; background: #fef3c7; }
+
+.timer-round-line{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.timer-sound-button{min-width:120px}
+.timer-versus{
+  display:grid;grid-template-columns:minmax(110px,1fr) auto minmax(160px,2fr);
+  gap:14px;align-items:center;margin:18px 0 4px;
+}
+.timer-versus-side,.timer-opponents{min-width:0}
+.timer-vs{
+  font-weight:950;font-size:22px;padding:8px 10px;border-radius:999px;background:#111827;color:#fff;
+}
+.timer-face-card{
+  background:#fff;border-radius:18px;padding:14px;text-align:center;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);border:2px solid transparent;
+}
+.timer-face-card.me{border-color:#7c3aed}
+.timer-face-card.opponent{border-color:#d1d5db}
+.timer-face-card.eliminated{opacity:.45;filter:grayscale(.7)}
+.timer-avatar{
+  width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  margin:0 auto 8px;background:#ede9fe;font-size:24px;font-weight:950;
+}
+.timer-face-name{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.timer-face-label{font-size:12px;color:#6b7280;margin-top:4px}
+.timer-opponents-title{font-size:12px;color:#6b7280;font-weight:800;margin-bottom:7px}
+.timer-opponent-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;
+}
+@media (max-width:560px){
+  .timer-versus{grid-template-columns:1fr}
+  .timer-vs{justify-self:center}
+  .timer-opponent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
