@@ -231,6 +231,7 @@ const prayerTab = $("prayerTab");
 const gamesTab = $("gamesTab");
 const tvTab = $("tvTab");
 const radioTab = $("radioTab");
+const chatTab = $("chatTab");
 const menuOrderAdmin = $("menuOrderAdmin");
 const menuOrderList = $("menuOrderList");
 const menuOrderSave = $("menuOrderSave");
@@ -241,6 +242,7 @@ const prayerView = $("prayerView");
 const gamesView = $("gamesView");
 const tvView = $("tvView");
 const radioView = $("radioView");
+const chatView = $("chatView");
 const infoCompose = $("infoCompose");
 const infoName = $("infoName");
 const infoText = $("infoText");
@@ -269,6 +271,18 @@ const qiblaCompassBtn = $("qiblaCompassBtn");
 const kerahatSunrise = $("kerahatSunrise");
 const kerahatNoon = $("kerahatNoon");
 const kerahatSunset = $("kerahatSunset");
+const chatPlanBadge = $("chatPlanBadge");
+const chatName = $("chatName");
+const chatSaveNameBtn = $("chatSaveNameBtn");
+const chatPremiumCard = $("chatPremiumCard");
+const chatBuyBtn = $("chatBuyBtn");
+const chatPaymentStatus = $("chatPaymentStatus");
+const chatText = $("chatText");
+const chatLimitText = $("chatLimitText");
+const chatSendBtn = $("chatSendBtn");
+const chatStatus = $("chatStatus");
+const chatRefreshBtn = $("chatRefreshBtn");
+const chatList = $("chatList");
 
 languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
@@ -292,14 +306,15 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab"];
+const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab","chatTab"];
 const TAB_LABELS = {
   galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
   prayerTab:"🕌 Namazi",
   gamesTab:"🎮 Lojëra",
   tvTab:"📺 TV",
-  radioTab:"📻 Radio"
+  radioTab:"📻 Radio",
+  chatTab:"💬 Chat"
 };
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
@@ -331,6 +346,11 @@ if (!presenceDeviceId) {
     (globalThis.crypto?.randomUUID?.() || ("device_" + Math.random().toString(36).slice(2) + Date.now()));
   localStorage.setItem(PRESENCE_DEVICE_KEY, presenceDeviceId);
 }
+
+const CHAT_NAME_KEY = "pajaziti-chat-name";
+let chatCurrentStatus = null;
+let chatPaypalHandled = false;
+
 
 const lightbox = document.createElement("div");
 lightbox.className = "lightbox hidden";
@@ -559,6 +579,7 @@ function setSection(next) {
   const showGames = next === "games";
   const showTv = next === "tv";
   const showRadio = next === "radio";
+  const showChat = next === "chat";
 
   galleryTab.classList.toggle("active", showGallery);
   infoTab.classList.toggle("active", showInfo);
@@ -566,6 +587,7 @@ function setSection(next) {
   gamesTab.classList.toggle("active", showGames);
   tvTab.classList.toggle("active", showTv);
   radioTab.classList.toggle("active", showRadio);
+  chatTab.classList.toggle("active", showChat);
 
   galleryView.classList.toggle("hidden", !showGallery);
   infoView.classList.toggle("hidden", !showInfo);
@@ -573,12 +595,14 @@ function setSection(next) {
   gamesView.classList.toggle("hidden", !showGames);
   tvView.classList.toggle("hidden", !showTv);
   radioView.classList.toggle("hidden", !showRadio);
+  chatView.classList.toggle("hidden", !showChat);
 
   if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
   if (showGames) window.PajazitiGames?.activate?.();
   if (showTv) window.PajazitiTV?.activate?.();
   if (showRadio) window.PajazitiRadio?.activate?.();
+  if (showChat) loadChat();
 }
 galleryTab.addEventListener("click", () => setSection("gallery"));
 infoTab.addEventListener("click", () => setSection("info"));
@@ -586,6 +610,7 @@ prayerTab.addEventListener("click", () => setSection("prayer"));
 gamesTab.addEventListener("click", () => setSection("games"));
 tvTab.addEventListener("click", () => setSection("tv"));
 radioTab.addEventListener("click", () => setSection("radio"));
+chatTab.addEventListener("click", () => setSection("chat"));
 
 function setMode(next) {
   mode = next;
@@ -1927,6 +1952,257 @@ uploadBtn.addEventListener("click", async () => {
   }
 });
 
+
+function chatSavedName() {
+  return (localStorage.getItem(CHAT_NAME_KEY) || "").trim();
+}
+
+function saveChatName() {
+  const name = (chatName?.value || "").trim();
+  if (!name) {
+    showMessage(chatStatus, "Shkruaj emrin tënd.", "error");
+    return false;
+  }
+  localStorage.setItem(CHAT_NAME_KEY, name.slice(0, 32));
+  chatName.value = name.slice(0, 32);
+  showMessage(chatStatus, "Emri u ruajt.", "success");
+  return true;
+}
+
+chatSaveNameBtn?.addEventListener("click", saveChatName);
+
+function formatChatTime(value) {
+  try {
+    return new Date(value).toLocaleString("sq-AL", {
+      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+    });
+  } catch (_) {
+    return "";
+  }
+}
+
+function renderChatStatus(status) {
+  chatCurrentStatus = status || null;
+  if (!status) return;
+
+  if (status.paid) {
+    const until = status.paid_until ? new Date(status.paid_until).toLocaleDateString("sq-AL") : "";
+    chatPlanBadge.textContent = "PREMIUM ✓";
+    chatLimitText.textContent = "Mesazhe pa kufi" + (until ? " deri më " + until : "");
+    chatPremiumCard.classList.add("hidden");
+    chatSendBtn.disabled = false;
+  } else {
+    const remaining = Number(status.remaining_today ?? 0);
+    chatPlanBadge.textContent = "FALAS";
+    chatLimitText.textContent = "Sot të kanë mbetur " + remaining + " nga 3 mesazhe.";
+    chatPremiumCard.classList.remove("hidden");
+    chatSendBtn.disabled = remaining <= 0;
+  }
+}
+
+async function loadChatStatus() {
+  if (!supabase || !currentUser) return;
+  const { data, error } = await supabase.rpc("chat_status", { p_device: presenceDeviceId });
+  if (error) {
+    console.error("Chat status failed", error);
+    showMessage(chatStatus, "Nuk u kontrollua limiti i chat-it.", "error");
+    return;
+  }
+  renderChatStatus(data || {});
+}
+
+async function loadChatMessages() {
+  if (!supabase || !currentUser) return;
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .select("id,device_id,display_name,message,created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("Chat load failed", error);
+    showMessage(chatStatus, "Chat-i nuk u ngarkua.", "error");
+    return;
+  }
+
+  chatList.innerHTML = "";
+  for (const item of (data || []).reverse()) {
+    const row = document.createElement("article");
+    row.className = "chat-message" + (item.device_id === presenceDeviceId ? " mine" : "");
+
+    const head = document.createElement("div");
+    head.className = "chat-message-head";
+
+    const name = document.createElement("strong");
+    name.textContent = item.display_name || "User";
+    const time = document.createElement("span");
+    time.className = "muted small";
+    time.textContent = formatChatTime(item.created_at);
+    head.append(name, time);
+
+    const body = document.createElement("div");
+    body.className = "chat-message-body";
+    body.textContent = item.message || "";
+
+    row.append(head, body);
+
+    if (isAdmin()) {
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "chat-delete-btn";
+      del.textContent = "Fshi";
+      del.addEventListener("click", async () => {
+        if (!confirm("Ta fshij këtë mesazh?")) return;
+        const { error: delError } = await supabase.rpc("chat_delete_message", { p_id: item.id });
+        if (delError) {
+          alert("Nuk u fshi: " + delError.message);
+          return;
+        }
+        await loadChatMessages();
+      });
+      row.appendChild(del);
+    }
+
+    chatList.appendChild(row);
+  }
+
+  chatList.scrollTop = chatList.scrollHeight;
+}
+
+async function loadChat() {
+  if (!supabase || !currentUser) return;
+  if (chatName && !chatName.value) chatName.value = chatSavedName();
+  await Promise.all([loadChatMessages(), loadChatStatus()]);
+}
+
+chatRefreshBtn?.addEventListener("click", loadChat);
+
+chatSendBtn?.addEventListener("click", async () => {
+  if (!supabase || !currentUser) return;
+  let name = (chatName?.value || "").trim();
+  if (!name) {
+    if (!saveChatName()) return;
+    name = chatSavedName();
+  } else {
+    localStorage.setItem(CHAT_NAME_KEY, name.slice(0, 32));
+  }
+
+  const message = (chatText?.value || "").trim();
+  if (!message) return showMessage(chatStatus, "Shkruaj mesazhin.", "error");
+
+  chatSendBtn.disabled = true;
+  showMessage(chatStatus, "Po dërgohet...");
+
+  const { data, error } = await supabase.rpc("chat_send_message", {
+    p_device: presenceDeviceId,
+    p_name: name.slice(0, 32),
+    p_message: message.slice(0, 500)
+  });
+
+  if (error) {
+    console.error(error);
+    const raw = (error.message || "").toUpperCase();
+    if (raw.includes("CHAT_LIMIT_REACHED")) {
+      showMessage(chatStatus, "I ke përdorur 3 mesazhet falas për sot. Premium kushton 9 € për 1 vit.", "error");
+    } else {
+      showMessage(chatStatus, "Mesazhi nuk u dërgua.", "error");
+    }
+  } else {
+    chatText.value = "";
+    showMessage(chatStatus, "U dërgua.", "success");
+    if (data) {
+      renderChatStatus({
+        paid: data.paid,
+        paid_until: chatCurrentStatus?.paid_until || null,
+        remaining_today: data.remaining_today
+      });
+    }
+    await loadChatMessages();
+    await loadChatStatus();
+  }
+
+  if (chatCurrentStatus?.paid) chatSendBtn.disabled = false;
+  else chatSendBtn.disabled = Number(chatCurrentStatus?.remaining_today ?? 0) <= 0;
+});
+
+async function callChatPaypal(body) {
+  const { data, error } = await supabase.functions.invoke("chat-paypal", { body });
+  if (error) throw error;
+  if (data?.error) {
+    const e = new Error(data.error);
+    e.code = data.error;
+    throw e;
+  }
+  return data;
+}
+
+chatBuyBtn?.addEventListener("click", async () => {
+  const name = (chatName?.value || "").trim();
+  if (!name) {
+    showMessage(chatPaymentStatus, "Shkruaj dhe ruaj emrin/llogarinë tënde së pari.", "error");
+    chatName?.focus();
+    return;
+  }
+  localStorage.setItem(CHAT_NAME_KEY, name.slice(0, 32));
+
+  chatBuyBtn.disabled = true;
+  showMessage(chatPaymentStatus, "Po hapet PayPal...");
+  try {
+    const result = await callChatPaypal({
+      action: "create_order",
+      device_id: presenceDeviceId,
+      display_name: name.slice(0, 32),
+      origin: window.location.origin
+    });
+    if (!result?.approval_url) throw new Error("PAYPAL_APPROVAL_MISSING");
+    window.location.href = result.approval_url;
+  } catch (e) {
+    console.error(e);
+    const code = e?.code || e?.message || "";
+    if (String(code).includes("PAYPAL_NOT_CONFIGURED")) {
+      showMessage(chatPaymentStatus, "PayPal nuk është lidhur ende me llogarinë e administratorit.", "error");
+    } else {
+      showMessage(chatPaymentStatus, "Pagesa nuk mund të hapej. Provo përsëri.", "error");
+    }
+    chatBuyBtn.disabled = false;
+  }
+});
+
+async function handleChatPaypalReturn() {
+  if (chatPaypalHandled || !supabase || !currentUser) return;
+  const params = new URLSearchParams(window.location.search);
+  const result = params.get("paypal_chat");
+  if (!result) return;
+
+  chatPaypalHandled = true;
+  if (result === "cancel") {
+    showMessage(chatPaymentStatus, "Pagesa u anulua.", "error");
+    history.replaceState({}, "", window.location.pathname);
+    setSection("chat");
+    return;
+  }
+
+  const orderId = params.get("token");
+  const device = params.get("device") || presenceDeviceId;
+  setSection("chat");
+  showMessage(chatPaymentStatus, "Po verifikohet pagesa...");
+
+  try {
+    const data = await callChatPaypal({
+      action: "capture_order",
+      order_id: orderId,
+      device_id: device
+    });
+    if (!data?.ok) throw new Error("PAYMENT_NOT_VERIFIED");
+    showMessage(chatPaymentStatus, "Pagesa u krye. Chat Premium u aktivizua për 1 vit.", "success");
+    history.replaceState({}, "", window.location.pathname);
+    await loadChatStatus();
+  } catch (e) {
+    console.error(e);
+    showMessage(chatPaymentStatus, "Pagesa nuk u verifikua. Mos paguaj përsëri; kontakto administratorin.", "error");
+  }
+}
+
 function updateOnlineCount() {
   if (!onlineCount || !realtimeChannel) return;
   const state = realtimeChannel.presenceState();
@@ -1974,6 +2250,13 @@ function startRealtime() {
       "postgres_changes",
       { event: "*", schema: "public", table: "app_settings" },
       () => loadSharedMenuOrder()
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "chat_messages" },
+      () => {
+        if (activeSection === "chat") loadChatMessages();
+      }
     )
     .subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
@@ -2027,8 +2310,10 @@ async function applySession(session) {
   if (savedCoords) {
     fetchPrayerTimes(savedCoords).catch((error) => console.warn("Prayer preload failed", error));
   }
+  if (chatName) chatName.value = chatSavedName();
   startPrayerAlarmChecker();
   startRealtime();
+  handleChatPaypalReturn().catch(console.error);
 }
 
 if (supabase) {
