@@ -706,6 +706,45 @@ function updateInfoUnreadBadge(items, markRead = false) {
   infoUnreadBadge.classList.toggle("hidden", unread === 0);
 }
 
+async function translateInfoForCurrentLanguage(item) {
+  if (!item?.message || !["de","tr"].includes(currentLanguage)) {
+    return item?.message || "";
+  }
+
+  const stored = currentLanguage === "de" ? item.message_de : item.message_tr;
+  if (stored) return stored;
+
+  const cacheKey = "pajaziti-info-translation-" + item.id + "-" + currentLanguage;
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const url = new URL("https://translate.googleapis.com/translate_a/single");
+    url.searchParams.set("client", "gtx");
+    url.searchParams.set("sl", "sq");
+    url.searchParams.set("tl", currentLanguage);
+    url.searchParams.set("dt", "t");
+    url.searchParams.set("q", item.message);
+
+    const res = await fetch(url.toString(), { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    const data = await res.json();
+    const translated = Array.isArray(data?.[0])
+      ? data[0].map((part) => String(part?.[0] || "")).join("").trim()
+      : "";
+
+    if (translated) {
+      localStorage.setItem(cacheKey, translated);
+      return translated;
+    }
+  } catch (error) {
+    console.warn("Info translation failed", error);
+  }
+
+  return item.message;
+}
+
 async function loadInfo({ markRead = activeSection === "info" } = {}) {
   if (!supabase || !currentUser) return;
 
@@ -750,11 +789,12 @@ async function loadInfo({ markRead = activeSection === "info" } = {}) {
 
     const text = document.createElement("div");
     text.className = "info-text";
-    const translatedMessage =
-      currentLanguage === "de" ? item.message_de :
-      currentLanguage === "tr" ? item.message_tr :
-      item.message;
-    text.textContent = translatedMessage || item.message || "";
+    text.textContent = item.message || "";
+    if (currentLanguage === "de" || currentLanguage === "tr") {
+      translateInfoForCurrentLanguage(item).then((translated) => {
+        if (text.isConnected) text.textContent = translated || item.message || "";
+      });
+    }
     card.appendChild(text);
 
     if (isAdmin()) {
