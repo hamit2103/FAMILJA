@@ -1,5 +1,5 @@
-const CACHE = "pajaziti-v60";
-const SHELL = ["./", "./index.html", "./styles.css?v=60", "./app.js", "./app-config.js", "./manifest.webmanifest", "./icon.svg", "./games.js?v=60", "./tv.js", "./radio.js"];
+const CACHE = "pajaziti-v67";
+const SHELL = ["./", "./index.html", "./styles.css?v=67", "./app.js", "./app-config.js", "./manifest.webmanifest", "./icon.svg", "./games.js?v=67", "./tv.js", "./radio.js"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
