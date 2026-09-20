@@ -1145,3 +1145,61 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
     flex:1;
   }
 }
+
+
+/* Automatic phone landscape layout */
+@media (orientation: landscape) and (max-height: 600px) {
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  .shell {
+    width: 100%;
+    max-width: none;
+    padding: 10px 14px 24px;
+  }
+
+  .auth-card {
+    max-width: 760px;
+    margin: 10px auto 0;
+  }
+
+  .topbar {
+    margin: 4px 0 10px;
+  }
+
+  .app-tabs {
+    grid-template-columns: repeat(6, minmax(88px, 1fr));
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .app-tab {
+    min-width: 88px;
+  }
+
+  .gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .toolbar {
+    margin: 10px 0;
+  }
+
+  #tvPlayer,
+  .tv-player {
+    max-height: calc(100dvh - 110px);
+  }
+}
+
+@media (orientation: landscape) and (min-width: 900px) {
+  .gallery {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
