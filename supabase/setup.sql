@@ -370,9 +370,12 @@ create or replace function public.timer_current_week_start()
 returns date
 language sql
 stable
-as $$
-  select (date_trunc('week', timezone('Europe/Berlin', now()))::date)
-$$;
+as $
+  select (
+    timezone('Europe/Berlin', now())::date
+    - extract(dow from timezone('Europe/Berlin', now()))::int
+  )
+$;
 
 grant execute on function public.timer_current_week_start() to authenticated;
 
