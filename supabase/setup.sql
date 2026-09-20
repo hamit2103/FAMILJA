@@ -237,7 +237,7 @@ grant execute on function public.admin_storage_usage() to authenticated;
 create table if not exists public.game_rooms (
   id uuid primary key default gen_random_uuid(),
   code text not null unique check (char_length(code) between 4 and 8),
-  game_type text not null check (game_type in ('chess','morris')),
+  game_type text not null check (game_type in ('chess','morris','timer')),
   player1_device text not null,
   player2_device text,
   state jsonb not null default '{}'::jsonb,
@@ -276,3 +276,383 @@ begin
     alter publication supabase_realtime add table public.game_rooms;
   end if;
 end $$;
+
+do $$
+declare
+  c record;
+begin
+  for c in
+    select conname from pg_constraint
+    where conrelid='public.game_rooms'::regclass
+      and contype='c'
+      and pg_get_constraintdef(oid) like '%game_type%'
+  loop
+    execute format('alter table public.game_rooms drop constraint %I', c.conname);
+  end loop;
+  alter table public.game_rooms
+    add constraint game_rooms_game_type_check
+    check (game_type in ('chess','morris','timer'));
+exception when duplicate_object then null;
+end $$;
+
+
+-- Hidden Seconds / "King of Seconds" game
+create table if not exists public.timer_players (
+  room_id uuid not null references public.game_rooms(id) on delete cascade,
+  device_id text not null,
+  display_name text not null check (char_length(display_name) between 1 and 24),
+  eliminated boolean not null default false,
+  stop_ms integer,
+  joined_at timestamptz not null default now(),
+  primary key (room_id, device_id)
+);
+
+alter table public.timer_players enable row level security;
+grant select, insert, update, delete on table public.timer_players to authenticated;
+
+drop policy if exists "Authenticated can read timer players" on public.timer_players;
+create policy "Authenticated can read timer players"
+on public.timer_players for select to authenticated using (true);
+
+drop policy if exists "Authenticated can write timer players" on public.timer_players;
+create policy "Authenticated can write timer players"
+on public.timer_players for all to authenticated using (true) with check (true);
+
+create table if not exists public.timer_profiles (
+  device_id text primary key,
+  display_name text not null,
+  power integer not null default 0,
+  crowns integer not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.timer_profiles enable row level security;
+grant select, insert, update on table public.timer_profiles to authenticated;
+
+drop policy if exists "Authenticated can read timer profiles" on public.timer_profiles;
+create policy "Authenticated can read timer profiles"
+on public.timer_profiles for select to authenticated using (true);
+
+drop policy if exists "Authenticated can write timer profiles" on public.timer_profiles;
+create policy "Authenticated can write timer profiles"
+on public.timer_profiles for insert to authenticated with check (true);
+
+create table if not exists public.timer_weekly_scores (
+  week_start date not null,
+  device_id text not null,
+  display_name text not null,
+  wins integer not null default 0,
+  best_ms integer,
+  updated_at timestamptz not null default now(),
+  primary key (week_start, device_id)
+);
+
+alter table public.timer_weekly_scores enable row level security;
+grant select on table public.timer_weekly_scores to authenticated;
+
+drop policy if exists "Authenticated can read timer weekly scores" on public.timer_weekly_scores;
+create policy "Authenticated can read timer weekly scores"
+on public.timer_weekly_scores for select to authenticated using (true);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime'
+      and schemaname='public'
+      and tablename='timer_players'
+  ) then
+    alter publication supabase_realtime add table public.timer_players;
+  end if;
+end $$;
+
+create or replace function public.timer_current_week_start()
+returns date
+language sql
+stable
+as $$
+  select (date_trunc('week', timezone('Europe/Berlin', now()))::date)
+$$;
+
+grant execute on function public.timer_current_week_start() to authenticated;
+
+create or replace function public.timer_create_room(
+  p_code text,
+  p_device text,
+  p_name text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_room uuid;
+  v_state jsonb;
+begin
+  if char_length(trim(p_name)) < 1 then
+    raise exception 'NAME_REQUIRED';
+  end if;
+
+  v_state = jsonb_build_object(
+    'phase','lobby',
+    'round',0,
+    'start_at',null,
+    'eliminated_device',null,
+    'winner_device',null
+  );
+
+  insert into public.game_rooms(code,game_type,player1_device,player2_device,state,status)
+  values (upper(p_code),'timer',p_device,null,v_state,'waiting')
+  returning id into v_room;
+
+  insert into public.timer_players(room_id,device_id,display_name)
+  values (v_room,p_device,trim(p_name));
+
+  insert into public.timer_profiles(device_id,display_name)
+  values (p_device,trim(p_name))
+  on conflict (device_id) do update
+    set display_name=excluded.display_name,
+        updated_at=now();
+
+  return v_room;
+end;
+$$;
+
+grant execute on function public.timer_create_room(text,text,text) to authenticated;
+
+create or replace function public.timer_join_room(
+  p_code text,
+  p_device text,
+  p_name text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_room public.game_rooms%rowtype;
+  v_count integer;
+begin
+  select * into v_room
+  from public.game_rooms
+  where code = upper(p_code) and game_type='timer'
+  limit 1;
+
+  if not found then raise exception 'ROOM_NOT_FOUND'; end if;
+
+  if coalesce(v_room.state->>'phase','lobby') <> 'lobby' then
+    raise exception 'ROOM_LOCKED';
+  end if;
+
+  select count(*) into v_count
+  from public.timer_players
+  where room_id=v_room.id;
+
+  if v_count >= 8 and not exists (
+    select 1 from public.timer_players where room_id=v_room.id and device_id=p_device
+  ) then
+    raise exception 'ROOM_FULL';
+  end if;
+
+  insert into public.timer_players(room_id,device_id,display_name)
+  values (v_room.id,p_device,trim(p_name))
+  on conflict (room_id,device_id) do update
+    set display_name=excluded.display_name;
+
+  insert into public.timer_profiles(device_id,display_name)
+  values (p_device,trim(p_name))
+  on conflict (device_id) do update
+    set display_name=excluded.display_name,
+        updated_at=now();
+
+  return v_room.id;
+end;
+$$;
+
+grant execute on function public.timer_join_room(text,text,text) to authenticated;
+
+create or replace function public.timer_start_round(
+  p_room uuid,
+  p_device text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_room public.game_rooms%rowtype;
+  v_active integer;
+  v_round integer;
+  v_delay_ms integer;
+  v_start timestamptz;
+begin
+  select * into v_room from public.game_rooms where id=p_room for update;
+  if not found then raise exception 'ROOM_NOT_FOUND'; end if;
+  if v_room.player1_device <> p_device then raise exception 'NOT_HOST'; end if;
+
+  select count(*) into v_active
+  from public.timer_players
+  where room_id=p_room and eliminated=false;
+
+  if v_active < 2 then raise exception 'NEED_PLAYERS'; end if;
+
+  v_round = coalesce((v_room.state->>'round')::integer,0) + 1;
+  v_delay_ms = 1800 + floor(random()*3200)::integer;
+  v_start = clock_timestamp() + make_interval(secs => v_delay_ms/1000.0);
+
+  update public.timer_players
+  set stop_ms=null
+  where room_id=p_room and eliminated=false;
+
+  update public.game_rooms
+  set status='active',
+      state=jsonb_build_object(
+        'phase','countdown',
+        'round',v_round,
+        'start_at',v_start,
+        'eliminated_device',null,
+        'winner_device',null
+      ),
+      updated_at=now()
+  where id=p_room;
+end;
+$$;
+
+grant execute on function public.timer_start_round(uuid,text) to authenticated;
+
+create or replace function public.timer_submit_stop(
+  p_room uuid,
+  p_device text
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_room public.game_rooms%rowtype;
+  v_start timestamptz;
+  v_ms integer;
+  v_active integer;
+  v_stopped integer;
+  v_loser text;
+  v_winner text;
+  v_best integer;
+  v_name text;
+  v_week date;
+begin
+  select * into v_room from public.game_rooms where id=p_room for update;
+  if not found then raise exception 'ROOM_NOT_FOUND'; end if;
+
+  if coalesce(v_room.state->>'phase','') <> 'countdown' then
+    raise exception 'NOT_RUNNING';
+  end if;
+
+  v_start = (v_room.state->>'start_at')::timestamptz;
+  if clock_timestamp() < v_start then
+    raise exception 'TOO_EARLY';
+  end if;
+
+  if not exists (
+    select 1 from public.timer_players
+    where room_id=p_room and device_id=p_device and eliminated=false
+  ) then
+    raise exception 'NOT_ACTIVE';
+  end if;
+
+  select stop_ms into v_ms
+  from public.timer_players
+  where room_id=p_room and device_id=p_device;
+
+  if v_ms is null then
+    v_ms = greatest(0, floor(extract(epoch from (clock_timestamp()-v_start))*1000)::integer);
+    update public.timer_players
+    set stop_ms=v_ms
+    where room_id=p_room and device_id=p_device;
+  end if;
+
+  select count(*) into v_active
+  from public.timer_players
+  where room_id=p_room and eliminated=false;
+
+  select count(*) into v_stopped
+  from public.timer_players
+  where room_id=p_room and eliminated=false and stop_ms is not null;
+
+  if v_active >= 2 and v_stopped = v_active then
+    select device_id into v_loser
+    from public.timer_players
+    where room_id=p_room and eliminated=false
+    order by stop_ms desc, joined_at desc
+    limit 1;
+
+    update public.timer_players
+    set eliminated=true
+    where room_id=p_room and device_id=v_loser;
+
+    select count(*) into v_active
+    from public.timer_players
+    where room_id=p_room and eliminated=false;
+
+    if v_active = 1 then
+      select device_id,display_name,stop_ms
+      into v_winner,v_name,v_best
+      from public.timer_players
+      where room_id=p_room and eliminated=false
+      limit 1;
+
+      update public.game_rooms
+      set status='finished',
+          state=jsonb_build_object(
+            'phase','finished',
+            'round',coalesce((v_room.state->>'round')::integer,1),
+            'start_at',v_start,
+            'eliminated_device',v_loser,
+            'winner_device',v_winner
+          ),
+          updated_at=now()
+      where id=p_room;
+
+      insert into public.timer_profiles(device_id,display_name,power,crowns)
+      values (v_winner,v_name,10,1)
+      on conflict (device_id) do update
+        set display_name=excluded.display_name,
+            power=public.timer_profiles.power+10,
+            crowns=public.timer_profiles.crowns+1,
+            updated_at=now();
+
+      v_week = public.timer_current_week_start();
+
+      insert into public.timer_weekly_scores(week_start,device_id,display_name,wins,best_ms)
+      values (v_week,v_winner,v_name,1,v_best)
+      on conflict (week_start,device_id) do update
+        set display_name=excluded.display_name,
+            wins=public.timer_weekly_scores.wins+1,
+            best_ms=case
+              when public.timer_weekly_scores.best_ms is null then excluded.best_ms
+              when excluded.best_ms is null then public.timer_weekly_scores.best_ms
+              else least(public.timer_weekly_scores.best_ms,excluded.best_ms)
+            end,
+            updated_at=now();
+    else
+      update public.game_rooms
+      set state=jsonb_build_object(
+            'phase','results',
+            'round',coalesce((v_room.state->>'round')::integer,1),
+            'start_at',v_start,
+            'eliminated_device',v_loser,
+            'winner_device',null
+          ),
+          updated_at=now()
+      where id=p_room;
+    end if;
+  end if;
+
+  return v_ms;
+end;
+$$;
+
+grant execute on function public.timer_submit_stop(uuid,text) to authenticated;
