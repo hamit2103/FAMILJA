@@ -27,7 +27,7 @@ const TXT = {
     saveLocal:"Ruaje vetëm në këtë telefon", savedLocal:"U ruajt vetëm në këtë telefon.",
     useShared:"Hap listën e përbashkët", useLocal:"Hap listën time", back:"Kthehu te menuja TV",
     replayInfo:"Shfaqen vetëm kanalet që lista M3U i shënon me catch-up/replay.",
-    source:"Burimi", allGroups:"Të gjitha grupet"
+    source:"Burimi", allGroups:"Të gjitha grupet", playerLoading:"Po provoj stream-in…", playerReady:"Stream-i është gati.", playerNetworkError:"Stream-i nuk po përgjigjet ose është bllokuar nga serveri.", playerMediaError:"Player-i pati problem me videon. Po provoj përsëri…", playerFailed:"Ky stream nuk po hapet në këtë pajisje.", retry:"Provo përsëri"
   },
   de:{
     tv:"TV", brand:"Shtime TV", live:"Live TV", movies:"Filme", series:"Serien", replay:"Replay",
@@ -42,7 +42,7 @@ const TXT = {
     saveLocal:"Nur auf diesem Gerät speichern", savedLocal:"Nur auf diesem Gerät gespeichert.",
     useShared:"Gemeinsame Liste öffnen", useLocal:"Meine Liste öffnen", back:"Zurück zum TV-Menü",
     replayInfo:"Es werden nur Sender angezeigt, die in der M3U-Liste Catch-up/Replay unterstützen.",
-    source:"Quelle", allGroups:"Alle Gruppen"
+    source:"Quelle", allGroups:"Alle Gruppen", playerLoading:"Stream wird getestet…", playerReady:"Stream ist bereit.", playerNetworkError:"Der Stream antwortet nicht oder wird vom Server blockiert.", playerMediaError:"Der Player hat ein Medienproblem. Erneuter Versuch…", playerFailed:"Dieser Stream kann auf diesem Gerät nicht geöffnet werden.", retry:"Erneut versuchen"
   },
   tr:{
     tv:"TV", brand:"Shtime TV", live:"Canlı TV", movies:"Filmler", series:"Diziler", replay:"Tekrar",
@@ -57,7 +57,7 @@ const TXT = {
     saveLocal:"Yalnızca bu telefona kaydet", savedLocal:"Yalnızca bu telefona kaydedildi.",
     useShared:"Ortak listeyi aç", useLocal:"Listemi aç", back:"TV menüsüne dön",
     replayInfo:"Yalnızca M3U listesinde catch-up/replay olarak işaretlenen kanallar gösterilir.",
-    source:"Kaynak", allGroups:"Tüm gruplar"
+    source:"Kaynak", allGroups:"Tüm gruplar", playerLoading:"Yayın deneniyor…", playerReady:"Yayın hazır.", playerNetworkError:"Yayın yanıt vermiyor veya sunucu tarafından engelleniyor.", playerMediaError:"Oynatıcı video hatası verdi. Tekrar deneniyor…", playerFailed:"Bu yayın bu cihazda açılamıyor.", retry:"Tekrar dene"
   }
 };
 
@@ -73,6 +73,8 @@ let hls=null;
 let currentUser=null;
 let sharedRecord=null;
 let pendingSource=null;
+let lastTriedChannel=null;
+let hlsRecoveryCount=0;
 
 async function refreshUser(){
   const {data}=await supabase.auth.getUser();
@@ -226,6 +228,19 @@ function renderSourceCards(){
   document.getElementById("tvUseLocal")?.addEventListener("click",()=>useSource(local));
 }
 
+function setPlayerStatus(text="",kind=""){
+  const el=document.getElementById("tvPlayerStatus");
+  if(!el) return;
+  el.textContent=text;
+  el.className="message tv-player-status"+(kind?" "+kind:"");
+}
+
+function showRetry(channel){
+  if(channel) lastTriedChannel=channel;
+  const btn=document.getElementById("tvRetry");
+  if(btn) btn.classList.toggle("hidden",!channel);
+}
+
 function destroyPlayer(){
   if(hls){ try{hls.destroy();}catch(_){} hls=null; }
   const video=document.getElementById("tvPlayer");
@@ -302,10 +317,19 @@ async function loadFromFile(file){
 function loadHlsJs(){
   return new Promise((resolve,reject)=>{
     if(window.Hls) return resolve(window.Hls);
+    const existing=document.querySelector('script[data-shtime-hls="1"]');
+    if(existing){
+      existing.addEventListener("load",()=>resolve(window.Hls),{once:true});
+      existing.addEventListener("error",reject,{once:true});
+      return;
+    }
     const s=document.createElement("script");
-    s.src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js";
-    s.onload=()=>resolve(window.Hls);
-    s.onerror=reject;
+    s.dataset.shtimeHls="1";
+    s.src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
+    s.crossOrigin="anonymous";
+    const timer=setTimeout(()=>reject(new Error("HLS loader timeout")),10000);
+    s.onload=()=>{clearTimeout(timer);resolve(window.Hls);};
+    s.onerror=(e)=>{clearTimeout(timer);reject(e);};
     document.head.appendChild(s);
   });
 }
@@ -317,31 +341,114 @@ async function playChannel(channel){
   if(!video) return;
 
   destroyPlayer();
+  lastTriedChannel=channel;
+  hlsRecoveryCount=0;
   if(title) title.textContent=channel.name || tr("direct");
   localStorage.setItem(TV_NAME_KEY,channel.name||"");
+  setPlayerStatus(tr("playerLoading"));
+  showRetry(null);
 
-  const url=channel.url;
-  const isHls=url.toLowerCase().includes(".m3u8");
+  const url=channel.url.trim();
+  const isHls=/\.m3u8(?:$|\?)/i.test(url) || /mpegurl/i.test(channel.mime||"");
+
+  const markReady=()=>{
+    setPlayerStatus(tr("playerReady"),"success");
+    showRetry(null);
+    document.getElementById("tvPlayerCard")?.scrollIntoView({behavior:"smooth",block:"center"});
+  };
+
+  const markFailed=(message=tr("playerFailed"))=>{
+    setPlayerStatus(message,"error");
+    showRetry(channel);
+  };
+
+  video.onerror=()=>{
+    if(!hls && !isHls) markFailed(tr("playerFailed"));
+  };
+  video.oncanplay=markReady;
+  video.onplaying=markReady;
 
   try{
-    if(isHls && !video.canPlayType("application/vnd.apple.mpegurl")){
+    // Prefer native HLS when the device supports it.
+    if(isHls && video.canPlayType("application/vnd.apple.mpegurl")){
+      video.src=url;
+      video.load();
+      const p=video.play();
+      if(p?.catch) p.catch(()=>{});
+      setTimeout(()=>{
+        if(video.readyState===0) markFailed(tr("playerNetworkError"));
+      },9000);
+      return;
+    }
+
+    if(isHls){
       const Hls=await loadHlsJs();
       if(Hls?.isSupported()){
-        hls=new Hls({enableWorker:true,lowLatencyMode:true});
-        hls.loadSource(url);
+        hls=new Hls({
+          enableWorker:true,
+          lowLatencyMode:false,
+          backBufferLength:30,
+          manifestLoadingTimeOut:12000,
+          levelLoadingTimeOut:12000,
+          fragLoadingTimeOut:15000,
+          manifestLoadingMaxRetry:2,
+          levelLoadingMaxRetry:2,
+          fragLoadingMaxRetry:2
+        });
+
+        hls.on(Hls.Events.MEDIA_ATTACHED,()=>hls.loadSource(url));
+        hls.on(Hls.Events.MANIFEST_PARSED,()=>{
+          const p=video.play();
+          if(p?.catch) p.catch(()=>{});
+        });
+        hls.on(Hls.Events.ERROR,(_event,data)=>{
+          console.warn("HLS error",data?.type,data?.details,data);
+          if(!data?.fatal) return;
+
+          if(data.type===Hls.ErrorTypes.NETWORK_ERROR && hlsRecoveryCount<2){
+            hlsRecoveryCount++;
+            setPlayerStatus(tr("playerNetworkError"));
+            setTimeout(()=>{ try{hls?.startLoad();}catch(_){} },700);
+            return;
+          }
+
+          if(data.type===Hls.ErrorTypes.MEDIA_ERROR && hlsRecoveryCount<2){
+            hlsRecoveryCount++;
+            setPlayerStatus(tr("playerMediaError"));
+            try{hls?.recoverMediaError();}catch(_){}
+            return;
+          }
+
+          markFailed(
+            data.type===Hls.ErrorTypes.NETWORK_ERROR
+              ? tr("playerNetworkError")
+              : tr("playerFailed")
+          );
+          try{hls?.destroy();}catch(_){}
+          hls=null;
+        });
+
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}));
-        document.getElementById("tvPlayerCard")?.scrollIntoView({behavior:"smooth",block:"center"});
+        setTimeout(()=>{
+          if(video.readyState===0 && hls){
+            markFailed(tr("playerNetworkError"));
+          }
+        },14000);
         return;
       }
     }
+
+    // Non-HLS or browsers where hls.js is unavailable.
     video.src=url;
-    await video.play().catch(()=>{});
-    document.getElementById("tvPlayerCard")?.scrollIntoView({behavior:"smooth",block:"center"});
+    video.load();
+    const p=video.play();
+    if(p?.catch) p.catch(()=>{});
+    setTimeout(()=>{
+      if(video.readyState===0) markFailed(tr("playerFailed"));
+    },10000);
   }catch(error){
     console.warn("TV play failed",error);
-    const status=document.getElementById("tvStatus");
-    if(status) status.textContent=tr("invalid");
+    markFailed(tr("playerFailed"));
   }
 }
 
@@ -469,6 +576,10 @@ function render(){
           <button id="tvStop" class="secondary" type="button">${tr("stop")}</button>
         </div>
         <video id="tvPlayer" class="tv-player" controls playsinline preload="metadata"></video>
+        <div class="tv-player-feedback">
+          <div id="tvPlayerStatus" class="message tv-player-status"></div>
+          <button id="tvRetry" class="secondary hidden" type="button">${tr("retry")}</button>
+        </div>
       </section>
 
       <section class="card tv-control-card">
@@ -529,7 +640,13 @@ function render(){
   const publish=document.getElementById("tvPublishAll");
   if(publish) publish.onclick=publishPendingForAll;
 
-  document.getElementById("tvStop").onclick=destroyPlayer;
+  document.getElementById("tvStop").onclick=()=>{
+    destroyPlayer();
+    setPlayerStatus("");
+    showRetry(null);
+  };
+  const retry=document.getElementById("tvRetry");
+  if(retry) retry.onclick=()=>{ if(lastTriedChannel) playChannel(lastTriedChannel); };
   renderSourceCards();
   if(currentMode!=="home") renderChannels();
 }
