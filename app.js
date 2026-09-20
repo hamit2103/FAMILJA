@@ -711,7 +711,7 @@ async function loadInfo({ markRead = activeSection === "info" } = {}) {
 
   const { data, error } = await supabase
     .from("information")
-    .select("id,author,message,created_at,user_id")
+    .select("id,author,message,message_de,message_tr,created_at,user_id")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -750,7 +750,11 @@ async function loadInfo({ markRead = activeSection === "info" } = {}) {
 
     const text = document.createElement("div");
     text.className = "info-text";
-    text.textContent = item.message || "";
+    const translatedMessage =
+      currentLanguage === "de" ? item.message_de :
+      currentLanguage === "tr" ? item.message_tr :
+      item.message;
+    text.textContent = translatedMessage || item.message || "";
     card.appendChild(text);
 
     if (isAdmin()) {
@@ -791,17 +795,19 @@ infoSendBtn.addEventListener("click", async () => {
   infoSendBtn.disabled = true;
   showMessage(infoStatus, t("info.publishing"));
 
-  const { error } = await supabase.from("information").insert({
-    author,
-    message,
-    user_id: currentUser.id
+  const { data: publishData, error } = await supabase.functions.invoke("publish-info", {
+    body: { message }
   });
 
   infoSendBtn.disabled = false;
 
-  if (error) {
-    console.error(error);
-    showMessage(infoStatus, t("error.publishFailed", { error: error.message }), "error");
+  if (error || publishData?.error) {
+    console.error(error || publishData?.error);
+    showMessage(
+      infoStatus,
+      t("error.publishFailed", { error: error?.message || publishData?.error || "unknown" }),
+      "error"
+    );
     return;
   }
 
