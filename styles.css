@@ -707,22 +707,3 @@ body.lightbox-open { overflow: hidden; }
 .tv-player-status{margin:0;flex:1}
 .tv-player-status.error{color:#fecaca}
 .tv-player-status.success{color:#bbf7d0}
-
-
-/* Account / credit management */
-.account-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.credit-badge{padding:10px 14px;border-radius:999px;background:#ede9fe;font-weight:900;color:#5b21b6}
-.account-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
-.account-grid>div{display:grid;gap:6px}
-.account-grid select,.account-grid input,.credit-input{min-height:46px;border:1px solid #d1d5db;border-radius:12px;padding:0 12px;background:#fff;font:inherit}
-.account-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.accounts-list{display:grid;gap:10px;margin-top:12px}
-.account-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;border:1px solid #e5e7eb;border-radius:16px}
-.account-main{display:grid;gap:3px;min-width:0}
-.account-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-.credit-input{width:96px;min-height:40px}
-@media(max-width:640px){
-  .account-grid{grid-template-columns:1fr}
-  .account-row{align-items:flex-start;flex-direction:column}
-  .account-actions{width:100%;justify-content:flex-start}
-}
