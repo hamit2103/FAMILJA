@@ -1849,3 +1849,136 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
   .war-person{font-size:38px}
   .war-gun{font-size:27px}
 }
+
+.war-online-btn{
+  min-height:52px;
+  font-weight:950;
+}
+.war-online-count{
+  text-align:center;
+  font-weight:900;
+  padding:8px 10px;
+  border-radius:12px;
+  background:#dbeafe;
+  color:#0f172a;
+}
+.war-multi-wait-card{
+  display:grid;
+  place-items:center;
+  gap:12px;
+  padding:22px;
+  border-radius:22px;
+  background:rgba(255,255,255,.84);
+  text-align:center;
+}
+.war-multi-count-big{
+  font-size:36px;
+  font-weight:1000;
+}
+.war-multi-countdown{
+  width:92px;
+  height:92px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#facc15;
+  color:#111827;
+  font-size:44px;
+  font-weight:1000;
+}
+.war-multi-wait-list{
+  width:100%;
+  display:grid;
+  gap:6px;
+}
+.war-multi-wait-list>div{
+  padding:9px 12px;
+  border-radius:12px;
+  background:#eff6ff;
+}
+.war-multi-summary{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.75);
+  font-weight:800;
+}
+.war-multi-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+}
+.war-multi-player{
+  border:2px solid transparent;
+  border-radius:16px;
+  padding:11px;
+  display:grid;
+  gap:7px;
+  text-align:left;
+  background:#fff;
+  color:#0f172a;
+}
+.war-multi-player.me{
+  background:#dbeafe;
+}
+.war-multi-player.turn{
+  box-shadow:0 0 0 3px rgba(250,204,21,.45);
+}
+.war-multi-player.selected{
+  border-color:#2563eb;
+  box-shadow:0 0 0 2px rgba(37,99,235,.18);
+}
+.war-multi-player.eliminated{
+  opacity:.48;
+  filter:grayscale(1);
+}
+.war-multi-player:disabled{
+  cursor:default;
+}
+.war-multi-name{
+  font-weight:950;
+}
+.war-multi-hearts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:2px;
+  font-size:18px;
+}
+.war-multi-status{
+  min-height:18px;
+  font-size:11px;
+  font-weight:800;
+  color:#475569;
+}
+.war-multi-target-hint{
+  padding:10px 12px;
+  border-radius:14px;
+  background:#fef3c7;
+  color:#78350f;
+  font-weight:900;
+  text-align:center;
+}
+.war-multi-winner{
+  padding:18px;
+  border-radius:18px;
+  background:#fef3c7;
+  color:#78350f;
+  text-align:center;
+  font-size:22px;
+  font-weight:900;
+}
+@media(max-width:560px){
+  .war-multi-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .war-multi-player{
+    padding:9px;
+  }
+  .war-multi-hearts{
+    font-size:15px;
+  }
+}
