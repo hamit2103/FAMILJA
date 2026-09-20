@@ -14,6 +14,7 @@ const TIMER_SOUND_KEY = "pajaziti-timer-sound";
 const TETRIS_NAME_KEY = "pajaziti-tetris-name";
 const TETRIS_SOUND_KEY = "pajaziti-tetris-sound";
 const WAR_SOUND_KEY = "pajaziti-war-sound";
+const WAR_WINS_KEY = "pajaziti-war-wins";
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -280,31 +281,57 @@ function roomCode(){
 
 let warGameState=null;
 
+function warWins(){
+  const value=Number(localStorage.getItem(WAR_WINS_KEY)||0);
+  return Number.isFinite(value) && value>0 ? Math.floor(value) : 0;
+}
+
+function warPowerBonus(){
+  // Çdo fitore e rrit fuqinë me 10%.
+  return warWins()*10;
+}
+
 function warInitialState(){
   return {
-    player:{name:tr("you"),hp:100,shield:35,energy:100},
-    enemy:{name:tr("computerName"),hp:100,shield:35,energy:100},
+    player:{name:tr("you"),hp:5,maxHp:5,guard:false,medkits:2},
+    enemy:{name:tr("computerName"),hp:5,maxHp:5,guard:false,medkits:2},
     turn:"player",
     over:false,
+    winSaved:false,
     message:"Zgjidh veprimin tënd."
   };
 }
 
-function warClamp(value,min=0,max=100){
-  return Math.max(min,Math.min(max,Math.round(value)));
+function warHearts(current,max=5){
+  const full=Math.max(0,Math.min(max,Math.round(current)));
+  return Array.from({length:max},(_,i)=>
+    `<span class="war-heart ${i<full?"full":"empty"}" aria-hidden="true">${i<full?"❤️":"🖤"}</span>`
+  ).join("");
 }
 
-function warApplyDamage(target,damage){
-  let left=Math.max(0,Math.round(damage));
-  const shieldHit=Math.min(target.shield,left);
-  target.shield=warClamp(target.shield-shieldHit,0,100);
-  left-=shieldHit;
-  target.hp=warClamp(target.hp-left,0,100);
-  return Math.round(damage);
+function warApplyHeartDamage(target,damage){
+  let amount=Math.max(1,Math.round(damage));
+  if(target.guard){
+    amount=Math.max(0,amount-1);
+    target.guard=false;
+  }
+  target.hp=Math.max(0,target.hp-amount);
+  return amount;
 }
 
-function warPercent(value){
-  return warClamp(value,0,100);
+function warPlayerDamage(kind){
+  const wins=warWins();
+  const bonusChance=Math.min(.85,wins*.08);
+  let damage=1;
+
+  if(kind==="tank"){
+    damage=1+(Math.random()<(.50+bonusChance*.35)?1:0);
+  }else if(kind==="rocket"){
+    damage=2+(Math.random()<(.35+bonusChance*.35)?1:0);
+  }else{
+    damage=1+(Math.random()<bonusChance?1:0);
+  }
+  return Math.min(3,damage);
 }
 
 function renderWarGame(){
@@ -312,6 +339,8 @@ function renderWarGame(){
   const s=warGameState;
   const p=s.player;
   const e=s.enemy;
+  const wins=warWins();
+  const power=warPowerBonus();
 
   root.innerHTML=`
     <div class="war-shell">
@@ -330,11 +359,8 @@ function renderWarGame(){
               <span class="war-side-label">KUNDËRSHTARI</span>
               <h2>🤖 ${escapeHtml(e.name)}</h2>
             </div>
-            <strong class="war-hp-number">${e.hp} HP</strong>
           </div>
-          <div class="war-stat-line"><span>❤️ HP</span><div class="war-meter"><i style="width:${warPercent(e.hp)}%"></i></div><b>${e.hp}</b></div>
-          <div class="war-stat-line shield"><span>🛡️ Mburoja</span><div class="war-meter"><i style="width:${warPercent(e.shield)}%"></i></div><b>${e.shield}</b></div>
-          <div class="war-stat-line energy"><span>⚡ Energjia</span><div class="war-meter"><i style="width:${warPercent(e.energy)}%"></i></div><b>${e.energy}</b></div>
+          <div class="war-hearts" aria-label="${e.hp} nga 5 zemra">${warHearts(e.hp,e.maxHp)}</div>
         </article>
 
         <div class="war-middle">
@@ -352,19 +378,20 @@ function renderWarGame(){
               <span class="war-side-label">TI</span>
               <h2>🇦🇱 ${escapeHtml(p.name)}</h2>
             </div>
-            <strong class="war-hp-number">${p.hp} HP</strong>
+            <div class="war-progress">
+              <strong>💪 Fuqi +${power}%</strong>
+              <small>🏆 ${wins} fitore</small>
+            </div>
           </div>
-          <div class="war-stat-line"><span>❤️ HP</span><div class="war-meter"><i style="width:${warPercent(p.hp)}%"></i></div><b>${p.hp}</b></div>
-          <div class="war-stat-line shield"><span>🛡️ Mburoja</span><div class="war-meter"><i style="width:${warPercent(p.shield)}%"></i></div><b>${p.shield}</b></div>
-          <div class="war-stat-line energy"><span>⚡ Energjia</span><div class="war-meter"><i style="width:${warPercent(p.energy)}%"></i></div><b>${p.energy}</b></div>
+          <div class="war-hearts" aria-label="${p.hp} nga 5 zemra">${warHearts(p.hp,p.maxHp)}</div>
         </article>
 
         <div class="war-actions">
-          <button data-war-action="attack" type="button">🔫<strong>Sulm</strong><small>-10 ⚡</small></button>
-          <button data-war-action="tank" type="button">🪖<strong>Tank</strong><small>-25 ⚡</small></button>
-          <button data-war-action="rocket" type="button">🚀<strong>Raketë</strong><small>-40 ⚡</small></button>
-          <button data-war-action="defend" type="button">🛡️<strong>Mbrojtje</strong><small>+25 🛡️</small></button>
-          <button data-war-action="medkit" type="button">🩹<strong>Medkit</strong><small>-20 ⚡</small></button>
+          <button data-war-action="attack" type="button">🔫<strong>Sulm</strong><small>1–2 ❤️</small></button>
+          <button data-war-action="tank" type="button">🪖<strong>Tank</strong><small>1–2 ❤️</small></button>
+          <button data-war-action="rocket" type="button">🚀<strong>Raketë</strong><small>2–3 ❤️</small></button>
+          <button data-war-action="defend" type="button">🛡️<strong>Mbrojtje</strong><small>-1 goditje</small></button>
+          <button data-war-action="medkit" type="button">🩹<strong>Medkit</strong><small>${p.medkits}× · +1 ❤️</small></button>
         </div>
 
         ${s.over ? '<button id="warRestart" class="primary war-restart" type="button">🔄 Luaj përsëri</button>' : ""}
@@ -407,7 +434,12 @@ function warFinishIfNeeded(){
   if(s.enemy.hp<=0){
     s.over=true;
     s.turn="none";
-    s.message="🏆 Fitove luftën!";
+    if(!s.winSaved){
+      const nextWins=warWins()+1;
+      localStorage.setItem(WAR_WINS_KEY,String(nextWins));
+      s.winSaved=true;
+      s.message="🏆 Fitove! Fuqia jote u rrit në +"+(nextWins*10)+"%.";
+    }
     return true;
   }
   if(s.player.hp<=0){
@@ -623,37 +655,36 @@ function warPlayerAction(action){
   const e=s.enemy;
 
   if(action==="attack"){
-    if(p.energy<10){ s.message="Nuk ke energji të mjaftueshme."; return renderWarGame(); }
-    p.energy-=10;
     playWarSound("attack");
-    const d=warApplyDamage(e,14+Math.random()*10);
-    s.message="🔫 Sulmove kundërshtarin për "+d+" dëme.";
+    const d=warApplyHeartDamage(e,warPlayerDamage("attack"));
+    s.message="🔫 Sulm: kundërshtari humbi "+d+" zemër"+(d===1?"":"a")+".";
   }else if(action==="tank"){
-    if(p.energy<25){ s.message="Duhet të kesh 25 energji për Tank."; return renderWarGame(); }
-    p.energy-=25;
     playWarSound("tank");
-    const d=warApplyDamage(e,24+Math.random()*14);
-    s.message="🪖 Tanku goditi për "+d+" dëme.";
+    const d=warApplyHeartDamage(e,warPlayerDamage("tank"));
+    s.message="🪖 Tank: kundërshtari humbi "+d+" zemër"+(d===1?"":"a")+".";
   }else if(action==="rocket"){
-    if(p.energy<40){ s.message="Duhet të kesh 40 energji për Raketë."; return renderWarGame(); }
-    p.energy-=40;
     playWarSound("rocket");
-    const d=warApplyDamage(e,36+Math.random()*18);
-    s.message="🚀 Raketa goditi për "+d+" dëme!";
+    const d=warApplyHeartDamage(e,warPlayerDamage("rocket"));
+    s.message="🚀 Raketë: kundërshtari humbi "+d+" zemër"+(d===1?"":"a")+"!";
   }else if(action==="defend"){
     playWarSound("defend");
-    p.shield=warClamp(p.shield+25,0,100);
-    p.energy=warClamp(p.energy+8,0,100);
-    s.message="🛡️ Mburoja u forcua.";
+    p.guard=true;
+    s.message="🛡️ Mbrojtja aktive: goditja tjetër zvogëlohet me 1 zemër.";
   }else if(action==="medkit"){
-    if(p.energy<20){ s.message="Duhet të kesh 20 energji për Medkit."; return renderWarGame(); }
-    p.energy-=20;
+    if(p.medkits<=0){
+      s.message="Nuk ke më Medkit.";
+      return renderWarGame();
+    }
+    if(p.hp>=p.maxHp){
+      s.message="I ke të gjitha 5 zemrat.";
+      return renderWarGame();
+    }
     playWarSound("medkit");
-    p.hp=warClamp(p.hp+25,0,100);
-    s.message="🩹 Riktheve shëndetin.";
+    p.medkits-=1;
+    p.hp=Math.min(p.maxHp,p.hp+1);
+    s.message="🩹 Riktheve 1 zemër.";
   }
 
-  p.energy=warClamp(p.energy+7,0,100);
   if(warFinishIfNeeded()) return renderWarGame();
 
   s.turn="enemy";
@@ -668,39 +699,34 @@ function warEnemyTurn(){
   const p=s.player;
 
   let action="attack";
-  if(e.hp<35 && e.energy>=20 && Math.random()<0.35) action="medkit";
-  else if(e.shield<20 && Math.random()<0.25) action="defend";
-  else if(e.energy>=40 && Math.random()<0.22) action="rocket";
-  else if(e.energy>=25 && Math.random()<0.32) action="tank";
+  if(e.hp<=2 && e.medkits>0 && Math.random()<.30) action="medkit";
+  else if(Math.random()<.18) action="defend";
+  else if(Math.random()<.20) action="rocket";
+  else if(Math.random()<.28) action="tank";
 
   if(action==="medkit"){
-    e.energy-=20;
+    e.medkits-=1;
     playWarSound("medkit");
-    e.hp=warClamp(e.hp+22,0,100);
-    s.message="🤖 Kundërshtari përdori Medkit.";
+    e.hp=Math.min(e.maxHp,e.hp+1);
+    s.message="🤖 Kundërshtari riktheu 1 zemër.";
   }else if(action==="defend"){
     playWarSound("defend");
-    e.shield=warClamp(e.shield+22,0,100);
-    e.energy=warClamp(e.energy+8,0,100);
-    s.message="🤖 Kundërshtari ngriti mburojën.";
+    e.guard=true;
+    s.message="🤖 Kundërshtari aktivizoi mbrojtjen.";
   }else if(action==="rocket"){
-    e.energy-=40;
     playWarSound("rocket");
-    const d=warApplyDamage(p,32+Math.random()*18);
-    s.message="🚀 Kundërshtari të goditi me raketë: "+d+" dëme.";
+    const d=warApplyHeartDamage(p,Math.random()<.28?3:2);
+    s.message="🚀 Kundërshtari të hoqi "+d+" zemër"+(d===1?"":"a")+".";
   }else if(action==="tank"){
-    e.energy-=25;
     playWarSound("tank");
-    const d=warApplyDamage(p,22+Math.random()*14);
-    s.message="🪖 Tanku i kundërshtarit: "+d+" dëme.";
+    const d=warApplyHeartDamage(p,Math.random()<.55?2:1);
+    s.message="🪖 Tanku i kundërshtarit të hoqi "+d+" zemër"+(d===1?"":"a")+".";
   }else{
-    e.energy=Math.max(0,e.energy-10);
     playWarSound("attack");
-    const d=warApplyDamage(p,12+Math.random()*10);
-    s.message="🔫 Kundërshtari sulmoi: "+d+" dëme.";
+    const d=warApplyHeartDamage(p,1);
+    s.message="🔫 Kundërshtari të hoqi "+d+" zemër.";
   }
 
-  e.energy=warClamp(e.energy+9,0,100);
   if(warFinishIfNeeded()) return renderWarGame();
   s.turn="player";
   renderWarGame();
