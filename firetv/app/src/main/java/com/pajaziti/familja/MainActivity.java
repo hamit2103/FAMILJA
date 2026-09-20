@@ -53,6 +53,7 @@ public class MainActivity extends Activity {
     private long updateDownloadId = -1L;
     private String pendingApkUrl = null;
     private boolean waitingForInstallPermission = false;
+    private long lastUpdateCheckAt = 0L;
 
     private final BroadcastReceiver updateDownloadReceiver = new BroadcastReceiver() {
         @Override
@@ -261,6 +262,7 @@ public class MainActivity extends Activity {
     }
 
     private void checkForUpdates() {
+        lastUpdateCheckAt = System.currentTimeMillis();
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
@@ -512,6 +514,10 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         enterImmersiveFullscreen();
+
+        if (System.currentTimeMillis() - lastUpdateCheckAt > 30000L) {
+            checkForUpdates();
+        }
 
         if (waitingForInstallPermission && pendingApkUrl != null) {
             if (
