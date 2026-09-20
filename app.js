@@ -218,9 +218,11 @@ const shareBtn = $("shareBtn");
 const galleryTab = $("galleryTab");
 const infoTab = $("infoTab");
 const prayerTab = $("prayerTab");
+const gamesTab = $("gamesTab");
 const galleryView = $("galleryView");
 const infoView = $("infoView");
 const prayerView = $("prayerView");
+const gamesView = $("gamesView");
 const infoName = $("infoName");
 const infoText = $("infoText");
 const infoSendBtn = $("infoSendBtn");
@@ -417,21 +419,26 @@ function setSection(next) {
   const showGallery = next === "gallery";
   const showInfo = next === "info";
   const showPrayer = next === "prayer";
+  const showGames = next === "games";
 
   galleryTab.classList.toggle("active", showGallery);
   infoTab.classList.toggle("active", showInfo);
   prayerTab.classList.toggle("active", showPrayer);
+  gamesTab.classList.toggle("active", showGames);
 
   galleryView.classList.toggle("hidden", !showGallery);
   infoView.classList.toggle("hidden", !showInfo);
   prayerView.classList.toggle("hidden", !showPrayer);
+  gamesView.classList.toggle("hidden", !showGames);
 
   if (showInfo) loadInfo();
   if (showPrayer) loadPrayerTimes(false);
+  if (showGames) window.PajazitiGames?.activate?.();
 }
 galleryTab.addEventListener("click", () => setSection("gallery"));
 infoTab.addEventListener("click", () => setSection("info"));
 prayerTab.addEventListener("click", () => setSection("prayer"));
+gamesTab.addEventListener("click", () => setSection("games"));
 
 function setMode(next) {
   mode = next;
