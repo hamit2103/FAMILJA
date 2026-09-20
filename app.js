@@ -221,12 +221,14 @@ const galleryTab = $("galleryTab");
 const infoTab = $("infoTab");
 const prayerTab = $("prayerTab");
 const gamesTab = $("gamesTab");
-const tvTab = $("tvTab");\nconst radioTab = $("radioTab");
+const tvTab = $("tvTab");
+const radioTab = $("radioTab");
 const galleryView = $("galleryView");
 const infoView = $("infoView");
 const prayerView = $("prayerView");
 const gamesView = $("gamesView");
-const tvView = $("tvView");\nconst radioView = $("radioView");
+const tvView = $("tvView");
+const radioView = $("radioView");
 const infoName = $("infoName");
 const infoText = $("infoText");
 const infoSendBtn = $("infoSendBtn");
@@ -425,30 +427,35 @@ function setSection(next) {
   const showInfo = next === "info";
   const showPrayer = next === "prayer";
   const showGames = next === "games";
-  const showTv = next === "tv";\n  const showRadio = next === "radio";
+  const showTv = next === "tv";
+  const showRadio = next === "radio";
 
   galleryTab.classList.toggle("active", showGallery);
   infoTab.classList.toggle("active", showInfo);
   prayerTab.classList.toggle("active", showPrayer);
   gamesTab.classList.toggle("active", showGames);
-  tvTab.classList.toggle("active", showTv);\n  radioTab.classList.toggle("active", showRadio);
+  tvTab.classList.toggle("active", showTv);
+  radioTab.classList.toggle("active", showRadio);
 
   galleryView.classList.toggle("hidden", !showGallery);
   infoView.classList.toggle("hidden", !showInfo);
   prayerView.classList.toggle("hidden", !showPrayer);
   gamesView.classList.toggle("hidden", !showGames);
-  tvView.classList.toggle("hidden", !showTv);\n  radioView.classList.toggle("hidden", !showRadio);
+  tvView.classList.toggle("hidden", !showTv);
+  radioView.classList.toggle("hidden", !showRadio);
 
   if (showInfo) loadInfo();
   if (showPrayer) loadPrayerTimes(false);
   if (showGames) window.PajazitiGames?.activate?.();
-  if (showTv) window.PajazitiTV?.activate?.();\n  if (showRadio) window.PajazitiRadio?.activate?.();
+  if (showTv) window.PajazitiTV?.activate?.();
+  if (showRadio) window.PajazitiRadio?.activate?.();
 }
 galleryTab.addEventListener("click", () => setSection("gallery"));
 infoTab.addEventListener("click", () => setSection("info"));
 prayerTab.addEventListener("click", () => setSection("prayer"));
 gamesTab.addEventListener("click", () => setSection("games"));
-tvTab.addEventListener("click", () => setSection("tv"));\nradioTab.addEventListener("click", () => setSection("radio"));
+tvTab.addEventListener("click", () => setSection("tv"));
+radioTab.addEventListener("click", () => setSection("radio"));
 
 function setMode(next) {
   mode = next;
