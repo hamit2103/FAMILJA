@@ -908,3 +908,70 @@ body.lightbox-open { overflow: hidden; }
   border-radius:12px;
   padding:9px 10px;
 }
+
+
+/* Tetris full screen */
+body.tetris-fullscreen-active{
+  overflow:hidden;
+  background:#111827;
+}
+body.tetris-fullscreen-active #gamesView{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  width:100vw;
+  height:100dvh;
+  overflow:auto;
+  background:#111827;
+  padding:0;
+  margin:0;
+}
+body.tetris-fullscreen-active #gamesRoot{
+  min-height:100dvh;
+}
+body.tetris-fullscreen-active .tetris-shell{
+  max-width:none;
+  width:100%;
+  min-height:100dvh;
+  margin:0;
+  padding:8px;
+  box-sizing:border-box;
+  display:flex;
+}
+body.tetris-fullscreen-active .tetris-card{
+  width:100%;
+  min-height:calc(100dvh - 16px);
+  margin:0;
+  border-radius:18px;
+  box-sizing:border-box;
+  align-content:start;
+}
+body.tetris-fullscreen-active .tetris-board-wrap{
+  width:min(100%, 54vh);
+  max-width:none;
+  flex:1;
+}
+body.tetris-fullscreen-active .tetris-board{
+  width:100%;
+  max-height:64dvh;
+}
+@media (orientation:landscape){
+  body.tetris-fullscreen-active .tetris-card{
+    grid-template-columns:minmax(0,1fr) minmax(280px,46vw);
+    grid-template-areas:
+      "head board"
+      "stats board"
+      "help board"
+      "controls board"
+      "actions board"
+      "leader board";
+    gap:10px 14px;
+  }
+  body.tetris-fullscreen-active .game-room-head{grid-area:head}
+  body.tetris-fullscreen-active .tetris-stats{grid-area:stats}
+  body.tetris-fullscreen-active .tetris-board-wrap{grid-area:board;width:min(46vw,52vh);align-self:center}
+  body.tetris-fullscreen-active .tetris-touch-help{grid-area:help}
+  body.tetris-fullscreen-active .tetris-controls{grid-area:controls}
+  body.tetris-fullscreen-active .tetris-actions{grid-area:actions}
+  body.tetris-fullscreen-active .tetris-leaderboard{grid-area:leader}
+}
