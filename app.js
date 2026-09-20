@@ -198,6 +198,8 @@ const appView = $("appView");
 const familyMode = $("familyMode");
 const adminMode = $("adminMode");
 const codeInput = $("codeInput");
+const adminCodeWrap = $("adminCodeWrap");
+const familyDirectHint = $("familyDirectHint");
 const loginBtn = $("loginBtn");
 const loginMessage = $("loginMessage");
 const adminPanel = $("adminPanel");
@@ -282,6 +284,7 @@ let prayerAlarms = (() => {
 })();
 
 applyLanguage(currentLanguage);
+setMode("family");
 
 const PRESENCE_DEVICE_KEY = "pajaziti-presence-device";
 let presenceDeviceId = localStorage.getItem(PRESENCE_DEVICE_KEY);
@@ -452,8 +455,10 @@ function setMode(next) {
   familyMode.classList.toggle("active", next === "family");
   adminMode.classList.toggle("active", next === "admin");
   codeInput.value = "";
-  codeInput.placeholder =
-    next === "admin" ? t("login.adminPlaceholder") : t("login.familyPlaceholder");
+  codeInput.placeholder = t("login.adminPlaceholder");
+  adminCodeWrap?.classList.toggle("hidden", next !== "admin");
+  familyDirectHint?.classList.toggle("hidden", next === "admin");
+  loginBtn.textContent = next === "admin" ? t("login.button") : "Hyr te Familja";
   loginMessage.textContent = "";
 }
 familyMode.addEventListener("click", () => setMode("family"));
@@ -477,41 +482,63 @@ async function login() {
     );
   }
 
-  const code = codeInput.value.trim();
-  if (!code) return showMessage(loginMessage, t("login.enterCode"), "error");
-
   loginBtn.disabled = true;
   showMessage(loginMessage, t("login.checking"));
 
-  const email = mode === "admin" ? ADMIN_EMAIL : FAMILY_EMAIL;
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password: code
-  });
+  try {
+    if (mode === "family") {
+      const { data: tokenData, error: fnError } = await supabase.functions.invoke("family-login", {
+        body: {}
+      });
+      if (fnError) throw fnError;
+      if (!tokenData?.token_hash) throw new Error("Family token missing");
 
-  if (error) {
-    console.error(error);
-    const raw = (error.message || "").toLowerCase();
-    let message = t("login.failed");
-    if (raw.includes("invalid login credentials")) {
-      message = t("login.badCode");
-    } else if (raw.includes("email not confirmed")) {
-      message = t("login.emailUnconfirmed");
-    } else if (raw.includes("rate limit")) {
-      message = t("login.rateLimit");
-    } else if (error.message) {
-      message = "Gabim: " + error.message;
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: tokenData.token_hash,
+        type: "magiclink"
+      });
+      if (verifyError) throw verifyError;
+      showMessage(loginMessage, "");
+    } else {
+      const code = codeInput.value.trim();
+      if (!code) {
+        loginBtn.disabled = false;
+        return showMessage(loginMessage, t("login.enterCode"), "error");
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: ADMIN_EMAIL,
+        password: code
+      });
+
+      if (error) {
+        console.error(error);
+        const raw = (error.message || "").toLowerCase();
+        let message = t("login.failed");
+        if (raw.includes("invalid login credentials")) {
+          message = t("login.badCode");
+        } else if (raw.includes("email not confirmed")) {
+          message = t("login.emailUnconfirmed");
+        } else if (raw.includes("rate limit")) {
+          message = t("login.rateLimit");
+        } else if (error.message) {
+          message = "Gabim: " + error.message;
+        }
+        showMessage(loginMessage, message, "error");
+      } else {
+        showMessage(loginMessage, "");
+      }
     }
-    showMessage(loginMessage, message, "error");
-  } else {
-    showMessage(loginMessage, "");
+  } catch (error) {
+    console.error(error);
+    showMessage(loginMessage, "Nuk mund të hyhet te Familja. Provo përsëri.", "error");
+  } finally {
+    loginBtn.disabled = false;
   }
-  loginBtn.disabled = false;
 }
-
 loginBtn.addEventListener("click", login);
 codeInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") login();
+  if (e.key === "Enter" && mode === "admin") login();
 });
 
 logoutBtn.addEventListener("click", async () => {
