@@ -1251,3 +1251,113 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
   .radio-folder-flag{font-size:38px}
   .radio-folder-card strong{font-size:17px}
 }
+
+
+/* Prayer Qibla + Kerahat */
+.prayer-tools-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:14px;
+}
+.prayer-tool-card{
+  margin:0;
+}
+.prayer-tool-head h2{
+  margin:0 0 12px;
+}
+.qibla-card{
+  text-align:center;
+}
+.qibla-compass{
+  position:relative;
+  width:150px;
+  height:150px;
+  margin:4px auto 12px;
+  border-radius:50%;
+  border:4px solid #dbeafe;
+  background:
+    radial-gradient(circle at center,#fff 0 48%,#eff6ff 49% 100%);
+  box-shadow:inset 0 0 0 2px #93c5fd,0 7px 20px rgba(37,99,235,.12);
+}
+.qibla-north{
+  position:absolute;
+  top:7px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:13px;
+  font-weight:900;
+  color:#dc2626;
+}
+.qibla-arrow{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) rotate(0deg);
+  transform-origin:50% 50%;
+  width:72px;
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  font-size:54px;
+  line-height:1;
+  color:#7c3aed;
+  transition:transform .18s linear;
+}
+.qibla-kaaba{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  font-size:28px;
+  pointer-events:none;
+}
+.qibla-direction{
+  display:block;
+  font-size:20px;
+  font-variant-numeric:tabular-nums;
+  margin-bottom:4px;
+}
+.qibla-card .secondary{
+  width:100%;
+  margin-top:8px;
+}
+.kerahat-list{
+  display:grid;
+  gap:9px;
+}
+.kerahat-row{
+  display:grid;
+  gap:4px;
+  padding:11px 12px;
+  border-radius:14px;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+}
+.kerahat-row span{
+  font-size:13px;
+  color:#9a3412;
+  font-weight:750;
+}
+.kerahat-row strong{
+  font-size:17px;
+  font-variant-numeric:tabular-nums;
+}
+.kerahat-note{
+  margin:10px 0 0;
+}
+.prayer-next-main{
+  font-size:16px;
+}
+.prayer-countdown{
+  margin-top:5px;
+  font-size:22px;
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+}
+@media(max-width:700px){
+  .prayer-tools-grid{
+    grid-template-columns:1fr;
+  }
+}
