@@ -713,3 +713,31 @@ body.lightbox-open { overflow: hidden; }
 .tv-player-status{margin:0;flex:1}
 .tv-player-status.error{color:#fecaca}
 .tv-player-status.success{color:#bbf7d0}
+
+
+/* Shared Radio */
+.radio-shell{display:grid;gap:14px}
+.radio-hero{
+  padding:22px;border-radius:24px;color:#fff;
+  background:linear-gradient(135deg,#111827,#7c3aed);
+  box-shadow:0 12px 30px rgba(17,24,39,.24)
+}
+.radio-title-row{display:flex;align-items:center;gap:12px}
+.radio-icon{font-size:46px;line-height:1}
+.radio-hero h2{margin:0;font-size:28px}
+.radio-hero p{margin:7px 0 0;color:#e5e7eb}
+.radio-player-card{display:grid;gap:14px}
+.radio-player{
+  width:100%;
+  min-height:54px;
+}
+.radio-live-badge{
+  display:inline-flex;align-items:center;gap:7px;width:max-content;
+  padding:7px 11px;border-radius:999px;background:#dcfce7;color:#166534;font-weight:800
+}
+.radio-live-dot{width:9px;height:9px;border-radius:50%;background:#22c55e}
+.radio-admin-card{display:grid;gap:10px}
+.radio-admin-card input{
+  width:100%;border:1px solid #d1d5db;border-radius:14px;padding:14px;background:#fff
+}
+.radio-admin-note{margin:0}
