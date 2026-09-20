@@ -22,7 +22,7 @@
         android:usesCleartextTraffic="false">
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.pajaziti.familja.MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|smallestScreenSize|uiMode"
             android:exported="true">
             <intent-filter>
@@ -33,15 +33,15 @@
         </activity>
 
         <receiver
-            android:name=".PrayerAlarmReceiver"
+            android:name="com.pajaziti.familja.PrayerAlarmReceiver"
             android:exported="false" />
 
         <receiver
-            android:name=".StopAlarmReceiver"
+            android:name="com.pajaziti.familja.StopAlarmReceiver"
             android:exported="false" />
 
         <receiver
-            android:name=".BootReceiver"
+            android:name="com.pajaziti.familja.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -53,7 +53,7 @@
         </receiver>
 
         <service
-            android:name=".PrayerAlarmService"
+            android:name="com.pajaziti.familja.PrayerAlarmService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
     </application>
