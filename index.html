@@ -7,7 +7,7 @@
   <meta name="description" content="PAJAZITI – album privat për foto dhe video">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=52">
+  <link rel="stylesheet" href="styles.css?v=60">
   <title>PAJAZITI</title>
   <style>
     /* Inline menu-order hotfix */
@@ -32,6 +32,19 @@
       width:100%;border:0;border-radius:14px;padding:13px;
       background:#2563eb;color:#fff;font-weight:850
     }
+  
+    /* Critical War v60 cache-bust fallback */
+    .war-arena{
+      background:linear-gradient(180deg,#e0f7ff 0%,#bae6fd 52%,#93c5fd 100%)!important;
+      color:#0f172a!important;
+    }
+    .war-fighter{
+      background:rgba(255,255,255,.84)!important;
+      color:#0f172a!important;
+      border-color:rgba(14,116,144,.18)!important;
+    }
+    .war-message{color:#0f172a!important}
+    .war-character,.war-soldier,.war-rifle{display:none!important}
   </style>
 </head>
 <body>
@@ -420,7 +433,7 @@
     }
   </script>
   <script type="module" src="app.js?v=52"></script>
-  <script type="module" src="games.js?v=59"></script>
+  <script type="module" src="games.js?v=60"></script>
   <script type="module" src="tv.js?v=52"></script>
   <script type="module" src="radio.js?v=52"></script>
   <script type="module">
