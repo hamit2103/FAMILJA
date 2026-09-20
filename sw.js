@@ -1,4 +1,4 @@
-const CACHE = "pajaziti-v58";
+const CACHE = "pajaziti-v59";
 const SHELL = ["./", "./index.html", "./styles.css", "./app.js", "./app-config.js", "./manifest.webmanifest", "./icon.svg", "./games.js", "./war.js", "./tv.js", "./radio.js"];
 
 self.addEventListener("install", (event) => {
