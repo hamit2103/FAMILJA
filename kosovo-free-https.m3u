@@ -1,0 +1,15 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="RTK1.xk" group-title="Kosova",RTK 1
+https://viamotionhsi.netplus.ch/live/eds/rtk1/browser-HLS8/rtk1.m3u8
+#EXTINF:-1 tvg-id="RTK3.xk@SD" group-title="Kosova",RTK 3
+https://gjirafa-video-live.gjirafa.net/gjvideo-livestream/rtk3/index.m3u8
+#EXTINF:-1 tvg-id="Kohavision.xk@SD" group-title="Kosova",Kohavision
+https://gjirafa-video-live.gjirafa.net/gjvideo-livestream/lj9-pxm-o53-rp0/tracks-v4a1/mono.m3u8
+#EXTINF:-1 tvg-id="RTV21.xk@SD" group-title="Kosova",RTV21
+https://gjirafa-video-live.gjirafa.net/gjvideo-live/2cz-npl-jfn-9he/tracks-v2a1/mono.m3u8
+#EXTINF:-1 tvg-id="T7.xk@SD" group-title="Kosova",T7
+https://gjirafa-video-live.gjirafa.net/gjvideo-livestream-specific/1z8-byc-4ee-lc9/index.m3u8
+#EXTINF:-1 tvg-id="TVArta.xk@SD" group-title="Kosova",TV Arta
+https://gjirafa-video-live.gjirafa.net/gjvideo-live/mps-vgx-u9p-qv1/index.m3u8
+#EXTINF:-1 tvg-id="TVSyri.xk@SD" group-title="Kosova",TV Syri
+https://gjirafa-video-live.gjirafa.net/gjvideo-live/xej-xnb-ba0-kup/index.m3u8
