@@ -931,3 +931,7 @@ with check (auth.email() = 'admin@familja.local');
 insert into public.app_settings(key,value)
 values ('tab_order','["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab"]'::jsonb)
 on conflict (key) do nothing;
+
+
+-- Chat: 3 free messages/day per device; premium membership is verified server-side after PayPal payment.
+-- Production schema is managed by Supabase migration add_chat_daily_limit_and_memberships.
