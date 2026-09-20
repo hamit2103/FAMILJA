@@ -37,9 +37,9 @@ const I18N = {
     "upload.familyHint":"Ke ngarkuar {used}/3 foto. Mund të shtosh edhe {remaining}.","storage.title":"Hapësira e përdorur",
     "storage.adminOnly":"E dukshme vetëm për administratorin","materials":" materiale","refresh":"Rifresko",
     "empty.mediaTitle":"Ende nuk ka materiale","empty.mediaBody":"Kur administratori të ngarkojë foto ose video, ato do të shfaqen këtu automatikisht.",
-    "info.title":"Informacion","info.familyWrite":"Çdo anëtar i familjes mund të shkruajë këtu.","info.name":"Emri","info.namePlaceholder":"Shkruaj emrin tënd",
+    "info.title":"Informacion","info.familyWrite":"Vetëm administratori mund të shkruajë këtu.","info.name":"Emri","info.namePlaceholder":"Shkruaj emrin tënd",
     "info.message":"Mesazhi","info.messagePlaceholder":"Shkruaj informacionin...","info.publish":"Publiko","info.notes":" shënime",
-    "info.emptyTitle":"Ende nuk ka informacion","info.emptyBody":"Shkruaj mesazhin e parë më sipër.","role.admin":"Administrator","role.family":"Anëtar i familjes",
+    "info.emptyTitle":"Ende nuk ka informacion","info.emptyBody":"Kur administratori të publikojë diçka, do të shfaqet këtu.","role.admin":"Administrator","role.family":"Anëtar i familjes",
     "download":"Shkarko","delete":"Fshi","material":"Material","photo":"Foto","confirm.delete":"Ta fshij këtë material?","confirm.deleteInfo":"Ta fshij këtë informacion?",
     "prayer.title":"Koha e namazit","prayer.locationPrompt":"Zgjidh vendndodhjen e telefonit.","prayer.locationBtn":"Vendndodhja",
     "prayer.method":"Ora llogaritet sipas vendndodhjes së telefonit me metodën Diyanet.","prayer.alarmTitle":"🔔 Alarmet janë sipas dëshirës.",
@@ -75,9 +75,9 @@ const I18N = {
     "upload.familyHint":"Du hast {used}/3 Fotos hochgeladen. Du kannst noch {remaining} hinzufügen.","storage.title":"Verwendeter Speicher",
     "storage.adminOnly":"Nur für den Administrator sichtbar","materials":" Medien","refresh":"Aktualisieren",
     "empty.mediaTitle":"Noch keine Medien","empty.mediaBody":"Wenn der Administrator Fotos oder Videos hochlädt, erscheinen sie hier automatisch.",
-    "info.title":"Information","info.familyWrite":"Jedes Familienmitglied kann hier schreiben.","info.name":"Name","info.namePlaceholder":"Deinen Namen eingeben",
+    "info.title":"Information","info.familyWrite":"Nur der Administrator kann hier schreiben.","info.name":"Name","info.namePlaceholder":"Deinen Namen eingeben",
     "info.message":"Nachricht","info.messagePlaceholder":"Information eingeben...","info.publish":"Veröffentlichen","info.notes":" Einträge",
-    "info.emptyTitle":"Noch keine Informationen","info.emptyBody":"Schreibe oben die erste Nachricht.","role.admin":"Administrator","role.family":"Familienmitglied",
+    "info.emptyTitle":"Noch keine Informationen","info.emptyBody":"Wenn der Administrator etwas veröffentlicht, erscheint es hier.","role.admin":"Administrator","role.family":"Familienmitglied",
     "download":"Herunterladen","delete":"Löschen","material":"Medium","photo":"Foto","confirm.delete":"Dieses Medium löschen?","confirm.deleteInfo":"Diese Information löschen?",
     "prayer.title":"Gebetszeiten","prayer.locationPrompt":"Standort des Telefons auswählen.","prayer.locationBtn":"Standort",
     "prayer.method":"Die Zeiten werden anhand des Telefonstandorts nach der Diyanet-Methode berechnet.","prayer.alarmTitle":"🔔 Alarme sind optional.",
@@ -113,9 +113,9 @@ const I18N = {
     "upload.familyHint":"{used}/3 fotoğraf yükledin. {remaining} tane daha ekleyebilirsin.","storage.title":"Kullanılan alan",
     "storage.adminOnly":"Yalnızca yönetici görebilir","materials":" medya","refresh":"Yenile",
     "empty.mediaTitle":"Henüz medya yok","empty.mediaBody":"Yönetici fotoğraf veya video yüklediğinde burada otomatik olarak görünecek.",
-    "info.title":"Bilgi","info.familyWrite":"Her aile üyesi buraya yazabilir.","info.name":"İsim","info.namePlaceholder":"Adını yaz",
+    "info.title":"Bilgi","info.familyWrite":"Buraya yalnızca yönetici yazabilir.","info.name":"İsim","info.namePlaceholder":"Adını yaz",
     "info.message":"Mesaj","info.messagePlaceholder":"Bilgiyi yaz...","info.publish":"Yayınla","info.notes":" not",
-    "info.emptyTitle":"Henüz bilgi yok","info.emptyBody":"Yukarıya ilk mesajı yaz.","role.admin":"Yönetici","role.family":"Aile üyesi",
+    "info.emptyTitle":"Henüz bilgi yok","info.emptyBody":"Yönetici bir şey yayınladığında burada görünecek.","role.admin":"Yönetici","role.family":"Aile üyesi",
     "download":"İndir","delete":"Sil","material":"Medya","photo":"Fotoğraf","confirm.delete":"Bu medya silinsin mi?","confirm.deleteInfo":"Bu bilgi silinsin mi?",
     "prayer.title":"Namaz vakitleri","prayer.locationPrompt":"Telefonun konumunu seç.","prayer.locationBtn":"Konum",
     "prayer.method":"Vakitler telefonun konumuna göre Diyanet yöntemiyle hesaplanır.","prayer.alarmTitle":"🔔 Alarmlar isteğe bağlıdır.",
@@ -188,7 +188,7 @@ function applyLanguage(language = currentLanguage) {
     renderPrayerTimes();
     updateNextPrayer();
     loadMedia().catch(console.warn);
-    loadInfo().catch(console.warn);
+    loadInfo({ markRead: false }).catch(console.warn);
   }
 }
 
@@ -219,6 +219,7 @@ const installLoginBtn = $("installLoginBtn");
 const shareBtn = $("shareBtn");
 const galleryTab = $("galleryTab");
 const infoTab = $("infoTab");
+const infoUnreadBadge = $("infoUnreadBadge");
 const prayerTab = $("prayerTab");
 const gamesTab = $("gamesTab");
 const tvTab = $("tvTab");
@@ -229,6 +230,7 @@ const prayerView = $("prayerView");
 const gamesView = $("gamesView");
 const tvView = $("tvView");
 const radioView = $("radioView");
+const infoCompose = $("infoCompose");
 const infoName = $("infoName");
 const infoText = $("infoText");
 const infoSendBtn = $("infoSendBtn");
@@ -257,6 +259,7 @@ let mode = "family";
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
+let activeSection = "gallery";
 let mediaItems = [];
 let prayerTimings = null;
 let prayerTimingsDate = "";
@@ -266,6 +269,7 @@ let prayerAudioContext = null;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
+const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
 const PRAYER_ALARMS_KEY = "pajaziti-prayer-alarms";
 const PRAYER_LAST_ALERT_KEY = "pajaziti-prayer-last-alert";
@@ -423,6 +427,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 function setSection(next) {
+  activeSection = next;
   const showGallery = next === "gallery";
   const showInfo = next === "info";
   const showPrayer = next === "prayer";
@@ -444,7 +449,7 @@ function setSection(next) {
   tvView.classList.toggle("hidden", !showTv);
   radioView.classList.toggle("hidden", !showRadio);
 
-  if (showInfo) loadInfo();
+  if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
   if (showGames) window.PajazitiGames?.activate?.();
   if (showTv) window.PajazitiTV?.activate?.();
@@ -554,7 +559,29 @@ logoutBtn.addEventListener("click", async () => {
 
 refreshBtn.addEventListener("click", loadMedia);
 
-async function loadInfo() {
+function updateInfoUnreadBadge(items, markRead = false) {
+  if (!infoUnreadBadge) return;
+
+  if (isAdmin()) {
+    infoUnreadBadge.classList.add("hidden");
+    infoUnreadBadge.textContent = "0";
+    return;
+  }
+
+  const maxId = (items || []).reduce((max, item) => Math.max(max, Number(item.id) || 0), 0);
+  let seenId = Number(localStorage.getItem(INFO_SEEN_KEY) || 0);
+
+  if (markRead && maxId > 0) {
+    localStorage.setItem(INFO_SEEN_KEY, String(maxId));
+    seenId = maxId;
+  }
+
+  const unread = (items || []).filter((item) => (Number(item.id) || 0) > seenId).length;
+  infoUnreadBadge.textContent = unread > 99 ? "99+" : String(unread);
+  infoUnreadBadge.classList.toggle("hidden", unread === 0);
+}
+
+async function loadInfo({ markRead = activeSection === "info" } = {}) {
   if (!supabase || !currentUser) return;
 
   const { data, error } = await supabase
@@ -568,13 +595,15 @@ async function loadInfo() {
     return;
   }
 
+  updateInfoUnreadBadge(data, markRead);
+
   infoList.innerHTML = "";
   infoCount.textContent = String(data.length);
   infoEmpty.classList.toggle("hidden", data.length > 0);
 
   for (const item of data) {
     const card = document.createElement("article");
-    card.className = "info-item";
+    card.className = "info-item info-admin-message";
 
     const head = document.createElement("div");
     head.className = "info-head";
@@ -626,14 +655,10 @@ async function loadInfo() {
 infoRefreshBtn.addEventListener("click", loadInfo);
 
 infoSendBtn.addEventListener("click", async () => {
-  if (!supabase || !currentUser) return;
+  if (!supabase || !currentUser || !isAdmin()) return;
 
-  const author = infoName.value.trim();
+  const author = "Admin";
   const message = infoText.value.trim();
-
-  if (!author) {
-    return showMessage(infoStatus, t("info.enterName"), "error");
-  }
   if (!message) {
     return showMessage(infoStatus, t("info.enterMessage"), "error");
   }
@@ -655,16 +680,10 @@ infoSendBtn.addEventListener("click", async () => {
     return;
   }
 
-  localStorage.setItem("pajaziti-info-name", author);
   infoText.value = "";
   showMessage(infoStatus, t("info.published"), "success");
   await loadInfo();
 });
-
-const savedInfoName = localStorage.getItem("pajaziti-info-name");
-if (savedInfoName) infoName.value = savedInfoName;
-
-
 
 function localDateKey(date = new Date()) {
   const y = date.getFullYear();
@@ -1622,7 +1641,7 @@ function startRealtime() {
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "information" },
-      () => loadInfo()
+      () => loadInfo({ markRead: activeSection === "info" })
     )
     .subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
@@ -1642,6 +1661,8 @@ async function applySession(session) {
 
   loginView.classList.toggle("hidden", signedIn);
   appView.classList.toggle("hidden", !signedIn);
+  infoCompose?.classList.toggle("hidden", !signedIn || !isAdmin());
+  if (isAdmin()) infoUnreadBadge?.classList.add("hidden");
 
   if (!signedIn) {
     gallery.innerHTML = "";
@@ -1650,6 +1671,7 @@ async function applySession(session) {
     uploadStatus.textContent = "";
     if (storageCard) storageCard.classList.add("hidden");
     if (onlineCount) onlineCount.textContent = "0";
+    if (infoUnreadBadge) infoUnreadBadge.classList.add("hidden");
     if (prayerCheckTimer) {
       clearInterval(prayerCheckTimer);
       prayerCheckTimer = null;
