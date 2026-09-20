@@ -702,3 +702,8 @@ body.lightbox-open { overflow: hidden; }
   .tv-list-tools{grid-template-columns:1fr}
   .tv-player-real{position:static}
 }
+
+.tv-player-feedback{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.tv-player-status{margin:0;flex:1}
+.tv-player-status.error{color:#fecaca}
+.tv-player-status.success{color:#bbf7d0}
