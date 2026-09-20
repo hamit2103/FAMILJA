@@ -17,9 +17,9 @@ if (!deviceId) {
 }
 
 const TXT = {
-  sq:{games:"Lojëra",online:"Luaj online",chess:"Shah",morris:"Mühle",choose:"Zgjidh lojën",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe (mühle), hiq një gur të kundërshtarit.",error:"Gabim"},
-  de:{games:"Spiele",online:"Online spielen",chess:"Schach",morris:"Mühle",choose:"Spiel wählen",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Mühle darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
-  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",chess:"Satranç",morris:"Dokuz Taş",choose:"Oyun seç",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
+  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Mühle",choose:"Zgjidh lojën",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe (mühle), hiq një gur të kundërshtarit.",error:"Gabim"},
+  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Mühle",choose:"Spiel wählen",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Mühle darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
+  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",choose:"Oyun seç",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
 };
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
@@ -29,6 +29,7 @@ let selectedType="chess";
 let room=null;
 let channel=null;
 let selected=null;
+let aiTimer=null;
 
 function roomCode(){
   const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -59,17 +60,22 @@ function myColor(){
 }
 
 function renderLobby(msg=""){
+  if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; }
   room=null; selected=null;
   root.innerHTML=`
     <div class="games-shell">
       <section class="card games-lobby">
-        <h2>🎮 ${tr("online")}</h2>
+        <h2>🎮 ${tr("games")}</h2>
         <p class="muted">${tr("choose")}</p>
         <div class="games-choice">
           <button class="game-choice ${selectedType==="chess"?"active":""}" data-game="chess">♟️ ${tr("chess")}</button>
           <button class="game-choice ${selectedType==="morris"?"active":""}" data-game="morris">⭕ ${tr("morris")}</button>
         </div>
-        <button id="createGame" class="primary" type="button">${tr("create")}</button>
+
+        <button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>
+
+        <div class="game-help">🌐 ${tr("online")}</div>
+        <button id="createGame" class="secondary" type="button">${tr("create")}</button>
         <div class="game-join-row">
           <input id="joinCode" type="text" maxlength="8" placeholder="${tr("code")}">
           <button id="joinGame" class="secondary" type="button">${tr("join")}</button>
@@ -78,8 +84,37 @@ function renderLobby(msg=""){
       </section>
     </div>`;
   root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{selectedType=btn.dataset.game;renderLobby();});
+  document.getElementById("computerGame").onclick=startComputerGame;
   document.getElementById("createGame").onclick=createRoom;
   document.getElementById("joinGame").onclick=joinRoom;
+}
+
+function startComputerGame(){
+  if(channel){ supabase.removeChannel(channel); channel=null; }
+  if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; }
+  room={
+    id:"local-computer",
+    code:"AI",
+    game_type:selectedType,
+    player1_device:deviceId,
+    player2_device:"computer",
+    state:selectedType==="chess"?chessInitial():morrisInitial(),
+    status:"active",
+    local:true
+  };
+  selected=null;
+  renderRoom();
+}
+
+function scheduleComputerTurn(){
+  if(!room?.local || room.state?.winner || room.state?.turn!=="b") return;
+  if(aiTimer) clearTimeout(aiTimer);
+  aiTimer=setTimeout(()=>{
+    aiTimer=null;
+    if(!room?.local || room.state?.winner || room.state?.turn!=="b") return;
+    if(room.game_type==="chess") computerChessMove();
+    else computerMorrisMove();
+  },650);
 }
 
 async function createRoom(){
@@ -116,6 +151,13 @@ function subscribeRoom(){
 
 async function saveState(state,status=room.status){
   room.state=state; room.status=status;
+
+  if(room.local){
+    renderRoom();
+    scheduleComputerTurn();
+    return;
+  }
+
   const {data,error}=await supabase.from("game_rooms").update({state,status,updated_at:new Date().toISOString()}).eq("id",room.id).select().single();
   if(!error)room=data;
 }
@@ -123,34 +165,46 @@ async function saveState(state,status=room.status){
 function statusText(){
   const s=room.state||{};
   if(s.winner){ const name=s.winner==="w"?tr("white"):tr("black"); return `${tr("gameOver")} · ${tr("winner")}: ${name}`; }
+  if(room.local && s.turn==="b") return tr("computerThinking");
   return s.turn===myColor()?tr("yourTurn"):tr("opponentTurn");
 }
 
 function renderRoom(){
   if(!room)return renderLobby();
   const waiting=!room.player2_device;
+  const local=!!room.local;
   root.innerHTML=`
     <div class="games-shell">
       <section class="card">
         <div class="game-room-head">
-          <div><div class="muted small">${tr("room")}</div><div class="game-room-code">${room.code}</div></div>
-          <button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>
+          <div>
+            <div class="muted small">${local ? "🤖 "+tr("computerName") : tr("room")}</div>
+            <div class="game-room-code">${local ? (room.game_type==="chess"?"♟️ "+tr("chess"):"⭕ "+tr("morris")) : room.code}</div>
+          </div>
+          ${local ? "" : `<button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>`}
         </div>
         <div class="game-status">${waiting?tr("waiting"):statusText()}</div>
         <div class="game-meta-grid">
-          <div class="game-meta-box">⚪ ${tr("white")}: ${room.player1_device===deviceId?"✓":""}</div>
-          <div class="game-meta-box">⚫ ${tr("black")}: ${room.player2_device===deviceId?"✓":room.player2_device?"●":"…"}</div>
+          <div class="game-meta-box">⚪ ${tr("white")}: ✓</div>
+          <div class="game-meta-box">⚫ ${tr("black")}: ${local ? "🤖 "+tr("computerName") : (room.player2_device===deviceId?"✓":room.player2_device?"●":"…")}</div>
         </div>
       </section>
       <section class="card">
         <div class="game-board-wrap" id="gameBoard"></div>
         <div class="game-help">${room.game_type==="chess"?tr("helpChess"):tr("helpMorris")}</div>
-        <div class="game-actions"><button id="leaveGame" class="secondary" type="button">${tr("leave")}</button></div>
+        <div class="game-actions">
+          ${local ? `<button id="newComputerGame" class="primary" type="button">${tr("newGame")}</button>` : ""}
+          <button id="leaveGame" class="secondary" type="button">${tr("leave")}</button>
+        </div>
       </section>
     </div>`;
-  document.getElementById("copyRoom").onclick=async()=>{await navigator.clipboard.writeText(room.code);document.getElementById("copyRoom").textContent=tr("copied");};
-  document.getElementById("leaveGame").onclick=()=>{if(channel)supabase.removeChannel(channel);channel=null;renderLobby();};
+  const copyButton=document.getElementById("copyRoom");
+  if(copyButton) copyButton.onclick=async()=>{await navigator.clipboard.writeText(room.code);copyButton.textContent=tr("copied");};
+  const newButton=document.getElementById("newComputerGame");
+  if(newButton) newButton.onclick=startComputerGame;
+  document.getElementById("leaveGame").onclick=()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}if(channel)supabase.removeChannel(channel);channel=null;renderLobby();};
   if(room.game_type==="chess")renderChess(myColor());else renderMorris(myColor());
+  scheduleComputerTurn();
 }
 
 const C_SYM={wp:"♙",wr:"♖",wn:"♘",wb:"♗",wq:"♕",wk:"♔",bp:"♟",br:"♜",bn:"♞",bb:"♝",bq:"♛",bk:"♚"};
@@ -202,7 +256,46 @@ async function chessClick(r,c){
   let piece=nb[selected[0]][selected[1]],captured=nb[r][c];
   nb[selected[0]][selected[1]]=null;if(piece[1]==="p"&&(r===0||r===7))piece=piece[0]+"q";nb[r][c]=piece;
   const ns={...room.state,board:nb,turn:color==="w"?"b":"w"};if(captured&&captured[1]==="k")ns.winner=color;
-  selected=null;await saveState(ns,"active");renderRoom();
+  selected=null;await saveState(ns,"active");if(!room.local)renderRoom();
+}
+
+function computerChessMove(){
+  if(!room?.local || room.game_type!=="chess" || room.state.turn!=="b" || room.state.winner) return;
+
+  const st=structuredClone(room.state);
+  const candidates=[];
+  const values={p:1,n:3,b:3,r:5,q:9,k:50};
+
+  for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+    const p=st.board[r][c];
+    if(!p || p[0]!=="b") continue;
+    for(const [rr,cc] of chessMoves(st.board,r,c)){
+      const captured=st.board[rr][cc];
+      let score=(captured ? (values[captured[1]]||0)*20 : 0);
+      score += (3.5-Math.abs(3.5-rr)) + (3.5-Math.abs(3.5-cc));
+      score += Math.random()*3;
+      candidates.push({r,c,rr,cc,score});
+    }
+  }
+
+  if(!candidates.length){
+    st.winner="w";
+    room.state=st;
+    renderRoom();
+    return;
+  }
+
+  candidates.sort((a,b)=>b.score-a.score);
+  const pick=candidates[Math.floor(Math.random()*Math.min(3,candidates.length))];
+  let piece=st.board[pick.r][pick.c];
+  const captured=st.board[pick.rr][pick.cc];
+  st.board[pick.r][pick.c]=null;
+  if(piece[1]==="p" && pick.rr===7) piece="bq";
+  st.board[pick.rr][pick.cc]=piece;
+  if(captured && captured[1]==="k") st.winner="b";
+  st.turn="w";
+  room.state=st;
+  renderRoom();
 }
 
 function adjacent(a,b){return M_EDGES.some(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a));}
@@ -229,18 +322,111 @@ async function morrisClick(pos){
   if(st.mustRemove){
     if(st.board[pos]!==other)return;if(formsMill(st.board,pos,other)&&!allInMill(st.board,other))return;
     st.board[pos]=null;st.mustRemove=false;st.turn=other;if(st.placed[other]>=9&&countPieces(st.board,other)<3)st.winner=color;
-    selected=null;await saveState(st,"active");renderRoom();return;
+    selected=null;await saveState(st,"active");if(!room.local)renderRoom();return;
   }
   if(st.placed[color]<9){
     if(st.board[pos])return;st.board[pos]=color;st.placed[color]++;if(formsMill(st.board,pos,color))st.mustRemove=true;else st.turn=other;
-    await saveState(st,"active");renderRoom();return;
+    await saveState(st,"active");if(!room.local)renderRoom();return;
   }
   if(selected===null){if(st.board[pos]===color){selected=pos;renderRoom();}return;}
   if(st.board[pos]===color){selected=pos;renderRoom();return;}
   if(st.board[pos]!==null){selected=null;renderRoom();return;}
   const flying=countPieces(st.board,color)===3;if(!flying&&!adjacent(selected,pos))return;
   st.board[selected]=null;st.board[pos]=color;if(formsMill(st.board,pos,color))st.mustRemove=true;else st.turn=other;
-  selected=null;await saveState(st,"active");renderRoom();
+  selected=null;await saveState(st,"active");if(!room.local)renderRoom();
+}
+
+function bestMorrisPlacement(st,color){
+  const other=color==="w"?"b":"w";
+  const empty=st.board.map((v,i)=>v===null?i:-1).filter(i=>i>=0);
+
+  for(const pos of empty){
+    const b=st.board.slice(); b[pos]=color;
+    if(formsMill(b,pos,color)) return pos;
+  }
+  for(const pos of empty){
+    const b=st.board.slice(); b[pos]=other;
+    if(formsMill(b,pos,other)) return pos;
+  }
+  return empty[Math.floor(Math.random()*empty.length)];
+}
+
+function computerMorrisMove(){
+  if(!room?.local || room.game_type!=="morris" || room.state.turn!=="b" || room.state.winner) return;
+
+  const st=structuredClone(room.state);
+  const color="b", other="w";
+
+  if(st.mustRemove){
+    let targets=st.board.map((v,i)=>v===other?i:-1).filter(i=>i>=0);
+    const nonMill=targets.filter(i=>!formsMill(st.board,i,other));
+    if(nonMill.length) targets=nonMill;
+    const pos=targets[Math.floor(Math.random()*targets.length)];
+    if(pos!==undefined) st.board[pos]=null;
+    st.mustRemove=false;
+    st.turn=other;
+    if(st.placed[other]>=9 && countPieces(st.board,other)<3) st.winner=color;
+    room.state=st;
+    renderRoom();
+    return;
+  }
+
+  if(st.placed[color]<9){
+    const pos=bestMorrisPlacement(st,color);
+    if(pos===undefined) return;
+    st.board[pos]=color;
+    st.placed[color]++;
+    if(formsMill(st.board,pos,color)){
+      st.mustRemove=true;
+      room.state=st;
+      renderRoom();
+      scheduleComputerTurn();
+      return;
+    }
+    st.turn=other;
+    room.state=st;
+    renderRoom();
+    return;
+  }
+
+  const pieces=st.board.map((v,i)=>v===color?i:-1).filter(i=>i>=0);
+  const flying=pieces.length===3;
+  const moves=[];
+
+  for(const from of pieces){
+    const targets=st.board.map((v,i)=>v===null?i:-1).filter(i=>i>=0 && (flying || adjacent(from,i)));
+    for(const to of targets){
+      const b=st.board.slice();
+      b[from]=null; b[to]=color;
+      let score=formsMill(b,to,color)?100:0;
+      score+=Math.random()*5;
+      moves.push({from,to,score});
+    }
+  }
+
+  if(!moves.length){
+    st.winner="w";
+    room.state=st;
+    renderRoom();
+    return;
+  }
+
+  moves.sort((a,b)=>b.score-a.score);
+  const pick=moves[0];
+  st.board[pick.from]=null;
+  st.board[pick.to]=color;
+
+  if(formsMill(st.board,pick.to,color)){
+    st.mustRemove=true;
+    room.state=st;
+    renderRoom();
+    scheduleComputerTurn();
+    return;
+  }
+
+  st.turn=other;
+  room.state=st;
+  renderRoom();
 }
 
 function activate(){
