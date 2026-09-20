@@ -17,6 +17,7 @@ const WAR_SOUND_KEY = "pajaziti-war-sound";
 const WAR_WINS_KEY = "pajaziti-war-wins";
 const WAR_GAMES_KEY = "pajaziti-war-games";
 const WAR_BONUS_HEARTS_KEY = "pajaziti-war-bonus-hearts";
+const WAR_NAME_KEY = "pajaziti-war-name";
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -281,6 +282,105 @@ function roomCode(){
 }
 
 
+
+let warProfile=null;
+let warLeaderboardRows=[];
+let warChampion=null;
+
+async function loadWarProfileAndLeaderboard(){
+  const info=document.getElementById("warNameInfo");
+  const board=document.getElementById("warLeaderboard");
+  try{
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user) return;
+
+    const {data:profile}=await supabase
+      .from("war_profiles")
+      .select("device_id,display_name,rename_count")
+      .eq("device_id",deviceId)
+      .maybeSingle();
+
+    if(profile){
+      warProfile=profile;
+      localStorage.setItem(WAR_NAME_KEY,profile.display_name);
+      const input=document.getElementById("warPlayerName");
+      if(input) input.value=profile.display_name;
+      if(info) info.textContent="Emrin mund ta ndryshosh edhe "+Math.max(0,2-Number(profile.rename_count||0))+" herë.";
+    }else if(info){
+      info.textContent="Vendose emrin. Pas krijimit mund ta ndryshosh vetëm 2 herë.";
+    }
+
+    const {data:weekKey}=await supabase.rpc("war_week_key",{});
+    if(!weekKey) return;
+
+    const previous=new Date(String(weekKey)+"T00:00:00Z");
+    previous.setUTCDate(previous.getUTCDate()-7);
+    const prevKey=previous.toISOString().slice(0,10);
+
+    const [{data:rows},{data:previousRows}]=await Promise.all([
+      supabase.from("war_weekly_scores")
+        .select("display_name,points,device_id")
+        .eq("week_key",weekKey)
+        .order("points",{ascending:false})
+        .order("updated_at",{ascending:true})
+        .limit(10),
+      supabase.from("war_weekly_scores")
+        .select("display_name,points")
+        .eq("week_key",prevKey)
+        .order("points",{ascending:false})
+        .order("updated_at",{ascending:true})
+        .limit(1)
+    ]);
+
+    warLeaderboardRows=rows||[];
+    warChampion=previousRows?.[0]||null;
+
+    if(board){
+      board.innerHTML=`
+        <h3>🏆 Rekordi javor</h3>
+        <div class="war-week-note">Fituesi shpallet çdo të diel në ora 23:00.</div>
+        ${warChampion?`<div class="war-champion">👑 Fituesi i javës së kaluar: <strong>${escapeHtml(warChampion.display_name)}</strong> — ${warChampion.points} pikë</div>`:""}
+        <div class="war-ranking">
+          ${warLeaderboardRows.length?warLeaderboardRows.map((row,i)=>`
+            <div class="war-rank-row">
+              <span>${i+1}. ${escapeHtml(row.display_name)}</span>
+              <strong>${row.points} pikë</strong>
+            </div>`).join(""):'<div class="muted">Ende nuk ka fitore këtë javë.</div>'}
+        </div>`;
+    }
+  }catch(error){
+    console.warn("War profile/leaderboard",error);
+    if(board) board.innerHTML='<div class="muted">Rekordi javor nuk u ngarkua.</div>';
+  }
+}
+
+async function saveWarProfile(){
+  const input=document.getElementById("warPlayerName");
+  const name=(input?.value||localStorage.getItem(WAR_NAME_KEY)||"").trim().slice(0,20);
+  if(name.length<2){
+    throw new Error("Emri duhet të ketë së paku 2 shkronja.");
+  }
+  const {data,error}=await supabase.rpc("war_set_profile",{p_device:deviceId,p_name:name});
+  if(error){
+    const raw=String(error.message||error);
+    if(raw.includes("RENAME_LIMIT")) throw new Error("Emrin e ke ndryshuar 2 herë. Nuk mund ta ndryshosh më.");
+    throw error;
+  }
+  warProfile=data?.[0]||warProfile;
+  localStorage.setItem(WAR_NAME_KEY,name);
+  return warProfile;
+}
+
+async function awardWarWeeklyPoint(){
+  try{
+    const {error}=await supabase.rpc("war_award_win",{p_device:deviceId});
+    if(error) throw error;
+    loadWarProfileAndLeaderboard().catch(()=>{});
+  }catch(error){
+    console.warn("War weekly point",error);
+  }
+}
+
 let warGameState=null;
 
 const WAR_SPECIALS=[
@@ -344,8 +444,9 @@ function warSpecial(key){
 function warInitialState(){
   const bonus=warBonusHeartCount();
   const maxHp=5+bonus;
+  const playerName=warProfile?.display_name||localStorage.getItem(WAR_NAME_KEY)||tr("you");
   return {
-    player:{name:tr("you"),hp:maxHp,maxHp,protect:0,frozen:false,special:warRollSpecial()},
+    player:{name:playerName,hp:maxHp,maxHp,protect:0,frozen:false,special:warRollSpecial()},
     enemy:{name:tr("computerName"),hp:5,maxHp:5,protect:0,frozen:false,special:warRollSpecial()},
     turn:"player",
     over:false,
@@ -514,9 +615,22 @@ function renderWarGame(){
   });
 }
 
-function startWarGame(){
-  warGameState=warInitialState();
-  renderWarGame();
+async function startWarGame(){
+  const button=document.getElementById("warGame");
+  if(button) button.disabled=true;
+  try{
+    await saveWarProfile();
+    warGameState=warInitialState();
+    renderWarGame();
+  }catch(error){
+    const info=document.getElementById("warNameInfo");
+    if(info){
+      info.textContent=error?.message||"Nuk u ruajt useri.";
+      info.classList.add("error");
+    }
+  }finally{
+    if(button) button.disabled=false;
+  }
 }
 
 function warFinishIfNeeded(){
@@ -527,7 +641,8 @@ function warFinishIfNeeded(){
     s.over=true;
     s.turn="none";
     const result=warRecordCompletedGame(true);
-    s.message="🏆 Fitove luftën!";
+    awardWarWeeklyPoint();
+    s.message="🏆 Fitove luftën! +1 pikë në rekordin javor.";
     if(result.bonusAdded){
       s.message+=" ❤️ Arrite "+result.games+" lojëra: fitove +1 zemër për 24 orë.";
     }
@@ -914,8 +1029,13 @@ function renderLobby(msg=""){
           <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
         ` : selectedType==="war" ? `
-          <button id="warGame" class="primary" type="button">⚔️ ${tr("war")}</button>
-          <div class="game-help">🪖 Kundërshtari lart · Ti poshtë · Luftë kundër kompjuterit</div>
+          <div class="war-user-setup">
+            <label for="warPlayerName"><strong>👤 User</strong></label>
+            <input id="warPlayerName" type="text" maxlength="20" placeholder="Emri i userit" value="${escapeHtml(localStorage.getItem(WAR_NAME_KEY)||"")}">
+            <div id="warNameInfo" class="game-help">Emri mund të ndryshohet maksimum 2 herë.</div>
+            <button id="warGame" class="primary" type="button">⚔️ Hyr në Luftra</button>
+          </div>
+          <section id="warLeaderboard" class="war-leaderboard"><div class="muted">🏆 Po ngarkohet rekordi javor…</div></section>
         ` : selectedType==="tetris" ? `
           <input id="tetrisPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TETRIS_NAME_KEY)||"")}">
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
@@ -952,8 +1072,13 @@ function renderLobby(msg=""){
   const tetrisButton=document.getElementById("tetrisGame");
   if(tetrisButton) tetrisButton.onclick=startTetrisGame;
 
+  const warNameInput=document.getElementById("warPlayerName");
+  if(warNameInput){
+    warNameInput.addEventListener("input",()=>localStorage.setItem(WAR_NAME_KEY,warNameInput.value.trim().slice(0,20)));
+  }
   const warButton=document.getElementById("warGame");
   if(warButton) warButton.onclick=startWarGame;
+  if(selectedType==="war") loadWarProfileAndLeaderboard();
 
   const createButton=document.getElementById("createGame");
   if(createButton) createButton.onclick=createRoom;
