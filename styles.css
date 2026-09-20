@@ -975,3 +975,57 @@ body.tetris-fullscreen-active .tetris-board{
   body.tetris-fullscreen-active .tetris-actions{grid-area:actions}
   body.tetris-fullscreen-active .tetris-leaderboard{grid-area:leader}
 }
+
+
+/* Admin-only Information + unread badge */
+.info-tab-button{
+  position:relative;
+}
+.info-unread-badge{
+  position:absolute;
+  top:-7px;
+  right:-7px;
+  min-width:24px;
+  height:24px;
+  padding:0 6px;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#dc2626;
+  color:#fff;
+  border:2px solid #fff;
+  font-size:12px;
+  font-weight:950;
+  line-height:1;
+  box-shadow:0 3px 10px rgba(220,38,38,.35);
+}
+.info-compose{
+  background:linear-gradient(145deg,#0b63ce,#174ea6);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.18);
+}
+.info-compose h2,
+.info-compose label{
+  color:#fff;
+}
+.info-compose .info-admin-note{
+  color:#dbeafe;
+}
+.info-compose textarea{
+  border-color:#93c5fd;
+  background:#fff;
+  color:#111827;
+}
+.info-compose .primary{
+  background:#062f6f;
+  color:#fff;
+}
+.info-admin-message{
+  background:#eff6ff;
+  border:1px solid #93c5fd;
+  box-shadow:0 6px 22px rgba(37,99,235,.10);
+}
+.info-admin-message .info-author{
+  color:#1d4ed8;
+}
