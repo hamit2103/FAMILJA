@@ -10,6 +10,7 @@ const tabLabel = document.getElementById("gamesTabLabel");
 const DEVICE_KEY = "pajaziti-presence-device";
 const LANG_KEY = "pajaziti-language";
 const TIMER_NAME_KEY = "pajaziti-timer-name";
+const TIMER_SOUND_KEY = "pajaziti-timer-sound";
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -18,9 +19,9 @@ if (!deviceId) {
 }
 
 const TXT = {
-  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Mühle",timer:"Kral i Sekondave",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",soloTimer:"🤖 Luaj vetë",practiceOnly:"Stërvitje kundër kompjuterit — nuk hyn në renditjen javore.",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe (mühle), hiq një gur të kundërshtarit.",error:"Gabim"},
-  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Mühle",timer:"Sekundenkönig",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",soloTimer:"🤖 Alleine spielen",practiceOnly:"Training gegen den Computer — zählt nicht für die Wochenrangliste.",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Mühle darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
-  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",soloTimer:"🤖 Tek başına oyna",practiceOnly:"Bilgisayara karşı antrenman — haftalık sıralamaya sayılmaz.",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
+  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Mühle",timer:"Kral i Sekondave",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",soloTimer:"🤖 Luaj vetë",practiceOnly:"Stërvitje kundër kompjuterit — nuk hyn në renditjen javore.",you:"Ti",opponents:"Kundërshtarët",active:"Në lojë",soundOn:"🔊 Zëri ON",soundOff:"🔇 Zëri OFF",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe (mühle), hiq një gur të kundërshtarit.",error:"Gabim"},
+  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Mühle",timer:"Sekundenkönig",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",soloTimer:"🤖 Alleine spielen",practiceOnly:"Training gegen den Computer — zählt nicht für die Wochenrangliste.",you:"Du",opponents:"Gegner",active:"Im Spiel",soundOn:"🔊 Ton AN",soundOff:"🔇 Ton AUS",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Mühle darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
+  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",soloTimer:"🤖 Tek başına oyna",practiceOnly:"Bilgisayara karşı antrenman — haftalık sıralamaya sayılmaz.",you:"Sen",opponents:"Rakipler",active:"Oyunda",soundOn:"🔊 Ses AÇIK",soundOff:"🔇 Ses KAPALI",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
 };
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
@@ -33,6 +34,104 @@ let selected=null;
 let aiTimer=null;
 let timerPlayers=[];
 let timerPhaseTimeout=null;
+let gameAudioContext=null;
+let lastTimerSoundKey="";
+let timerSoundEnabled=localStorage.getItem(TIMER_SOUND_KEY)!=="off";
+
+async function ensureGameAudio(){
+  if(!timerSoundEnabled) return null;
+  try{
+    if(!gameAudioContext){
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtx) return null;
+      gameAudioContext=new AudioCtx();
+    }
+    if(gameAudioContext.state==="suspended") await gameAudioContext.resume();
+    return gameAudioContext;
+  }catch(_){
+    return null;
+  }
+}
+
+function soundTone(frequency,duration=0.12,delay=0,type="sine",gainValue=0.16){
+  if(!timerSoundEnabled) return;
+  ensureGameAudio().then(ctx=>{
+    if(!ctx) return;
+    const start=ctx.currentTime+delay;
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.type=type;
+    osc.frequency.setValueAtTime(frequency,start);
+    gain.gain.setValueAtTime(0.0001,start);
+    gain.gain.exponentialRampToValueAtTime(gainValue,start+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001,start+duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(start);
+    osc.stop(start+duration+0.02);
+  });
+}
+
+function playTimerSound(kind){
+  if(!timerSoundEnabled) return;
+  if(kind==="start"){
+    soundTone(660,0.12,0);
+    soundTone(880,0.18,0.14);
+  }else if(kind==="stop"){
+    soundTone(440,0.09,0,"square",0.10);
+  }else if(kind==="win"){
+    soundTone(523,0.12,0);
+    soundTone(659,0.12,0.13);
+    soundTone(784,0.24,0.26);
+  }else if(kind==="lose"){
+    soundTone(330,0.16,0);
+    soundTone(220,0.30,0.17);
+  }else{
+    soundTone(520,0.12,0);
+  }
+}
+
+function setTimerSound(enabled){
+  timerSoundEnabled=!!enabled;
+  localStorage.setItem(TIMER_SOUND_KEY,timerSoundEnabled?"on":"off");
+  if(timerSoundEnabled){
+    ensureGameAudio();
+    playTimerSound("stop");
+  }
+}
+
+function timerInitials(name=""){
+  const parts=String(name).trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return "?";
+  return parts.slice(0,2).map(p=>p[0]?.toUpperCase()||"").join("");
+}
+
+function maybePlayTimerStateSound(st,started){
+  if(!room || room.game_type!=="timer" || !timerSoundEnabled) return;
+
+  let key="";
+  let kind="";
+
+  if(st.phase==="countdown" && started){
+    key="start:"+room.id+":"+(st.round||0);
+    kind="start";
+  }else if(st.phase==="results"){
+    key="result:"+room.id+":"+(st.round||0)+":"+(st.eliminated_device||"");
+    kind=st.eliminated_device===deviceId?"lose":"win";
+  }else if(st.phase==="finished"){
+    key="finished:"+room.id+":"+(st.round||0)+":"+(st.winner_device||"");
+    kind=st.winner_device===deviceId?"win":"lose";
+  }
+
+  if(key && key!==lastTimerSoundKey){
+    lastTimerSoundKey=key;
+    playTimerSound(kind);
+  }
+}
+
+root?.addEventListener("pointerdown",()=>{
+  if(timerSoundEnabled) ensureGameAudio();
+},{passive:true});
 
 function escapeHtml(value=""){
   return String(value)
@@ -179,6 +278,7 @@ function renderLobby(msg=""){
 
 function startTimerSoloGame(){
   const name=timerName();
+  lastTimerSoundKey="";
   if(!name){ renderLobby(tr("needName")); return; }
 
   if(channel){ supabase.removeChannel(channel); channel=null; }
@@ -311,6 +411,7 @@ async function joinRoom(){
 
 async function openRoom(r){
   room=r; selected=null;
+  if(room.game_type==="timer") lastTimerSoundKey="";
   if(room.game_type==="timer") await loadTimerPlayers();
   subscribeRoom();
   renderRoom();
@@ -404,7 +505,11 @@ function scheduleTimerPhaseRender(){
   if(delay>0 && delay<15000){
     timerPhaseTimeout=setTimeout(()=>{
       timerPhaseTimeout=null;
-      if(room?.game_type==="timer") renderTimerRoom();
+      if(room?.game_type==="timer"){
+        playTimerSound("start");
+        lastTimerSoundKey="start:"+room.id+":"+(room.state?.round||0);
+        renderTimerRoom();
+      }
     },delay+30);
   }
 }
@@ -421,6 +526,31 @@ function renderTimerRoom(){
   const started=startAt && Date.now()>=startAt;
   const canStop=phase==="countdown" && started && me && !me.eliminated && me.stop_ms==null;
   const waitingForStart=phase==="countdown" && !started;
+  const opponents=timerPlayers.filter(p=>p.device_id!==deviceId);
+
+  const meCard=me ? `
+    <div class="timer-face-card me ${me.eliminated?"eliminated":""}">
+      <div class="timer-avatar">${escapeHtml(timerInitials(me.display_name))}</div>
+      <div class="timer-face-name">${escapeHtml(me.display_name)}</div>
+      <div class="timer-face-label">👤 ${tr("you")}</div>
+    </div>` : "";
+
+  const opponentCards=opponents.map(p=>`
+    <div class="timer-face-card opponent ${p.eliminated?"eliminated":""}">
+      <div class="timer-avatar">${p.device_id==="computer"?"🤖":escapeHtml(timerInitials(p.display_name))}</div>
+      <div class="timer-face-name">${escapeHtml(p.display_name)}</div>
+      <div class="timer-face-label">${p.eliminated?"❌ "+tr("eliminated"):"🟢 "+tr("active")}</div>
+    </div>`).join("");
+
+  const versusHtml=`
+    <div class="timer-versus">
+      <div class="timer-versus-side">${meCard}</div>
+      <div class="timer-vs">VS</div>
+      <div class="timer-opponents">
+        <div class="timer-opponents-title">${tr("opponents")}</div>
+        <div class="timer-opponent-grid">${opponentCards || "—"}</div>
+      </div>
+    </div>`;
 
   let center="";
   if(phase==="lobby"){
@@ -472,7 +602,11 @@ function renderTimerRoom(){
           </div>
           ${localTimer ? "" : `<button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>`}
         </div>
-        <div class="timer-round-label">⏱️ ${tr("timer")} · ${tr("round")} ${st.round||0}</div>
+        <div class="timer-round-line">
+          <div class="timer-round-label">⏱️ ${tr("timer")} · ${tr("round")} ${st.round||0}</div>
+          <button id="timerSoundButton" class="secondary timer-sound-button" type="button">${timerSoundEnabled?tr("soundOn"):tr("soundOff")}</button>
+        </div>
+        ${versusHtml}
         <div class="timer-center">${center}</div>
       </section>
 
@@ -487,6 +621,12 @@ function renderTimerRoom(){
         <button id="leaveGame" class="secondary" type="button">${tr("leave")}</button>
       </div>
     </div>`;
+
+  const soundButton=document.getElementById("timerSoundButton");
+  if(soundButton) soundButton.onclick=async()=>{
+    setTimerSound(!timerSoundEnabled);
+    renderTimerRoom();
+  };
 
   const copy=document.getElementById("copyRoom");
   if(copy) copy.onclick=async()=>{ await navigator.clipboard.writeText(room.code); copy.textContent=tr("copied"); };
@@ -504,12 +644,14 @@ function renderTimerRoom(){
   if(leave) leave.onclick=()=>{ clearTimerPhaseTimeout(); if(channel)supabase.removeChannel(channel); channel=null; room=null; renderLobby(); };
 
   if(waitingForStart) scheduleTimerPhaseRender();
+  maybePlayTimerStateSound(st,started);
   if(!localTimer) loadTimerLeaderboardInto("timerRoomLeaderboard");
 }
 
 async function startTimerRound(){
   const button=document.getElementById("startTimerRound");
   if(button) button.disabled=true;
+  await ensureGameAudio();
 
   if(room?.localTimer){
     const delay=1800+Math.floor(Math.random()*3200);
@@ -548,6 +690,7 @@ async function startTimerRound(){
 async function stopTimer(){
   const button=document.getElementById("timerStopButton");
   if(button) button.disabled=true;
+  playTimerSound("stop");
 
   if(room?.localTimer){
     const startAt=new Date(room.state.start_at).getTime();
