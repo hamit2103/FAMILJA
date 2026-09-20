@@ -9,6 +9,30 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <title>PAJAZITI</title>
+  <style>
+    /* Inline menu-order hotfix */
+    #menuOrderAdmin{
+      margin:0 0 16px;padding:14px;border-radius:18px;
+      background:#eef2ff;border:1px solid #c7d2fe;
+    }
+    #menuOrderAdmin.hidden{display:none!important}
+    .menu-order-head{display:grid;gap:3px;margin-bottom:10px}
+    .menu-order-list{display:grid;gap:8px;margin-bottom:10px}
+    .menu-order-row{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:10px 12px;border-radius:14px;background:#fff
+    }
+    .menu-order-name{font-weight:850}
+    .menu-order-actions{display:flex;gap:6px}
+    .menu-order-move{
+      width:46px;min-width:46px;padding:9px 0;border:0;border-radius:12px;
+      background:#e5e7eb;font-size:18px
+    }
+    #menuOrderSave{
+      width:100%;border:0;border-radius:14px;padding:13px;
+      background:#2563eb;color:#fff;font-weight:850
+    }
+  </style>
 </head>
 <body>
   <main class="shell">
@@ -193,6 +217,126 @@
     </section>
   </main>
 
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
+
+    if (!window.__PAJAZITI_MENU_ORDER_HOTFIX__) {
+      window.__PAJAZITI_MENU_ORDER_HOTFIX__ = true;
+
+      const ADMIN_EMAIL = "admin@familja.local";
+      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab"];
+      const LABELS = {
+        galleryTab:"📷 Foto",
+        infoTab:"ℹ️ Informacion",
+        prayerTab:"🕌 Namazi",
+        gamesTab:"🎮 Lojëra",
+        tvTab:"📺 TV",
+        radioTab:"📻 Radio"
+      };
+
+      const supa = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth:{persistSession:true,autoRefreshToken:true}
+      });
+
+      const tabs = document.getElementById("appTabs");
+      const box = document.getElementById("menuOrderAdmin");
+      const list = document.getElementById("menuOrderList");
+      const save = document.getElementById("menuOrderSave");
+      const status = document.getElementById("menuOrderStatus");
+
+      const normalize = (order) => {
+        const arr = Array.isArray(order) ? order.filter(id => DEFAULT_ORDER.includes(id)) : [];
+        return [...new Set([...arr, ...DEFAULT_ORDER])];
+      };
+
+      const current = () =>
+        Array.from(tabs?.querySelectorAll(".app-tab") || [])
+          .map(el => el.id)
+          .filter(id => DEFAULT_ORDER.includes(id));
+
+      const apply = (order) => {
+        if (!tabs) return;
+        normalize(order).forEach(id => {
+          const el = document.getElementById(id);
+          if (el) tabs.appendChild(el);
+        });
+      };
+
+      const renderAdmin = () => {
+        if (!list) return;
+        const order = current();
+        list.innerHTML = order.map((id,i) => `
+          <div class="menu-order-row" data-id="${id}">
+            <span class="menu-order-name">${LABELS[id] || id}</span>
+            <div class="menu-order-actions">
+              <button type="button" class="menu-order-move" data-dir="up" ${i===0?"disabled":""}>⬆️</button>
+              <button type="button" class="menu-order-move" data-dir="down" ${i===order.length-1?"disabled":""}>⬇️</button>
+            </div>
+          </div>`).join("");
+
+        list.querySelectorAll(".menu-order-move").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const row = btn.closest(".menu-order-row");
+            const rows = Array.from(list.querySelectorAll(".menu-order-row"));
+            const i = rows.indexOf(row);
+
+            if (btn.dataset.dir === "up" && i > 0) {
+              list.insertBefore(row, rows[i-1]);
+            } else if (btn.dataset.dir === "down" && i < rows.length - 1) {
+              list.insertBefore(rows[i+1], row);
+            }
+
+            const next = Array.from(list.querySelectorAll(".menu-order-row")).map(r => r.dataset.id);
+            apply(next);
+            renderAdmin();
+          });
+        });
+      };
+
+      const load = async () => {
+        const { data } = await supa.from("app_settings")
+          .select("value")
+          .eq("key","tab_order")
+          .maybeSingle();
+        apply(data?.value || DEFAULT_ORDER);
+        const { data: sessionData } = await supa.auth.getSession();
+        const isAdmin = sessionData.session?.user?.email === ADMIN_EMAIL;
+        box?.classList.toggle("hidden", !isAdmin);
+        if (isAdmin) renderAdmin();
+      };
+
+      save?.addEventListener("click", async () => {
+        const { data: sessionData } = await supa.auth.getSession();
+        const user = sessionData.session?.user;
+        if (!user || user.email !== ADMIN_EMAIL) return;
+
+        save.disabled = true;
+        if (status) status.textContent = "Po ruhet...";
+
+        const { error } = await supa.from("app_settings").upsert({
+          key:"tab_order",
+          value:current(),
+          updated_at:new Date().toISOString(),
+          updated_by:user.id
+        }, { onConflict:"key" });
+
+        save.disabled = false;
+        if (status) {
+          status.textContent = error ? "Nuk u ruajt: " + error.message : "U ruajt. Renditja u del të gjithëve.";
+          status.className = "message" + (error ? " error" : " success");
+        }
+      });
+
+      supa.auth.onAuthStateChange(() => setTimeout(load,0));
+
+      supa.channel("menu-order-hotfix")
+        .on("postgres_changes",{event:"*",schema:"public",table:"app_settings"},load)
+        .subscribe();
+
+      await load();
+    }
+  </script>
   <script type="module" src="app.js"></script>
   <script type="module" src="games.js"></script>
   <script type="module" src="tv.js"></script>
