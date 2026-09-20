@@ -244,7 +244,7 @@ function renderLobby(msg=""){
         <p class="muted">${tr("choose")}</p>
         <div class="games-choice">
           <button class="game-choice ${selectedType==="chess"?"active":""}" data-game="chess">♟️ ${tr("chess")}</button>
-          <button class="game-choice ${selectedType==="morris"?"active":""}" data-game="morris">⭕ ${tr("morris")}</button>
+          <button class="game-choice ${selectedType==="morris"?"active":""}" data-game="morris">🟣 ${tr("morris")}</button>
           <button class="game-choice ${selectedType==="timer"?"active":""}" data-game="timer">⏱️ ${tr("timer")}</button>
         </div>
 
@@ -460,22 +460,22 @@ function renderRoom(){
   const waiting=!room.player2_device;
   const local=!!room.local;
   root.innerHTML=`
-    <div class="games-shell">
-      <section class="card">
+    <div class="games-shell ${room.game_type==="morris"?"morris-game-shell":""}">
+      <section class="card ${room.game_type==="morris"?"morris-player-card":""}">
         <div class="game-room-head">
           <div>
             <div class="muted small">${local ? "🤖 "+tr("computerName") : tr("room")}</div>
-            <div class="game-room-code">${local ? (room.game_type==="chess"?"♟️ "+tr("chess"):"⭕ "+tr("morris")) : room.code}</div>
+            <div class="game-room-code">${local ? (room.game_type==="chess"?"♟️ "+tr("chess"):"🟣 "+tr("morris")) : room.code}</div>
           </div>
           ${local ? "" : `<button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>`}
         </div>
         <div class="game-status">${waiting?tr("waiting"):statusText()}</div>
         <div class="game-meta-grid">
-          <div class="game-meta-box">⚪ ${tr("white")}: ✓</div>
-          <div class="game-meta-box">⚫ ${tr("black")}: ${local ? "🤖 "+tr("computerName") : (room.player2_device===deviceId?"✓":room.player2_device?"●":"…")}</div>
+          <div class="game-meta-box ${room.game_type==="morris"?"morris-player-white":""}">⚪ ${tr("white")}: ✓</div>
+          <div class="game-meta-box ${room.game_type==="morris"?"morris-player-black":""}">⚫ ${tr("black")}: ${local ? "🤖 "+tr("computerName") : (room.player2_device===deviceId?"✓":room.player2_device?"●":"…")}</div>
         </div>
       </section>
-      <section class="card">
+      <section class="card ${room.game_type==="morris"?"morris-board-card":""}">
         <div class="game-board-wrap" id="gameBoard"></div>
         <div class="game-help">${room.game_type==="chess"?tr("helpChess"):tr("helpMorris")}</div>
         <div class="game-actions">
@@ -845,6 +845,7 @@ function countPieces(board,color){return board.filter(x=>x===color).length;}
 
 function renderMorris(){
   const wrap=document.getElementById("gameBoard"),st=room.state,board=document.createElement("div");board.className="morris-board";
+  wrap.classList.add("morris-board-wrap");
   for(const [a,b] of M_EDGES){
     const [x1,y1]=M_POS[a],[x2,y2]=M_POS[b],dx=(x2-x1)*100,dy=(y2-y1)*100,len=Math.hypot(dx,dy),ang=Math.atan2(dy,dx)*180/Math.PI;
     const line=document.createElement("div");line.className="morris-line";line.style.left=(x1*100)+"%";line.style.top=(y1*100)+"%";line.style.width=len+"%";line.style.transform=`rotate(${ang}deg)`;board.appendChild(line);
