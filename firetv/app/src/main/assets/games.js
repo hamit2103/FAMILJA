@@ -879,9 +879,22 @@ function renderWarGame(){
   const wins=warWins();
   const activeBonus=warBonusHeartCount();
 
+  const soldierMarkup=()=>`
+    <span class="war-soldier-figure" aria-hidden="true">
+      <span class="war-soldier-helmet"></span>
+      <span class="war-soldier-head"></span>
+      <span class="war-soldier-body"></span>
+      <span class="war-soldier-arm war-soldier-arm-a"></span>
+      <span class="war-soldier-arm war-soldier-arm-b"></span>
+      <span class="war-soldier-hand"></span>
+      <span class="war-rifle-real"></span>
+      <span class="war-soldier-leg war-soldier-leg-a"></span>
+      <span class="war-soldier-leg war-soldier-leg-b"></span>
+    </span>`;
+
   root.innerHTML=`
     <div class="war-shell">
-      <section class="war-arena">
+      <section class="war-arena war-arena-new">
         <div class="war-topbar">
           <button id="warBack" class="war-exit" type="button">← ${tr("backGames")}</button>
           <strong>⚔️ ${tr("war")}</strong>
@@ -890,62 +903,60 @@ function renderWarGame(){
           <span id="warAudioStatus" class="war-audio-status"></span>
         </div>
 
-        <article class="war-fighter war-enemy-card ${e.burned?"burned":""}">
-          <div class="war-fighter-head">
-            <div>
+        <div id="warBattleScene" class="war-battle-scene war-battle-scene-new">
+          <div class="war-combatant war-combatant-enemy ${e.burned?"burned":""}">
+            <div class="war-combatant-info">
               <span class="war-side-label">KUNDËRSHTARI</span>
-              <h2>🤖 ${escapeHtml(e.name)}</h2>
+              <strong class="war-combatant-name">🤖 ${escapeHtml(e.name)}</strong>
+              <div class="war-hearts war-compact-hearts" aria-label="${e.hp} zemra">${warHearts(e.hp,e.maxHp)}</div>
+              <div class="war-status-icons war-status-compact">
+                ${e.protect>0?`<span>🛡️×${e.protect}</span>`:""}
+                ${e.frozen?"<span>🧊</span>":""}
+                ${e.burned?"<span>🔥</span>":""}
+              </div>
             </div>
-            <div class="war-status-icons">
-              ${e.protect>0?`<span>🛡️×${e.protect}</span>`:""}
-              ${e.frozen?"<span>🧊</span>":""}
-              ${e.burned?"<span>🔥 I djegur</span>":""}
+            <div class="war-shooter war-shooter-enemy">
+              ${soldierMarkup()}
             </div>
           </div>
-          <div class="war-hearts" aria-label="${e.hp} zemra">${warHearts(e.hp,e.maxHp)}</div>
-        </article>
 
-        <div class="war-middle">
-          <div id="warBattleScene" class="war-battle-scene" aria-hidden="true">
-            <div class="war-shooter war-shooter-enemy">
-              <span class="war-person">🧍</span>
-              <span class="war-gun">🔫</span>
-            </div>
-            <div class="war-shot-lane">
-              <span id="warProjectile" class="war-projectile">•</span>
-              <span id="warExplosion" class="war-explosion">💥</span>
+          <div class="war-shot-lane">
+            <span id="warProjectile" class="war-projectile">•</span>
+            <span id="warExplosion" class="war-explosion">💥</span>
+          </div>
+
+          <div class="war-combatant war-combatant-player ${p.burned?"burned":""}">
+            <div class="war-combatant-info">
+              <span class="war-side-label">TI</span>
+              <strong class="war-combatant-name">🇦🇱 ${escapeHtml(p.name)}</strong>
+              <div class="war-hearts war-compact-hearts" aria-label="${p.hp} zemra">${warHearts(p.hp,p.maxHp)}</div>
+              <div class="war-status-icons war-status-compact">
+                ${p.protect>0?`<span>🛡️×${p.protect}</span>`:""}
+                ${p.frozen?"<span>🧊</span>":""}
+                ${p.burned?"<span>🔥</span>":""}
+              </div>
             </div>
             <div class="war-shooter war-shooter-player">
-              <span class="war-person">🧍</span>
-              <span class="war-gun">🔫</span>
+              ${soldierMarkup()}
             </div>
+          </div>
+
+          <aside class="war-weapons-panel">
+            <div class="war-weapons-title">ARMËT E TUA</div>
+            <div class="war-actions war-side-actions">
+              ${warActionCard(p.special)}
+              ${warActionCard(p.special2)}
+            </div>
+          </aside>
+        </div>
+
+        <div class="war-battle-info">
+          <div class="war-progress war-progress-inline">
+            <strong>🏆 ${wins} fitore</strong>
+            <small>🎮 ${games} lojëra · ❤️ bonus: ${activeBonus}</small>
           </div>
           <div class="war-vs">VS</div>
           <p id="warMessage" class="war-message">${escapeHtml(s.message)}</p>
-        </div>
-
-        <article class="war-fighter war-player-card ${p.burned?"burned":""}">
-          <div class="war-fighter-head">
-            <div>
-              <span class="war-side-label">TI</span>
-              <h2>🇦🇱 ${escapeHtml(p.name)}</h2>
-            </div>
-            <div class="war-progress">
-              <strong>🏆 ${wins} fitore</strong>
-              <small>🎮 ${games} lojëra · ❤️ bonus: ${activeBonus}</small>
-            </div>
-          </div>
-          <div class="war-hearts" aria-label="${p.hp} zemra">${warHearts(p.hp,p.maxHp)}</div>
-          <div class="war-status-icons">
-            ${p.protect>0?`<span>🛡️ Mbrojtje ×${p.protect}</span>`:""}
-            ${p.frozen?"<span>🧊 Akull: arma tjetër bëhet Sulm</span>":""}
-            ${p.burned?"<span>🔥 I djegur</span>":""}
-          </div>
-        </article>
-
-        <div class="war-actions">
-          ${warActionCard(p.special)}
-          ${warActionCard(p.special2)}
         </div>
 
         ${s.over?'<button id="warRestart" class="primary war-restart" type="button">🔄 Luaj përsëri</button>':""}
