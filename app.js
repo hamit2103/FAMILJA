@@ -28,9 +28,9 @@ const $ = (id) => document.getElementById(id);
 const LANGUAGE_KEY = "pajaziti-language";
 const I18N = {
   sq: {
-    "language.label":"Gjuha","app.subtitle":"Album privat për foto dhe video","mode.family":"Familja","mode.admin":"Admin",
+    "language.label":"Gjuha","app.subtitle":"Album privat për foto dhe video","mode.family":"Përdoruesi","mode.admin":"Admin",
     "login.label":"Kodi i hyrjes","login.placeholder":"Shkruaj kodin","login.adminPlaceholder":"Kodi i administratorit","login.familyPlaceholder":"Kodi i familjes",
-    "login.button":"Hyr","install.app":"Instalo aplikacionin","install.short":"Instalo","share":"Ndaje APK-në","logout":"Dil","online":"Online:",
+    "login.button":"Hyr","login.userButton":"Hyr si Përdorues","login.userDirectHint":"Përdoruesi hyn direkt pa kod.","install.app":"Instalo aplikacionin","install.short":"Instalo","share":"Ndaje APK-në","logout":"Dil","online":"Online:",
     "auth.note":"Kodi kontrollohet përmes Supabase Authentication. Fotot dhe videot ruhen privatisht në Supabase dhe nuk ruhen në telefonin e vizitorit, përveç nëse ai zgjedh t’i shkarkojë.",
     "tabs.photos":"Reklama","tabs.info":"Informacion","tabs.prayer":"Namazi","upload.addPhoto":"Shto reklamë","upload.addMedia":"Shto reklamë (foto ose video)",
     "upload.adminHint":"Vetëm administratori mund të ngarkojë dhe menaxhojë reklamat.","upload.familyTitle":"Shto fotot e tua","upload.button":"Ngarko",
@@ -66,9 +66,9 @@ const I18N = {
     "install.chrome":"Në Chrome, hap menunë ⋮ dhe zgjidh “Install app” ose “Add to Home screen”."
   },
   de: {
-    "language.label":"Sprache","app.subtitle":"Privates Album für Fotos und Videos","mode.family":"Familie","mode.admin":"Admin",
+    "language.label":"Sprache","app.subtitle":"Privates Album für Fotos und Videos","mode.family":"Benutzer","mode.admin":"Admin",
     "login.label":"Zugangscode","login.placeholder":"Code eingeben","login.adminPlaceholder":"Administrator-Code","login.familyPlaceholder":"Familien-Code",
-    "login.button":"Anmelden","install.app":"App installieren","install.short":"Installieren","share":"APK teilen","logout":"Abmelden","online":"Online:",
+    "login.button":"Anmelden","login.userButton":"Als Benutzer anmelden","login.userDirectHint":"Benutzer meldet sich direkt ohne Code an.","install.app":"App installieren","install.short":"Installieren","share":"APK teilen","logout":"Abmelden","online":"Online:",
     "auth.note":"Der Code wird über Supabase Authentication geprüft. Fotos und Videos werden privat in Supabase gespeichert und nicht auf dem Gerät des Besuchers gespeichert, außer er lädt sie herunter.",
     "tabs.photos":"Werbung","tabs.info":"Information","tabs.prayer":"Gebet","upload.addPhoto":"Werbung hinzufügen","upload.addMedia":"Werbung hinzufügen (Foto oder Video)",
     "upload.adminHint":"Nur der Administrator kann Werbung hochladen und verwalten.","upload.familyTitle":"Deine Fotos hinzufügen","upload.button":"Hochladen",
@@ -104,9 +104,9 @@ const I18N = {
     "install.chrome":"Öffne in Chrome das Menü ⋮ und wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“."
   },
   tr: {
-    "language.label":"Dil","app.subtitle":"Fotoğraf ve videolar için özel albüm","mode.family":"Aile","mode.admin":"Yönetici",
+    "language.label":"Dil","app.subtitle":"Fotoğraf ve videolar için özel albüm","mode.family":"Kullanıcı","mode.admin":"Yönetici",
     "login.label":"Giriş kodu","login.placeholder":"Kodu gir","login.adminPlaceholder":"Yönetici kodu","login.familyPlaceholder":"Aile kodu",
-    "login.button":"Giriş yap","install.app":"Uygulamayı yükle","install.short":"Yükle","share":"APK'yı paylaş","logout":"Çıkış","online":"Çevrimiçi:",
+    "login.button":"Giriş yap","login.userButton":"Kullanıcı olarak gir","login.userDirectHint":"Kullanıcı kod olmadan doğrudan giriş yapar.","install.app":"Uygulamayı yükle","install.short":"Yükle","share":"APK'yı paylaş","logout":"Çıkış","online":"Çevrimiçi:",
     "auth.note":"Kod Supabase Authentication üzerinden kontrol edilir. Fotoğraf ve videolar Supabase'de özel olarak saklanır ve ziyaretçi indirmeyi seçmedikçe telefonuna kaydedilmez.",
     "tabs.photos":"Reklamlar","tabs.info":"Bilgi","tabs.prayer":"Namaz","upload.addPhoto":"Reklam ekle","upload.addMedia":"Reklam ekle (fotoğraf veya video)",
     "upload.adminHint":"Reklamları yalnızca yönetici yükleyebilir ve yönetebilir.","upload.familyTitle":"Fotoğraflarını ekle","upload.button":"Yükle",
@@ -589,7 +589,7 @@ function setMode(next) {
   codeInput.placeholder = t("login.adminPlaceholder");
   adminCodeWrap?.classList.toggle("hidden", next !== "admin");
   familyDirectHint?.classList.toggle("hidden", next === "admin");
-  loginBtn.textContent = next === "admin" ? t("login.button") : "Hyr te Familja";
+  loginBtn.textContent = next === "admin" ? t("login.button") : t("login.userButton");
   loginMessage.textContent = "";
 }
 familyMode.addEventListener("click", () => setMode("family"));
@@ -662,7 +662,7 @@ async function login() {
     }
   } catch (error) {
     console.error(error);
-    showMessage(loginMessage, "Nuk mund të hyhet te Familja. Provo përsëri.", "error");
+    showMessage(loginMessage, "Nuk mund të hyhet si përdorues. Provo përsëri.", "error");
   } finally {
     loginBtn.disabled = false;
   }
