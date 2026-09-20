@@ -410,7 +410,7 @@ async function loadWarMultiState(roomId){
   const [{data:roomData,error:roomError},{data:playersData,error:playersError}]=await Promise.all([
     supabase.from("war_multi_rooms").select("*").eq("id",roomId).single(),
     supabase.from("war_multi_players")
-      .select("room_id,device_id,display_name,hp,max_hp,protect,frozen,special,eliminated,turn_order")
+      .select("room_id,device_id,display_name,hp,max_hp,protect,frozen,burned,special,special2,eliminated,turn_order")
       .eq("room_id",roomId)
       .order("turn_order",{ascending:true})
   ]);
@@ -433,7 +433,7 @@ function warMultiPlayerCard(player){
   const isTurn=warMultiRoom?.turn_device===player.device_id;
   const selected=warMultiSelectedTarget===player.device_id;
   return `
-    <button class="war-multi-player ${isMe?"me":""} ${isTurn?"turn":""} ${selected?"selected":""} ${player.eliminated?"eliminated":""}"
+    <button class="war-multi-player ${isMe?"me":""} ${isTurn?"turn":""} ${selected?"selected":""} ${player.eliminated?"eliminated":""} ${player.burned?"burned":""}"
       type="button"
       data-war-target="${escapeHtml(player.device_id)}"
       ${isMe||player.eliminated?"disabled":""}>
@@ -443,6 +443,7 @@ function warMultiPlayerCard(player){
         ${player.eliminated?"☠️ Eliminuar":""}
         ${player.protect>0?" 🛡️×"+player.protect:""}
         ${player.frozen?" 🧊":""}
+        ${player.burned?" 🔥":""}
         ${isTurn&&!player.eliminated?" 🎯 Radha":""}
       </span>
     </button>`;
@@ -499,7 +500,8 @@ function renderWarMultiGame(){
     warMultiSelectedTarget=opponents[0].device_id;
   }
 
-  const special=me?.special||"bomb";
+  const special=me?.special||"attack";
+  const special2=me?.special2||"attack";
 
   root.innerHTML=`
     <div class="war-shell">
@@ -535,8 +537,8 @@ function renderWarMultiGame(){
           </div>
 
           <div class="war-actions">
-            ${warActionCard("attack")}
             ${warActionCard(special)}
+            ${warActionCard(special2)}
           </div>
         `}
       </section>
@@ -711,13 +713,16 @@ async function startWarMultiSearch(){
 let warGameState=null;
 
 const WAR_SPECIALS=[
-  {key:"bomb",label:"Bombë",icon:"💣",weight:50,small:"2 sulme"},
-  {key:"heart",label:"Zemër",icon:"❤️",weight:20,small:"+2 ty · +1 kundërshtarit"},
-  {key:"helicopter",label:"Helikopter",icon:"🚁",weight:1,small:"−2 ❤️ · gjuan prapë"},
-  {key:"atom",label:"Atom",icon:"☢️",weight:2,small:"−3 ❤️"},
-  {key:"protect",label:"Mbrojtje",icon:"🛡️",weight:5,small:"mbron 2 herë"},
-  {key:"azrael",label:"Melaqja Asrail",icon:"👼",weight:1,small:"KO pa mbrojtje"},
-  {key:"ice",label:"Akull",icon:"🧊",weight:26,small:"arma tjetër bëhet Sulm"}
+  {key:"attack",label:"Sulm",icon:"🔫",weight:80,small:"−1 ❤️"},
+  {key:"bomb",label:"Bombë",icon:"💣",weight:28,small:"2 sulme"},
+  {key:"heart",label:"Zemër",icon:"❤️",weight:16,small:"+1 ❤️ · max 20"},
+  {key:"helicopter",label:"Helikopter",icon:"🚁",weight:3,small:"−2 ❤️ · gjuan prapë"},
+  {key:"atom",label:"Atom",icon:"☢️",weight:5,small:"−3 ❤️"},
+  {key:"protect",label:"Mbrojtje",icon:"🛡️",weight:30,small:"mbron 2 herë"},
+  {key:"azrael",label:"Melaqja Asrail",icon:"👼",weight:2,small:"KO pa mbrojtje"},
+  {key:"ice",label:"Akull",icon:"🧊",weight:15,small:"arma tjetër bëhet Sulm"},
+  {key:"drone",label:"Droni",icon:"🛸",weight:12,small:"−1 ❤️ · gjuan prapë"},
+  {key:"fire",label:"Rreth i zjarrtë",icon:"⭕",weight:13,small:"−2 ❤️ · e bën të zi"}
 ];
 
 function warWins(){
@@ -761,7 +766,18 @@ function warRollSpecial(){
     roll-=item.weight;
     if(roll<0) return item.key;
   }
-  return "bomb";
+  return "attack";
+}
+
+function warRollPair(){
+  const first=warRollSpecial();
+  let second=warRollSpecial();
+  let guard=0;
+  while(second===first && guard<8){
+    second=warRollSpecial();
+    guard++;
+  }
+  return [first,second];
 }
 
 function warSpecial(key){
@@ -770,11 +786,13 @@ function warSpecial(key){
 
 function warInitialState(){
   const bonus=warBonusHeartCount();
-  const maxHp=5+bonus;
+  const maxHp=Math.min(20,5+bonus);
   const playerName=warProfile?.display_name||localStorage.getItem(WAR_NAME_KEY)||tr("you");
+  const playerWeapons=warRollPair();
+  const enemyWeapons=warRollPair();
   return {
-    player:{name:playerName,hp:maxHp,maxHp,protect:0,frozen:false,special:warRollSpecial()},
-    enemy:{name:tr("computerName"),hp:5,maxHp:5,protect:0,frozen:false,special:warRollSpecial()},
+    player:{name:playerName,hp:maxHp,maxHp,protect:0,frozen:false,burned:false,special:playerWeapons[0],special2:playerWeapons[1]},
+    enemy:{name:tr("computerName"),hp:5,maxHp:5,protect:0,frozen:false,burned:false,special:enemyWeapons[0],special2:enemyWeapons[1]},
     turn:"player",
     over:false,
     gameCounted:false,
@@ -839,9 +857,6 @@ function warRecordCompletedGame(won){
 }
 
 function warActionCard(action){
-  if(action==="attack"){
-    return '<button data-war-action="attack" type="button">🔫<strong>Sulm</strong><small>−1 ❤️</small></button>';
-  }
   const item=warSpecial(action);
   return `<button data-war-action="${item.key}" type="button">${item.icon}<strong>${item.label}</strong><small>${item.small}</small></button>`;
 }
@@ -866,7 +881,7 @@ function renderWarGame(){
           <span id="warAudioStatus" class="war-audio-status"></span>
         </div>
 
-        <article class="war-fighter war-enemy-card">
+        <article class="war-fighter war-enemy-card ${e.burned?"burned":""}">
           <div class="war-fighter-head">
             <div>
               <span class="war-side-label">KUNDËRSHTARI</span>
@@ -875,6 +890,7 @@ function renderWarGame(){
             <div class="war-status-icons">
               ${e.protect>0?`<span>🛡️×${e.protect}</span>`:""}
               ${e.frozen?"<span>🧊</span>":""}
+              ${e.burned?"<span>🔥 I djegur</span>":""}
             </div>
           </div>
           <div class="war-hearts" aria-label="${e.hp} zemra">${warHearts(e.hp,e.maxHp)}</div>
@@ -899,7 +915,7 @@ function renderWarGame(){
           <p id="warMessage" class="war-message">${escapeHtml(s.message)}</p>
         </div>
 
-        <article class="war-fighter war-player-card">
+        <article class="war-fighter war-player-card ${p.burned?"burned":""}">
           <div class="war-fighter-head">
             <div>
               <span class="war-side-label">TI</span>
@@ -914,12 +930,13 @@ function renderWarGame(){
           <div class="war-status-icons">
             ${p.protect>0?`<span>🛡️ Mbrojtje ×${p.protect}</span>`:""}
             ${p.frozen?"<span>🧊 Akull: arma tjetër bëhet Sulm</span>":""}
+            ${p.burned?"<span>🔥 I djegur</span>":""}
           </div>
         </article>
 
         <div class="war-actions">
-          ${warActionCard("attack")}
           ${warActionCard(p.special)}
+          ${warActionCard(p.special2)}
         </div>
 
         ${s.over?'<button id="warRestart" class="primary war-restart" type="button">🔄 Luaj përsëri</button>':""}
@@ -1197,8 +1214,8 @@ function playWarSound(kind){
 }
 
 function warSoundForAction(action){
-  if(action==="bomb"||action==="atom"||action==="azrael") return "rocket";
-  if(action==="helicopter") return "attack";
+  if(action==="bomb"||action==="atom"||action==="azrael"||action==="fire") return "rocket";
+  if(action==="helicopter"||action==="drone") return "attack";
   if(action==="heart") return "medkit";
   if(action==="protect"||action==="ice") return "defend";
   return "attack";
@@ -1225,15 +1242,30 @@ function warExecuteAction(actor,target,action,isPlayer){
       ? "💣 Bombë: "+hit.damage+" zemra u humbën."
       : "🛡️ Mbrojtja bllokoi Bombën.";
   }else if(action==="heart"){
-    actor.hp=Math.min(actor.maxHp,actor.hp+2);
-    target.hp=Math.min(target.maxHp,target.hp+1);
-    text="❤️ Zemër: +2 ty dhe +1 kundërshtarit.";
+    const before=actor.hp;
+    actor.hp=Math.min(20,actor.hp+1);
+    actor.maxHp=Math.min(20,Math.max(actor.maxHp,actor.hp));
+    text=actor.hp>before
+      ? "❤️ Zemër: +1 ❤️. Tani ke "+actor.hp+" zemra."
+      : "❤️ Zemër: ke arritur maksimumin 20 zemra.";
   }else if(action==="helicopter"){
     const hit=warDamage(target,2);
     extraTurn=true;
     text=hit.blocked
       ? "🛡️ Mbrojtja bllokoi Helikopterin, por ti gjuan përsëri."
       : "🚁 Helikopter: −"+hit.damage+" ❤️ dhe ti gjuan përsëri.";
+  }else if(action==="drone"){
+    const hit=warDamage(target,1);
+    extraTurn=true;
+    text=hit.blocked
+      ? "🛡️ Mbrojtja bllokoi Dronin, por ti gjuan përsëri."
+      : "🛸 Droni: −"+hit.damage+" ❤️ dhe ti gjuan përsëri.";
+  }else if(action==="fire"){
+    const hit=warDamage(target,2);
+    if(!hit.blocked) target.burned=true;
+    text=hit.blocked
+      ? "🛡️ Mbrojtja bllokoi Rrethin e Zjarrtë."
+      : "⭕🔥 Rrethi i Zjarrtë: −"+hit.damage+" ❤️. Kundërshtari u dogj dhe u bë i zi.";
   }else if(action==="atom"){
     const hit=warDamage(target,3);
     text=hit.blocked
@@ -1271,15 +1303,19 @@ function warAnimateAction(action,fromPlayer,done){
   const target=scene.querySelector(fromPlayer?".war-shooter-enemy":".war-shooter-player");
   const visualAction=(action==="heart"||action==="protect"||action==="ice")?action:
     (action==="helicopter"?"helicopter":
+    (action==="drone"?"drone":
+    (action==="fire"?"fire":
     (action==="atom"?"atom":
     (action==="bomb"?"bomb":
-    (action==="azrael"?"azrael":"attack"))));
+    (action==="azrael"?"azrael":"attack"))))));
 
   shooter?.classList.add("firing");
   target?.classList.remove("hit");
   projectile.className="war-projectile";
   explosion.className="war-explosion";
   projectile.textContent=visualAction==="helicopter"?"🚁":
+    visualAction==="drone"?"🛸":
+    visualAction==="fire"?"⭕":
     visualAction==="atom"?"☢️":
     visualAction==="bomb"?"💣":
     visualAction==="azrael"?"👼":
@@ -1301,6 +1337,8 @@ function warAnimateAction(action,fromPlayer,done){
     explosion.textContent=visualAction==="ice"?"❄️":
       visualAction==="azrael"?"✨":
       visualAction==="helicopter"?"💥":
+      visualAction==="drone"?"💥":
+      visualAction==="fire"?"🔥":
       visualAction==="atom"?"☢️":
       visualAction==="bomb"?"💥":"✴️";
     explosion.classList.add(fromPlayer?"at-top":"at-bottom","show");
@@ -1338,7 +1376,7 @@ function warPlayerAction(action){
 
     if(warFinishIfNeeded()) return renderWarGame();
 
-    p.special=warRollSpecial();
+    [p.special,p.special2]=warRollPair();
 
     if(result.extraTurn){
       warGameState.turn="player";
@@ -1359,8 +1397,10 @@ function warEnemyTurn(){
   const e=s.enemy;
   const p=s.player;
   const wasFrozen=e.frozen;
-  const special=e.special||warRollSpecial();
-  const chosen=Math.random()<.5?"attack":special;
+  if(!e.special||!e.special2){
+    [e.special,e.special2]=warRollPair();
+  }
+  const chosen=Math.random()<.5?e.special:e.special2;
 
   s.turn="animating";
   renderWarGame();
@@ -1378,7 +1418,7 @@ function warEnemyTurn(){
 
       if(warFinishIfNeeded()) return renderWarGame();
 
-      e.special=warRollSpecial();
+      [e.special,e.special2]=warRollPair();
 
       if(result.extraTurn){
         warGameState.turn="enemy";
