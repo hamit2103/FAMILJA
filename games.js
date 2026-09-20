@@ -9,6 +9,7 @@ const root = document.getElementById("gamesRoot");
 const tabLabel = document.getElementById("gamesTabLabel");
 const DEVICE_KEY = "pajaziti-presence-device";
 const LANG_KEY = "pajaziti-language";
+const TIMER_NAME_KEY = "pajaziti-timer-name";
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -17,9 +18,9 @@ if (!deviceId) {
 }
 
 const TXT = {
-  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Mühle",choose:"Zgjidh lojën",create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe (mühle), hiq një gur të kundërshtarit.",error:"Gabim"},
-  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Mühle",choose:"Spiel wählen",create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Mühle darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
-  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",choose:"Oyun seç",create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
+  sq:{games:"Lojëra",online:"Luaj online",computer:"Luaj me kompjuter",computerName:"Kompjuteri",computerThinking:"Kompjuteri po mendon…",newGame:"Lojë e re",chess:"Shah",morris:"Mühle",timer:"Kral i Sekondave",choose:"Zgjidh lojën",playerName:"Emri yt",needName:"Shkruaj emrin tënd.",needPlayers:"Duhet të jenë së paku 2 lojtarë.",ready:"Bëhu gati…",hiddenTime:"Sekondat janë të fshehura",stop:"STOP",stopped:"E ndale! Prit lojtarët e tjerë…",round:"Raundi",startRound:"Fillo raundin",eliminated:"u eliminua",king:"Kral i lojës",power:"Fuqi",weekly:"Renditja javore",lastChampion:"Kampioni i javës së kaluar",wins:"Fitore",players:"Lojtarë",maxPlayers:"2–8 lojtarë",roomLocked:"Loja ka filluar; nuk mund të hyjnë lojtarë të rinj.",youEliminated:"Je eliminuar. Shiko deri në fund.",backGames:"Kthehu te lojërat",,create:"Krijo dhomë",code:"Kodi i dhomës",join:"Hyr në dhomë",waiting:"Duke pritur lojtarin e dytë…",yourTurn:"Radha jote",opponentTurn:"Radha e kundërshtarit",white:"Bardhë",black:"Zi",leave:"Dil nga loja",room:"Dhoma",copy:"Kopjo kodin",copied:"Kodi u kopjua",invalid:"Kodi nuk u gjet.",full:"Dhoma është e mbushur.",gameOver:"Loja përfundoi",winner:"Fituesi",helpChess:"Prek figurën tënde, pastaj katrorin ku dëshiron ta lëvizësh.",helpMorris:"Në fillim vendos 9 gurët. Kur krijon treshe (mühle), hiq një gur të kundërshtarit.",error:"Gabim"},
+  de:{games:"Spiele",online:"Online spielen",computer:"Gegen Computer",computerName:"Computer",computerThinking:"Computer denkt…",newGame:"Neues Spiel",chess:"Schach",morris:"Mühle",timer:"Sekundenkönig",choose:"Spiel wählen",playerName:"Dein Name",needName:"Gib deinen Namen ein.",needPlayers:"Mindestens 2 Spieler sind nötig.",ready:"Mach dich bereit…",hiddenTime:"Die Sekunden sind verborgen",stop:"STOP",stopped:"Gestoppt! Warte auf die anderen…",round:"Runde",startRound:"Runde starten",eliminated:"ist ausgeschieden",king:"König des Spiels",power:"Stärke",weekly:"Wochenrangliste",lastChampion:"Champion der letzten Woche",wins:"Siege",players:"Spieler",maxPlayers:"2–8 Spieler",roomLocked:"Das Spiel hat begonnen; neue Spieler können nicht mehr beitreten.",youEliminated:"Du bist ausgeschieden. Schau bis zum Ende zu.",backGames:"Zurück zu den Spielen",,create:"Raum erstellen",code:"Raumcode",join:"Raum beitreten",waiting:"Warte auf den zweiten Spieler…",yourTurn:"Du bist am Zug",opponentTurn:"Gegner ist am Zug",white:"Weiß",black:"Schwarz",leave:"Spiel verlassen",room:"Raum",copy:"Code kopieren",copied:"Code kopiert",invalid:"Code nicht gefunden.",full:"Raum ist voll.",gameOver:"Spiel beendet",winner:"Gewinner",helpChess:"Tippe deine Figur an und danach das Zielfeld.",helpMorris:"Setze zuerst deine 9 Steine. Bei einer Mühle darfst du einen gegnerischen Stein entfernen.",error:"Fehler"},
+  tr:{games:"Oyunlar",online:"Çevrimiçi oyna",computer:"Bilgisayara karşı oyna",computerName:"Bilgisayar",computerThinking:"Bilgisayar düşünüyor…",newGame:"Yeni oyun",chess:"Satranç",morris:"Dokuz Taş",timer:"Saniye Kralı",choose:"Oyun seç",playerName:"Adın",needName:"Adını yaz.",needPlayers:"En az 2 oyuncu gerekli.",ready:"Hazır ol…",hiddenTime:"Saniyeler gizli",stop:"STOP",stopped:"Durdurdun! Diğer oyuncuları bekle…",round:"Tur",startRound:"Turu başlat",eliminated:"elendi",king:"Oyunun kralı",power:"Güç",weekly:"Haftalık sıralama",lastChampion:"Geçen haftanın şampiyonu",wins:"Galibiyet",players:"Oyuncular",maxPlayers:"2–8 oyuncu",roomLocked:"Oyun başladı; yeni oyuncu katılamaz.",youEliminated:"Elendin. Sonuna kadar izleyebilirsin.",backGames:"Oyunlara dön",,create:"Oda oluştur",code:"Oda kodu",join:"Odaya katıl",waiting:"İkinci oyuncu bekleniyor…",yourTurn:"Sıra sende",opponentTurn:"Sıra rakipte",white:"Beyaz",black:"Siyah",leave:"Oyundan çık",room:"Oda",copy:"Kodu kopyala",copied:"Kod kopyalandı",invalid:"Kod bulunamadı.",full:"Oda dolu.",gameOver:"Oyun bitti",winner:"Kazanan",helpChess:"Kendi taşına, sonra gitmek istediğin kareye dokun.",helpMorris:"Önce 9 taşını yerleştir. Üçlü yaptığında rakibin bir taşını kaldırabilirsin.",error:"Hata"}
 };
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
@@ -30,6 +31,81 @@ let room=null;
 let channel=null;
 let selected=null;
 let aiTimer=null;
+let timerPlayers=[];
+let timerPhaseTimeout=null;
+
+function escapeHtml(value=""){
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;");
+}
+
+function timerName(){
+  const input=document.getElementById("timerPlayerName");
+  const name=(input?.value || localStorage.getItem(TIMER_NAME_KEY) || "").trim().slice(0,24);
+  if(name) localStorage.setItem(TIMER_NAME_KEY,name);
+  return name;
+}
+
+async function fetchRoomById(id){
+  const {data,error}=await supabase.from("game_rooms").select("*").eq("id",id).single();
+  if(error) throw error;
+  return data;
+}
+
+async function loadTimerPlayers(){
+  if(!room || room.game_type!=="timer") return;
+  const {data,error}=await supabase.from("timer_players")
+    .select("room_id,device_id,display_name,eliminated,stop_ms,joined_at")
+    .eq("room_id",room.id)
+    .order("joined_at",{ascending:true});
+  if(!error) timerPlayers=data||[];
+}
+
+function timerPlayer(device){
+  return timerPlayers.find(p=>p.device_id===device);
+}
+
+function timerActivePlayers(){
+  return timerPlayers.filter(p=>!p.eliminated);
+}
+
+function timerMs(ms){
+  return Number.isFinite(Number(ms)) ? (Number(ms)/1000).toFixed(3)+" s" : "—";
+}
+
+async function loadTimerLeaderboard(){
+  const el=document.getElementById("timerLeaderboard");
+  if(!el) return;
+  try{
+    const {data:week}=await supabase.rpc("timer_current_week_start");
+    const current=String(week);
+    const prevDate=new Date(current+"T00:00:00Z");
+    prevDate.setUTCDate(prevDate.getUTCDate()-7);
+    const previous=prevDate.toISOString().slice(0,10);
+
+    const [{data:rows},{data:last},{data:kings}]=await Promise.all([
+      supabase.from("timer_weekly_scores").select("display_name,wins,best_ms,week_start").eq("week_start",current).order("wins",{ascending:false}).order("best_ms",{ascending:true}).limit(8),
+      supabase.from("timer_weekly_scores").select("display_name,wins,week_start").eq("week_start",previous).order("wins",{ascending:false}).order("best_ms",{ascending:true}).limit(1),
+      supabase.from("timer_profiles").select("display_name,power,crowns").order("power",{ascending:false}).limit(3)
+    ]);
+
+    const ranking=(rows||[]).map((r,i)=>`<div class="timer-rank-row"><span>${i+1}. ${escapeHtml(r.display_name)}</span><strong>🏆 ${r.wins}</strong></div>`).join("");
+    const lastChampion=last?.[0] ? `<div class="timer-champion">🏆 ${tr("lastChampion")}: <strong>${escapeHtml(last[0].display_name)}</strong></div>` : "";
+    const kingRows=(kings||[]).map((r,i)=>`<div class="timer-rank-row"><span>${i===0?"👑":"⚡"} ${escapeHtml(r.display_name)}</span><strong>${tr("power")}: ${r.power}</strong></div>`).join("");
+
+    el.innerHTML=`
+      <h3>🏆 ${tr("weekly")}</h3>
+      ${lastChampion}
+      <div class="timer-ranking">${ranking || "—"}</div>
+      <h3>👑 ${tr("king")}</h3>
+      <div class="timer-ranking">${kingRows || "—"}</div>`;
+  }catch(error){
+    console.warn("Timer leaderboard",error);
+  }
+}
 
 function roomCode(){
   const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -70,9 +146,13 @@ function renderLobby(msg=""){
         <div class="games-choice">
           <button class="game-choice ${selectedType==="chess"?"active":""}" data-game="chess">♟️ ${tr("chess")}</button>
           <button class="game-choice ${selectedType==="morris"?"active":""}" data-game="morris">⭕ ${tr("morris")}</button>
+          <button class="game-choice ${selectedType==="timer"?"active":""}" data-game="timer">⏱️ ${tr("timer")}</button>
         </div>
 
-        <button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>
+        ${selectedType==="timer" ? `
+          <input id="timerPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TIMER_NAME_KEY)||"")}">
+          <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
+        ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
         <div class="game-help">🌐 ${tr("online")}</div>
         <button id="createGame" class="secondary" type="button">${tr("create")}</button>
@@ -82,14 +162,20 @@ function renderLobby(msg=""){
         </div>
         <div id="gameMessage" class="message">${msg}</div>
       </section>
+      ${selectedType==="timer" ? `<section id="timerLeaderboard" class="card timer-leaderboard"><div class="muted">${tr("weekly")}…</div></section>` : ""}
     </div>`;
+  if(selectedType==="timer") loadTimerLeaderboard();
   root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{selectedType=btn.dataset.game;renderLobby();});
-  document.getElementById("computerGame").onclick=startComputerGame;
+  const computerButton=document.getElementById("computerGame");
+  if(computerButton) computerButton.onclick=startComputerGame;
+  const timerName=document.getElementById("timerPlayerName");
+  if(timerName) timerName.addEventListener("input",()=>localStorage.setItem(TIMER_NAME_KEY,timerName.value.trim()));
   document.getElementById("createGame").onclick=createRoom;
   document.getElementById("joinGame").onclick=joinRoom;
 }
 
 function startComputerGame(){
+  if(selectedType==="timer") return;
   if(channel){ supabase.removeChannel(channel); channel=null; }
   if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; }
   room={
@@ -118,6 +204,22 @@ function scheduleComputerTurn(){
 }
 
 async function createRoom(){
+  if(selectedType==="timer"){
+    const name=timerName();
+    if(!name){ renderLobby(tr("needName")); return; }
+    for(let i=0;i<5;i++){
+      const code=roomCode();
+      const {data,error}=await supabase.rpc("timer_create_room",{p_code:code,p_device:deviceId,p_name:name});
+      if(!error && data){
+        const created=await fetchRoomById(data);
+        await openRoom(created);
+        return;
+      }
+    }
+    renderLobby(tr("error"));
+    return;
+  }
+
   const state=selectedType==="chess"?chessInitial():morrisInitial();
   for(let i=0;i<5;i++){
     const code=roomCode();
@@ -132,6 +234,23 @@ async function joinRoom(){
   if(!code)return;
   const {data,error}=await supabase.from("game_rooms").select("*").eq("code",code).maybeSingle();
   if(error||!data){document.getElementById("gameMessage").textContent=tr("invalid");return;}
+
+  if(data.game_type==="timer"){
+    const name=timerName();
+    if(!name){ document.getElementById("gameMessage").textContent=tr("needName"); return; }
+    const {data:roomId,error:joinError}=await supabase.rpc("timer_join_room",{p_code:code,p_device:deviceId,p_name:name});
+    if(joinError){
+      const raw=String(joinError.message||"");
+      document.getElementById("gameMessage").textContent=
+        raw.includes("ROOM_FULL") ? tr("full") :
+        raw.includes("ROOM_LOCKED") ? tr("roomLocked") : tr("invalid");
+      return;
+    }
+    const joined=await fetchRoomById(roomId);
+    await openRoom(joined);
+    return;
+  }
+
   if(data.player1_device!==deviceId&&data.player2_device&&data.player2_device!==deviceId){document.getElementById("gameMessage").textContent=tr("full");return;}
   if(!data.player2_device&&data.player1_device!==deviceId){
     const {data:updated,error:uerr}=await supabase.from("game_rooms").update({player2_device:deviceId,status:"active",updated_at:new Date().toISOString()}).eq("id",data.id).select().single();
@@ -140,12 +259,26 @@ async function joinRoom(){
   openRoom(data);
 }
 
-function openRoom(r){ room=r; selected=null; subscribeRoom(); renderRoom(); }
+async function openRoom(r){
+  room=r; selected=null;
+  if(room.game_type==="timer") await loadTimerPlayers();
+  subscribeRoom();
+  renderRoom();
+}
 
 function subscribeRoom(){
   if(channel)supabase.removeChannel(channel);
   channel=supabase.channel("game-"+room.id)
-    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},payload=>{room=payload.new;selected=null;renderRoom();})
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},async payload=>{
+      room=payload.new; selected=null;
+      if(room.game_type==="timer") await loadTimerPlayers();
+      renderRoom();
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"timer_players",filter:"room_id=eq."+room.id},async ()=>{
+      if(room?.game_type!=="timer") return;
+      await loadTimerPlayers();
+      renderRoom();
+    })
     .subscribe();
 }
 
@@ -171,6 +304,7 @@ function statusText(){
 
 function renderRoom(){
   if(!room)return renderLobby();
+  if(room.game_type==="timer"){ renderTimerRoom(); return; }
   const waiting=!room.player2_device;
   const local=!!room.local;
   root.innerHTML=`
@@ -205,6 +339,161 @@ function renderRoom(){
   document.getElementById("leaveGame").onclick=()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}if(channel)supabase.removeChannel(channel);channel=null;renderLobby();};
   if(room.game_type==="chess")renderChess(myColor());else renderMorris(myColor());
   scheduleComputerTurn();
+}
+
+function clearTimerPhaseTimeout(){
+  if(timerPhaseTimeout){ clearTimeout(timerPhaseTimeout); timerPhaseTimeout=null; }
+}
+
+function scheduleTimerPhaseRender(){
+  clearTimerPhaseTimeout();
+  const start=room?.state?.start_at ? new Date(room.state.start_at).getTime() : 0;
+  if(!start) return;
+  const delay=start-Date.now();
+  if(delay>0 && delay<15000){
+    timerPhaseTimeout=setTimeout(()=>{
+      timerPhaseTimeout=null;
+      if(room?.game_type==="timer") renderTimerRoom();
+    },delay+30);
+  }
+}
+
+function renderTimerRoom(){
+  clearTimerPhaseTimeout();
+  const st=room.state||{};
+  const phase=st.phase||"lobby";
+  const active=timerActivePlayers();
+  const me=timerPlayer(deviceId);
+  const host=room.player1_device===deviceId;
+  const startAt=st.start_at ? new Date(st.start_at).getTime() : 0;
+  const started=startAt && Date.now()>=startAt;
+  const canStop=phase==="countdown" && started && me && !me.eliminated && me.stop_ms==null;
+  const waitingForStart=phase==="countdown" && !started;
+
+  let center="";
+  if(phase==="lobby"){
+    center=`
+      <div class="secret-clock">🔒 ---.--- s</div>
+      <div class="timer-big-message">${active.length<2 ? tr("needPlayers") : tr("hiddenTime")}</div>
+      ${host && active.length>=2 ? `<button id="startTimerRound" class="timer-start-button" type="button">▶️ ${tr("startRound")}</button>` : ""}
+    `;
+  }else if(phase==="countdown"){
+    center=`
+      <div class="secret-clock">🔒 ---.--- s</div>
+      <div class="timer-big-message">${waitingForStart ? tr("ready") : (me?.eliminated ? tr("youEliminated") : me?.stop_ms!=null ? tr("stopped") : tr("hiddenTime"))}</div>
+      ${canStop ? `<button id="timerStopButton" class="timer-stop-button" type="button">${tr("stop")}</button>` : ""}
+    `;
+  }else if(phase==="results"){
+    const out=timerPlayer(st.eliminated_device);
+    center=`
+      <div class="timer-big-message">❌ ${out ? escapeHtml(out.display_name)+" "+tr("eliminated") : tr("gameOver")}</div>
+      ${host && active.length>=2 ? `<button id="startTimerRound" class="timer-start-button" type="button">▶️ ${tr("startRound")}</button>` : ""}
+    `;
+  }else if(phase==="finished"){
+    const winner=timerPlayer(st.winner_device);
+    center=`
+      <div class="timer-crown">👑</div>
+      <div class="timer-big-message">${tr("king")}</div>
+      <div class="timer-winner-name">${winner ? escapeHtml(winner.display_name) : ""}</div>
+      <div class="timer-power-win">⚡ +10 ${tr("power")}</div>
+      <button id="timerBackGames" class="secondary" type="button">${tr("backGames")}</button>
+    `;
+  }
+
+  const revealTimes=phase==="results" || phase==="finished";
+  const playersHtml=timerPlayers.map((p,i)=>{
+    const eliminated=p.eliminated;
+    const time=revealTimes && p.stop_ms!=null ? `<span class="timer-result-time">${timerMs(p.stop_ms)}</span>` : "";
+    return `<div class="timer-player-row ${eliminated?"eliminated":""}">
+      <span><strong>${i+1}. ${escapeHtml(p.display_name)}</strong> ${p.device_id===deviceId?"👤":""}</span>
+      <span>${eliminated?"❌":"🟢"} ${time}</span>
+    </div>`;
+  }).join("");
+
+  root.innerHTML=`
+    <div class="games-shell">
+      <section class="card timer-room-card">
+        <div class="game-room-head">
+          <div>
+            <div class="muted small">${tr("room")} · ${tr("players")} ${timerPlayers.length}/8</div>
+            <div class="game-room-code">${room.code}</div>
+          </div>
+          <button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>
+        </div>
+        <div class="timer-round-label">⏱️ ${tr("timer")} · ${tr("round")} ${st.round||0}</div>
+        <div class="timer-center">${center}</div>
+      </section>
+
+      <section class="card">
+        <h3>👥 ${tr("players")}</h3>
+        <div class="timer-player-list">${playersHtml}</div>
+      </section>
+
+      <section id="timerRoomLeaderboard" class="card timer-leaderboard"></section>
+
+      <div class="game-actions">
+        <button id="leaveGame" class="secondary" type="button">${tr("leave")}</button>
+      </div>
+    </div>`;
+
+  const copy=document.getElementById("copyRoom");
+  if(copy) copy.onclick=async()=>{ await navigator.clipboard.writeText(room.code); copy.textContent=tr("copied"); };
+
+  const start=document.getElementById("startTimerRound");
+  if(start) start.onclick=startTimerRound;
+
+  const stop=document.getElementById("timerStopButton");
+  if(stop) stop.onclick=stopTimer;
+
+  const back=document.getElementById("timerBackGames");
+  if(back) back.onclick=()=>{ if(channel)supabase.removeChannel(channel); channel=null; room=null; renderLobby(); };
+
+  const leave=document.getElementById("leaveGame");
+  if(leave) leave.onclick=()=>{ clearTimerPhaseTimeout(); if(channel)supabase.removeChannel(channel); channel=null; room=null; renderLobby(); };
+
+  if(waitingForStart) scheduleTimerPhaseRender();
+  loadTimerLeaderboardInto("timerRoomLeaderboard");
+}
+
+async function startTimerRound(){
+  const button=document.getElementById("startTimerRound");
+  if(button) button.disabled=true;
+  try{
+    const {error}=await supabase.rpc("timer_start_round",{p_room:room.id,p_device:deviceId});
+    if(error) throw error;
+    room=await fetchRoomById(room.id);
+    await loadTimerPlayers();
+    renderTimerRoom();
+  }catch(error){
+    console.warn("timer start",error);
+    if(button) button.disabled=false;
+  }
+}
+
+async function stopTimer(){
+  const button=document.getElementById("timerStopButton");
+  if(button) button.disabled=true;
+  try{
+    const {error}=await supabase.rpc("timer_submit_stop",{p_room:room.id,p_device:deviceId});
+    if(error) throw error;
+    room=await fetchRoomById(room.id);
+    await loadTimerPlayers();
+    renderTimerRoom();
+  }catch(error){
+    console.warn("timer stop",error);
+    if(button) button.disabled=false;
+  }
+}
+
+async function loadTimerLeaderboardInto(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  try{
+    const {data:kings}=await supabase.from("timer_profiles").select("display_name,power,crowns").order("power",{ascending:false}).limit(5);
+    if(!document.getElementById(id)) return;
+    el.innerHTML=`<h3>👑 ${tr("king")}</h3><div class="timer-ranking">${(kings||[]).map((r,i)=>`
+      <div class="timer-rank-row"><span>${i===0?"👑":"⚡"} ${escapeHtml(r.display_name)}</span><strong>${tr("power")}: ${r.power}</strong></div>`).join("") || "—"}</div>`;
+  }catch(error){ console.warn(error); }
 }
 
 const C_SYM={wp:"♙",wr:"♖",wn:"♘",wb:"♗",wq:"♕",wk:"♔",bp:"♟",br:"♜",bn:"♞",bb:"♝",bq:"♛",bk:"♚"};
