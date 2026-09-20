@@ -207,6 +207,43 @@
           <div id="prayerStatus" class="message"></div>
         </section>
 
+        <section class="prayer-tools-grid">
+          <section class="card prayer-tool-card qibla-card">
+            <div class="prayer-tool-head">
+              <h2>🕋 <span data-i18n="prayer.qibla">Kibla</span></h2>
+            </div>
+            <div class="qibla-compass" aria-label="Kibla">
+              <span class="qibla-north">N</span>
+              <div id="qiblaArrow" class="qibla-arrow">➤</div>
+              <div class="qibla-kaaba">🕋</div>
+            </div>
+            <strong id="qiblaDirection" class="qibla-direction">--°</strong>
+            <p id="qiblaStatus" class="muted small" data-i18n="prayer.qiblaNeedLocation">Zgjidh vendndodhjen për drejtimin e Kiblës.</p>
+            <button id="qiblaCompassBtn" class="secondary" type="button" data-i18n="prayer.qiblaActivate">Aktivizo busullën</button>
+          </section>
+
+          <section class="card prayer-tool-card kerahat-card">
+            <div class="prayer-tool-head">
+              <h2>⏳ <span data-i18n="prayer.kerahat">Kerahet vakti</span></h2>
+            </div>
+            <div class="kerahat-list">
+              <div class="kerahat-row">
+                <span data-i18n="prayer.kerahatSunrise">Pas lindjes së diellit</span>
+                <strong id="kerahatSunrise">--:--</strong>
+              </div>
+              <div class="kerahat-row">
+                <span data-i18n="prayer.kerahatNoon">Para drekës</span>
+                <strong id="kerahatNoon">--:--</strong>
+              </div>
+              <div class="kerahat-row">
+                <span data-i18n="prayer.kerahatSunset">Para akshamit</span>
+                <strong id="kerahatSunset">--:--</strong>
+              </div>
+            </div>
+            <p class="muted small kerahat-note" data-i18n="prayer.kerahatNote">Këto intervale janë afërsisht dhe mund të ndryshojnë sipas medhhebit.</p>
+          </section>
+        </section>
+
         <section id="prayerList" class="prayer-list"></section>
 
         <section class="card prayer-note">
