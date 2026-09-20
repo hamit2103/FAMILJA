@@ -14,6 +14,7 @@ let channel = null;
 let currentUser = null;
 let stations = [];
 let currentStationId = null;
+let activeFolder = null;
 
 function isAdmin() {
   return currentUser?.email === ADMIN_EMAIL;
@@ -57,8 +58,28 @@ function render() {
 
       <section class="card radio-list-card">
         <h2>📻 Radiot</h2>
-        <p class="muted small">Secili mund të zgjedhë cilën radio dëshiron të dëgjojë.</p>
-        <div id="radioStationList" class="radio-station-list"></div>
+        <p class="muted small">Zgjidh një folder për radiot shqiptare ose turke.</p>
+
+        <div id="radioFolderGrid" class="radio-folder-grid">
+          <button class="radio-folder-card" type="button" data-radio-folder="sq">
+            <span class="radio-folder-flag">🇦🇱</span>
+            <strong>Shqip</strong>
+            <small id="radioFolderSqCount">0 radio</small>
+          </button>
+          <button class="radio-folder-card" type="button" data-radio-folder="tr">
+            <span class="radio-folder-flag">🇹🇷</span>
+            <strong>Turqisht</strong>
+            <small id="radioFolderTrCount">0 radio</small>
+          </button>
+        </div>
+
+        <div id="radioFolderView" class="hidden">
+          <div class="radio-folder-head">
+            <button id="radioFolderBack" class="secondary" type="button">← Folderat</button>
+            <strong id="radioFolderTitle"></strong>
+          </div>
+          <div id="radioStationList" class="radio-station-list"></div>
+        </div>
       </section>
 
       <section id="radioAdminCard" class="card radio-admin-card hidden">
@@ -71,6 +92,12 @@ function render() {
         <label for="radioUrlInput">Linku i radios</label>
         <input id="radioUrlInput" type="url" inputmode="url" placeholder="https://...">
 
+        <label for="radioLanguageInput">Folderi</label>
+        <select id="radioLanguageInput" class="radio-folder-select">
+          <option value="sq">🇦🇱 Shqip</option>
+          <option value="tr">🇹🇷 Turqisht</option>
+        </select>
+
         <button id="radioSaveBtn" class="primary" type="button">Shto radion</button>
         <div id="radioAdminStatus" class="message"></div>
       </section>
@@ -78,6 +105,10 @@ function render() {
   `;
 
   document.getElementById("radioSaveBtn")?.addEventListener("click", addStation);
+  document.querySelectorAll("[data-radio-folder]").forEach((button) => {
+    button.addEventListener("click", () => openFolder(button.dataset.radioFolder));
+  });
+  document.getElementById("radioFolderBack")?.addEventListener("click", closeFolder);
 
   const player = document.getElementById("radioPlayer");
   player?.addEventListener("playing", () => {
@@ -153,16 +184,43 @@ async function deleteStation(id) {
   await loadStations();
 }
 
+function updateFolderCounts() {
+  const sq = stations.filter((station) => station.language_group === "sq").length;
+  const tr = stations.filter((station) => station.language_group === "tr").length;
+  const sqEl = document.getElementById("radioFolderSqCount");
+  const trEl = document.getElementById("radioFolderTrCount");
+  if (sqEl) sqEl.textContent = sq + " radio";
+  if (trEl) trEl.textContent = tr + " radio";
+}
+
+function openFolder(folder) {
+  activeFolder = folder === "tr" ? "tr" : "sq";
+  document.getElementById("radioFolderGrid")?.classList.add("hidden");
+  document.getElementById("radioFolderView")?.classList.remove("hidden");
+  const title = document.getElementById("radioFolderTitle");
+  if (title) title.textContent = activeFolder === "tr" ? "🇹🇷 Radio Turqisht" : "🇦🇱 Radio Shqip";
+  renderStationList();
+}
+
+function closeFolder() {
+  activeFolder = null;
+  document.getElementById("radioFolderView")?.classList.add("hidden");
+  document.getElementById("radioFolderGrid")?.classList.remove("hidden");
+}
+
 function renderStationList() {
   const list = document.getElementById("radioStationList");
-  if (!list) return;
+  updateFolderCounts();
+  if (!list || !activeFolder) return;
 
-  if (!stations.length) {
-    list.innerHTML = '<div class="muted">Ende nuk ka radio.</div>';
+  const visibleStations = stations.filter((station) => station.language_group === activeFolder);
+
+  if (!visibleStations.length) {
+    list.innerHTML = '<div class="muted">Ende nuk ka radio në këtë folder.</div>';
     return;
   }
 
-  list.innerHTML = stations.map((station) => {
+  list.innerHTML = visibleStations.map((station) => {
     const active = station.id === currentStationId ? " active" : "";
     const deleteButton = isAdmin()
       ? `<button class="radio-delete-btn" type="button" data-delete-radio="${station.id}">Fshi</button>`
@@ -196,7 +254,7 @@ function renderStationList() {
 async function loadStations() {
   const { data, error } = await supabase
     .from(TABLE)
-    .select("id,title,stream_url,created_at")
+    .select("id,title,stream_url,language_group,created_at")
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -206,11 +264,10 @@ async function loadStations() {
   }
 
   stations = data || [];
-  renderStationList();
+  updateFolderCounts();
+  if (activeFolder) renderStationList();
 
-  if (!currentStationId && stations.length) {
-    selectStation(stations[0]);
-  } else if (currentStationId) {
+  if (currentStationId) {
     const current = stations.find((item) => item.id === currentStationId);
     if (!current && stations.length) selectStation(stations[0]);
   }
@@ -224,6 +281,7 @@ async function addStation() {
 
   const title = document.getElementById("radioNameInput")?.value.trim() || "";
   const streamUrl = document.getElementById("radioUrlInput")?.value.trim() || "";
+  const languageGroup = document.getElementById("radioLanguageInput")?.value === "tr" ? "tr" : "sq";
 
   if (!title) {
     showAdminStatus("Shkruaj emrin e radios.", "error");
@@ -240,6 +298,7 @@ async function addStation() {
   const { error } = await supabase.from(TABLE).insert({
     title,
     stream_url: streamUrl,
+    language_group: languageGroup,
     created_by: currentUser.id,
     updated_at: new Date().toISOString()
   });
@@ -252,6 +311,8 @@ async function addStation() {
 
   document.getElementById("radioNameInput").value = "";
   document.getElementById("radioUrlInput").value = "";
+  activeFolder = languageGroup;
+  openFolder(languageGroup);
   showAdminStatus("Radioja u shtua dhe u del të gjithëve.", "success");
   await loadStations();
 }
