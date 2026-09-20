@@ -554,9 +554,19 @@ function renderWarGame(){
         </article>
 
         <div class="war-middle">
-          <div class="war-character" aria-hidden="true">
-            <div class="war-soldier">🪖</div>
-            <div class="war-rifle">︻╦̵̵͇̿̿̿̿╤──</div>
+          <div id="warBattleScene" class="war-battle-scene" aria-hidden="true">
+            <div class="war-shooter war-shooter-enemy">
+              <span class="war-person">🧍</span>
+              <span class="war-gun">🔫</span>
+            </div>
+            <div class="war-shot-lane">
+              <span id="warProjectile" class="war-projectile">•</span>
+              <span id="warExplosion" class="war-explosion">💥</span>
+            </div>
+            <div class="war-shooter war-shooter-player">
+              <span class="war-person">🧍</span>
+              <span class="war-gun">🔫</span>
+            </div>
           </div>
           <div class="war-vs">VS</div>
           <p id="warMessage" class="war-message">${escapeHtml(s.message)}</p>
@@ -920,35 +930,99 @@ function warExecuteAction(actor,target,action,isPlayer){
   return {extraTurn,text};
 }
 
+
+function warAnimateAction(action,fromPlayer,done){
+  const scene=document.getElementById("warBattleScene");
+  const projectile=document.getElementById("warProjectile");
+  const explosion=document.getElementById("warExplosion");
+  if(!scene||!projectile||!explosion){
+    done();
+    return;
+  }
+
+  const shooter=scene.querySelector(fromPlayer?".war-shooter-player":".war-shooter-enemy");
+  const target=scene.querySelector(fromPlayer?".war-shooter-enemy":".war-shooter-player");
+  const visualAction=(action==="heart"||action==="protect"||action==="ice")?action:
+    (action==="helicopter"?"helicopter":
+    (action==="atom"?"atom":
+    (action==="bomb"?"bomb":
+    (action==="azrael"?"azrael":"attack"))));
+
+  shooter?.classList.add("firing");
+  target?.classList.remove("hit");
+  projectile.className="war-projectile";
+  explosion.className="war-explosion";
+  projectile.textContent=visualAction==="helicopter"?"🚁":
+    visualAction==="atom"?"☢️":
+    visualAction==="bomb"?"💣":
+    visualAction==="azrael"?"👼":
+    visualAction==="ice"?"🧊":
+    visualAction==="heart"?"❤️":
+    visualAction==="protect"?"🛡️":"•";
+
+  if(visualAction==="heart"||visualAction==="protect"){
+    shooter?.classList.add(visualAction==="heart"?"healing":"guarding");
+    setTimeout(()=>{
+      shooter?.classList.remove("firing","healing","guarding");
+      done();
+    },420);
+    return;
+  }
+
+  projectile.classList.add(fromPlayer?"fly-up":"fly-down",visualAction);
+  setTimeout(()=>{
+    explosion.textContent=visualAction==="ice"?"❄️":
+      visualAction==="azrael"?"✨":
+      visualAction==="helicopter"?"💥":
+      visualAction==="atom"?"☢️":
+      visualAction==="bomb"?"💥":"✴️";
+    explosion.classList.add(fromPlayer?"at-top":"at-bottom","show");
+    target?.classList.add("hit");
+  },300);
+
+  setTimeout(()=>{
+    shooter?.classList.remove("firing");
+    target?.classList.remove("hit");
+    projectile.className="war-projectile";
+    explosion.className="war-explosion";
+    done();
+  },620);
+}
+
 function warPlayerAction(action){
   const s=warGameState;
   if(!s||s.over||s.turn!=="player") return;
 
-  const p=s.player;
-  const e=s.enemy;
-  const wasFrozen=p.frozen;
-  const actualAction=wasFrozen?"attack":action;
-  const result=warExecuteAction(p,e,action,true);
+  s.turn="animating";
+  root.querySelectorAll("[data-war-action]").forEach(btn=>btn.disabled=true);
 
-  if(wasFrozen){
-    s.message="🧊 Ishe i ngrirë: arma u kthye në Sulm. "+result.text;
-  }else{
-    s.message=result.text;
-  }
+  warAnimateAction(action,true,()=>{
+    if(!warGameState||warGameState.over) return;
+    const p=warGameState.player;
+    const e=warGameState.enemy;
+    const wasFrozen=p.frozen;
+    const result=warExecuteAction(p,e,action,true);
 
-  if(warFinishIfNeeded()) return renderWarGame();
+    if(wasFrozen){
+      warGameState.message="🧊 Ishe i ngrirë: arma u kthye në Sulm. "+result.text;
+    }else{
+      warGameState.message=result.text;
+    }
 
-  p.special=warRollSpecial();
+    if(warFinishIfNeeded()) return renderWarGame();
 
-  if(result.extraTurn){
-    s.turn="player";
+    p.special=warRollSpecial();
+
+    if(result.extraTurn){
+      warGameState.turn="player";
+      renderWarGame();
+      return;
+    }
+
+    warGameState.turn="enemy";
     renderWarGame();
-    return;
-  }
-
-  s.turn="enemy";
-  renderWarGame();
-  setTimeout(warEnemyTurn,650);
+    setTimeout(warEnemyTurn,650);
+  });
 }
 
 function warEnemyTurn(){
@@ -959,30 +1033,37 @@ function warEnemyTurn(){
   const p=s.player;
   const wasFrozen=e.frozen;
   const special=e.special||warRollSpecial();
-
-  // Kundërshtari ka po ashtu Sulm + një armë rastësore dhe zgjedh mes tyre.
   const chosen=Math.random()<.5?"attack":special;
-  const result=warExecuteAction(e,p,chosen,false);
 
-  if(wasFrozen){
-    s.message="🧊 Kundërshtari ishte i ngrirë: arma e tij u kthye në Sulm. "+result.text;
-  }else{
-    s.message="🤖 "+result.text;
-  }
-
-  if(warFinishIfNeeded()) return renderWarGame();
-
-  e.special=warRollSpecial();
-
-  if(result.extraTurn){
-    s.turn="enemy";
-    renderWarGame();
-    setTimeout(warEnemyTurn,650);
-    return;
-  }
-
-  s.turn="player";
+  s.turn="animating";
   renderWarGame();
+
+  setTimeout(()=>{
+    warAnimateAction(chosen,false,()=>{
+      if(!warGameState||warGameState.over) return;
+      const result=warExecuteAction(e,p,chosen,false);
+
+      if(wasFrozen){
+        warGameState.message="🧊 Kundërshtari ishte i ngrirë: arma e tij u kthye në Sulm. "+result.text;
+      }else{
+        warGameState.message="🤖 "+result.text;
+      }
+
+      if(warFinishIfNeeded()) return renderWarGame();
+
+      e.special=warRollSpecial();
+
+      if(result.extraTurn){
+        warGameState.turn="enemy";
+        renderWarGame();
+        setTimeout(warEnemyTurn,650);
+        return;
+      }
+
+      warGameState.turn="player";
+      renderWarGame();
+    });
+  },80);
 }
 
 function chessInitial(){
