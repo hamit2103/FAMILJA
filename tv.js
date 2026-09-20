@@ -187,6 +187,40 @@ async function useSource(source){
   render();
 }
 
+function m3uAttr(value=""){
+  return String(value||"").replace(/"/g,"'");
+}
+
+function channelsToM3U(list=[]){
+  const lines=["#EXTM3U"];
+  for(const ch of list){
+    if(!ch?.url) continue;
+    const attrs=[
+      ch.tvgId ? `tvg-id="${m3uAttr(ch.tvgId)}"` : "",
+      ch.logo ? `tvg-logo="${m3uAttr(ch.logo)}"` : "",
+      ch.group ? `group-title="${m3uAttr(ch.group)}"` : "",
+      ch.catchup ? `catchup="${m3uAttr(ch.catchup)}"` : "",
+      ch.catchupSource ? `catchup-source="${m3uAttr(ch.catchupSource)}"` : "",
+      ch.catchupDays ? `catchup-days="${m3uAttr(ch.catchupDays)}"` : ""
+    ].filter(Boolean).join(" ");
+    const name=String(ch.name||tr("direct")).replace(/[\r\n]+/g," ").trim();
+    lines.push(`#EXTINF:-1${attrs?" "+attrs:""},${name}`);
+    lines.push(String(ch.url).trim());
+  }
+  return lines.join("\n");
+}
+
+function mergeChannels(existing=[],incoming=[]){
+  const byUrl=new Map();
+  for(const ch of [...existing,...incoming]){
+    const url=String(ch?.url||"").trim();
+    if(!url) continue;
+    const prev=byUrl.get(url)||{};
+    byUrl.set(url,{...prev,...ch,url});
+  }
+  return [...byUrl.values()];
+}
+
 async function publishPendingForAll(){
   const status=document.getElementById("tvStatus");
   if(!isAdmin()){
@@ -201,21 +235,42 @@ async function publishPendingForAll(){
     if(status) status.textContent=tr("invalid");
     return;
   }
+
+  if(status) status.textContent=tr("loading");
+
+  const existingChannels=sharedRecord ? await sourceToChannels(sharedRecord) : [];
+  const incomingChannels=await sourceToChannels(pendingSource);
+  const mergedChannels=mergeChannels(existingChannels,incomingChannels);
+
+  if(!mergedChannels.length){
+    if(status) status.textContent=tr("invalid");
+    return;
+  }
+
   const payload={
-    id:1,title:"Shtime TV",
-    source_type:pendingSource.source_type,
-    source_value:pendingSource.source_value,
+    id:1,
+    title:"Shtime TV",
+    source_type:"m3u",
+    source_value:channelsToM3U(mergedChannels),
     updated_at:new Date().toISOString(),
     updated_by:currentUser?.id||null
   };
+
   const {error}=await supabase.from("tv_shared_playlist").upsert(payload,{onConflict:"id"});
   if(error){
     if(status) status.textContent=error.message;
     return;
   }
+
   sharedRecord=payload;
-  if(status) status.textContent=tr("published");
-  renderSourceCards();
+  pendingSource=payload;
+  channels=mergedChannels;
+  currentMode="home";
+  currentFilter="";
+  currentGroup="";
+  render();
+  const nextStatus=document.getElementById("tvStatus");
+  if(nextStatus) nextStatus.textContent=tr("published")+" "+mergedChannels.length+" "+tr("channels")+".";
 }
 
 function renderSourceCards(){
