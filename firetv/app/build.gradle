@@ -6,6 +6,15 @@ android {
     namespace "com.pajaziti.familja"
     compileSdk 35
 
+    signingConfigs {
+        pajazitiRelease {
+            storeFile file("../pajaziti-release.jks")
+            storePassword "pajaziti2026"
+            keyAlias "pajaziti"
+            keyPassword "pajaziti2026"
+        }
+    }
+
     defaultConfig {
         applicationId "com.pajaziti.familja"
         minSdk 23
@@ -15,8 +24,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.pajazitiRelease
+        }
         release {
             minifyEnabled false
+            signingConfig signingConfigs.pajazitiRelease
         }
     }
 }
