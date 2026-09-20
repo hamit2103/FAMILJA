@@ -15,6 +15,8 @@ const TETRIS_NAME_KEY = "pajaziti-tetris-name";
 const TETRIS_SOUND_KEY = "pajaziti-tetris-sound";
 const WAR_SOUND_KEY = "pajaziti-war-sound";
 const WAR_WINS_KEY = "pajaziti-war-wins";
+const WAR_GAMES_KEY = "pajaziti-war-games";
+const WAR_BONUS_HEARTS_KEY = "pajaziti-war-bonus-hearts";
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -281,24 +283,76 @@ function roomCode(){
 
 let warGameState=null;
 
+const WAR_SPECIALS=[
+  {key:"bomb",label:"Bombë",icon:"💣",weight:50,small:"2 sulme"},
+  {key:"heart",label:"Zemër",icon:"❤️",weight:20,small:"+2 ty · +1 kundërshtarit"},
+  {key:"helicopter",label:"Helikopter",icon:"🚁",weight:1,small:"−2 ❤️ · gjuan prapë"},
+  {key:"atom",label:"Atom",icon:"☢️",weight:2,small:"−3 ❤️"},
+  {key:"protect",label:"Mbrojtje",icon:"🛡️",weight:5,small:"mbron 2 herë"},
+  {key:"azrael",label:"Melaqja Asrail",icon:"👼",weight:1,small:"KO pa mbrojtje"},
+  {key:"ice",label:"Akull",icon:"🧊",weight:26,small:"arma tjetër bëhet Sulm"}
+];
+
 function warWins(){
   const value=Number(localStorage.getItem(WAR_WINS_KEY)||0);
-  return Number.isFinite(value) && value>0 ? Math.floor(value) : 0;
+  return Number.isFinite(value)&&value>0?Math.floor(value):0;
 }
 
-function warPowerBonus(){
-  // Çdo fitore e rrit fuqinë me 10%.
-  return warWins()*10;
+function warGames(){
+  const value=Number(localStorage.getItem(WAR_GAMES_KEY)||0);
+  return Number.isFinite(value)&&value>0?Math.floor(value):0;
+}
+
+function warBonusExpiries(){
+  let list=[];
+  try{
+    const raw=JSON.parse(localStorage.getItem(WAR_BONUS_HEARTS_KEY)||"[]");
+    if(Array.isArray(raw)) list=raw.map(Number).filter(Number.isFinite);
+  }catch(_){}
+  const now=Date.now();
+  const active=list.filter(expiry=>expiry>now);
+  if(active.length!==list.length){
+    localStorage.setItem(WAR_BONUS_HEARTS_KEY,JSON.stringify(active));
+  }
+  return active;
+}
+
+function warBonusHeartCount(){
+  return warBonusExpiries().length;
+}
+
+function warAdd24HourHeart(){
+  const list=warBonusExpiries();
+  list.push(Date.now()+24*60*60*1000);
+  localStorage.setItem(WAR_BONUS_HEARTS_KEY,JSON.stringify(list));
+}
+
+function warRollSpecial(){
+  const total=WAR_SPECIALS.reduce((sum,item)=>sum+item.weight,0);
+  let roll=Math.random()*total;
+  for(const item of WAR_SPECIALS){
+    roll-=item.weight;
+    if(roll<0) return item.key;
+  }
+  return "bomb";
+}
+
+function warSpecial(key){
+  return WAR_SPECIALS.find(item=>item.key===key)||WAR_SPECIALS[0];
 }
 
 function warInitialState(){
+  const bonus=warBonusHeartCount();
+  const maxHp=5+bonus;
   return {
-    player:{name:tr("you"),hp:5,maxHp:5,guard:false,medkits:2},
-    enemy:{name:tr("computerName"),hp:5,maxHp:5,guard:false,medkits:2},
+    player:{name:tr("you"),hp:maxHp,maxHp,protect:0,frozen:false,special:warRollSpecial()},
+    enemy:{name:tr("computerName"),hp:5,maxHp:5,protect:0,frozen:false,special:warRollSpecial()},
     turn:"player",
     over:false,
-    winSaved:false,
-    message:"Zgjidh veprimin tënd."
+    gameCounted:false,
+    message:bonus>0
+      ? "Ke "+bonus+" zemër bonus aktive për 24 orë."
+      : "Zgjidh njërën nga 2 armët."
   };
 }
 
@@ -309,29 +363,59 @@ function warHearts(current,max=5){
   ).join("");
 }
 
-function warApplyHeartDamage(target,damage){
-  let amount=Math.max(1,Math.round(damage));
-  if(target.guard){
-    amount=Math.max(0,amount-1);
-    target.guard=false;
-  }
-  target.hp=Math.max(0,target.hp-amount);
-  return amount;
+function warBlockWeapon(target){
+  if((target.protect||0)<=0) return false;
+  target.protect=Math.max(0,target.protect-1);
+  return true;
 }
 
-function warPlayerDamage(kind){
-  const wins=warWins();
-  const bonusChance=Math.min(.85,wins*.08);
-  let damage=1;
-
-  if(kind==="tank"){
-    damage=1+(Math.random()<(.50+bonusChance*.35)?1:0);
-  }else if(kind==="rocket"){
-    damage=2+(Math.random()<(.35+bonusChance*.35)?1:0);
-  }else{
-    damage=1+(Math.random()<bonusChance?1:0);
+function warDamage(target,hearts,{bypassProtection=false}={}){
+  if(!bypassProtection && warBlockWeapon(target)){
+    return {damage:0,blocked:true};
   }
-  return Math.min(3,damage);
+  const damage=Math.max(0,Math.min(target.hp,Math.round(hearts)));
+  target.hp=Math.max(0,target.hp-damage);
+  return {damage,blocked:false};
+}
+
+function warBombDamage(target){
+  let total=0;
+  let blocked=0;
+  for(let i=0;i<2;i++){
+    const hit=warDamage(target,1);
+    if(hit.blocked) blocked++;
+    total+=hit.damage;
+    if(target.hp<=0) break;
+  }
+  return {damage:total,blocked};
+}
+
+function warRecordCompletedGame(won){
+  const s=warGameState;
+  if(!s || s.gameCounted) return {games:warGames(),bonusAdded:false};
+  s.gameCounted=true;
+
+  const games=warGames()+1;
+  localStorage.setItem(WAR_GAMES_KEY,String(games));
+
+  if(won){
+    localStorage.setItem(WAR_WINS_KEY,String(warWins()+1));
+  }
+
+  let bonusAdded=false;
+  if(games%20===0){
+    warAdd24HourHeart();
+    bonusAdded=true;
+  }
+  return {games,bonusAdded};
+}
+
+function warActionCard(action){
+  if(action==="attack"){
+    return '<button data-war-action="attack" type="button">🔫<strong>Sulm</strong><small>−1 ❤️</small></button>';
+  }
+  const item=warSpecial(action);
+  return `<button data-war-action="${item.key}" type="button">${item.icon}<strong>${item.label}</strong><small>${item.small}</small></button>`;
 }
 
 function renderWarGame(){
@@ -339,8 +423,9 @@ function renderWarGame(){
   const s=warGameState;
   const p=s.player;
   const e=s.enemy;
+  const games=warGames();
   const wins=warWins();
-  const power=warPowerBonus();
+  const activeBonus=warBonusHeartCount();
 
   root.innerHTML=`
     <div class="war-shell">
@@ -348,8 +433,8 @@ function renderWarGame(){
         <div class="war-topbar">
           <button id="warBack" class="war-exit" type="button">← ${tr("backGames")}</button>
           <strong>⚔️ ${tr("war")}</strong>
-          <span class="war-turn">${s.over ? "FUND" : (s.turn==="player" ? "RADHA JOTE" : "KUNDËRSHTARI")}</span>
-          <button id="warSoundToggle" class="war-sound-toggle" type="button">${warSoundEnabled ? "🔊 Zëri ON" : "🔇 Zëri OFF"}</button>
+          <span class="war-turn">${s.over?"FUND":(s.turn==="player"?"RADHA JOTE":"KUNDËRSHTARI")}</span>
+          <button id="warSoundToggle" class="war-sound-toggle" type="button">${warSoundEnabled?"🔊 Zëri ON":"🔇 Zëri OFF"}</button>
           <span id="warAudioStatus" class="war-audio-status"></span>
         </div>
 
@@ -359,8 +444,12 @@ function renderWarGame(){
               <span class="war-side-label">KUNDËRSHTARI</span>
               <h2>🤖 ${escapeHtml(e.name)}</h2>
             </div>
+            <div class="war-status-icons">
+              ${e.protect>0?`<span>🛡️×${e.protect}</span>`:""}
+              ${e.frozen?"<span>🧊</span>":""}
+            </div>
           </div>
-          <div class="war-hearts" aria-label="${e.hp} nga 5 zemra">${warHearts(e.hp,e.maxHp)}</div>
+          <div class="war-hearts" aria-label="${e.hp} zemra">${warHearts(e.hp,e.maxHp)}</div>
         </article>
 
         <div class="war-middle">
@@ -379,22 +468,23 @@ function renderWarGame(){
               <h2>🇦🇱 ${escapeHtml(p.name)}</h2>
             </div>
             <div class="war-progress">
-              <strong>💪 Fuqi +${power}%</strong>
-              <small>🏆 ${wins} fitore</small>
+              <strong>🏆 ${wins} fitore</strong>
+              <small>🎮 ${games} lojëra · ❤️ bonus: ${activeBonus}</small>
             </div>
           </div>
-          <div class="war-hearts" aria-label="${p.hp} nga 5 zemra">${warHearts(p.hp,p.maxHp)}</div>
+          <div class="war-hearts" aria-label="${p.hp} zemra">${warHearts(p.hp,p.maxHp)}</div>
+          <div class="war-status-icons">
+            ${p.protect>0?`<span>🛡️ Mbrojtje ×${p.protect}</span>`:""}
+            ${p.frozen?"<span>🧊 Akull: arma tjetër bëhet Sulm</span>":""}
+          </div>
         </article>
 
         <div class="war-actions">
-          <button data-war-action="attack" type="button">🔫<strong>Sulm</strong><small>1–2 ❤️</small></button>
-          <button data-war-action="tank" type="button">🪖<strong>Tank</strong><small>1–2 ❤️</small></button>
-          <button data-war-action="rocket" type="button">🚀<strong>Raketë</strong><small>2–3 ❤️</small></button>
-          <button data-war-action="defend" type="button">🛡️<strong>Mbrojtje</strong><small>-1 goditje</small></button>
-          <button data-war-action="medkit" type="button">🩹<strong>Medkit</strong><small>${p.medkits}× · +1 ❤️</small></button>
+          ${warActionCard("attack")}
+          ${warActionCard(p.special)}
         </div>
 
-        ${s.over ? '<button id="warRestart" class="primary war-restart" type="button">🔄 Luaj përsëri</button>' : ""}
+        ${s.over?'<button id="warRestart" class="primary war-restart" type="button">🔄 Luaj përsëri</button>':""}
       </section>
     </div>`;
 
@@ -419,7 +509,7 @@ function renderWarGame(){
   });
 
   root.querySelectorAll("[data-war-action]").forEach(btn=>{
-    btn.disabled=s.over || s.turn!=="player";
+    btn.disabled=s.over||s.turn!=="player";
     btn.onclick=()=>warPlayerAction(btn.dataset.warAction);
   });
 }
@@ -431,26 +521,32 @@ function startWarGame(){
 
 function warFinishIfNeeded(){
   const s=warGameState;
+  if(!s) return false;
+
   if(s.enemy.hp<=0){
     s.over=true;
     s.turn="none";
-    if(!s.winSaved){
-      const nextWins=warWins()+1;
-      localStorage.setItem(WAR_WINS_KEY,String(nextWins));
-      s.winSaved=true;
-      s.message="🏆 Fitove! Fuqia jote u rrit në +"+(nextWins*10)+"%.";
+    const result=warRecordCompletedGame(true);
+    s.message="🏆 Fitove luftën!";
+    if(result.bonusAdded){
+      s.message+=" ❤️ Arrite "+result.games+" lojëra: fitove +1 zemër për 24 orë.";
     }
     return true;
   }
+
   if(s.player.hp<=0){
     s.over=true;
     s.turn="none";
-    s.message="💥 Kundërshtari fitoi. Provo përsëri!";
+    const result=warRecordCompletedGame(false);
+    s.message="💥 Kundërshtari fitoi.";
+    if(result.bonusAdded){
+      s.message+=" ❤️ Arrite "+result.games+" lojëra: fitove +1 zemër për 24 orë.";
+    }
     return true;
   }
+
   return false;
 }
-
 
 async function ensureWarAudio(){
   try{
@@ -648,44 +744,92 @@ function playWarSound(kind){
   if(kind==="rocket" && navigator.vibrate) navigator.vibrate([45,120,110]);
 }
 
-function warPlayerAction(action){
-  const s=warGameState;
-  if(!s || s.over || s.turn!=="player") return;
-  const p=s.player;
-  const e=s.enemy;
+function warSoundForAction(action){
+  if(action==="bomb"||action==="atom"||action==="azrael") return "rocket";
+  if(action==="helicopter") return "attack";
+  if(action==="heart") return "medkit";
+  if(action==="protect"||action==="ice") return "defend";
+  return "attack";
+}
+
+function warExecuteAction(actor,target,action,isPlayer){
+  if(actor.frozen){
+    actor.frozen=false;
+    action="attack";
+  }
+
+  playWarSound(warSoundForAction(action));
+  let extraTurn=false;
+  let text="";
 
   if(action==="attack"){
-    playWarSound("attack");
-    const d=warApplyHeartDamage(e,warPlayerDamage("attack"));
-    s.message="🔫 Sulm: kundërshtari humbi "+d+" zemër"+(d===1?"":"a")+".";
-  }else if(action==="tank"){
-    playWarSound("tank");
-    const d=warApplyHeartDamage(e,warPlayerDamage("tank"));
-    s.message="🪖 Tank: kundërshtari humbi "+d+" zemër"+(d===1?"":"a")+".";
-  }else if(action==="rocket"){
-    playWarSound("rocket");
-    const d=warApplyHeartDamage(e,warPlayerDamage("rocket"));
-    s.message="🚀 Raketë: kundërshtari humbi "+d+" zemër"+(d===1?"":"a")+"!";
-  }else if(action==="defend"){
-    playWarSound("defend");
-    p.guard=true;
-    s.message="🛡️ Mbrojtja aktive: goditja tjetër zvogëlohet me 1 zemër.";
-  }else if(action==="medkit"){
-    if(p.medkits<=0){
-      s.message="Nuk ke më Medkit.";
-      return renderWarGame();
+    const hit=warDamage(target,1);
+    text=hit.blocked
+      ? "🛡️ Mbrojtja bllokoi Sulmin."
+      : "🔫 Sulm: −"+hit.damage+" ❤️.";
+  }else if(action==="bomb"){
+    const hit=warBombDamage(target);
+    text=hit.damage>0
+      ? "💣 Bombë: "+hit.damage+" zemra u humbën."
+      : "🛡️ Mbrojtja bllokoi Bombën.";
+  }else if(action==="heart"){
+    actor.hp=Math.min(actor.maxHp,actor.hp+2);
+    target.hp=Math.min(target.maxHp,target.hp+1);
+    text="❤️ Zemër: +2 ty dhe +1 kundërshtarit.";
+  }else if(action==="helicopter"){
+    const hit=warDamage(target,2);
+    extraTurn=true;
+    text=hit.blocked
+      ? "🛡️ Mbrojtja bllokoi Helikopterin, por ti gjuan përsëri."
+      : "🚁 Helikopter: −"+hit.damage+" ❤️ dhe ti gjuan përsëri.";
+  }else if(action==="atom"){
+    const hit=warDamage(target,3);
+    text=hit.blocked
+      ? "🛡️ Mbrojtja bllokoi Atomin."
+      : "☢️ Atom: −"+hit.damage+" ❤️.";
+  }else if(action==="protect"){
+    actor.protect=2;
+    text="🛡️ Mbrojtje aktive për 2 armë.";
+  }else if(action==="azrael"){
+    if(warBlockWeapon(target)){
+      text="🛡️ Mbrojtja të shpëtoi nga Melaqja Asrail.";
+    }else{
+      target.hp=0;
+      text="👼 Melaqja Asrail: kundërshtari u eliminua menjëherë.";
     }
-    if(p.hp>=p.maxHp){
-      s.message="I ke të gjitha 5 zemrat.";
-      return renderWarGame();
-    }
-    playWarSound("medkit");
-    p.medkits-=1;
-    p.hp=Math.min(p.maxHp,p.hp+1);
-    s.message="🩹 Riktheve 1 zemër.";
+  }else if(action==="ice"){
+    target.frozen=true;
+    text="🧊 Akull: në radhën tjetër, çfarëdo arme që zgjedh bëhet vetëm Sulm.";
+  }
+
+  return {extraTurn,text};
+}
+
+function warPlayerAction(action){
+  const s=warGameState;
+  if(!s||s.over||s.turn!=="player") return;
+
+  const p=s.player;
+  const e=s.enemy;
+  const wasFrozen=p.frozen;
+  const actualAction=wasFrozen?"attack":action;
+  const result=warExecuteAction(p,e,action,true);
+
+  if(wasFrozen){
+    s.message="🧊 Ishe i ngrirë: arma u kthye në Sulm. "+result.text;
+  }else{
+    s.message=result.text;
   }
 
   if(warFinishIfNeeded()) return renderWarGame();
+
+  p.special=warRollSpecial();
+
+  if(result.extraTurn){
+    s.turn="player";
+    renderWarGame();
+    return;
+  }
 
   s.turn="enemy";
   renderWarGame();
@@ -694,40 +838,34 @@ function warPlayerAction(action){
 
 function warEnemyTurn(){
   const s=warGameState;
-  if(!s || s.over || s.turn!=="enemy") return;
+  if(!s||s.over||s.turn!=="enemy") return;
+
   const e=s.enemy;
   const p=s.player;
+  const wasFrozen=e.frozen;
+  const special=e.special||warRollSpecial();
 
-  let action="attack";
-  if(e.hp<=2 && e.medkits>0 && Math.random()<.30) action="medkit";
-  else if(Math.random()<.18) action="defend";
-  else if(Math.random()<.20) action="rocket";
-  else if(Math.random()<.28) action="tank";
+  // Kundërshtari ka po ashtu Sulm + një armë rastësore dhe zgjedh mes tyre.
+  const chosen=Math.random()<.5?"attack":special;
+  const result=warExecuteAction(e,p,chosen,false);
 
-  if(action==="medkit"){
-    e.medkits-=1;
-    playWarSound("medkit");
-    e.hp=Math.min(e.maxHp,e.hp+1);
-    s.message="🤖 Kundërshtari riktheu 1 zemër.";
-  }else if(action==="defend"){
-    playWarSound("defend");
-    e.guard=true;
-    s.message="🤖 Kundërshtari aktivizoi mbrojtjen.";
-  }else if(action==="rocket"){
-    playWarSound("rocket");
-    const d=warApplyHeartDamage(p,Math.random()<.28?3:2);
-    s.message="🚀 Kundërshtari të hoqi "+d+" zemër"+(d===1?"":"a")+".";
-  }else if(action==="tank"){
-    playWarSound("tank");
-    const d=warApplyHeartDamage(p,Math.random()<.55?2:1);
-    s.message="🪖 Tanku i kundërshtarit të hoqi "+d+" zemër"+(d===1?"":"a")+".";
+  if(wasFrozen){
+    s.message="🧊 Kundërshtari ishte i ngrirë: arma e tij u kthye në Sulm. "+result.text;
   }else{
-    playWarSound("attack");
-    const d=warApplyHeartDamage(p,1);
-    s.message="🔫 Kundërshtari të hoqi "+d+" zemër.";
+    s.message="🤖 "+result.text;
   }
 
   if(warFinishIfNeeded()) return renderWarGame();
+
+  e.special=warRollSpecial();
+
+  if(result.extraTurn){
+    s.turn="enemy";
+    renderWarGame();
+    setTimeout(warEnemyTurn,650);
+    return;
+  }
+
   s.turn="player";
   renderWarGame();
 }
