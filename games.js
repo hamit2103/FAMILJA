@@ -312,7 +312,7 @@ function renderLobby(msg=""){
         ` : selectedType==="tetris" ? `
           <input id="tetrisPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TETRIS_NAME_KEY)||"")}">
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
-          <div class="game-help">⬅️ ➡️ lëviz · ⤾ rrotullo · ⬇️ shpejto · ⏬ zbrit menjëherë</div>
+          <div class="game-help">👆 Prek një herë ekranin = rrotullo · ✋ Mbaje të shtypur dhe tërhiqe = lëvize ku dëshiron</div>
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
@@ -1327,6 +1327,129 @@ async function saveTetrisScore(){
   }
 }
 
+function setupTetrisTouchControls(){
+  const board=document.getElementById("tetrisBoard");
+  if(!board) return;
+
+  let holdTimer=null;
+  let holding=false;
+  let moved=false;
+  let startX=0;
+  let startY=0;
+  let lastX=0;
+  let lastY=0;
+  let activePointer=null;
+
+  const clearHold=()=>{
+    if(holdTimer){ clearTimeout(holdTimer); holdTimer=null; }
+  };
+
+  const movePieceToward=(clientX,clientY)=>{
+    if(!tetris || tetris.paused || tetris.gameOver || !tetris.current) return;
+
+    const rect=board.getBoundingClientRect();
+    const cellW=rect.width/TETRIS_COLS;
+    const cellH=rect.height/TETRIS_ROWS;
+    const pieceWidth=tetris.current.m[0].length;
+
+    const targetCol=Math.max(
+      0,
+      Math.min(
+        TETRIS_COLS-pieceWidth,
+        Math.round((clientX-rect.left)/cellW-pieceWidth/2)
+      )
+    );
+
+    while(tetris.current.x<targetCol && !tetrisCollides(tetris.current,1,0)){
+      tetris.current.x++;
+      playTetrisSound("move");
+    }
+    while(tetris.current.x>targetCol && !tetrisCollides(tetris.current,-1,0)){
+      tetris.current.x--;
+      playTetrisSound("move");
+    }
+
+    const deltaY=clientY-lastY;
+    if(deltaY>cellH*0.55){
+      const steps=Math.min(6,Math.max(1,Math.floor(deltaY/cellH)));
+      for(let i=0;i<steps;i++){
+        if(tetrisCollides(tetris.current,0,1)) break;
+        tetris.current.y++;
+        tetris.score+=1;
+      }
+      lastY=clientY;
+    }
+
+    renderTetrisBoard();
+  };
+
+  board.addEventListener("pointerdown",(event)=>{
+    if(!tetris || tetris.paused || tetris.gameOver) return;
+    event.preventDefault();
+
+    activePointer=event.pointerId;
+    startX=lastX=event.clientX;
+    startY=lastY=event.clientY;
+    holding=false;
+    moved=false;
+
+    try{ board.setPointerCapture(event.pointerId); }catch(_){}
+
+    clearHold();
+    holdTimer=setTimeout(()=>{
+      holding=true;
+      board.classList.add("tetris-dragging");
+      playTetrisSound("move");
+      movePieceToward(lastX,lastY);
+    },260);
+  });
+
+  board.addEventListener("pointermove",(event)=>{
+    if(activePointer!==event.pointerId) return;
+    lastX=event.clientX;
+
+    if(Math.abs(event.clientX-startX)>8 || Math.abs(event.clientY-startY)>8){
+      moved=true;
+    }
+
+    if(holding){
+      event.preventDefault();
+      movePieceToward(event.clientX,event.clientY);
+    }
+  });
+
+  const finish=(event)=>{
+    if(activePointer!==event.pointerId) return;
+    event.preventDefault();
+    clearHold();
+
+    if(holding){
+      movePieceToward(event.clientX,event.clientY);
+    }else if(!moved){
+      tetrisTurn();
+    }
+
+    holding=false;
+    moved=false;
+    activePointer=null;
+    board.classList.remove("tetris-dragging");
+
+    try{ board.releasePointerCapture(event.pointerId); }catch(_){}
+  };
+
+  board.addEventListener("pointerup",finish);
+  board.addEventListener("pointercancel",(event)=>{
+    if(activePointer!==event.pointerId) return;
+    clearHold();
+    holding=false;
+    moved=false;
+    activePointer=null;
+    board.classList.remove("tetris-dragging");
+  });
+
+  board.addEventListener("contextmenu",(event)=>event.preventDefault());
+}
+
 function startTetrisGame(){
   const playerName=(document.getElementById("tetrisPlayerName")?.value || localStorage.getItem(TETRIS_NAME_KEY) || "").trim().slice(0,24);
   if(!playerName){ renderLobby(tr("needName")); return; }
@@ -1371,7 +1494,7 @@ function startTetrisGame(){
           <div id="tetrisOverlay" class="tetris-overlay hidden"></div>
         </div>
 
-        <div class="tetris-controls">
+        <div class="tetris-touch-help">👆 Prek 1 herë = rrotullo · ✋ Mbaje dhe tërhiqe = lëvize</div>\n\n        <div class="tetris-controls">
           <button type="button" data-tetris="left">⬅️</button>
           <button type="button" data-tetris="rotate">⤾</button>
           <button type="button" data-tetris="right">➡️</button>
@@ -1419,6 +1542,7 @@ function startTetrisGame(){
     else if(event.key==="p"||event.key==="P")tetrisPause();
   };
   document.addEventListener("keydown",tetrisKeyHandler);
+  setupTetrisTouchControls();
 
   renderTetrisBoard();
   loadTetrisLeaderboard();
