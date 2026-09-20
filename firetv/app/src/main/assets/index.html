@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#dc2626">
+  <meta name="description" content="PAJAZITI – album privat për foto dhe video">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=62">
+  <title>PAJAZITI</title>
+  <style>
+    /* Inline menu-order hotfix */
+    #menuOrderAdmin{
+      margin:0 0 16px;padding:14px;border-radius:18px;
+      background:#eef2ff;border:1px solid #c7d2fe;
+    }
+    #menuOrderAdmin.hidden{display:none!important}
+    .menu-order-head{display:grid;gap:3px;margin-bottom:10px}
+    .menu-order-list{display:grid;gap:8px;margin-bottom:10px}
+    .menu-order-row{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:10px 12px;border-radius:14px;background:#fff
+    }
+    .menu-order-name{font-weight:850}
+    .menu-order-actions{display:flex;gap:6px}
+    .menu-order-move{
+      width:46px;min-width:46px;padding:9px 0;border:0;border-radius:12px;
+      background:#e5e7eb;font-size:18px
+    }
+    #menuOrderSave{
+      width:100%;border:0;border-radius:14px;padding:13px;
+      background:#2563eb;color:#fff;font-weight:850
+    }
+  
+    /* Critical War v60 cache-bust fallback */
+    .war-arena{
+      background:linear-gradient(180deg,#e0f7ff 0%,#bae6fd 52%,#93c5fd 100%)!important;
+      color:#0f172a!important;
+    }
+    .war-fighter{
+      background:rgba(255,255,255,.84)!important;
+      color:#0f172a!important;
+      border-color:rgba(14,116,144,.18)!important;
+    }
+    .war-message{color:#0f172a!important}
+    .war-character,.war-soldier,.war-rifle{display:none!important}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="card auth-card">
+      <div class="language-row">
+        <label class="language-label" for="languageSelectLogin" data-i18n="language.label">Gjuha</label>
+        <select id="languageSelectLogin" class="language-select" aria-label="Gjuha">
+          <option value="sq">🇦🇱 Shqip</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="tr">🇹🇷 Türkçe</option>
+        </select>
+      </div>
+
+      <div class="logo">P</div>
+      <h1>PAJAZITI</h1>
+      <p class="muted" data-i18n="app.subtitle">Album privat për foto dhe video</p>
+
+      <div class="mode-switch">
+        <button id="familyMode" class="mode active" type="button" data-i18n="mode.family">Përdoruesi</button>
+        <button id="adminMode" class="mode" type="button" data-i18n="mode.admin">Admin</button>
+      </div>
+
+      <div id="familyDirectHint" class="small muted" data-i18n="login.userDirectHint">Përdoruesi hyn direkt pa kod.</div>
+      <div id="adminCodeWrap" class="hidden">
+        <label for="codeInput" data-i18n="login.label">Kodi i hyrjes</label>
+        <input id="codeInput" type="password" inputmode="text" autocomplete="current-password" placeholder="Shkruaj kodin" data-i18n-placeholder="login.placeholder">
+      </div>
+      <button id="loginBtn" class="primary" type="button">Hyr</button>
+
+      <div class="share-install-actions">
+        <button id="installLoginBtn" class="secondary hidden" type="button" data-i18n="install.app">Instalo aplikacionin</button>
+        <button id="shareBtn" class="secondary" type="button" data-i18n="share">Ndaje linkun</button>
+      </div>
+      <p id="loginMessage" class="message"></p>
+
+      <p class="small muted" data-i18n="auth.note">Kodi kontrollohet përmes Supabase Authentication. Fotot dhe videot ruhen privatisht në Supabase dhe nuk ruhen në telefonin e vizitorit, përveç nëse ai zgjedh t’i shkarkojë.</p>
+    </section>
+
+    <section id="appView" class="hidden">
+      <header class="topbar">
+        <div>
+          <h1>PAJAZITI</h1>
+          <p id="roleLabel" class="muted"></p>
+          <div id="onlineBadge" class="online-badge">
+            <span class="online-dot" aria-hidden="true"></span>
+            <span id="onlineText" data-i18n="online">Online:</span>
+            <strong id="onlineCount">0</strong>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <select id="languageSelectApp" class="language-select compact" aria-label="Gjuha">
+            <option value="sq">🇦🇱 SQ</option>
+            <option value="de">🇩🇪 DE</option>
+            <option value="tr">🇹🇷 TR</option>
+          </select>
+          <button id="installBtn" class="secondary hidden" type="button" data-i18n="install.short">Instalo</button>
+          <button id="logoutBtn" class="secondary" type="button" data-i18n="logout">Dil</button>
+        </div>
+      </header>
+
+      <nav id="appTabs" class="app-tabs" aria-label="Menu">
+        <button id="galleryTab" class="app-tab active" type="button"><span>📢 </span><span data-i18n="tabs.photos">Reklama</span></button>
+        <button id="infoTab" class="app-tab info-tab-button" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span><span id="infoUnreadBadge" class="info-unread-badge hidden">0</span></button>
+        <button id="prayerTab" class="app-tab" type="button"><span>🕌 </span><span data-i18n="tabs.prayer">Namazi</span></button>
+        <button id="gamesTab" class="app-tab" type="button"><span>🎮 </span><span id="gamesTabLabel">Lojëra</span></button>
+        <button id="tvTab" class="app-tab" type="button"><span>📺 </span><span id="tvTabLabel">TV</span></button>
+        <button id="radioTab" class="app-tab" type="button"><span>📻 </span><span id="radioTabLabel">Radio</span></button>
+        <button id="chatTab" class="app-tab" type="button"><span>💬 </span><span>Chat</span></button>
+      </nav>
+
+      <section id="menuOrderAdmin" class="menu-order-admin hidden">
+        <div class="menu-order-head">
+          <strong>Renditja e ikonave</strong>
+          <span class="muted small">Vetëm Admini e ndryshon. Renditja u del të gjithëve.</span>
+        </div>
+        <div id="menuOrderList" class="menu-order-list"></div>
+        <button id="menuOrderSave" class="primary" type="button">Ruaj renditjen</button>
+        <div id="menuOrderStatus" class="message"></div>
+      </section>
+
+      <section id="galleryView">
+        <section id="adminPanel" class="card">
+          <h2 id="uploadTitle" data-i18n="upload.addPhoto">Shto reklamë</h2>
+          <p id="uploadHint" class="muted small"></p>
+          <input id="mediaInput" type="file" accept="image/*" multiple>
+          <button id="uploadBtn" class="primary" type="button" data-i18n="upload.button">Ngarko</button>
+          <div id="uploadStatus" class="message"></div>
+        </section>
+
+        <section id="storageCard" class="card storage-card hidden">
+          <div class="storage-head">
+            <div>
+              <h2 data-i18n="storage.title">Hapësira e përdorur</h2>
+              <p class="muted small" data-i18n="storage.adminOnly">E dukshme vetëm për administratorin</p>
+            </div>
+            <strong id="storagePercent">0%</strong>
+          </div>
+          <div class="storage-track" aria-hidden="true">
+            <div id="storageBar" class="storage-bar"></div>
+          </div>
+          <p id="storageUsed" class="storage-used">0 MB / 1 GB</p>
+        </section>
+
+        <section class="toolbar">
+          <div>
+            <strong id="mediaCount">0</strong>
+            <span class="muted" data-i18n="materials"> materiale</span>
+          </div>
+          <button id="refreshBtn" class="secondary" type="button" data-i18n="refresh">Rifresko</button>
+        </section>
+
+        <section id="gallery" class="gallery"></section>
+        <section id="emptyState" class="card empty">
+          <h2 data-i18n="empty.mediaTitle">Ende nuk ka reklama</h2>
+          <p class="muted" data-i18n="empty.mediaBody">Kur administratori të ngarkojë një reklamë, ajo do të shfaqet këtu.</p>
+        </section>
+      </section>
+
+      <section id="infoView" class="hidden">
+        <section id="infoCompose" class="card info-compose">
+          <h2><span>ℹ️ </span><span data-i18n="info.title">Informacion</span></h2>
+          <p class="info-admin-note" data-i18n="info.familyWrite">Vetëm administratori mund të shkruajë këtu.</p>
+
+          <input id="infoName" type="hidden" value="Admin">
+
+          <label for="infoText" data-i18n="info.message">Mesazhi</label>
+          <textarea id="infoText" maxlength="1000" rows="4" placeholder="Shkruaj informacionin..." data-i18n-placeholder="info.messagePlaceholder"></textarea>
+
+          <button id="infoSendBtn" class="primary" type="button" data-i18n="info.publish">Publiko</button>
+          <div id="infoStatus" class="message"></div>
+        </section>
+
+        <section class="toolbar">
+          <div>
+            <strong id="infoCount">0</strong>
+            <span class="muted" data-i18n="info.notes"> shënime</span>
+          </div>
+          <button id="infoRefreshBtn" class="secondary" type="button" data-i18n="refresh">Rifresko</button>
+        </section>
+
+        <section id="infoList" class="info-list"></section>
+        <section id="infoEmpty" class="card empty">
+          <h2 data-i18n="info.emptyTitle">Ende nuk ka informacion</h2>
+          <p class="muted" data-i18n="info.emptyBody">Kur administratori të publikojë diçka, do të shfaqet këtu.</p>
+        </section>
+      </section>
+
+      <section id="gamesView" class="hidden">
+        <div id="gamesRoot"></div>
+      </section>
+
+      <section id="tvView" class="hidden">
+        <div id="tvRoot"></div>
+      </section>
+
+      <section id="radioView" class="hidden">
+        <div id="radioRoot"></div>
+      </section>
+
+      <section id="chatView" class="hidden">
+        <section class="card chat-head-card">
+          <div>
+            <h2>💬 Chat</h2>
+            <p class="muted small">Chat falas dhe pa kufi për të gjithë.</p>
+          </div>
+          <div id="chatPlanBadge" class="chat-plan-badge">FALAS</div>
+        </section>
+
+        <section class="card chat-profile-card">
+          <label for="chatName">Emri / llogaria jote</label>
+          <div class="chat-name-row">
+            <input id="chatName" type="text" maxlength="32" autocomplete="nickname" placeholder="Shkruaj emrin">
+            <button id="chatSaveNameBtn" class="secondary" type="button">Ruaj emrin</button>
+          </div>
+          <p class="muted small">Ky emër do të shfaqet pranë mesazheve të tua.</p>
+        </section>
+
+        <section class="card chat-compose-card">
+          <textarea id="chatText" maxlength="500" rows="3" placeholder="Shkruaj mesazhin..."></textarea>
+          <div class="chat-compose-bottom">
+            <span id="chatLimitText" class="muted small"></span>
+            <button id="chatSendBtn" class="primary" type="button">Dërgo</button>
+          </div>
+          <div id="chatStatus" class="message"></div>
+        </section>
+
+        <section class="toolbar">
+          <strong>Mesazhet</strong>
+          <button id="chatRefreshBtn" class="secondary" type="button">Rifresko</button>
+        </section>
+        <section id="chatList" class="chat-list"></section>
+      </section>
+
+      <section id="prayerView" class="hidden">
+        <section class="card prayer-card">
+          <div class="prayer-heading">
+            <div>
+              <h2><span>🕌 </span><span data-i18n="prayer.title">Koha e namazit</span></h2>
+              <p id="prayerLocation" class="muted small" data-i18n="prayer.locationPrompt">Zgjidh vendndodhjen e telefonit.</p>
+            </div>
+            <button id="prayerLocationBtn" class="secondary" type="button" data-i18n="prayer.locationBtn">Vendndodhja</button>
+          </div>
+
+          <p class="muted small prayer-method" data-i18n="prayer.method">Ora llogaritet sipas vendndodhjes së telefonit me metodën Diyanet.</p>
+          <div id="prayerNext" class="prayer-next hidden"></div>
+          <div id="prayerStatus" class="message"></div>
+        </section>
+
+        <section class="prayer-tools-grid">
+          <section class="card prayer-tool-card qibla-card">
+            <div class="prayer-tool-head">
+              <h2>🕋 <span data-i18n="prayer.qibla">Kibla</span></h2>
+            </div>
+            <div class="qibla-compass" aria-label="Kibla">
+              <span class="qibla-north">N</span>
+              <div id="qiblaArrow" class="qibla-arrow">➤</div>
+              <div class="qibla-kaaba">🕋</div>
+            </div>
+            <strong id="qiblaDirection" class="qibla-direction">--°</strong>
+            <p id="qiblaStatus" class="muted small" data-i18n="prayer.qiblaNeedLocation">Zgjidh vendndodhjen për drejtimin e Kiblës.</p>
+            <button id="qiblaCompassBtn" class="secondary" type="button" data-i18n="prayer.qiblaActivate">Aktivizo busullën</button>
+          </section>
+
+          <section class="card prayer-tool-card kerahat-card">
+            <div class="prayer-tool-head">
+              <h2>⏳ <span data-i18n="prayer.kerahat">Kerahet vakti</span></h2>
+            </div>
+            <div class="kerahat-list">
+              <div class="kerahat-row">
+                <span data-i18n="prayer.kerahatSunrise">Pas lindjes së diellit</span>
+                <strong id="kerahatSunrise">--:--</strong>
+              </div>
+              <div class="kerahat-row">
+                <span data-i18n="prayer.kerahatNoon">Para drekës</span>
+                <strong id="kerahatNoon">--:--</strong>
+              </div>
+              <div class="kerahat-row">
+                <span data-i18n="prayer.kerahatSunset">Para akshamit</span>
+                <strong id="kerahatSunset">--:--</strong>
+              </div>
+            </div>
+            <p class="muted small kerahat-note" data-i18n="prayer.kerahatNote">Këto intervale janë afërsisht dhe mund të ndryshojnë sipas medhhebit.</p>
+          </section>
+        </section>
+
+        <section id="prayerList" class="prayer-list"></section>
+
+        <section class="card prayer-note">
+          <strong data-i18n="prayer.alarmTitle">🔔 Alarmet janë sipas dëshirës.</strong>
+          <p class="muted small" data-i18n="prayer.alarmBody">Aktivizo vetëm namazet për të cilat dëshiron njoftim në këtë telefon. Në APK Android alarmi regjistrohet në sistem dhe punon edhe kur aplikacioni është i mbyllur.</p>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
+
+    if (!window.__PAJAZITI_MENU_ORDER_HOTFIX__) {
+      window.__PAJAZITI_MENU_ORDER_HOTFIX__ = true;
+
+      const ADMIN_EMAIL = "admin@familja.local";
+      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab","chatTab"];
+      const LABELS = {
+        galleryTab:"📢 Reklama",
+        infoTab:"ℹ️ Informacion",
+        prayerTab:"🕌 Namazi",
+        gamesTab:"🎮 Lojëra",
+        tvTab:"📺 TV",
+        radioTab:"📻 Radio",
+        chatTab:"💬 Chat"
+      };
+
+      const supa = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth:{persistSession:true,autoRefreshToken:true}
+      });
+
+      const tabs = document.getElementById("appTabs");
+      const box = document.getElementById("menuOrderAdmin");
+      const list = document.getElementById("menuOrderList");
+      const save = document.getElementById("menuOrderSave");
+      const status = document.getElementById("menuOrderStatus");
+
+      const normalize = (order) => {
+        const arr = Array.isArray(order) ? order.filter(id => DEFAULT_ORDER.includes(id)) : [];
+        return [...new Set([...arr, ...DEFAULT_ORDER])];
+      };
+
+      const current = () =>
+        Array.from(tabs?.querySelectorAll(".app-tab") || [])
+          .map(el => el.id)
+          .filter(id => DEFAULT_ORDER.includes(id));
+
+      const apply = (order) => {
+        if (!tabs) return;
+        normalize(order).forEach(id => {
+          const el = document.getElementById(id);
+          if (el) tabs.appendChild(el);
+        });
+      };
+
+      const renderAdmin = () => {
+        if (!list) return;
+        const order = current();
+        list.innerHTML = order.map((id,i) => `
+          <div class="menu-order-row" data-id="${id}">
+            <span class="menu-order-name">${LABELS[id] || id}</span>
+            <div class="menu-order-actions">
+              <button type="button" class="menu-order-move" data-dir="up" ${i===0?"disabled":""}>⬆️</button>
+              <button type="button" class="menu-order-move" data-dir="down" ${i===order.length-1?"disabled":""}>⬇️</button>
+            </div>
+          </div>`).join("");
+
+        list.querySelectorAll(".menu-order-move").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const row = btn.closest(".menu-order-row");
+            const rows = Array.from(list.querySelectorAll(".menu-order-row"));
+            const i = rows.indexOf(row);
+
+            if (btn.dataset.dir === "up" && i > 0) {
+              list.insertBefore(row, rows[i-1]);
+            } else if (btn.dataset.dir === "down" && i < rows.length - 1) {
+              list.insertBefore(rows[i+1], row);
+            }
+
+            const next = Array.from(list.querySelectorAll(".menu-order-row")).map(r => r.dataset.id);
+            apply(next);
+            renderAdmin();
+          });
+        });
+      };
+
+      const load = async () => {
+        const { data } = await supa.from("app_settings")
+          .select("value")
+          .eq("key","tab_order")
+          .maybeSingle();
+        apply(data?.value || DEFAULT_ORDER);
+        const { data: sessionData } = await supa.auth.getSession();
+        const isAdmin = sessionData.session?.user?.email === ADMIN_EMAIL;
+        box?.classList.toggle("hidden", !isAdmin);
+        if (isAdmin) renderAdmin();
+      };
+
+      save?.addEventListener("click", async () => {
+        const { data: sessionData } = await supa.auth.getSession();
+        const user = sessionData.session?.user;
+        if (!user || user.email !== ADMIN_EMAIL) return;
+
+        save.disabled = true;
+        if (status) status.textContent = "Po ruhet...";
+
+        const { error } = await supa.from("app_settings").upsert({
+          key:"tab_order",
+          value:current(),
+          updated_at:new Date().toISOString(),
+          updated_by:user.id
+        }, { onConflict:"key" });
+
+        save.disabled = false;
+        if (status) {
+          status.textContent = error ? "Nuk u ruajt: " + error.message : "U ruajt. Renditja u del të gjithëve.";
+          status.className = "message" + (error ? " error" : " success");
+        }
+      });
+
+      supa.auth.onAuthStateChange(() => setTimeout(load,0));
+
+      supa.channel("menu-order-hotfix")
+        .on("postgres_changes",{event:"*",schema:"public",table:"app_settings"},load)
+        .subscribe();
+
+      await load();
+    }
+  </script>
+  <script type="module" src="app.js?v=52"></script>
+  <script type="module" src="games.js?v=62"></script>
+  <script type="module" src="tv.js?v=52"></script>
+  <script type="module" src="radio.js?v=52"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
+
+    const PAJAZITI_TV_LINK_PRIVACY_HOTFIX = true;
+    const privacyClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth:{persistSession:true,autoRefreshToken:true}
+    });
+
+    async function enforceTvLinkPrivacy(){
+      const {data}=await privacyClient.auth.getSession();
+      const isAdmin=data.session?.user?.email==="admin@familja.local";
+      document.querySelectorAll(".tv-control-card").forEach((card)=>{
+        card.style.display=isAdmin?"":"none";
+      });
+    }
+
+    const tvPrivacyObserver=new MutationObserver(()=>enforceTvLinkPrivacy());
+    tvPrivacyObserver.observe(document.body,{childList:true,subtree:true});
+    privacyClient.auth.onAuthStateChange(()=>setTimeout(enforceTvLinkPrivacy,0));
+    enforceTvLinkPrivacy();
+  </script>
+</body>
+</html>
