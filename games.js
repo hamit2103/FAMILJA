@@ -1450,9 +1450,31 @@ function setupTetrisTouchControls(){
   board.addEventListener("contextmenu",(event)=>event.preventDefault());
 }
 
+async function enterTetrisFullscreen(){
+  document.body.classList.add("tetris-fullscreen-active");
+  try{
+    const el=document.documentElement;
+    if(!document.fullscreenElement && el.requestFullscreen){
+      await el.requestFullscreen();
+    }
+  }catch(_){
+    // CSS fullscreen fallback remains active when browser fullscreen is blocked.
+  }
+}
+
+async function exitTetrisFullscreen(){
+  document.body.classList.remove("tetris-fullscreen-active");
+  try{
+    if(document.fullscreenElement && document.exitFullscreen){
+      await document.exitFullscreen();
+    }
+  }catch(_){}
+}
+
 function startTetrisGame(){
+  enterTetrisFullscreen();
   const playerName=(document.getElementById("tetrisPlayerName")?.value || localStorage.getItem(TETRIS_NAME_KEY) || "").trim().slice(0,24);
-  if(!playerName){ renderLobby(tr("needName")); return; }
+  if(!playerName){ exitTetrisFullscreen(); renderLobby(tr("needName")); return; }
   localStorage.setItem(TETRIS_NAME_KEY,playerName);
   if(channel){supabase.removeChannel(channel);channel=null;}
   if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
@@ -1514,7 +1536,7 @@ function startTetrisGame(){
       </section>
     </div>`;
 
-  document.getElementById("tetrisBack").onclick=()=>{stopTetris();tetris=null;renderLobby();};
+  document.getElementById("tetrisBack").onclick=async()=>{stopTetris();tetris=null;await exitTetrisFullscreen();renderLobby();};
   document.getElementById("tetrisPause").onclick=tetrisPause;
   const tetrisSoundBtn=document.getElementById("tetrisSound");
   if(tetrisSoundBtn) tetrisSoundBtn.onclick=()=>{ setTetrisSound(!tetrisSoundEnabled); tetrisSoundBtn.textContent=tetrisSoundEnabled?"🔊 Zëri ON":"🔇 Zëri OFF"; };
@@ -1556,6 +1578,12 @@ function activate(){
   if(tabLabel)tabLabel.textContent=tr("games");
   if(room)renderRoom();else renderLobby();
 }
+
+document.addEventListener("fullscreenchange",()=>{
+  if(!document.fullscreenElement && !document.getElementById("tetrisBoard")){
+    document.body.classList.remove("tetris-fullscreen-active");
+  }
+});
 
 window.PajazitiGames={activate};
 if(tabLabel)tabLabel.textContent=tr("games");
