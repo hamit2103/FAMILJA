@@ -70,7 +70,7 @@
         </div>
       </header>
 
-      <nav class="app-tabs" aria-label="Menu">
+      <nav id="appTabs" class="app-tabs" aria-label="Menu">
         <button id="galleryTab" class="app-tab active" type="button"><span>📷 </span><span data-i18n="tabs.photos">Foto</span></button>
         <button id="infoTab" class="app-tab info-tab-button" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span><span id="infoUnreadBadge" class="info-unread-badge hidden">0</span></button>
         <button id="prayerTab" class="app-tab" type="button"><span>🕌 </span><span data-i18n="tabs.prayer">Namazi</span></button>
@@ -78,6 +78,16 @@
         <button id="tvTab" class="app-tab" type="button"><span>📺 </span><span id="tvTabLabel">TV</span></button>
         <button id="radioTab" class="app-tab" type="button"><span>📻 </span><span id="radioTabLabel">Radio</span></button>
       </nav>
+
+      <section id="menuOrderAdmin" class="menu-order-admin hidden">
+        <div class="menu-order-head">
+          <strong>Renditja e ikonave</strong>
+          <span class="muted small">Vetëm Admini e ndryshon. Renditja u del të gjithëve.</span>
+        </div>
+        <div id="menuOrderList" class="menu-order-list"></div>
+        <button id="menuOrderSave" class="primary" type="button">Ruaj renditjen</button>
+        <div id="menuOrderStatus" class="message"></div>
+      </section>
 
       <section id="galleryView">
         <section id="adminPanel" class="card">
