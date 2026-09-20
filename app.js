@@ -2051,19 +2051,108 @@ function chatSavedName() {
   return (localStorage.getItem(CHAT_NAME_KEY) || "").trim();
 }
 
-function saveChatName() {
-  const name = (chatName?.value || "").trim();
+function lockChatNameUi(name) {
+  const fixed = (name || "").trim();
+  if (fixed) localStorage.setItem(CHAT_NAME_KEY, fixed);
+  if (chatName) {
+    chatName.value = fixed;
+    chatName.readOnly = true;
+    chatName.disabled = true;
+    chatName.classList.add("chat-name-locked");
+  }
+  if (chatSaveNameBtn) {
+    chatSaveNameBtn.disabled = true;
+    chatSaveNameBtn.textContent = "🔒 Emri i fiksuar";
+  }
+}
+
+function unlockChatNameUi() {
+  if (chatName) {
+    chatName.readOnly = false;
+    chatName.disabled = false;
+    chatName.classList.remove("chat-name-locked");
+  }
+  if (chatSaveNameBtn) {
+    chatSaveNameBtn.disabled = false;
+    chatSaveNameBtn.textContent = "Ruaj emrin";
+  }
+}
+
+function chatNameErrorMessage(error) {
+  const raw = String(error?.message || error || "");
+  if (raw.includes("NAME_TAKEN")) {
+    return "Ky emër ekziston tashmë. Zgjidh një emër tjetër.";
+  }
+  if (raw.includes("NAME_LOCKED")) {
+    return "Emri është fiksuar dhe nuk mund të ndryshohet.";
+  }
+  if (raw.includes("INVALID_NAME")) {
+    return "Emri duhet të ketë 1–32 shkronja.";
+  }
+  return "Emri nuk u ruajt. Provo përsëri.";
+}
+
+async function loadChatProfile() {
+  if (!supabase || !currentUser) return null;
+
+  const { data, error } = await supabase.rpc("chat_get_profile", {
+    p_device: presenceDeviceId
+  });
+
+  if (error) {
+    console.error("Chat profile load failed", error);
+    return null;
+  }
+
+  if (data?.registered && data?.display_name) {
+    lockChatNameUi(data.display_name);
+    return data.display_name;
+  }
+
+  unlockChatNameUi();
+  if (chatName && !chatName.value) chatName.value = chatSavedName();
+  return null;
+}
+
+async function saveChatName() {
+  if (!supabase || !currentUser) return false;
+
+  const existing = chatSavedName();
+  if (chatName?.disabled && existing) {
+    showMessage(chatStatus, "Ky emër është fiksuar përgjithmonë.", "success");
+    return true;
+  }
+
+  const name = (chatName?.value || "").trim().replace(/\s+/g, " ").slice(0, 32);
   if (!name) {
     showMessage(chatStatus, "Shkruaj emrin tënd.", "error");
     return false;
   }
-  localStorage.setItem(CHAT_NAME_KEY, name.slice(0, 32));
-  chatName.value = name.slice(0, 32);
-  showMessage(chatStatus, "Emri u ruajt.", "success");
+
+  if (chatSaveNameBtn) chatSaveNameBtn.disabled = true;
+  showMessage(chatStatus, "Po kontrollohet emri...");
+
+  const { data, error } = await supabase.rpc("chat_claim_name", {
+    p_device: presenceDeviceId,
+    p_name: name
+  });
+
+  if (error) {
+    console.error("Chat name claim failed", error);
+    unlockChatNameUi();
+    showMessage(chatStatus, chatNameErrorMessage(error), "error");
+    return false;
+  }
+
+  const fixedName = (data?.display_name || name).trim();
+  lockChatNameUi(fixedName);
+  showMessage(chatStatus, "Emri u ruajt përgjithmonë. Nuk mund të ndryshohet më.", "success");
   return true;
 }
 
-chatSaveNameBtn?.addEventListener("click", saveChatName);
+chatSaveNameBtn?.addEventListener("click", () => {
+  saveChatName();
+});
 
 function formatChatTime(value) {
   try {
@@ -2153,7 +2242,7 @@ async function loadChatMessages() {
 
 async function loadChat() {
   if (!supabase || !currentUser) return;
-  if (chatName && !chatName.value) chatName.value = chatSavedName();
+  await loadChatProfile();
   await Promise.all([loadChatMessages(), loadChatStatus()]);
 }
 
@@ -2161,12 +2250,12 @@ chatRefreshBtn?.addEventListener("click", loadChat);
 
 chatSendBtn?.addEventListener("click", async () => {
   if (!supabase || !currentUser) return;
-  let name = (chatName?.value || "").trim();
-  if (!name) {
-    if (!saveChatName()) return;
+
+  let name = chatSavedName();
+  if (!name || !chatName?.disabled) {
+    const saved = await saveChatName();
+    if (!saved) return;
     name = chatSavedName();
-  } else {
-    localStorage.setItem(CHAT_NAME_KEY, name.slice(0, 32));
   }
 
   const message = (chatText?.value || "").trim();
@@ -2310,6 +2399,7 @@ async function applySession(session) {
     fetchPrayerTimes(savedCoords).catch((error) => console.warn("Prayer preload failed", error));
   }
   if (chatName) chatName.value = chatSavedName();
+  loadChatProfile().catch(console.warn);
   startPrayerAlarmChecker();
   startRealtime();
 }
