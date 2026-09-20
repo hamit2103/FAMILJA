@@ -659,3 +659,65 @@ end;
 $$;
 
 grant execute on function public.timer_submit_stop(uuid,text) to authenticated;
+
+
+-- Shared TV / M3U playlist. Everyone can read; only admin can publish/change it.
+create table if not exists public.tv_shared_playlist (
+  id smallint primary key default 1 check (id = 1),
+  title text not null default 'TV',
+  source_type text not null check (source_type in ('m3u','url')),
+  source_value text not null,
+  updated_at timestamptz not null default now(),
+  updated_by uuid default auth.uid()
+);
+
+alter table public.tv_shared_playlist enable row level security;
+grant select, insert, update, delete on table public.tv_shared_playlist to authenticated;
+
+drop policy if exists "Family can read shared TV playlist" on public.tv_shared_playlist;
+create policy "Family can read shared TV playlist"
+on public.tv_shared_playlist
+for select
+to authenticated
+using (true);
+
+drop policy if exists "Admin can publish shared TV playlist" on public.tv_shared_playlist;
+create policy "Admin can publish shared TV playlist"
+on public.tv_shared_playlist
+for insert
+to authenticated
+with check (
+  id = 1
+  and auth.email() = 'admin@familja.local'
+);
+
+drop policy if exists "Admin can update shared TV playlist" on public.tv_shared_playlist;
+create policy "Admin can update shared TV playlist"
+on public.tv_shared_playlist
+for update
+to authenticated
+using (auth.email() = 'admin@familja.local')
+with check (
+  id = 1
+  and auth.email() = 'admin@familja.local'
+);
+
+drop policy if exists "Admin can delete shared TV playlist" on public.tv_shared_playlist;
+create policy "Admin can delete shared TV playlist"
+on public.tv_shared_playlist
+for delete
+to authenticated
+using (auth.email() = 'admin@familja.local');
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'tv_shared_playlist'
+  ) then
+    alter publication supabase_realtime add table public.tv_shared_playlist;
+  end if;
+end $$;
