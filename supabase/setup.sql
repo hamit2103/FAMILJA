@@ -721,3 +721,26 @@ begin
     alter publication supabase_realtime add table public.tv_shared_playlist;
   end if;
 end $$;
+
+
+-- Username/password accounts + reseller credit system.
+-- Super Admin uses credits = NULL, displayed as unlimited (∞).
+create table if not exists public.app_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  username text not null unique check (username ~ '^[a-z0-9][a-z0-9._-]{2,31}$'),
+  role text not null default 'user' check (role in ('super_admin','reseller','user')),
+  credits integer check (credits is null or credits >= 0),
+  created_by uuid references auth.users(id) on delete set null,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table public.app_profiles enable row level security;
+revoke all on table public.app_profiles from anon;
+revoke insert, update, delete on table public.app_profiles from authenticated;
+grant select on table public.app_profiles to authenticated;
+drop policy if exists "Users can read own profile" on public.app_profiles;
+create policy "Users can read own profile"
+on public.app_profiles for select to authenticated
+using ((select auth.uid()) = user_id);
+
+-- Account creation and credit changes are performed by the account-admin Edge Function.
