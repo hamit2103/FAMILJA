@@ -286,6 +286,11 @@ function roomCode(){
 let warProfile=null;
 let warLeaderboardRows=[];
 let warChampion=null;
+let warMultiRoom=null;
+let warMultiPlayers=[];
+let warMultiChannel=null;
+let warMultiPollTimer=null;
+let warMultiSelectedTarget=null;
 
 async function loadWarProfileAndLeaderboard(){
   const info=document.getElementById("warNameInfo");
@@ -378,6 +383,328 @@ async function awardWarWeeklyPoint(){
     loadWarProfileAndLeaderboard().catch(()=>{});
   }catch(error){
     console.warn("War weekly point",error);
+  }
+}
+
+
+async function refreshWarMultiLobbyCount(){
+  const el=document.getElementById("warMultiCount");
+  if(!el) return;
+  try{
+    const {data,error}=await supabase.rpc("war_multi_lobby_count");
+    if(error) throw error;
+    el.textContent="👥 Në pritje: "+Math.min(8,Number(data||0))+" / 8";
+  }catch(_){
+    el.textContent="👥 Në pritje: — / 8";
+  }
+}
+
+function clearWarMultiPolling(){
+  if(warMultiPollTimer){
+    clearInterval(warMultiPollTimer);
+    warMultiPollTimer=null;
+  }
+}
+
+async function loadWarMultiState(roomId){
+  const [{data:roomData,error:roomError},{data:playersData,error:playersError}]=await Promise.all([
+    supabase.from("war_multi_rooms").select("*").eq("id",roomId).single(),
+    supabase.from("war_multi_players")
+      .select("room_id,device_id,display_name,hp,max_hp,protect,frozen,special,eliminated,turn_order")
+      .eq("room_id",roomId)
+      .order("turn_order",{ascending:true})
+  ]);
+  if(roomError) throw roomError;
+  if(playersError) throw playersError;
+  warMultiRoom=roomData;
+  warMultiPlayers=playersData||[];
+}
+
+function warMultiMe(){
+  return warMultiPlayers.find(p=>p.device_id===deviceId)||null;
+}
+
+function warMultiAliveOpponents(){
+  return warMultiPlayers.filter(p=>p.device_id!==deviceId && !p.eliminated && p.hp>0);
+}
+
+function warMultiPlayerCard(player){
+  const isMe=player.device_id===deviceId;
+  const isTurn=warMultiRoom?.turn_device===player.device_id;
+  const selected=warMultiSelectedTarget===player.device_id;
+  return `
+    <button class="war-multi-player ${isMe?"me":""} ${isTurn?"turn":""} ${selected?"selected":""} ${player.eliminated?"eliminated":""}"
+      type="button"
+      data-war-target="${escapeHtml(player.device_id)}"
+      ${isMe||player.eliminated?"disabled":""}>
+      <span class="war-multi-name">${isMe?"🇦🇱 ":""}${escapeHtml(player.display_name)} ${isMe?"(Ti)":""}</span>
+      <span class="war-multi-hearts">${warHearts(player.hp,player.max_hp)}</span>
+      <span class="war-multi-status">
+        ${player.eliminated?"☠️ Eliminuar":""}
+        ${player.protect>0?" 🛡️×"+player.protect:""}
+        ${player.frozen?" 🧊":""}
+        ${isTurn&&!player.eliminated?" 🎯 Radha":""}
+      </span>
+    </button>`;
+}
+
+function renderWarMultiWaiting(){
+  if(!warMultiRoom) return;
+  const starts=new Date(warMultiRoom.starts_at).getTime();
+  const sec=Math.max(0,Math.ceil((starts-Date.now())/1000));
+
+  root.innerHTML=`
+    <div class="war-shell">
+      <section class="war-arena war-multi-waiting">
+        <div class="war-topbar">
+          <button id="warMultiBack" class="war-exit" type="button">← ${tr("backGames")}</button>
+          <strong>🌐 Luftra Online</strong>
+        </div>
+        <div class="war-multi-wait-card">
+          <div class="war-multi-count-big">${warMultiPlayers.length} / 8</div>
+          <h2>👥 Duke pritur lojtarët…</h2>
+          <div class="war-multi-countdown">${sec}</div>
+          <p>Loja nis pas ${sec} sekondash me lojtarët që janë futur.</p>
+          <div class="war-multi-wait-list">
+            ${warMultiPlayers.map((p,i)=>`<div><strong>${i+1}. ${escapeHtml(p.display_name)}</strong></div>`).join("")}
+          </div>
+          <p class="muted">Nëse mbetesh vetëm, loja kalon automatikisht te kompjuteri.</p>
+        </div>
+      </section>
+    </div>`;
+
+  document.getElementById("warMultiBack").onclick=()=>{
+    clearWarMultiPolling();
+    if(warMultiChannel){
+      supabase.removeChannel(warMultiChannel);
+      warMultiChannel=null;
+    }
+    warMultiRoom=null;
+    warMultiPlayers=[];
+    renderLobby();
+  };
+}
+
+function renderWarMultiGame(){
+  if(!warMultiRoom) return;
+  const me=warMultiMe();
+  const alive=warMultiPlayers.filter(p=>!p.eliminated&&p.hp>0);
+  const myTurn=warMultiRoom.status==="active" && warMultiRoom.turn_device===deviceId && me && !me.eliminated;
+  const opponents=warMultiAliveOpponents();
+
+  if(warMultiSelectedTarget && !opponents.some(p=>p.device_id===warMultiSelectedTarget)){
+    warMultiSelectedTarget=null;
+  }
+  if(!warMultiSelectedTarget && opponents.length===1){
+    warMultiSelectedTarget=opponents[0].device_id;
+  }
+
+  const special=me?.special||"bomb";
+
+  root.innerHTML=`
+    <div class="war-shell">
+      <section class="war-arena war-multi-arena">
+        <div class="war-topbar">
+          <button id="warMultiBack" class="war-exit" type="button">← ${tr("backGames")}</button>
+          <strong>🌐 Luftra Online</strong>
+          <span class="war-turn">${warMultiRoom.status==="finished"?"FUND":(myTurn?"RADHA JOTE":"PRIT RADHËN")}</span>
+        </div>
+
+        <div class="war-multi-summary">
+          <strong>👥 ${alive.length} gjallë / ${warMultiPlayers.length} lojtarë</strong>
+          <span>${escapeHtml(warMultiRoom.message||"")}</span>
+        </div>
+
+        <div class="war-multi-grid">
+          ${warMultiPlayers.map(warMultiPlayerCard).join("")}
+        </div>
+
+        ${warMultiRoom.status==="finished"?`
+          <div class="war-multi-winner">
+            🏆 Fituesi:
+            <strong>${escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiRoom.winner_device)?.display_name||"—")}</strong>
+          </div>
+          <button id="warMultiAgain" class="primary" type="button">🌐 Kërko lojë të re</button>
+        `:`
+          <div class="war-multi-target-hint">
+            ${myTurn
+              ? (warMultiSelectedTarget
+                  ? "🎯 Objektivi: "+escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiSelectedTarget)?.display_name||"")
+                  : "🎯 Prek lojtarin që dëshiron ta sulmosh.")
+              : "⏳ Prit deri sa të vijë radha jote."}
+          </div>
+
+          <div class="war-actions">
+            ${warActionCard("attack")}
+            ${warActionCard(special)}
+          </div>
+        `}
+      </section>
+    </div>`;
+
+  root.querySelectorAll("[data-war-target]").forEach(btn=>{
+    btn.onclick=()=>{
+      if(!myTurn) return;
+      warMultiSelectedTarget=btn.dataset.warTarget;
+      renderWarMultiGame();
+    };
+  });
+
+  root.querySelectorAll("[data-war-action]").forEach(btn=>{
+    btn.disabled=!myTurn;
+    btn.onclick=()=>warMultiDoAction(btn.dataset.warAction);
+  });
+
+  document.getElementById("warMultiBack").onclick=()=>{
+    clearWarMultiPolling();
+    if(warMultiChannel){
+      supabase.removeChannel(warMultiChannel);
+      warMultiChannel=null;
+    }
+    warMultiRoom=null;
+    warMultiPlayers=[];
+    warMultiSelectedTarget=null;
+    renderLobby();
+  };
+
+  document.getElementById("warMultiAgain")?.addEventListener("click",()=>{
+    if(warMultiChannel){
+      supabase.removeChannel(warMultiChannel);
+      warMultiChannel=null;
+    }
+    warMultiRoom=null;
+    warMultiPlayers=[];
+    warMultiSelectedTarget=null;
+    renderLobby("🌐 Shtyp Luaj Online për lojë të re.");
+  });
+}
+
+async function warMultiDoAction(action){
+  if(!warMultiRoom || warMultiRoom.status!=="active") return;
+  const me=warMultiMe();
+  if(!me || me.eliminated || warMultiRoom.turn_device!==deviceId) return;
+
+  let target=warMultiSelectedTarget;
+  const opponents=warMultiAliveOpponents();
+
+  if(!target){
+    if(opponents.length===1) target=opponents[0].device_id;
+    else {
+      const hint=root.querySelector(".war-multi-target-hint");
+      if(hint) hint.textContent="⚠️ Zgjidh së pari cilin lojtar dëshiron ta godasësh.";
+      return;
+    }
+  }
+
+  root.querySelectorAll("[data-war-action]").forEach(b=>b.disabled=true);
+  playWarSound(warSoundForAction(action));
+
+  try{
+    const {error}=await supabase.rpc("war_multi_action",{
+      p_room:warMultiRoom.id,
+      p_device:deviceId,
+      p_target:target,
+      p_action:action
+    });
+    if(error) throw error;
+    warMultiSelectedTarget=null;
+    await loadWarMultiState(warMultiRoom.id);
+    renderWarMultiGame();
+  }catch(error){
+    console.warn("war multi action",error);
+    await loadWarMultiState(warMultiRoom.id).catch(()=>{});
+    renderWarMultiGame();
+  }
+}
+
+async function subscribeWarMultiRoom(roomId){
+  if(warMultiChannel){
+    supabase.removeChannel(warMultiChannel);
+    warMultiChannel=null;
+  }
+
+  warMultiChannel=supabase.channel("war-multi-"+roomId)
+    .on("postgres_changes",{
+      event:"UPDATE",schema:"public",table:"war_multi_rooms",filter:"id=eq."+roomId
+    },async()=>{
+      await loadWarMultiState(roomId).catch(()=>{});
+      if(warMultiRoom?.status==="waiting") renderWarMultiWaiting();
+      else renderWarMultiGame();
+    })
+    .on("postgres_changes",{
+      event:"*",schema:"public",table:"war_multi_players",filter:"room_id=eq."+roomId
+    },async()=>{
+      await loadWarMultiState(roomId).catch(()=>{});
+      if(warMultiRoom?.status==="waiting") renderWarMultiWaiting();
+      else renderWarMultiGame();
+    })
+    .subscribe();
+}
+
+async function startWarMultiSearch(){
+  const button=document.getElementById("warMultiBtn");
+  const info=document.getElementById("warNameInfo");
+  if(button) button.disabled=true;
+
+  try{
+    await saveWarProfile();
+    const name=warProfile?.display_name||localStorage.getItem(WAR_NAME_KEY)||"User";
+    const {data,error}=await supabase.rpc("war_multi_join",{
+      p_device:deviceId,
+      p_name:name
+    });
+    if(error) throw error;
+
+    const roomId=data?.room_id;
+    if(!roomId) throw new Error("ROOM_NOT_CREATED");
+
+    await loadWarMultiState(roomId);
+    await subscribeWarMultiRoom(roomId);
+
+    clearWarMultiPolling();
+
+    const poll=async()=>{
+      if(!warMultiRoom?.id) return;
+      try{
+        const {data:pollData,error:pollError}=await supabase.rpc("war_multi_poll",{
+          p_room:warMultiRoom.id,
+          p_device:deviceId
+        });
+        if(pollError) throw pollError;
+
+        if(pollData?.status==="fallback"){
+          clearWarMultiPolling();
+          if(warMultiChannel){
+            supabase.removeChannel(warMultiChannel);
+            warMultiChannel=null;
+          }
+          warMultiRoom=null;
+          warMultiPlayers=[];
+          warGameState=warInitialState();
+          warGameState.message="⏱️ Nuk u gjet asnjë lojtar tjetër. Po luan me kompjuterin.";
+          renderWarGame();
+          return;
+        }
+
+        await loadWarMultiState(roomId);
+        if(warMultiRoom.status==="waiting") renderWarMultiWaiting();
+        else{
+          clearWarMultiPolling();
+          renderWarMultiGame();
+        }
+      }catch(error){
+        console.warn("war multi poll",error);
+      }
+    };
+
+    await poll();
+    if(warMultiRoom?.status==="waiting"){
+      warMultiPollTimer=setInterval(poll,1000);
+    }
+  }catch(error){
+    console.warn("war multi join",error);
+    if(info) info.textContent="Nuk u hap loja online. Provo përsëri.";
+    if(button) button.disabled=false;
   }
 }
 
@@ -1114,7 +1441,10 @@ function renderLobby(msg=""){
             <label for="warPlayerName"><strong>👤 User</strong></label>
             <input id="warPlayerName" type="text" maxlength="20" placeholder="Emri i userit" value="${escapeHtml(localStorage.getItem(WAR_NAME_KEY)||"")}">
             <div id="warNameInfo" class="game-help">Emri mund të ndryshohet maksimum 2 herë.</div>
-            <button id="warGame" class="primary" type="button">⚔️ Hyr në Luftra</button>
+            <button id="warGame" class="primary" type="button">🤖 Luaj me kompjuter</button>
+            <button id="warMultiBtn" class="secondary war-online-btn" type="button">🌐 Luaj Online (deri 8 veta)</button>
+            <div id="warMultiCount" class="war-online-count">👥 Në pritje: 0 / 8</div>
+            <div class="game-help">Pas 10 sekondash loja nis me 2–8 lojtarë. Nëse je vetëm, luan me kompjuterin.</div>
           </div>
           <section id="warLeaderboard" class="war-leaderboard"><div class="muted">🏆 Po ngarkohet rekordi javor…</div></section>
         ` : selectedType==="tetris" ? `
@@ -1159,7 +1489,12 @@ function renderLobby(msg=""){
   }
   const warButton=document.getElementById("warGame");
   if(warButton) warButton.onclick=startWarGame;
-  if(selectedType==="war") loadWarProfileAndLeaderboard();
+  const warMultiBtn=document.getElementById("warMultiBtn");
+  if(warMultiBtn) warMultiBtn.onclick=startWarMultiSearch;
+  if(selectedType==="war"){
+    loadWarProfileAndLeaderboard();
+    refreshWarMultiLobbyCount();
+  }
 
   const createButton=document.getElementById("createGame");
   if(createButton) createButton.onclick=createRoom;
