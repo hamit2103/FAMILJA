@@ -32,11 +32,11 @@ const I18N = {
     "login.label":"Kodi i hyrjes","login.placeholder":"Shkruaj kodin","login.adminPlaceholder":"Kodi i administratorit","login.familyPlaceholder":"Kodi i familjes",
     "login.button":"Hyr","install.app":"Instalo aplikacionin","install.short":"Instalo","share":"Ndaje APK-në","logout":"Dil","online":"Online:",
     "auth.note":"Kodi kontrollohet përmes Supabase Authentication. Fotot dhe videot ruhen privatisht në Supabase dhe nuk ruhen në telefonin e vizitorit, përveç nëse ai zgjedh t’i shkarkojë.",
-    "tabs.photos":"Foto","tabs.info":"Informacion","tabs.prayer":"Namazi","upload.addPhoto":"Shto foto","upload.addMedia":"Shto foto ose video",
-    "upload.adminHint":"Administratori mund të ngarkojë foto dhe video.","upload.familyTitle":"Shto fotot e tua","upload.button":"Ngarko",
+    "tabs.photos":"Reklama","tabs.info":"Informacion","tabs.prayer":"Namazi","upload.addPhoto":"Shto reklamë","upload.addMedia":"Shto reklamë (foto ose video)",
+    "upload.adminHint":"Vetëm administratori mund të ngarkojë dhe menaxhojë reklamat.","upload.familyTitle":"Shto fotot e tua","upload.button":"Ngarko",
     "upload.familyHint":"Ke ngarkuar {used}/3 foto. Mund të shtosh edhe {remaining}.","storage.title":"Hapësira e përdorur",
     "storage.adminOnly":"E dukshme vetëm për administratorin","materials":" materiale","refresh":"Rifresko",
-    "empty.mediaTitle":"Ende nuk ka materiale","empty.mediaBody":"Kur administratori të ngarkojë foto ose video, ato do të shfaqen këtu automatikisht.",
+    "empty.mediaTitle":"Ende nuk ka reklama","empty.mediaBody":"Kur administratori të ngarkojë një reklamë, ajo do të shfaqet këtu.",
     "info.title":"Informacion","info.familyWrite":"Vetëm administratori mund të shkruajë këtu.","info.name":"Emri","info.namePlaceholder":"Shkruaj emrin tënd",
     "info.message":"Mesazhi","info.messagePlaceholder":"Shkruaj informacionin...","info.publish":"Publiko","info.notes":" shënime",
     "info.emptyTitle":"Ende nuk ka informacion","info.emptyBody":"Kur administratori të publikojë diçka, do të shfaqet këtu.","role.admin":"Administrator","role.family":"Anëtar i familjes",
@@ -70,11 +70,11 @@ const I18N = {
     "login.label":"Zugangscode","login.placeholder":"Code eingeben","login.adminPlaceholder":"Administrator-Code","login.familyPlaceholder":"Familien-Code",
     "login.button":"Anmelden","install.app":"App installieren","install.short":"Installieren","share":"APK teilen","logout":"Abmelden","online":"Online:",
     "auth.note":"Der Code wird über Supabase Authentication geprüft. Fotos und Videos werden privat in Supabase gespeichert und nicht auf dem Gerät des Besuchers gespeichert, außer er lädt sie herunter.",
-    "tabs.photos":"Fotos","tabs.info":"Information","tabs.prayer":"Gebet","upload.addPhoto":"Foto hinzufügen","upload.addMedia":"Foto oder Video hinzufügen",
-    "upload.adminHint":"Der Administrator kann Fotos und Videos hochladen.","upload.familyTitle":"Deine Fotos hinzufügen","upload.button":"Hochladen",
+    "tabs.photos":"Werbung","tabs.info":"Information","tabs.prayer":"Gebet","upload.addPhoto":"Werbung hinzufügen","upload.addMedia":"Werbung hinzufügen (Foto oder Video)",
+    "upload.adminHint":"Nur der Administrator kann Werbung hochladen und verwalten.","upload.familyTitle":"Deine Fotos hinzufügen","upload.button":"Hochladen",
     "upload.familyHint":"Du hast {used}/3 Fotos hochgeladen. Du kannst noch {remaining} hinzufügen.","storage.title":"Verwendeter Speicher",
     "storage.adminOnly":"Nur für den Administrator sichtbar","materials":" Medien","refresh":"Aktualisieren",
-    "empty.mediaTitle":"Noch keine Medien","empty.mediaBody":"Wenn der Administrator Fotos oder Videos hochlädt, erscheinen sie hier automatisch.",
+    "empty.mediaTitle":"Noch keine Werbung","empty.mediaBody":"Wenn der Administrator Werbung hochlädt, erscheint sie hier.",
     "info.title":"Information","info.familyWrite":"Nur der Administrator kann hier schreiben.","info.name":"Name","info.namePlaceholder":"Deinen Namen eingeben",
     "info.message":"Nachricht","info.messagePlaceholder":"Information eingeben...","info.publish":"Veröffentlichen","info.notes":" Einträge",
     "info.emptyTitle":"Noch keine Informationen","info.emptyBody":"Wenn der Administrator etwas veröffentlicht, erscheint es hier.","role.admin":"Administrator","role.family":"Familienmitglied",
@@ -108,11 +108,11 @@ const I18N = {
     "login.label":"Giriş kodu","login.placeholder":"Kodu gir","login.adminPlaceholder":"Yönetici kodu","login.familyPlaceholder":"Aile kodu",
     "login.button":"Giriş yap","install.app":"Uygulamayı yükle","install.short":"Yükle","share":"APK'yı paylaş","logout":"Çıkış","online":"Çevrimiçi:",
     "auth.note":"Kod Supabase Authentication üzerinden kontrol edilir. Fotoğraf ve videolar Supabase'de özel olarak saklanır ve ziyaretçi indirmeyi seçmedikçe telefonuna kaydedilmez.",
-    "tabs.photos":"Fotoğraflar","tabs.info":"Bilgi","tabs.prayer":"Namaz","upload.addPhoto":"Fotoğraf ekle","upload.addMedia":"Fotoğraf veya video ekle",
-    "upload.adminHint":"Yönetici fotoğraf ve video yükleyebilir.","upload.familyTitle":"Fotoğraflarını ekle","upload.button":"Yükle",
+    "tabs.photos":"Reklamlar","tabs.info":"Bilgi","tabs.prayer":"Namaz","upload.addPhoto":"Reklam ekle","upload.addMedia":"Reklam ekle (fotoğraf veya video)",
+    "upload.adminHint":"Reklamları yalnızca yönetici yükleyebilir ve yönetebilir.","upload.familyTitle":"Fotoğraflarını ekle","upload.button":"Yükle",
     "upload.familyHint":"{used}/3 fotoğraf yükledin. {remaining} tane daha ekleyebilirsin.","storage.title":"Kullanılan alan",
     "storage.adminOnly":"Yalnızca yönetici görebilir","materials":" medya","refresh":"Yenile",
-    "empty.mediaTitle":"Henüz medya yok","empty.mediaBody":"Yönetici fotoğraf veya video yüklediğinde burada otomatik olarak görünecek.",
+    "empty.mediaTitle":"Henüz reklam yok","empty.mediaBody":"Yönetici reklam yüklediğinde burada görünecek.",
     "info.title":"Bilgi","info.familyWrite":"Buraya yalnızca yönetici yazabilir.","info.name":"İsim","info.namePlaceholder":"Adını yaz",
     "info.message":"Mesaj","info.messagePlaceholder":"Bilgiyi yaz...","info.publish":"Yayınla","info.notes":" not",
     "info.emptyTitle":"Henüz bilgi yok","info.emptyBody":"Yönetici bir şey yayınladığında burada görünecek.","role.admin":"Yönetici","role.family":"Aile üyesi",
@@ -276,7 +276,7 @@ let nativeCalendarCacheKey = "";
 
 const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab"];
 const TAB_LABELS = {
-  galleryTab:"📷 Foto",
+  galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
   prayerTab:"🕌 Namazi",
   gamesTab:"🎮 Lojëra",
@@ -534,6 +534,7 @@ async function saveSharedMenuOrder(){
 menuOrderSave?.addEventListener("click",saveSharedMenuOrder);
 
 function setSection(next) {
+  if (next === "gallery" && !isAdmin()) next = "info";
   activeSection = next;
   const showGallery = next === "gallery";
   const showInfo = next === "info";
@@ -1310,7 +1311,10 @@ function ownFamilyPhotoCount(items = mediaItems) {
 }
 
 function updateUploadPanel(items = mediaItems) {
-  if (!currentUser) return;
+  if (!currentUser || !isAdmin()) {
+    adminPanel?.classList.add("hidden");
+    return;
+  }
 
   if (isAdmin()) {
     uploadTitle.textContent = t("upload.addMedia");
@@ -1338,7 +1342,7 @@ function updateUploadPanel(items = mediaItems) {
 }
 
 async function deleteMediaItem(item) {
-  if (!supabase || !currentUser) return;
+  if (!supabase || !currentUser || !isAdmin()) return;
 
   if (!isAdmin() && !isOwnFamilyPhoto(item)) {
     alert(t("family.onlyOwnDelete"));
@@ -1378,7 +1382,7 @@ async function signedUrl(path) {
 }
 
 async function loadMedia() {
-  if (!supabase || !currentUser) return;
+  if (!supabase || !currentUser || !isAdmin()) return;
 
   gallery.innerHTML = "";
   const { data, error } = await supabase
@@ -1551,7 +1555,7 @@ async function optimizeImage(file) {
 }
 
 uploadBtn.addEventListener("click", async () => {
-  if (!supabase || !currentUser) return;
+  if (!supabase || !currentUser || !isAdmin()) return;
 
   const files = Array.from(mediaInput.files);
   if (!files.length) {
@@ -1773,6 +1777,7 @@ async function applySession(session) {
 
   loginView.classList.toggle("hidden", signedIn);
   appView.classList.toggle("hidden", !signedIn);
+  galleryTab?.classList.toggle("hidden", !signedIn || !isAdmin());
   infoCompose?.classList.toggle("hidden", !signedIn || !isAdmin());
   menuOrderAdmin?.classList.toggle("hidden", !signedIn || !isAdmin());
   if (isAdmin()) infoUnreadBadge?.classList.add("hidden");
@@ -1796,11 +1801,12 @@ async function applySession(session) {
     return;
   }
 
-  adminPanel.classList.remove("hidden");
+  adminPanel.classList.toggle("hidden", !isAdmin());
   if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
   roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
   uploadStatus.textContent = "";
-  await loadMedia();
+  setSection(isAdmin() ? "gallery" : "info");
+  if (isAdmin()) await loadMedia();
   await loadSharedMenuOrder();
   const savedCoords = savedPrayerCoords();
   if (savedCoords) {
