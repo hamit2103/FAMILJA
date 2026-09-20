@@ -1387,3 +1387,205 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
   .chat-name-row{grid-template-columns:1fr}
   .chat-message{max-width:94%}
 }
+
+
+/* War game */
+.war-shell{
+  width:100%;
+  min-height:calc(100dvh - 130px);
+}
+.war-arena{
+  min-height:calc(100dvh - 150px);
+  display:grid;
+  grid-template-rows:auto auto 1fr auto auto;
+  gap:12px;
+  padding:12px;
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 20% 15%,rgba(220,38,38,.18),transparent 32%),
+    radial-gradient(circle at 80% 75%,rgba(37,99,235,.18),transparent 34%),
+    linear-gradient(180deg,#111827,#1f2937 48%,#0f172a);
+  color:#fff;
+  box-shadow:0 16px 40px rgba(0,0,0,.28);
+}
+.war-topbar{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:10px;
+}
+.war-topbar>strong{
+  text-align:center;
+  font-size:20px;
+}
+.war-exit{
+  border:0;
+  border-radius:12px;
+  padding:10px 12px;
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  font-weight:850;
+}
+.war-turn{
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  font-size:12px;
+  font-weight:900;
+}
+.war-fighter{
+  display:grid;
+  gap:10px;
+  padding:15px;
+  border-radius:20px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(8px);
+}
+.war-enemy-card{box-shadow:inset 0 0 0 1px rgba(239,68,68,.12)}
+.war-player-card{box-shadow:inset 0 0 0 1px rgba(59,130,246,.12)}
+.war-fighter-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.war-fighter-head h2{
+  margin:4px 0 0;
+  font-size:24px;
+}
+.war-side-label{
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:1.4px;
+  opacity:.75;
+}
+.war-hp-number{
+  font-size:22px;
+  white-space:nowrap;
+}
+.war-stat-line{
+  display:grid;
+  grid-template-columns:92px minmax(0,1fr) 34px;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  font-weight:800;
+}
+.war-meter{
+  height:11px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+}
+.war-meter i{
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,#ef4444,#22c55e);
+}
+.war-stat-line.shield .war-meter i{background:linear-gradient(90deg,#38bdf8,#2563eb)}
+.war-stat-line.energy .war-meter i{background:linear-gradient(90deg,#f59e0b,#facc15)}
+.war-stat-line b{text-align:right}
+.war-middle{
+  min-height:190px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:8px;
+  text-align:center;
+}
+.war-character{
+  display:grid;
+  place-items:center;
+  gap:0;
+  transform:translateY(4px);
+}
+.war-soldier{
+  font-size:76px;
+  line-height:1;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.35));
+}
+.war-rifle{
+  margin-top:-8px;
+  font-size:24px;
+  letter-spacing:-2px;
+  opacity:.9;
+}
+.war-vs{
+  font-size:26px;
+  font-weight:1000;
+  letter-spacing:2px;
+  color:#facc15;
+  text-shadow:0 3px 12px rgba(0,0,0,.4);
+}
+.war-message{
+  margin:0;
+  min-height:24px;
+  font-weight:800;
+  color:#e5e7eb;
+}
+.war-actions{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+}
+.war-actions button{
+  min-height:78px;
+  border:0;
+  border-radius:16px;
+  padding:8px 6px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:4px;
+  background:#fff;
+  color:#111827;
+  font-size:23px;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+.war-actions button strong{font-size:13px}
+.war-actions button small{font-size:10px;color:#6b7280;font-weight:800}
+.war-actions button:disabled{opacity:.45}
+.war-restart{margin:0}
+@media(max-width:560px){
+  .war-shell{min-height:calc(100dvh - 120px)}
+  .war-arena{
+    min-height:calc(100dvh - 132px);
+    padding:9px;
+    gap:9px;
+    border-radius:18px;
+  }
+  .war-topbar{grid-template-columns:auto 1fr}
+  .war-turn{grid-column:1/-1;text-align:center}
+  .war-fighter{padding:12px}
+  .war-fighter-head h2{font-size:20px}
+  .war-hp-number{font-size:19px}
+  .war-stat-line{grid-template-columns:84px minmax(0,1fr) 30px;font-size:12px}
+  .war-middle{min-height:150px}
+  .war-soldier{font-size:64px}
+  .war-rifle{font-size:20px}
+  .war-actions{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .war-actions button{
+    min-height:68px;
+  }
+}
+@media(orientation:landscape) and (max-height:650px){
+  .war-arena{
+    min-height:calc(100dvh - 30px);
+    grid-template-columns:1fr 180px 1fr;
+    grid-template-rows:auto 1fr auto;
+    grid-template-areas:
+      "top top top"
+      "enemy middle player"
+      "actions actions actions";
+    align-items:stretch;
+  }
+  .war-topbar{grid-area:top}
+  .war-enemy-card{grid-area:enemy}
+  .war-middle{grid-area:middle;min-height:0}
+  .war-player-card{grid-area:player}
+  .war-actions{grid-area:actions}
+}
