@@ -900,3 +900,34 @@ begin
     alter publication supabase_realtime add table public.tetris_scores;
   end if;
 end $$;
+
+
+-- Shared menu order controlled by Admin.
+create table if not exists public.app_settings (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz not null default now(),
+  updated_by uuid default auth.uid()
+);
+
+alter table public.app_settings enable row level security;
+grant select, insert, update, delete on table public.app_settings to authenticated;
+
+drop policy if exists "Family can read app settings" on public.app_settings;
+create policy "Family can read app settings"
+on public.app_settings for select to authenticated using (true);
+
+drop policy if exists "Admin can insert app settings" on public.app_settings;
+create policy "Admin can insert app settings"
+on public.app_settings for insert to authenticated
+with check (auth.email() = 'admin@familja.local');
+
+drop policy if exists "Admin can update app settings" on public.app_settings;
+create policy "Admin can update app settings"
+on public.app_settings for update to authenticated
+using (auth.email() = 'admin@familja.local')
+with check (auth.email() = 'admin@familja.local');
+
+insert into public.app_settings(key,value)
+values ('tab_order','["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab"]'::jsonb)
+on conflict (key) do nothing;
