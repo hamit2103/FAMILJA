@@ -1589,3 +1589,20 @@ body.tv-fullscreen-fallback #tvPlayerCard.tv-fullscreen-card .tv-player-feedback
   .war-player-card{grid-area:player}
   .war-actions{grid-area:actions}
 }
+
+.war-sound-toggle{
+  border:0;
+  border-radius:12px;
+  padding:9px 11px;
+  background:#facc15;
+  color:#111827;
+  font-weight:950;
+  white-space:nowrap;
+}
+@media(max-width:560px){
+  .war-topbar{grid-template-columns:auto 1fr auto}
+  .war-sound-toggle{
+    grid-column:1/-1;
+    width:100%;
+  }
+}
