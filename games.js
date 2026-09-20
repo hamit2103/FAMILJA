@@ -11,6 +11,7 @@ const DEVICE_KEY = "pajaziti-presence-device";
 const LANG_KEY = "pajaziti-language";
 const TIMER_NAME_KEY = "pajaziti-timer-name";
 const TIMER_SOUND_KEY = "pajaziti-timer-sound";
+const TETRIS_NAME_KEY = "pajaziti-tetris-name";
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -253,8 +254,10 @@ function renderLobby(msg=""){
           <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
         ` : selectedType==="tetris" ? `
+          <input id="tetrisPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TETRIS_NAME_KEY)||"")}">
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
           <div class="game-help">⬅️ ➡️ lëviz · ⤾ rrotullo · ⬇️ shpejto · ⏬ zbrit menjëherë</div>
+          <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
         ${selectedType==="tetris" ? "" : `
@@ -991,6 +994,18 @@ const TETROMINOES=[
 let tetris=null;
 let tetrisTimer=null;
 let tetrisKeyHandler=null;
+let tetrisScoresChannel=null;
+
+function startTetrisScoreRealtime(){
+  if(tetrisScoresChannel) return;
+  tetrisScoresChannel=supabase
+    .channel("tetris-scores-live")
+    .on("postgres_changes",{event:"*",schema:"public",table:"tetris_scores"},()=>{
+      if(document.getElementById("tetrisLeaderboard")) loadTetrisLeaderboard();
+      if(document.getElementById("tetrisLobbyLeaderboard")) loadTetrisLeaderboard("tetrisLobbyLeaderboard");
+    })
+    .subscribe();
+}
 
 function stopTetris(){
   if(tetrisTimer){ clearInterval(tetrisTimer); tetrisTimer=null; }
@@ -1059,6 +1074,7 @@ function tetrisSpawn(){
   if(tetrisCollides(tetris.current,0,0)){
     tetris.gameOver=true;
     stopTetris();
+    setTimeout(saveTetrisScore,0);
   }
 }
 
@@ -1177,7 +1193,71 @@ function renderTetrisBoard(){
   }
 }
 
+async function loadTetrisLeaderboard(targetId="tetrisLeaderboard"){
+  const el=document.getElementById(targetId);
+  if(!el) return;
+  try{
+    const {data,error}=await supabase
+      .from("tetris_scores")
+      .select("device_id,display_name,best_score,best_lines,updated_at")
+      .order("best_score",{ascending:false})
+      .order("best_lines",{ascending:false})
+      .limit(20);
+    if(error) throw error;
+    if(!document.getElementById(targetId)) return;
+
+    const rows=(data||[]).map((r,i)=>`
+      <div class="tetris-rank-row">
+        <span>${i===0?"👑":(i+1)+"."} ${escapeHtml(r.display_name)}</span>
+        <strong>${r.best_score} pts · ${r.best_lines} lines</strong>
+      </div>`).join("");
+
+    el.innerHTML=`
+      <h3>🏆 Rekordet Tetris</h3>
+      <div class="tetris-ranking">${rows || '<div class="muted">Ende nuk ka rezultate.</div>'}</div>`;
+  }catch(error){
+    console.warn("Tetris leaderboard",error);
+    if(document.getElementById(targetId)) el.innerHTML='<div class="muted">Renditja nuk u ngarkua.</div>';
+  }
+}
+
+async function saveTetrisScore(){
+  if(!tetris || !tetris.gameOver) return;
+
+  const name=(localStorage.getItem(TETRIS_NAME_KEY)||"").trim().slice(0,24);
+  if(!name) return;
+
+  try{
+    const {data:existing}=await supabase
+      .from("tetris_scores")
+      .select("best_score,best_lines")
+      .eq("device_id",deviceId)
+      .maybeSingle();
+
+    const bestScore=Math.max(Number(existing?.best_score||0),Number(tetris.score||0));
+    const bestLines=Math.max(
+      Number(existing?.best_score||0)===bestScore ? Number(existing?.best_lines||0) : 0,
+      Number(tetris.lines||0)
+    );
+
+    await supabase.from("tetris_scores").upsert({
+      device_id:deviceId,
+      display_name:name,
+      best_score:bestScore,
+      best_lines:bestLines,
+      updated_at:new Date().toISOString()
+    },{onConflict:"device_id"});
+
+    await loadTetrisLeaderboard();
+  }catch(error){
+    console.warn("Tetris score save",error);
+  }
+}
+
 function startTetrisGame(){
+  const playerName=(document.getElementById("tetrisPlayerName")?.value || localStorage.getItem(TETRIS_NAME_KEY) || "").trim().slice(0,24);
+  if(!playerName){ renderLobby(tr("needName")); return; }
+  localStorage.setItem(TETRIS_NAME_KEY,playerName);
   if(channel){supabase.removeChannel(channel);channel=null;}
   if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
   stopTetris();
@@ -1230,6 +1310,10 @@ function startTetrisGame(){
           <button id="tetrisPause" class="secondary" type="button">⏸️ Pauzë</button>
           <button id="tetrisNew" class="primary" type="button">🔄 ${tr("newGame")}</button>
         </div>
+
+        <section id="tetrisLeaderboard" class="tetris-leaderboard">
+          <div class="muted">🏆 Po ngarkohet renditja…</div>
+        </section>
       </section>
     </div>`;
 
@@ -1261,11 +1345,13 @@ function startTetrisGame(){
   document.addEventListener("keydown",tetrisKeyHandler);
 
   renderTetrisBoard();
+  loadTetrisLeaderboard();
   tetrisRestartTimer();
 }
 
 
 function activate(){
+  startTetrisScoreRealtime();
   if(tabLabel)tabLabel.textContent=tr("games");
   if(room)renderRoom();else renderLobby();
 }
