@@ -321,6 +321,7 @@ function renderWarGame(){
           <strong>⚔️ ${tr("war")}</strong>
           <span class="war-turn">${s.over ? "FUND" : (s.turn==="player" ? "RADHA JOTE" : "KUNDËRSHTARI")}</span>
           <button id="warSoundToggle" class="war-sound-toggle" type="button">${warSoundEnabled ? "🔊 Zëri ON" : "🔇 Zëri OFF"}</button>
+          <span id="warAudioStatus" class="war-audio-status"></span>
         </div>
 
         <article class="war-fighter war-enemy-card">
@@ -474,58 +475,145 @@ function warLowBoom(ctx,{delay=0,duration=.28,startFreq=120,endFreq=42,gain=.55}
   osc.stop(start+duration+.03);
 }
 
-function playWarSound(kind){
-  if(!warSoundEnabled) return;
+const warMediaUrls={};
+
+function warWavUrl(kind){
+  if(warMediaUrls[kind]) return warMediaUrls[kind];
+
+  const sampleRate=22050;
+  const duration=kind==="rocket" ? .85 : kind==="tank" ? .62 : kind==="attack" ? .18 : .24;
+  const samples=Math.floor(sampleRate*duration);
+  const bytes=new ArrayBuffer(44+samples*2);
+  const view=new DataView(bytes);
+
+  function text4(offset,text){
+    for(let i=0;i<4;i++) view.setUint8(offset+i,text.charCodeAt(i));
+  }
+  text4(0,"RIFF");
+  view.setUint32(4,36+samples*2,true);
+  text4(8,"WAVE");
+  text4(12,"fmt ");
+  view.setUint32(16,16,true);
+  view.setUint16(20,1,true);
+  view.setUint16(22,1,true);
+  view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*2,true);
+  view.setUint16(32,2,true);
+  view.setUint16(34,16,true);
+  text4(36,"data");
+  view.setUint32(40,samples*2,true);
+
+  for(let i=0;i<samples;i++){
+    const t=i/sampleRate;
+    const x=i/samples;
+    let v=0;
+
+    if(kind==="attack"){
+      const crack=(Math.random()*2-1)*Math.pow(1-x,5);
+      const boom=Math.sin(2*Math.PI*(115-65*x)*t)*Math.exp(-28*t);
+      v=.86*crack+.52*boom;
+    }else if(kind==="tank"){
+      const blast=(Math.random()*2-1)*Math.exp(-7*t);
+      const low=Math.sin(2*Math.PI*(82-42*x)*t)*Math.exp(-4.5*t);
+      const metal=Math.sin(2*Math.PI*420*t)*Math.exp(-10*t);
+      v=.48*blast+.78*low+.12*metal;
+    }else if(kind==="rocket"){
+      if(t<.24){
+        const launch=(Math.random()*2-1)*(.3+.5*(t/.24));
+        const whine=Math.sin(2*Math.PI*(260+900*t)*t);
+        v=.34*launch+.18*whine;
+      }else{
+        const bt=t-.24;
+        const blast=(Math.random()*2-1)*Math.exp(-5*bt);
+        const low=Math.sin(2*Math.PI*(72-35*(bt/.61))*bt)*Math.exp(-3.2*bt);
+        v=.62*blast+.82*low;
+      }
+    }else if(kind==="defend"){
+      v=.28*Math.sin(2*Math.PI*(260+520*x)*t)*Math.exp(-5*t);
+    }else if(kind==="medkit"){
+      const f=x<.33?520:x<.66?660:820;
+      v=.22*Math.sin(2*Math.PI*f*t)*Math.exp(-2.5*t);
+    }
+
+    v=Math.max(-1,Math.min(1,v));
+    view.setInt16(44+i*2,Math.round(v*32767),true);
+  }
+
+  const blob=new Blob([bytes],{type:"audio/wav"});
+  warMediaUrls[kind]=URL.createObjectURL(blob);
+  return warMediaUrls[kind];
+}
+
+function playWarWebAudio(kind){
   ensureWarAudio().then(ctx=>{
     if(!ctx) return;
-
     if(kind==="attack"){
       warNoise(ctx,{duration:.075,gain:.72,filterType:"highpass",frequency:900});
       warLowBoom(ctx,{duration:.11,startFreq:150,endFreq:58,gain:.42});
       warNoise(ctx,{delay:.055,duration:.055,gain:.28,filterType:"bandpass",frequency:2200});
-      if(navigator.vibrate) navigator.vibrate(28);
     }else if(kind==="tank"){
       warNoise(ctx,{duration:.18,gain:.75,filterType:"lowpass",frequency:1500});
       warLowBoom(ctx,{duration:.48,startFreq:105,endFreq:30,gain:.78});
       warNoise(ctx,{delay:.08,duration:.30,gain:.30,filterType:"lowpass",frequency:650});
-      if(navigator.vibrate) navigator.vibrate([55,25,85]);
     }else if(kind==="rocket"){
       warNoise(ctx,{duration:.28,gain:.38,filterType:"bandpass",frequency:1100});
       warLowBoom(ctx,{delay:.23,duration:.58,startFreq:92,endFreq:24,gain:.86});
       warNoise(ctx,{delay:.23,duration:.38,gain:.82,filterType:"lowpass",frequency:1200});
-      if(navigator.vibrate) navigator.vibrate([45,120,110]);
     }else if(kind==="defend"){
-      const start=ctx.currentTime;
+      const now=ctx.currentTime;
       const osc=ctx.createOscillator();
       const amp=ctx.createGain();
       osc.type="triangle";
-      osc.frequency.setValueAtTime(260,start);
-      osc.frequency.exponentialRampToValueAtTime(780,start+.16);
-      amp.gain.setValueAtTime(.0001,start);
-      amp.gain.exponentialRampToValueAtTime(.18,start+.02);
-      amp.gain.exponentialRampToValueAtTime(.0001,start+.20);
-      osc.connect(amp);
-      amp.connect(ctx.destination);
-      osc.start(start);
-      osc.stop(start+.22);
+      osc.frequency.setValueAtTime(260,now);
+      osc.frequency.exponentialRampToValueAtTime(780,now+.16);
+      amp.gain.setValueAtTime(.0001,now);
+      amp.gain.exponentialRampToValueAtTime(.18,now+.02);
+      amp.gain.exponentialRampToValueAtTime(.0001,now+.20);
+      osc.connect(amp); amp.connect(ctx.destination);
+      osc.start(now); osc.stop(now+.22);
     }else if(kind==="medkit"){
-      const start=ctx.currentTime;
+      const now=ctx.currentTime;
       [520,660,820].forEach((f,i)=>{
         const osc=ctx.createOscillator();
         const amp=ctx.createGain();
         osc.type="sine";
         osc.frequency.value=f;
-        const t=start+i*.07;
+        const t=now+i*.07;
         amp.gain.setValueAtTime(.0001,t);
         amp.gain.exponentialRampToValueAtTime(.12,t+.01);
         amp.gain.exponentialRampToValueAtTime(.0001,t+.08);
-        osc.connect(amp);
-        amp.connect(ctx.destination);
-        osc.start(t);
-        osc.stop(t+.10);
+        osc.connect(amp); amp.connect(ctx.destination);
+        osc.start(t); osc.stop(t+.10);
       });
     }
   });
+}
+
+function playWarSound(kind){
+  if(!warSoundEnabled) return;
+  try{
+    const audio=new Audio(warWavUrl(kind));
+    audio.preload="auto";
+    audio.volume=1;
+    audio.muted=false;
+    audio.playsInline=true;
+    const promise=audio.play();
+    if(promise?.catch){
+      promise.catch(error=>{
+        console.warn("War HTMLAudio blocked, using WebAudio fallback",error);
+        playWarWebAudio(kind);
+        const status=document.getElementById("warAudioStatus");
+        if(status) status.textContent="⚠️ Audio u bllokua nga telefoni — po përdor fallback.";
+      });
+    }
+  }catch(error){
+    console.warn("War audio failed",error);
+    playWarWebAudio(kind);
+  }
+
+  if(kind==="attack" && navigator.vibrate) navigator.vibrate(28);
+  if(kind==="tank" && navigator.vibrate) navigator.vibrate([55,25,85]);
+  if(kind==="rocket" && navigator.vibrate) navigator.vibrate([45,120,110]);
 }
 
 function warPlayerAction(action){
