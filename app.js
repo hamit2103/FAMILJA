@@ -45,7 +45,7 @@ const I18N = {
     "prayer.method":"Ora llogaritet sipas vendndodhjes së telefonit me metodën Diyanet.","prayer.alarmTitle":"🔔 Alarmet janë sipas dëshirës.",
     "prayer.alarmBody":"Aktivizo vetëm namazet për të cilat dëshiron njoftim në këtë telefon. Në APK Android alarmi regjistrohet në sistem dhe punon edhe kur aplikacioni është i mbyllur.",
     "prayer.Fajr":"Sabahu","prayer.Dhuhr":"Dreka","prayer.Asr":"Ikindia","prayer.Maghrib":"Akshami","prayer.Isha":"Jacia",
-    "prayer.next":"Namazi i radhës: {name} në {time}","prayer.nextTomorrow":"Namazi i radhës: Sabahu nesër","prayer.zone":"Zona: {zone}",
+    "prayer.next":"Namazi i radhës: {name} në {time}","prayer.nextTomorrow":"Namazi i radhës: Sabahu nesër","prayer.remaining":"Ka mbetur {time}","prayer.zone":"Zona: {zone}","prayer.qibla":"Kibla","prayer.qiblaActivate":"Aktivizo busullën","prayer.qiblaNeedLocation":"Zgjidh vendndodhjen për drejtimin e Kiblës.","prayer.qiblaFromNorth":"{degrees}° nga veriu","prayer.qiblaReady":"Ktheje telefonin derisa shigjeta të tregojë lart.","prayer.qiblaNoSensor":"Drejtimi është llogaritur nga veriu. Busulla e telefonit nuk u aktivizua.","prayer.kerahat":"Kerahet vakti","prayer.kerahatSunrise":"Pas lindjes së diellit","prayer.kerahatNoon":"Para drekës","prayer.kerahatSunset":"Para akshamit","prayer.kerahatNote":"Këto intervale janë afërsisht dhe mund të ndryshojnë sipas medhhebit.",
     "alarm.on":"🔔 Alarm ON","alarm.off":"🔕 Alarm OFF","alarm.activating":"Po regjistroj alarmin sistemor për {name}…","alarm.activated":"Alarmi sistemor për {name} u aktivizua.",
     "alarm.webActivated":"Alarmi u aktivizua. Për alarm edhe kur app-i është i mbyllur përdor APK Android.","alarm.disabled":"Alarmi për {name} u çaktivizua.",
     "alarm.title":"🕌 Koha e namazit","alarm.body":"Është koha e {name} ({time}).","alarm.stop":"Ndalo","alarm.channel":"Alarmet e namazit","alarm.channelDesc":"Alarm për kohën e namazit",
@@ -83,7 +83,7 @@ const I18N = {
     "prayer.method":"Die Zeiten werden anhand des Telefonstandorts nach der Diyanet-Methode berechnet.","prayer.alarmTitle":"🔔 Alarme sind optional.",
     "prayer.alarmBody":"Aktiviere nur die Gebete, für die du auf diesem Telefon eine Benachrichtigung möchtest. In der Android-APK wird der Alarm im System registriert und funktioniert auch bei geschlossener App.",
     "prayer.Fajr":"Fajr","prayer.Dhuhr":"Dhuhr","prayer.Asr":"Asr","prayer.Maghrib":"Maghrib","prayer.Isha":"Isha",
-    "prayer.next":"Nächstes Gebet: {name} um {time}","prayer.nextTomorrow":"Nächstes Gebet: Fajr morgen","prayer.zone":"Zone: {zone}",
+    "prayer.next":"Nächstes Gebet: {name} um {time}","prayer.nextTomorrow":"Nächstes Gebet: Fajr morgen","prayer.remaining":"Verbleibend {time}","prayer.zone":"Zone: {zone}","prayer.qibla":"Qibla","prayer.qiblaActivate":"Kompass aktivieren","prayer.qiblaNeedLocation":"Standort für die Qibla-Richtung auswählen.","prayer.qiblaFromNorth":"{degrees}° von Norden","prayer.qiblaReady":"Drehe das Telefon, bis der Pfeil nach oben zeigt.","prayer.qiblaNoSensor":"Die Richtung wurde von Norden berechnet. Der Telefonkompass ist nicht aktiv.","prayer.kerahat":"Kerahat-Zeiten","prayer.kerahatSunrise":"Nach Sonnenaufgang","prayer.kerahatNoon":"Vor Dhuhr","prayer.kerahatSunset":"Vor Maghrib","prayer.kerahatNote":"Diese Zeitfenster sind ungefähr und können je nach Rechtsschule abweichen.",
     "alarm.on":"🔔 Alarm AN","alarm.off":"🔕 Alarm AUS","alarm.activating":"Systemalarm für {name} wird eingerichtet…","alarm.activated":"Systemalarm für {name} wurde aktiviert.",
     "alarm.webActivated":"Alarm aktiviert. Für einen Alarm auch bei geschlossener App verwende die Android-APK.","alarm.disabled":"Alarm für {name} wurde deaktiviert.",
     "alarm.title":"🕌 Gebetszeit","alarm.body":"Es ist Zeit für {name} ({time}).","alarm.stop":"Stoppen","alarm.channel":"Gebetsalarme","alarm.channelDesc":"Alarm zur Gebetszeit",
@@ -121,7 +121,7 @@ const I18N = {
     "prayer.method":"Vakitler telefonun konumuna göre Diyanet yöntemiyle hesaplanır.","prayer.alarmTitle":"🔔 Alarmlar isteğe bağlıdır.",
     "prayer.alarmBody":"Bu telefonda bildirim almak istediğin namazlar için alarmı aç. Android APK'da alarm sisteme kaydedilir ve uygulama kapalıyken de çalışır.",
     "prayer.Fajr":"Sabah","prayer.Dhuhr":"Öğle","prayer.Asr":"İkindi","prayer.Maghrib":"Akşam","prayer.Isha":"Yatsı",
-    "prayer.next":"Sıradaki namaz: {name} {time}","prayer.nextTomorrow":"Sıradaki namaz: Sabah yarın","prayer.zone":"Bölge: {zone}",
+    "prayer.next":"Sıradaki namaz: {name} {time}","prayer.nextTomorrow":"Sıradaki namaz: Sabah yarın","prayer.remaining":"Kalan süre {time}","prayer.zone":"Bölge: {zone}","prayer.qibla":"Kıble","prayer.qiblaActivate":"Pusulayı aç","prayer.qiblaNeedLocation":"Kıble yönü için konumu seç.","prayer.qiblaFromNorth":"Kuzeyden {degrees}°","prayer.qiblaReady":"Ok yukarıyı gösterene kadar telefonu çevir.","prayer.qiblaNoSensor":"Yön kuzeye göre hesaplandı. Telefon pusulası etkin değil.","prayer.kerahat":"Kerahat vakti","prayer.kerahatSunrise":"Güneş doğduktan sonra","prayer.kerahatNoon":"Öğleden önce","prayer.kerahatSunset":"Akşamdan önce","prayer.kerahatNote":"Bu aralıklar yaklaşık olup mezhebe göre değişebilir.",
     "alarm.on":"🔔 Alarm AÇIK","alarm.off":"🔕 Alarm KAPALI","alarm.activating":"{name} için sistem alarmı ayarlanıyor…","alarm.activated":"{name} için sistem alarmı etkinleştirildi.",
     "alarm.webActivated":"Alarm etkinleştirildi. Uygulama kapalıyken de çalması için Android APK'yı kullan.","alarm.disabled":"{name} alarmı kapatıldı.",
     "alarm.title":"🕌 Namaz vakti","alarm.body":"{name} vakti geldi ({time}).","alarm.stop":"Durdur","alarm.channel":"Namaz alarmları","alarm.channelDesc":"Namaz vakti alarmı",
@@ -256,6 +256,13 @@ const prayerLocationBtn = $("prayerLocationBtn");
 const prayerNext = $("prayerNext");
 const prayerStatus = $("prayerStatus");
 const prayerList = $("prayerList");
+const qiblaArrow = $("qiblaArrow");
+const qiblaDirection = $("qiblaDirection");
+const qiblaStatus = $("qiblaStatus");
+const qiblaCompassBtn = $("qiblaCompassBtn");
+const kerahatSunrise = $("kerahatSunrise");
+const kerahatNoon = $("kerahatNoon");
+const kerahatSunset = $("kerahatSunset");
 
 languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
@@ -269,8 +276,13 @@ let mediaItems = [];
 let prayerTimings = null;
 let prayerTimingsDate = "";
 let prayerTimezone = "";
+let prayerTomorrowFajr = "";
 let prayerCheckTimer = null;
+let prayerCountdownTimer = null;
 let prayerAudioContext = null;
+let qiblaBearing = null;
+let qiblaHeading = null;
+let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
@@ -811,6 +823,134 @@ function cleanPrayerTime(value) {
   return match ? match[1].padStart(5, "0") : "--:--";
 }
 
+function timeWithOffset(value, offsetMinutes = 0) {
+  const mins = timeToMinutes(value);
+  if (mins === null) return "--:--";
+  const total = (mins + offsetMinutes + 1440) % 1440;
+  return String(Math.floor(total / 60)).padStart(2, "0") + ":" +
+    String(total % 60).padStart(2, "0");
+}
+
+function formatCountdown(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return String(h).padStart(2, "0") + ":" +
+    String(m).padStart(2, "0") + ":" +
+    String(s).padStart(2, "0");
+}
+
+function dateAtPrayerTime(value, dayOffset = 0) {
+  const mins = timeToMinutes(value);
+  if (mins === null) return null;
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  d.setHours(Math.floor(mins / 60), mins % 60, 0, 0);
+  return d;
+}
+
+function renderKerahatTimes() {
+  if (!prayerTimings) return;
+  // Approximate Hanafi-style windows for a practical display.
+  // Sunrise: about 45 min after sunrise.
+  // Midday: about 10 min before Dhuhr.
+  // Sunset: about 45 min before Maghrib.
+  if (kerahatSunrise) {
+    const start = prayerTimings.Sunrise || "--:--";
+    kerahatSunrise.textContent = start === "--:--"
+      ? "--:--"
+      : start + " – " + timeWithOffset(start, 45);
+  }
+  if (kerahatNoon) {
+    const end = prayerTimings.Dhuhr || "--:--";
+    kerahatNoon.textContent = end === "--:--"
+      ? "--:--"
+      : timeWithOffset(end, -10) + " – " + end;
+  }
+  if (kerahatSunset) {
+    const end = prayerTimings.Maghrib || prayerTimings.Sunset || "--:--";
+    kerahatSunset.textContent = end === "--:--"
+      ? "--:--"
+      : timeWithOffset(end, -45) + " – " + end;
+  }
+}
+
+function calculateQiblaBearing(latitude, longitude) {
+  const kaabaLat = 21.4225 * Math.PI / 180;
+  const kaabaLon = 39.8262 * Math.PI / 180;
+  const lat = Number(latitude) * Math.PI / 180;
+  const lon = Number(longitude) * Math.PI / 180;
+  const y = Math.sin(kaabaLon - lon);
+  const x = Math.cos(lat) * Math.tan(kaabaLat) -
+    Math.sin(lat) * Math.cos(kaabaLon - lon);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function renderQiblaArrow() {
+  if (!Number.isFinite(qiblaBearing) || !qiblaArrow) return;
+  const rotation = Number.isFinite(qiblaHeading)
+    ? (qiblaBearing - qiblaHeading + 360) % 360
+    : qiblaBearing;
+  qiblaArrow.style.transform = "translate(-50%, -50%) rotate(" + rotation.toFixed(1) + "deg)";
+  if (qiblaDirection) {
+    qiblaDirection.textContent = t("prayer.qiblaFromNorth", {
+      degrees: Math.round(qiblaBearing)
+    });
+  }
+}
+
+function updateQibla(coords) {
+  if (!coords) {
+    if (qiblaDirection) qiblaDirection.textContent = "--°";
+    if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaNeedLocation");
+    return;
+  }
+  qiblaBearing = calculateQiblaBearing(coords.latitude, coords.longitude);
+  renderQiblaArrow();
+  if (qiblaStatus) {
+    qiblaStatus.textContent = Number.isFinite(qiblaHeading)
+      ? t("prayer.qiblaReady")
+      : t("prayer.qiblaNoSensor");
+  }
+}
+
+function onDeviceOrientation(event) {
+  let heading = null;
+  if (Number.isFinite(event.webkitCompassHeading)) {
+    heading = event.webkitCompassHeading;
+  } else if (event.absolute && Number.isFinite(event.alpha)) {
+    heading = (360 - event.alpha) % 360;
+  } else if (Number.isFinite(event.alpha)) {
+    heading = (360 - event.alpha) % 360;
+  }
+  if (!Number.isFinite(heading)) return;
+  qiblaHeading = heading;
+  renderQiblaArrow();
+  if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaReady");
+}
+
+async function enableQiblaCompass() {
+  try {
+    if (typeof DeviceOrientationEvent !== "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission === "function") {
+      const permission = await DeviceOrientationEvent.requestPermission();
+      if (permission !== "granted") throw new Error("permission");
+    }
+    if (!qiblaCompassListening) {
+      window.addEventListener("deviceorientationabsolute", onDeviceOrientation, true);
+      window.addEventListener("deviceorientation", onDeviceOrientation, true);
+      qiblaCompassListening = true;
+    }
+    updateQibla(savedPrayerCoords());
+  } catch (error) {
+    console.warn("Qibla compass", error);
+    if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaNoSensor");
+  }
+}
+
+qiblaCompassBtn?.addEventListener("click", enableQiblaCompass);
+
 function savedPrayerCoords() {
   try {
     const parsed = JSON.parse(localStorage.getItem(PRAYER_COORDS_KEY) || "null");
@@ -902,6 +1042,7 @@ async function loadPrayerTimes(forceLocation = false) {
   if (!coords && !forceLocation) {
     prayerLocation.textContent = t("prayer.locationTap");
     prayerStatus.textContent = "";
+    updateQibla(null);
     if (!prayerTimings) prayerList.innerHTML = "";
     return;
   }
@@ -1181,23 +1322,44 @@ function updateNextPrayer() {
   }
 
   const now = new Date();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  let next = null;
+  let nextPrayer = null;
+  let nextTime = null;
+  let nextDate = null;
 
   for (const prayer of PRAYERS) {
-    const mins = timeToMinutes(prayerTimings[prayer.key]);
-    if (mins !== null && mins >= nowMinutes) {
-      next = prayer;
+    const candidate = dateAtPrayerTime(prayerTimings[prayer.key], 0);
+    if (candidate && candidate.getTime() >= now.getTime()) {
+      nextPrayer = prayer;
+      nextTime = prayerTimings[prayer.key];
+      nextDate = candidate;
       break;
     }
   }
 
-  if (!next) {
-    prayerNext.textContent = t("prayer.nextTomorrow");
-  } else {
-    prayerNext.textContent =
-      t("prayer.next", { name: prayerLabel(next.key), time: prayerTimings[next.key] });
+  if (!nextPrayer) {
+    nextPrayer = PRAYERS[0];
+    nextTime = prayerTomorrowFajr && prayerTomorrowFajr !== "--:--"
+      ? prayerTomorrowFajr
+      : prayerTimings.Fajr;
+    nextDate = dateAtPrayerTime(nextTime, 1);
   }
+
+  const remaining = nextDate
+    ? formatCountdown(nextDate.getTime() - now.getTime())
+    : "--:--:--";
+
+  const firstLine = nextDate && nextDate.getDate() !== now.getDate()
+    ? t("prayer.nextTomorrow") + (nextTime ? " " + nextTime : "")
+    : t("prayer.next", {
+        name: prayerLabel(nextPrayer.key),
+        time: nextTime || "--:--"
+      });
+
+  prayerNext.innerHTML =
+    '<div class="prayer-next-main">' + firstLine + '</div>' +
+    '<div class="prayer-countdown">' +
+      t("prayer.remaining", { time: remaining }) +
+    '</div>';
   prayerNext.classList.remove("hidden");
 }
 
@@ -1286,8 +1448,11 @@ async function checkPrayerAlarms() {
 
 function startPrayerAlarmChecker() {
   if (prayerCheckTimer) clearInterval(prayerCheckTimer);
+  if (prayerCountdownTimer) clearInterval(prayerCountdownTimer);
   prayerCheckTimer = setInterval(checkPrayerAlarms, 20000);
+  prayerCountdownTimer = setInterval(updateNextPrayer, 1000);
   checkPrayerAlarms();
+  updateNextPrayer();
 }
 
 function familyFolderPrefix() {
