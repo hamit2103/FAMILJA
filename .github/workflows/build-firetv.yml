@@ -65,3 +65,9 @@ jobs:
         with:
           name: pajaziti-android
           path: /tmp/pajaziti-android.apk
+
+      - name: Upload fresh APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pajaziti-fresh
+          path: /tmp/pajaziti-fresh.apk
