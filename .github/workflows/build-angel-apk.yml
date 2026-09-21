@@ -1,0 +1,77 @@
+name: Build ANGEL APK
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - "*.apk"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: angel-apk-main
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 35
+        run: yes | sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Restore signing keystore
+        working-directory: firetv
+        run: |
+          base64 -d pajaziti-release.jks.b64 > pajaziti-release.jks
+          test -s pajaziti-release.jks
+
+      - name: Build signed release APK
+        run: gradle -p firetv :app:assembleRelease --no-daemon
+
+      - name: Publish APK files
+        run: |
+          APK="firetv/app/build/outputs/apk/release/app-release.apk"
+          test -f "$APK"
+          cp "$APK" pajaziti-android.apk
+          cp "$APK" pajaziti-firetv.apk
+          cp "$APK" pajaziti-fresh.apk
+
+      - name: Commit APK update
+        run: |
+          git config user.name "ANGEL Build"
+          git config user.email "actions@users.noreply.github.com"
+          git add pajaziti-android.apk pajaziti-firetv.apk pajaziti-fresh.apk
+          if git diff --cached --quiet; then
+            echo "APK already up to date."
+          else
+            git commit -m "Publish ANGEL 4.5 APK [skip ci]"
+            git push
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ANGEL-4.5
+          path: firetv/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
