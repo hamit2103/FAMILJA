@@ -316,6 +316,11 @@ let warMultiPlayers=[];
 let warMultiChannel=null;
 let warMultiPollTimer=null;
 let warMultiSelectedTarget=null;
+let warChatOpen=false;
+let warChatMessages=[];
+let warChatTimer=null;
+let warActiveTimer=null;
+let warAdminProfiles=[];
 
 async function loadWarProfileAndLeaderboard(){
   const info=document.getElementById("warNameInfo");
@@ -340,13 +345,17 @@ async function loadWarProfileAndLeaderboard(){
       }
       if(diamondEl) diamondEl.textContent=String(Number(profile.diamonds||0));
       if(renameBtn){
-        renameBtn.hidden=false;
+        const renameCount=Number(profile.rename_count||0);
+        renameBtn.hidden=renameCount>=2;
         renameBtn.textContent=warRenameEditing ? "💾 Ruaj emrin · 25 💎" : "✏️ Ndrysho emrin · 25 💎";
       }
       if(info){
-        info.textContent=warRenameEditing
-          ? "Shkruaje emrin e ri. Ruajtja kushton 25 💎."
-          : "🔒 Ky emër është i përhershëm. Ndryshimi kushton 25 💎.";
+        const renameCount=Number(profile.rename_count||0);
+        info.textContent=renameCount>=2
+          ? "🔒 Ke përdorur 2 ndryshimet e emrit. Emri nuk mund të ndryshohet më."
+          : (warRenameEditing
+              ? "Shkruaje emrin e ri. Ruajtja kushton 25 💎."
+              : "🔒 Emri ruhet për këtë pajisje. Mund ta ndryshosh edhe "+(2-renameCount)+" herë me 25 💎.");
       }
     }else{
       warProfile=null;
@@ -415,6 +424,7 @@ async function saveWarProfile(){
   if(error){
     const raw=String(error.message||error);
     if(raw.includes("NOT_ENOUGH_DIAMONDS")) throw new Error("Nuk ke 25 💎 për ta ndryshuar emrin.");
+    if(raw.includes("RENAME_LIMIT")) throw new Error("Emrin mund ta ndryshosh maksimum 2 herë.");
     throw error;
   }
   localStorage.setItem(WAR_NAME_KEY,name);
@@ -450,17 +460,16 @@ async function refreshWarMultiLobbyCount(){
 }
 
 function clearWarMultiPolling(){
-  if(warMultiPollTimer){
-    clearInterval(warMultiPollTimer);
-    warMultiPollTimer=null;
-  }
+  if(warMultiPollTimer){ clearInterval(warMultiPollTimer); warMultiPollTimer=null; }
+  if(warActiveTimer){ clearInterval(warActiveTimer); warActiveTimer=null; }
+  if(warChatTimer){ clearInterval(warChatTimer); warChatTimer=null; }
 }
 
 async function loadWarMultiState(roomId){
   const [{data:roomData,error:roomError},{data:playersData,error:playersError}]=await Promise.all([
     supabase.from("war_multi_rooms").select("*").eq("id",roomId).single(),
     supabase.from("war_multi_players")
-      .select("room_id,device_id,display_name,hp,max_hp,protect,frozen,burned,special,special2,eliminated,turn_order")
+      .select("room_id,device_id,display_name,hp,max_hp,protect,frozen,burned,special,special2,eliminated,turn_order,last_seen_at,kicked,kicked_at")
       .eq("room_id",roomId)
       .order("turn_order",{ascending:true})
   ]);
@@ -475,32 +484,141 @@ function warMultiMe(){
 }
 
 function warMultiAliveOpponents(){
-  return warMultiPlayers.filter(p=>p.device_id!==deviceId && !p.eliminated && p.hp>0);
+  return warMultiPlayers.filter(p=>p.device_id!==deviceId && !p.eliminated && !p.kicked && p.hp>0);
 }
 
 function warMultiPlayerCard(player){
   const isMe=player.device_id===deviceId;
   const isTurn=warMultiRoom?.turn_device===player.device_id;
   const selected=warMultiSelectedTarget===player.device_id;
+  const offline=player.last_seen_at && (Date.now()-new Date(player.last_seen_at).getTime()>12000);
   return `
-    <button class="war-multi-player ${isMe?"me":""} ${isTurn?"turn":""} ${selected?"selected":""} ${player.eliminated?"eliminated":""} ${player.burned?"burned":""}"
-      type="button"
-      data-war-target="${escapeHtml(player.device_id)}"
-      ${isMe||player.eliminated?"disabled":""}>
-      <span class="war-multi-name">${isMe?"🇦🇱 ":""}${escapeHtml(player.display_name)} ${isMe?"(Ti)":""}</span>
-      <span class="war-multi-hearts">${warHearts(player.hp,player.max_hp)}</span>
-      <span class="war-multi-status">
-        ${player.eliminated?"☠️ "+wtr("eliminated"):""}
-        ${player.protect>0?" 🛡️×"+player.protect:""}
-        ${player.frozen?" 🧊":""}
-        ${player.burned?" 🔥":""}
-        ${isTurn&&!player.eliminated?" 🎯 "+wtr("turn"):""}
-      </span>
-      <span class="war-multi-soldier ${isMe?"mine":"enemy"}" aria-hidden="true">
-        <img src="./war-soldier.svg" alt="">
-        <i class="war-multi-muzzle"></i>
-      </span>
-    </button>`;
+    <div class="war-room-player-wrap ${isMe?"me":""}">
+      <button class="war-multi-player ${isMe?"me":""} ${isTurn?"turn":""} ${selected?"selected":""} ${player.eliminated?"eliminated":""} ${player.burned?"burned":""} ${offline?"offline":""}"
+        type="button"
+        data-war-target="${escapeHtml(player.device_id)}"
+        ${isMe||player.eliminated||player.kicked?"disabled":""}>
+        <span class="war-multi-name">${isMe?"🇦🇱 ":""}${escapeHtml(player.display_name)} ${isMe?"(Ti)":""}</span>
+        <span class="war-multi-hearts">${warHearts(player.hp,player.max_hp)}</span>
+        <span class="war-multi-status">
+          ${player.kicked?"🚫 Larguar nga admini":""}
+          ${player.eliminated&&!player.kicked?"☠️ "+wtr("eliminated"):""}
+          ${offline&&!player.eliminated&&!player.kicked?" 🤖 AUTO":""}
+          ${player.protect>0?" 🛡️×"+player.protect:""}
+          ${player.frozen?" 🧊":""}
+          ${player.burned?" 🔥":""}
+          ${isTurn&&!player.eliminated&&!player.kicked?" 🎯 "+wtr("turn"):""}
+        </span>
+        <span class="war-multi-soldier ${isMe?"mine":"enemy"}" aria-hidden="true">
+          <img src="./war-soldier.svg" alt="">
+          <i class="war-multi-muzzle"></i>
+        </span>
+      </button>
+      ${gamesAdmin&&!isMe&&!player.kicked?`<label class="war-admin-kick-pick"><input type="checkbox" data-war-kick-device="${escapeHtml(player.device_id)}"> Largo</label>`:""}
+    </div>`;
+}
+
+
+async function loadWarChat(){
+  if(!warMultiRoom?.id) return;
+  const {data,error}=await supabase.from("war_room_messages")
+    .select("id,device_id,display_name,body,created_at")
+    .eq("room_id",warMultiRoom.id)
+    .order("created_at",{ascending:true})
+    .limit(80);
+  if(error) return;
+  warChatMessages=data||[];
+  const list=document.getElementById("warChatList");
+  if(list){
+    list.innerHTML=warChatMessages.map(m=>`<div class="war-chat-line ${m.device_id===deviceId?"mine":""}"><strong>${escapeHtml(m.display_name)}</strong><span>${escapeHtml(m.body)}</span></div>`).join("") || '<div class="muted">—</div>';
+    list.scrollTop=list.scrollHeight;
+  }
+}
+
+async function sendWarChat(){
+  const input=document.getElementById("warChatInput");
+  const body=(input?.value||"").trim().slice(0,300);
+  if(!body||!warMultiRoom?.id) return;
+  const {error}=await supabase.rpc("war_room_send_message",{p_room:warMultiRoom.id,p_device:deviceId,p_body:body});
+  if(!error && input) input.value="";
+  await loadWarChat();
+}
+
+function startWarChatPolling(){
+  if(warChatTimer) clearInterval(warChatTimer);
+  loadWarChat().catch(()=>{});
+  warChatTimer=setInterval(()=>loadWarChat().catch(()=>{}),2500);
+}
+
+function startWarActivePolling(roomId){
+  if(warActiveTimer) clearInterval(warActiveTimer);
+  let lastSig="";
+  warActiveTimer=setInterval(async()=>{
+    if(!warMultiRoom?.id || warMultiRoom.id!==roomId) return;
+    try{
+      const {data,error}=await supabase.rpc("war_multi_poll",{p_room:roomId,p_device:deviceId});
+      if(error) throw error;
+      if(data?.status==="kicked"){
+        clearWarMultiPolling();
+        warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;
+        renderLobby("🚫 Admini të largoi nga loja.");
+        return;
+      }
+      await supabase.rpc("war_multi_autoplay",{p_room:roomId});
+      await loadWarMultiState(roomId);
+      const me=warMultiMe();
+      if(me?.kicked){
+        clearWarMultiPolling();
+        warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;
+        renderLobby("🚫 Admini të largoi nga loja.");
+        return;
+      }
+      const sig=[warMultiRoom.status,warMultiRoom.turn_device,warMultiRoom.action_seq,...warMultiPlayers.map(p=>p.device_id+":"+p.hp+":"+p.eliminated+":"+p.kicked)].join("|");
+      if(sig!==lastSig){
+        lastSig=sig;
+        const active=document.activeElement?.id;
+        if(active!=="warChatInput") renderWarMultiGame();
+      }
+    }catch(error){
+      console.warn("war active poll",error);
+    }
+  },3500);
+}
+
+async function loadWarAdminPanel(){
+  const box=document.getElementById("warAdminProfiles");
+  if(!gamesAdmin||!box) return;
+  const {data,error}=await supabase.rpc("war_admin_list_profiles");
+  if(error){box.innerHTML='<div class="muted">Nuk u ngarkuan lojtarët.</div>';return;}
+  warAdminProfiles=data||[];
+  box.innerHTML=warAdminProfiles.map(p=>`
+    <div class="war-admin-profile-row">
+      <div><strong>${escapeHtml(p.display_name)}</strong><small>💎 ${p.diamonds} · emri ${p.rename_count}/2</small></div>
+      <input type="number" min="1" max="1000000" value="50" data-war-gift-amount="${escapeHtml(p.device_id)}">
+      <button class="secondary" type="button" data-war-gift="${escapeHtml(p.device_id)}">🎁 Jep 💎</button>
+    </div>`).join("") || '<div class="muted">Nuk ka lojtarë.</div>';
+  box.querySelectorAll("[data-war-gift]").forEach(btn=>{
+    btn.onclick=async()=>{
+      const dev=btn.dataset.warGift;
+      const input=box.querySelector('[data-war-gift-amount="'+CSS.escape(dev)+'"]');
+      const amount=Math.max(1,Math.min(1000000,Number(input?.value||0)));
+      btn.disabled=true;
+      const {error}=await supabase.rpc("war_admin_gift_diamonds",{p_device:dev,p_amount:amount});
+      btn.disabled=false;
+      if(error){alert("Nuk u dërguan diamantet.");return;}
+      await loadWarAdminPanel();
+    };
+  });
+}
+
+async function adminKickSelected(){
+  if(!gamesAdmin||!warMultiRoom?.id) return;
+  const devices=[...document.querySelectorAll("[data-war-kick-device]:checked")].map(x=>x.dataset.warKickDevice);
+  if(!devices.length) return;
+  const {error}=await supabase.rpc("war_admin_kick_players",{p_room:warMultiRoom.id,p_devices:devices});
+  if(error){alert("Nuk u larguan lojtarët.");return;}
+  await loadWarMultiState(warMultiRoom.id);
+  renderWarMultiGame();
 }
 
 function renderWarMultiWaiting(){
@@ -563,23 +681,22 @@ function renderWarMultiRetry(){
 function renderWarMultiGame(){
   if(!warMultiRoom) return;
   const me=warMultiMe();
-  const alive=warMultiPlayers.filter(p=>!p.eliminated&&p.hp>0);
-  const myTurn=warMultiRoom.status==="active" && warMultiRoom.turn_device===deviceId && me && !me.eliminated;
+  if(me?.kicked){
+    clearWarMultiPolling();
+    warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;
+    renderLobby("🚫 Admini të largoi nga loja.");
+    return;
+  }
+  const alive=warMultiPlayers.filter(p=>!p.eliminated&&!p.kicked&&p.hp>0);
+  const myTurn=warMultiRoom.status==="active" && warMultiRoom.turn_device===deviceId && me && !me.eliminated && !me.kicked;
   const opponents=warMultiAliveOpponents();
 
-  if(warMultiSelectedTarget && !opponents.some(p=>p.device_id===warMultiSelectedTarget)){
-    warMultiSelectedTarget=null;
-  }
-  if(!warMultiSelectedTarget && opponents.length===1){
-    warMultiSelectedTarget=opponents[0].device_id;
-  }
+  if(warMultiSelectedTarget && !opponents.some(p=>p.device_id===warMultiSelectedTarget)) warMultiSelectedTarget=null;
+  if(!warMultiSelectedTarget && opponents.length===1) warMultiSelectedTarget=opponents[0].device_id;
 
   const special=me?.special||"attack";
   const special2=me?.special2||"attack";
-  const displayPlayers=[
-    ...warMultiPlayers.filter(p=>p.device_id!==deviceId),
-    ...warMultiPlayers.filter(p=>p.device_id===deviceId)
-  ];
+  const displayPlayers=[...warMultiPlayers.filter(p=>p.device_id!==deviceId),...warMultiPlayers.filter(p=>p.device_id===deviceId)];
 
   root.innerHTML=`
     <div class="war-shell">
@@ -596,94 +713,79 @@ function renderWarMultiGame(){
           <span>${escapeHtml(warMultiRoom.message||"")}</span>
         </div>
 
-        <div class="war-multi-grid">
-          ${displayPlayers.map(warMultiPlayerCard).join("")}
+        <div class="war-shared-room">
+          <div class="war-room-wall"><span>ANGEL ARENA</span></div>
+          <div class="war-room-floor"></div>
+          <div class="war-multi-grid war-room-grid">${displayPlayers.map(warMultiPlayerCard).join("")}</div>
         </div>
 
-        ${warMultiRoom.status==="finished"?`
-          <div class="war-multi-winner">
-            🏆 ${wtr("winner")}:
-            <strong>${escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiRoom.winner_device)?.display_name||"—")}</strong>
+        <div class="war-room-tools">
+          <button id="warChatToggle" class="secondary" type="button">💬 Chat ${warChatOpen?"▲":"▼"}</button>
+          ${gamesAdmin?'<button id="warAdminKickBtn" class="danger" type="button">🚫 Largo të zgjedhurit</button>':""}
+        </div>
+
+        <section id="warChatPanel" class="war-chat-panel ${warChatOpen?"":"hidden"}">
+          <div id="warChatList" class="war-chat-list">${warChatMessages.map(m=>`<div class="war-chat-line ${m.device_id===deviceId?"mine":""}"><strong>${escapeHtml(m.display_name)}</strong><span>${escapeHtml(m.body)}</span></div>`).join("")}</div>
+          <div class="war-chat-compose">
+            <input id="warChatInput" maxlength="300" placeholder="Shkruaj mesazh…">
+            <button id="warChatSend" class="primary" type="button">Dërgo</button>
           </div>
+        </section>
+
+        ${warMultiRoom.status==="finished"?`
+          <div class="war-multi-winner">🏆 ${wtr("winner")}: <strong>${escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiRoom.winner_device)?.display_name||"—")}</strong></div>
           <button id="warMultiAgain" class="primary" type="button">${wtr("playOnlineAgain")}</button>
         `:`
-          <div class="war-multi-target-hint">
-            ${myTurn
-              ? (warMultiSelectedTarget
-                  ? "🎯 "+wtr("target")+": "+escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiSelectedTarget)?.display_name||"")
-                  : "🎯 "+wtr("tapTarget"))
-              : "⏳ "+wtr("waitYourTurn")}
-          </div>
-
-          <div class="war-actions">
-            ${warActionCard(special)}
-            ${warActionCard(special2)}
-          </div>
-          <button id="warMultiReroll" class="secondary war-reroll" type="button" ${myTurn?"":"disabled"}>🎲 Ndrysho armët · 3 💎</button>
+          <div class="war-multi-target-hint">${myTurn?(warMultiSelectedTarget?"🎯 "+wtr("target")+": "+escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiSelectedTarget)?.display_name||""):"🎯 "+wtr("tapTarget")):"⏳ "+wtr("waitYourTurn")}</div>
+          <div class="war-actions">${warActionCard(special)}${warActionCard(special2)}</div>
+          <button id="warMultiReroll" class="secondary war-reroll" type="button" ${myTurn?"":"disabled"}>🎲 ${wtr("changeWeapons")} · 3 💎</button>
         `}
       </section>
     </div>`;
 
   if(warMultiRoom.status==="finished" && warMultiRoom.winner_device===deviceId){
     const winner=warMultiPlayers.find(p=>p.device_id===deviceId);
-    requestAnimationFrame(()=>showWarVictoryCelebration(
-      "online-"+warMultiRoom.id+"-"+(warMultiRoom.action_seq||0),
-      winner?.display_name||"Fituesi"
-    ));
+    requestAnimationFrame(()=>showWarVictoryCelebration("online-"+warMultiRoom.id+"-"+(warMultiRoom.action_seq||0),winner?.display_name||wtr("winner")));
   }
 
   root.querySelectorAll("[data-war-target]").forEach(btn=>{
-    btn.onclick=()=>{
-      if(!myTurn) return;
-      warMultiSelectedTarget=btn.dataset.warTarget;
-      renderWarMultiGame();
-    };
+    btn.onclick=()=>{if(!myTurn)return;warMultiSelectedTarget=btn.dataset.warTarget;renderWarMultiGame();};
+  });
+  root.querySelectorAll("[data-war-action]").forEach(btn=>{
+    btn.disabled=!myTurn;btn.onclick=()=>warMultiDoAction(btn.dataset.warAction);
   });
 
-  root.querySelectorAll("[data-war-action]").forEach(btn=>{
-    btn.disabled=!myTurn;
-    btn.onclick=()=>warMultiDoAction(btn.dataset.warAction);
-  });
+  document.getElementById("warChatToggle")?.addEventListener("click",()=>{warChatOpen=!warChatOpen;renderWarMultiGame();if(warChatOpen)loadWarChat();});
+  document.getElementById("warChatSend")?.addEventListener("click",sendWarChat);
+  document.getElementById("warChatInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();sendWarChat();}});
+  document.getElementById("warAdminKickBtn")?.addEventListener("click",adminKickSelected);
 
   document.getElementById("warMultiReroll")?.addEventListener("click",async()=>{
-    if(!myTurn) return;
-    const btn=document.getElementById("warMultiReroll");
-    if(btn) btn.disabled=true;
+    if(!myTurn)return;
+    const btn=document.getElementById("warMultiReroll");if(btn)btn.disabled=true;
     try{
       const {data,error}=await supabase.rpc("war_multi_reroll",{p_room:warMultiRoom.id,p_device:deviceId});
-      if(error) throw error;
+      if(error)throw error;
       warProfile={...(warProfile||{}),diamonds:Number(data?.diamonds||0)};
-      await loadWarMultiState(warMultiRoom.id);
-      renderWarMultiGame();
+      await loadWarMultiState(warMultiRoom.id);renderWarMultiGame();
     }catch(error){
       const raw=String(error?.message||error);
       const hint=root.querySelector(".war-multi-target-hint");
-      if(hint) hint.textContent=raw.includes("NOT_ENOUGH_DIAMONDS")?"⚠️ "+wtr("notEnough3"):"⚠️ "+wtr("weaponsNotChanged");
-      if(btn) btn.disabled=false;
+      if(hint)hint.textContent=raw.includes("NOT_ENOUGH_DIAMONDS")?"⚠️ "+wtr("notEnough3"):"⚠️ "+wtr("weaponsNotChanged");
+      if(btn)btn.disabled=false;
     }
   });
 
   document.getElementById("warMultiBack").onclick=()=>{
     clearWarMultiPolling();
-    if(warMultiChannel){
-      supabase.removeChannel(warMultiChannel);
-      warMultiChannel=null;
-    }
-    warMultiRoom=null;
-    warMultiPlayers=[];
-    warMultiSelectedTarget=null;
+    if(warMultiChannel){supabase.removeChannel(warMultiChannel);warMultiChannel=null;}
+    warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;warChatOpen=false;warChatMessages=[];
     renderLobby();
   };
-
   document.getElementById("warMultiAgain")?.addEventListener("click",()=>{
     clearWarMultiPolling();
-    if(warMultiChannel){
-      supabase.removeChannel(warMultiChannel);
-      warMultiChannel=null;
-    }
-    warMultiRoom=null;
-    warMultiPlayers=[];
-    warMultiSelectedTarget=null;
+    if(warMultiChannel){supabase.removeChannel(warMultiChannel);warMultiChannel=null;}
+    warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;warChatOpen=false;warChatMessages=[];
     startWarMultiSearch();
   });
 }
@@ -799,8 +901,10 @@ async function startWarMultiSearch(){
         await loadWarMultiState(roomId);
         if(warMultiRoom.status==="waiting") renderWarMultiWaiting();
         else{
-          clearWarMultiPolling();
+          if(warMultiPollTimer){ clearInterval(warMultiPollTimer); warMultiPollTimer=null; }
           renderWarMultiGame();
+          startWarActivePolling(roomId);
+          startWarChatPolling();
         }
       }catch(error){
         console.warn("war multi poll",error);
@@ -1800,6 +1904,7 @@ function renderLobby(msg=""){
             <div class="game-help">Online pret 10 sekonda. Nëse askush nuk hyn, del “Provo përsëri” — nuk kalon te kompjuteri.</div>
           </div>
           <section id="warLeaderboard" class="war-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
+          ${gamesAdmin?`<section class="war-admin-panel"><h3>👑 Admin · Luftra</h3><p class="muted">Jep diamanta çdo lojtari. Emri lidhet me pajisjen dhe mund të ndryshohet vetëm 2 herë.</p><div id="warAdminProfiles">Po ngarkohen lojtarët…</div></section>`:""}
         ` : selectedType==="tetris" ? `
           <input id="tetrisPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TETRIS_NAME_KEY)||"")}">
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
@@ -1848,6 +1953,7 @@ function renderLobby(msg=""){
     warRenameBtn.onclick=async()=>{
       const info=document.getElementById("warNameInfo");
       if(!warProfile) return;
+      if(Number(warProfile.rename_count||0)>=2){ if(info) info.textContent="Emrin mund ta ndryshosh maksimum 2 herë."; return; }
       if(!warRenameEditing){
         warRenameEditing=true;
         if(warNameInput){
@@ -1879,6 +1985,7 @@ function renderLobby(msg=""){
   if(selectedType==="war"){
     loadWarProfileAndLeaderboard();
     refreshWarMultiLobbyCount();
+    if(gamesAdmin) loadWarAdminPanel();
   }
 
   const createButton=document.getElementById("createGame");
