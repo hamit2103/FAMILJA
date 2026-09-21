@@ -143,11 +143,93 @@ const I18N = {
   }
 };
 
+const EXTRA_I18N = {
+  sq:{
+    "tabs.clock":"Ora","tabs.sport":"Sport","tabs.games":"Lojëra","tabs.tv":"TV","tabs.radio":"Radio","tabs.chat":"Chat",
+    "theme.title":"Ngjyrat e mia","theme.note":"Ndryshimet ruhen vetëm në këtë telefon.","theme.bg":"Sfondi","theme.cards":"Kartat","theme.buttons":"Butonat","theme.accent":"Aktive / ikonat","theme.text":"Teksti","theme.reset":"Kthe ngjyrat fillestare",
+    "menu.title":"Renditja e ikonave","menu.note":"Vetëm Admini e ndryshon. Renditja u del të gjithëve.","menu.save":"Ruaj renditjen",
+    "clock.title":"Ora Pajaziti","clock.description":"Widget modern për ekranin kryesor. Ora vazhdon të shihet edhe kur app-i është i mbyllur.","clock.germany":"Gjermani","clock.kosovo":"Kosovë","clock.turkey":"Turqi","clock.newyork":"New York","clock.add":"Shto orën në ekran","clock.androidHint":"Në Android, shtype butonin për ta vendosur widgetin në Home Screen.","clock.pinRequest":"Android do të hapë kërkesën për widget. Zgjidh “Shto”.","clock.nativeOnly":"Widgeti i ekranit kryesor është i disponueshëm në versionin Android të PAJAZITI.",
+    "chat.title":"Chat","chat.free":"Chat falas dhe pa kufi për të gjithë.","chat.freeBadge":"FALAS","chat.account":"Emri / llogaria jote","chat.namePlaceholder":"Shkruaj emrin","chat.saveName":"Ruaj emrin","chat.nameRule":"Emrin mund ta zgjedhësh vetëm një herë. Pastaj nuk mund të ndryshohet. Emrat që përdoren nga dikush tjetër nuk lejohen.","chat.messagePlaceholder":"Shkruaj mesazhin...","chat.send":"Dërgo","chat.messages":"Mesazhet"
+  },
+  de:{
+    "tabs.clock":"Uhr","tabs.sport":"Sport","tabs.games":"Spiele","tabs.tv":"TV","tabs.radio":"Radio","tabs.chat":"Chat",
+    "theme.title":"Meine Farben","theme.note":"Änderungen werden nur auf diesem Telefon gespeichert.","theme.bg":"Hintergrund","theme.cards":"Karten","theme.buttons":"Schaltflächen","theme.accent":"Aktiv / Symbole","theme.text":"Text","theme.reset":"Standardfarben wiederherstellen",
+    "menu.title":"Reihenfolge der Symbole","menu.note":"Nur der Admin kann sie ändern. Die Reihenfolge gilt für alle.","menu.save":"Reihenfolge speichern",
+    "clock.title":"Pajaziti Uhr","clock.description":"Modernes Widget für den Startbildschirm. Die Uhr bleibt sichtbar, auch wenn die App geschlossen ist.","clock.germany":"Deutschland","clock.kosovo":"Kosovo","clock.turkey":"Türkei","clock.newyork":"New York","clock.add":"Uhr zum Bildschirm hinzufügen","clock.androidHint":"Tippe unter Android auf die Schaltfläche, um das Widget zum Startbildschirm hinzuzufügen.","clock.pinRequest":"Android öffnet die Widget-Anfrage. Wähle „Hinzufügen“.","clock.nativeOnly":"Das Startbildschirm-Widget ist in der Android-Version von PAJAZITI verfügbar.",
+    "chat.title":"Chat","chat.free":"Kostenloser und unbegrenzter Chat für alle.","chat.freeBadge":"KOSTENLOS","chat.account":"Dein Name / Konto","chat.namePlaceholder":"Name eingeben","chat.saveName":"Name speichern","chat.nameRule":"Du kannst deinen Namen nur einmal wählen. Danach kann er nicht mehr geändert werden. Bereits verwendete Namen sind nicht erlaubt.","chat.messagePlaceholder":"Nachricht schreiben...","chat.send":"Senden","chat.messages":"Nachrichten"
+  },
+  tr:{
+    "tabs.clock":"Saat","tabs.sport":"Spor","tabs.games":"Oyunlar","tabs.tv":"TV","tabs.radio":"Radyo","tabs.chat":"Sohbet",
+    "theme.title":"Renklerim","theme.note":"Değişiklikler yalnızca bu telefonda saklanır.","theme.bg":"Arka plan","theme.cards":"Kartlar","theme.buttons":"Düğmeler","theme.accent":"Aktif / simgeler","theme.text":"Metin","theme.reset":"Varsayılan renklere dön",
+    "menu.title":"Simge sıralaması","menu.note":"Yalnızca yönetici değiştirebilir. Sıralama herkes için geçerlidir.","menu.save":"Sıralamayı kaydet",
+    "clock.title":"Pajaziti Saat","clock.description":"Ana ekran için modern widget. Uygulama kapalıyken de saat görünür.","clock.germany":"Almanya","clock.kosovo":"Kosova","clock.turkey":"Türkiye","clock.newyork":"New York","clock.add":"Saati ekrana ekle","clock.androidHint":"Android'de widgetı ana ekrana eklemek için düğmeye bas.","clock.pinRequest":"Android widget ekleme isteğini açacak. “Ekle”yi seç.","clock.nativeOnly":"Ana ekran widgetı PAJAZITI'nin Android sürümünde kullanılabilir.",
+    "chat.title":"Sohbet","chat.free":"Herkes için ücretsiz ve sınırsız sohbet.","chat.freeBadge":"ÜCRETSİZ","chat.account":"Adın / hesabın","chat.namePlaceholder":"Adını yaz","chat.saveName":"Adı kaydet","chat.nameRule":"Adını yalnızca bir kez seçebilirsin. Sonra değiştirilemez. Başkasının kullandığı adlara izin verilmez.","chat.messagePlaceholder":"Mesaj yaz...","chat.send":"Gönder","chat.messages":"Mesajlar"
+  },
+  en:{
+    "language.label":"Language","app.subtitle":"Private album for photos and videos","mode.family":"User","mode.admin":"Admin",
+    "login.label":"Access code","login.placeholder":"Enter code","login.adminPlaceholder":"Administrator code","login.familyPlaceholder":"Family code","login.button":"Sign in","login.userButton":"Sign in as User","login.userDirectHint":"Users sign in directly without a code.",
+    "install.app":"Install app","install.short":"Install","share":"Share APK","logout":"Log out","online":"Online:","auth.note":"The code is checked through Supabase Authentication. Photos and videos are stored privately in Supabase and are not saved on the visitor's phone unless they choose to download them.",
+    "tabs.photos":"Ads","tabs.info":"Information","tabs.prayer":"Prayer","tabs.clock":"Clock","tabs.sport":"Sport","tabs.games":"Games","tabs.tv":"TV","tabs.radio":"Radio","tabs.chat":"Chat",
+    "upload.addPhoto":"Add ad","upload.addMedia":"Add ad (photo or video)","upload.adminHint":"Only the administrator can upload and manage ads.","upload.familyTitle":"Add your photos","upload.button":"Upload","upload.familyHint":"You uploaded {used}/3 photos. You can add {remaining} more.",
+    "storage.title":"Storage used","storage.adminOnly":"Visible only to the administrator","materials":" items","refresh":"Refresh",
+    "empty.mediaTitle":"No ads yet","empty.mediaBody":"When the administrator uploads an ad, it will appear here.",
+    "info.title":"Information","info.familyWrite":"Only the administrator can write here.","info.name":"Name","info.namePlaceholder":"Enter your name","info.message":"Message","info.messagePlaceholder":"Write information...","info.publish":"Publish","info.notes":" notes","info.emptyTitle":"No information yet","info.emptyBody":"When the administrator publishes something, it will appear here.",
+    "role.admin":"Administrator","role.family":"Family member","download":"Download","delete":"Delete","material":"Item","photo":"Photo","confirm.delete":"Delete this item?","confirm.deleteInfo":"Delete this information?",
+    "prayer.title":"Prayer times","prayer.locationPrompt":"Choose the phone location.","prayer.locationBtn":"Location","prayer.method":"Times are calculated from the phone location using the Diyanet method.","prayer.alarmTitle":"🔔 Alarms are optional.","prayer.alarmBody":"Enable only the prayers for which you want a notification on this phone. In the Android APK the alarm is registered in the system and works even when the app is closed.",
+    "prayer.Fajr":"Fajr","prayer.Dhuhr":"Dhuhr","prayer.Asr":"Asr","prayer.Maghrib":"Maghrib","prayer.Isha":"Isha","prayer.next":"Next prayer: {name} at {time}","prayer.nextTomorrow":"Next prayer: Fajr tomorrow","prayer.remaining":"{time} remaining","prayer.zone":"Zone: {zone}","prayer.qibla":"Qibla","prayer.qiblaActivate":"Activate compass","prayer.qiblaNeedLocation":"Choose location for Qibla direction.","prayer.qiblaFromNorth":"{degrees}° from north","prayer.qiblaReady":"Turn the phone until the arrow points up.","prayer.qiblaNoSensor":"Direction is calculated from north. The phone compass was not activated.","prayer.kerahat":"Disliked prayer times","prayer.kerahatSunrise":"After sunrise","prayer.kerahatNoon":"Before Dhuhr","prayer.kerahatSunset":"Before Maghrib","prayer.kerahatNote":"These intervals are approximate and may vary by school of law.",
+    "alarm.on":"🔔 Alarm ON","alarm.off":"🔕 Alarm OFF","alarm.activating":"Registering system alarm for {name}…","alarm.activated":"System alarm for {name} was enabled.","alarm.webActivated":"Alarm enabled. For alarms while the app is closed, use the Android APK.","alarm.disabled":"Alarm for {name} was disabled.","alarm.title":"🕌 Prayer time","alarm.body":"It is time for {name} ({time}).","alarm.stop":"Stop","alarm.channel":"Prayer alarms","alarm.channelDesc":"Prayer time alarm",
+    "login.enterCode":"Enter the code.","login.checking":"Checking code…","login.badCode":"The code does not match this account.","login.emailUnconfirmed":"The Supabase account has not been confirmed yet.","login.rateLimit":"Too many attempts. Wait a little and try again.","login.failed":"Unable to sign in. Check the code.",
+    "info.enterName":"Enter the name.","info.enterMessage":"Enter the message.","info.publishing":"Publishing...","info.published":"Published.",
+    "family.limit":"You reached the 3-photo limit. Delete one of your photos to upload another.","family.onlyOwnDelete":"You can delete only photos you uploaded yourself.","family.onlyPhotos":"Family members can upload photos only.","family.remaining":"You can upload only {remaining} more photos. The limit is 3 photos per person/device.",
+    "upload.chooseMedia":"Choose at least one photo or video.","upload.choosePhoto":"Choose at least one photo.","upload.none":"No files were uploaded.","upload.done":"Uploaded {count} items.","location.permission":"Allow location access for prayer times.","location.notFound":"Location was not found. Try again.","location.timeout":"Location took too long. Try again.","location.loading":"Getting location…","prayer.loading":"Loading prayer times…","prayer.updated":"Prayer times updated.",
+    "share.text":"Download and install the PAJAZITI APK on Android.","share.copied":"APK link copied. You can send it now.","error.supabaseNotLinked":"Supabase is not linked yet. Project URL and anon key are required.","error.infoNotReady":"Information is not ready yet.","error.publishFailed":"Publishing failed: {error}","error.locationUnsupported":"This phone does not support location.","error.prayerFetch":"Prayer times could not be loaded.","prayer.locationTap":"Tap “Location” for accurate prayer times.","error.futureTimes":"No future times found for {name}.","error.supabaseNotReady":"Supabase is not ready yet","error.runSql":"Run supabase/setup.sql in the SQL Editor.","error.storageSql":"The storage meter requires the SQL update.","error.fileTooLarge":"{name} is over 50 MB even after optimization and was skipped.","upload.savedSpace":"Saved about {size} of space.","upload.skipped":"{count} files were skipped.","error.uploadFailed":"Upload failed: {error}","error.setupSupabase":"The app has been moved to Supabase Free. Only the Supabase project connection is needed now.","install.chrome":"In Chrome, open the ⋮ menu and choose “Install app” or “Add to Home screen”.",
+    "theme.title":"My colors","theme.note":"Changes are saved only on this phone.","theme.bg":"Background","theme.cards":"Cards","theme.buttons":"Buttons","theme.accent":"Active / icons","theme.text":"Text","theme.reset":"Restore default colors","menu.title":"Icon order","menu.note":"Only the Admin can change it. The order is shown to everyone.","menu.save":"Save order",
+    "clock.title":"Pajaziti Clock","clock.description":"Modern home-screen widget. The clock remains visible even when the app is closed.","clock.germany":"Germany","clock.kosovo":"Kosovo","clock.turkey":"Turkey","clock.newyork":"New York","clock.add":"Add clock to screen","clock.androidHint":"On Android, press the button to place the widget on the Home Screen.","clock.pinRequest":"Android will open the widget request. Choose “Add”.","clock.nativeOnly":"The home-screen widget is available in the Android version of PAJAZITI.",
+    "chat.title":"Chat","chat.free":"Free and unlimited chat for everyone.","chat.freeBadge":"FREE","chat.account":"Your name / account","chat.namePlaceholder":"Enter your name","chat.saveName":"Save name","chat.nameRule":"You can choose your name only once. It cannot be changed afterward. Names already used by someone else are not allowed.","chat.messagePlaceholder":"Write a message...","chat.send":"Send","chat.messages":"Messages"
+  },
+  it:{
+    "language.label":"Lingua","app.subtitle":"Album privato per foto e video","mode.family":"Utente","mode.admin":"Admin","login.label":"Codice di accesso","login.placeholder":"Inserisci codice","login.adminPlaceholder":"Codice amministratore","login.familyPlaceholder":"Codice famiglia","login.button":"Accedi","login.userButton":"Accedi come utente","login.userDirectHint":"L'utente accede direttamente senza codice.","install.app":"Installa app","install.short":"Installa","share":"Condividi APK","logout":"Esci","online":"Online:",
+    "tabs.photos":"Pubblicità","tabs.info":"Informazioni","tabs.prayer":"Preghiera","tabs.clock":"Ora","tabs.sport":"Sport","tabs.games":"Giochi","tabs.tv":"TV","tabs.radio":"Radio","tabs.chat":"Chat","refresh":"Aggiorna","role.admin":"Amministratore","role.family":"Membro della famiglia","download":"Scarica","delete":"Elimina",
+    "prayer.title":"Orari di preghiera","prayer.locationPrompt":"Scegli la posizione del telefono.","prayer.locationBtn":"Posizione","prayer.Fajr":"Fajr","prayer.Dhuhr":"Dhuhr","prayer.Asr":"Asr","prayer.Maghrib":"Maghrib","prayer.Isha":"Isha","prayer.next":"Prossima preghiera: {name} alle {time}","prayer.remaining":"Mancano {time}","prayer.qibla":"Qibla","prayer.qiblaActivate":"Attiva bussola","prayer.kerahat":"Orari sconsigliati",
+    "theme.title":"I miei colori","theme.note":"Le modifiche vengono salvate solo su questo telefono.","theme.bg":"Sfondo","theme.cards":"Schede","theme.buttons":"Pulsanti","theme.accent":"Attivo / icone","theme.text":"Testo","theme.reset":"Ripristina colori predefiniti","menu.title":"Ordine icone","menu.note":"Solo l'Admin può modificarlo. L'ordine vale per tutti.","menu.save":"Salva ordine",
+    "clock.title":"Ora Pajaziti","clock.description":"Widget moderno per la schermata Home. L'ora resta visibile anche quando l'app è chiusa.","clock.germany":"Germania","clock.kosovo":"Kosovo","clock.turkey":"Turchia","clock.newyork":"New York","clock.add":"Aggiungi l'orologio allo schermo","clock.androidHint":"Su Android, premi il pulsante per aggiungere il widget alla schermata Home.","clock.pinRequest":"Android aprirà la richiesta del widget. Scegli “Aggiungi”.","clock.nativeOnly":"Il widget della schermata Home è disponibile nella versione Android di PAJAZITI.",
+    "chat.title":"Chat","chat.free":"Chat gratuita e senza limiti per tutti.","chat.freeBadge":"GRATIS","chat.account":"Il tuo nome / account","chat.namePlaceholder":"Inserisci il nome","chat.saveName":"Salva nome","chat.nameRule":"Puoi scegliere il nome una sola volta. Dopo non potrà essere modificato. I nomi già usati non sono consentiti.","chat.messagePlaceholder":"Scrivi un messaggio...","chat.send":"Invia","chat.messages":"Messaggi"
+  },
+  hr:{
+    "language.label":"Jezik","app.subtitle":"Privatni album za fotografije i videozapise","mode.family":"Korisnik","mode.admin":"Admin","login.label":"Pristupni kod","login.placeholder":"Unesite kod","login.adminPlaceholder":"Administratorski kod","login.familyPlaceholder":"Obiteljski kod","login.button":"Prijava","login.userButton":"Prijavi se kao korisnik","login.userDirectHint":"Korisnik se prijavljuje izravno bez koda.","install.app":"Instaliraj aplikaciju","install.short":"Instaliraj","share":"Podijeli APK","logout":"Odjava","online":"Online:",
+    "tabs.photos":"Oglasi","tabs.info":"Informacije","tabs.prayer":"Namaz","tabs.clock":"Sat","tabs.sport":"Sport","tabs.games":"Igre","tabs.tv":"TV","tabs.radio":"Radio","tabs.chat":"Chat","refresh":"Osvježi","role.admin":"Administrator","role.family":"Član obitelji","download":"Preuzmi","delete":"Izbriši",
+    "prayer.title":"Vremena namaza","prayer.locationPrompt":"Odaberite lokaciju telefona.","prayer.locationBtn":"Lokacija","prayer.Fajr":"Sabah","prayer.Dhuhr":"Podne","prayer.Asr":"Ikindija","prayer.Maghrib":"Akšam","prayer.Isha":"Jacija","prayer.next":"Sljedeći namaz: {name} u {time}","prayer.remaining":"Preostalo {time}","prayer.qibla":"Kibla","prayer.qiblaActivate":"Aktiviraj kompas","prayer.kerahat":"Kerahat vrijeme",
+    "theme.title":"Moje boje","theme.note":"Promjene se spremaju samo na ovom telefonu.","theme.bg":"Pozadina","theme.cards":"Kartice","theme.buttons":"Gumbi","theme.accent":"Aktivno / ikone","theme.text":"Tekst","theme.reset":"Vrati zadane boje","menu.title":"Redoslijed ikona","menu.note":"Samo Admin može mijenjati. Redoslijed vrijedi za sve.","menu.save":"Spremi redoslijed",
+    "clock.title":"Pajaziti Sat","clock.description":"Moderan widget za početni zaslon. Sat ostaje vidljiv i kada je aplikacija zatvorena.","clock.germany":"Njemačka","clock.kosovo":"Kosovo","clock.turkey":"Turska","clock.newyork":"New York","clock.add":"Dodaj sat na zaslon","clock.androidHint":"Na Androidu pritisni gumb za dodavanje widgeta na početni zaslon.","clock.pinRequest":"Android će otvoriti zahtjev za widget. Odaberi “Dodaj”.","clock.nativeOnly":"Widget početnog zaslona dostupan je u Android verziji PAJAZITI.",
+    "chat.title":"Chat","chat.free":"Besplatan i neograničen chat za sve.","chat.freeBadge":"BESPLATNO","chat.account":"Tvoje ime / račun","chat.namePlaceholder":"Unesi ime","chat.saveName":"Spremi ime","chat.nameRule":"Ime možeš odabrati samo jednom. Nakon toga se ne može promijeniti. Već korištena imena nisu dopuštena.","chat.messagePlaceholder":"Napiši poruku...","chat.send":"Pošalji","chat.messages":"Poruke"
+  },
+  ar:{
+    "language.label":"اللغة","app.subtitle":"ألبوم خاص للصور والفيديو","mode.family":"المستخدم","mode.admin":"المشرف","login.label":"رمز الدخول","login.placeholder":"أدخل الرمز","login.adminPlaceholder":"رمز المشرف","login.familyPlaceholder":"رمز العائلة","login.button":"دخول","login.userButton":"الدخول كمستخدم","login.userDirectHint":"يدخل المستخدم مباشرة دون رمز.","install.app":"تثبيت التطبيق","install.short":"تثبيت","share":"مشاركة APK","logout":"تسجيل الخروج","online":"متصل:",
+    "tabs.photos":"الإعلانات","tabs.info":"المعلومات","tabs.prayer":"الصلاة","tabs.clock":"الساعة","tabs.sport":"الرياضة","tabs.games":"الألعاب","tabs.tv":"TV","tabs.radio":"الراديو","tabs.chat":"الدردشة","refresh":"تحديث","role.admin":"المشرف","role.family":"عضو العائلة","download":"تنزيل","delete":"حذف",
+    "prayer.title":"مواقيت الصلاة","prayer.locationPrompt":"اختر موقع الهاتف.","prayer.locationBtn":"الموقع","prayer.Fajr":"الفجر","prayer.Dhuhr":"الظهر","prayer.Asr":"العصر","prayer.Maghrib":"المغرب","prayer.Isha":"العشاء","prayer.next":"الصلاة التالية: {name} عند {time}","prayer.remaining":"متبقي {time}","prayer.qibla":"القبلة","prayer.qiblaActivate":"تفعيل البوصلة","prayer.kerahat":"أوقات الكراهة",
+    "theme.title":"ألواني","theme.note":"يتم حفظ التغييرات على هذا الهاتف فقط.","theme.bg":"الخلفية","theme.cards":"البطاقات","theme.buttons":"الأزرار","theme.accent":"النشط / الأيقونات","theme.text":"النص","theme.reset":"استعادة الألوان الافتراضية","menu.title":"ترتيب الأيقونات","menu.note":"يمكن للمشرف فقط تغييره. يظهر الترتيب للجميع.","menu.save":"حفظ الترتيب",
+    "clock.title":"ساعة Pajaziti","clock.description":"ودجت حديث للشاشة الرئيسية. تبقى الساعة ظاهرة حتى عند إغلاق التطبيق.","clock.germany":"ألمانيا","clock.kosovo":"كوسوفو","clock.turkey":"تركيا","clock.newyork":"نيويورك","clock.add":"إضافة الساعة إلى الشاشة","clock.androidHint":"على Android اضغط الزر لإضافة الودجت إلى الشاشة الرئيسية.","clock.pinRequest":"سيفتح Android طلب إضافة الودجت. اختر «إضافة».","clock.nativeOnly":"ودجت الشاشة الرئيسية متاح في نسخة Android من PAJAZITI.",
+    "chat.title":"الدردشة","chat.free":"دردشة مجانية وغير محدودة للجميع.","chat.freeBadge":"مجاني","chat.account":"اسمك / حسابك","chat.namePlaceholder":"أدخل الاسم","chat.saveName":"حفظ الاسم","chat.nameRule":"يمكنك اختيار الاسم مرة واحدة فقط، وبعدها لا يمكن تغييره. الأسماء المستخدمة من أشخاص آخرين غير مسموحة.","chat.messagePlaceholder":"اكتب رسالة...","chat.send":"إرسال","chat.messages":"الرسائل"
+  },
+  fr:{
+    "language.label":"Langue","app.subtitle":"Album privé pour photos et vidéos","mode.family":"Utilisateur","mode.admin":"Admin","login.label":"Code d'accès","login.placeholder":"Entrez le code","login.adminPlaceholder":"Code administrateur","login.familyPlaceholder":"Code famille","login.button":"Connexion","login.userButton":"Se connecter comme utilisateur","login.userDirectHint":"L'utilisateur se connecte directement sans code.","install.app":"Installer l'application","install.short":"Installer","share":"Partager l'APK","logout":"Déconnexion","online":"En ligne :",
+    "tabs.photos":"Publicités","tabs.info":"Informations","tabs.prayer":"Prière","tabs.clock":"Horloge","tabs.sport":"Sport","tabs.games":"Jeux","tabs.tv":"TV","tabs.radio":"Radio","tabs.chat":"Chat","refresh":"Actualiser","role.admin":"Administrateur","role.family":"Membre de la famille","download":"Télécharger","delete":"Supprimer",
+    "prayer.title":"Horaires de prière","prayer.locationPrompt":"Choisissez la position du téléphone.","prayer.locationBtn":"Position","prayer.Fajr":"Fajr","prayer.Dhuhr":"Dhuhr","prayer.Asr":"Asr","prayer.Maghrib":"Maghrib","prayer.Isha":"Isha","prayer.next":"Prochaine prière : {name} à {time}","prayer.remaining":"Il reste {time}","prayer.qibla":"Qibla","prayer.qiblaActivate":"Activer la boussole","prayer.kerahat":"Horaires déconseillés",
+    "theme.title":"Mes couleurs","theme.note":"Les modifications sont enregistrées uniquement sur ce téléphone.","theme.bg":"Arrière-plan","theme.cards":"Cartes","theme.buttons":"Boutons","theme.accent":"Actif / icônes","theme.text":"Texte","theme.reset":"Restaurer les couleurs par défaut","menu.title":"Ordre des icônes","menu.note":"Seul l'Admin peut le modifier. L'ordre s'applique à tous.","menu.save":"Enregistrer l'ordre",
+    "clock.title":"Horloge Pajaziti","clock.description":"Widget moderne pour l'écran d'accueil. L'horloge reste visible même lorsque l'application est fermée.","clock.germany":"Allemagne","clock.kosovo":"Kosovo","clock.turkey":"Turquie","clock.newyork":"New York","clock.add":"Ajouter l'horloge à l'écran","clock.androidHint":"Sur Android, appuyez sur le bouton pour ajouter le widget à l'écran d'accueil.","clock.pinRequest":"Android ouvrira la demande de widget. Choisissez « Ajouter ».","clock.nativeOnly":"Le widget d'écran d'accueil est disponible dans la version Android de PAJAZITI.",
+    "chat.title":"Chat","chat.free":"Chat gratuit et illimité pour tous.","chat.freeBadge":"GRATUIT","chat.account":"Votre nom / compte","chat.namePlaceholder":"Entrez le nom","chat.saveName":"Enregistrer le nom","chat.nameRule":"Vous ne pouvez choisir votre nom qu'une seule fois. Ensuite il ne peut plus être modifié. Les noms déjà utilisés ne sont pas autorisés.","chat.messagePlaceholder":"Écrire un message...","chat.send":"Envoyer","chat.messages":"Messages"
+  }
+};
+
+for(const [code,values] of Object.entries(EXTRA_I18N)){
+  I18N[code] = {...(I18N[code]||I18N.en||I18N.sq), ...values};
+}
+
 let currentLanguage = localStorage.getItem(LANGUAGE_KEY) || "sq";
 if (!I18N[currentLanguage]) currentLanguage = "sq";
 
 function t(key, vars = {}) {
-  let value = I18N[currentLanguage]?.[key] ?? I18N.sq[key] ?? key;
+  let value = I18N[currentLanguage]?.[key] ?? I18N.en?.[key] ?? I18N.sq[key] ?? key;
   for (const [name, replacement] of Object.entries(vars)) {
     value = value.replaceAll("{" + name + "}", String(replacement));
   }
@@ -163,6 +245,7 @@ function applyLanguage(language = currentLanguage) {
   currentLanguage = language;
   localStorage.setItem(LANGUAGE_KEY, language);
   document.documentElement.lang = language;
+  document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
 
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.dataset.i18n);
@@ -175,6 +258,12 @@ function applyLanguage(language = currentLanguage) {
   const appSelect = document.getElementById("languageSelectApp");
   if (loginSelect) loginSelect.value = language;
   if (appSelect) appSelect.value = language;
+
+  try { window.AndroidClock?.setLanguage?.(language); } catch (_) {}
+  window.PajazitiSports?.reloadLanguage?.();
+  window.PajazitiGames?.reloadLanguage?.();
+  window.PajazitiTV?.reloadLanguage?.();
+  window.PajazitiRadio?.reloadLanguage?.();
 
   if (typeof mode !== "undefined" && codeInput) {
     codeInput.placeholder = mode === "admin"
@@ -706,12 +795,12 @@ function stopClockPreview(){
 addClockWidgetBtn?.addEventListener("click",()=>{
   try{
     if(window.AndroidClock?.isNativeAndroid?.()){
-      clockWidgetStatus.textContent="📌 Android do të hapë kërkesën për widget. Zgjidh “Add/Shto”.";
+      clockWidgetStatus.textContent="📌 "+t("clock.pinRequest");
       window.AndroidClock.requestClockWidget();
       return;
     }
   }catch(_){}
-  clockWidgetStatus.textContent="Widgeti i ekranit kryesor është i disponueshëm në versionin Android të PAJAZITI.";
+  clockWidgetStatus.textContent=t("clock.nativeOnly");
 });
 
 function setSection(next) {
