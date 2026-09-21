@@ -31,10 +31,14 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.core.content.FileProvider;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -359,52 +363,100 @@ public class MainActivity extends Activity {
     }
 
     private void downloadUpdate(String apkUrl) {
-        try {
-            DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            if (manager == null) {
-                openUpdateInBrowser(apkUrl);
-                return;
-            }
+        final AlertDialog progress = new AlertDialog.Builder(this)
+            .setTitle("PAJAZITI Update")
+            .setMessage("Po shkarkohet versioni i ri…")
+            .setCancelable(false)
+            .create();
+        progress.show();
 
-            File dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-            if (dir != null && dir.exists()) {
-                File[] oldFiles = dir.listFiles();
+        new Thread(() -> {
+            HttpURLConnection connection = null;
+            try {
+                String separator = apkUrl.contains("?") ? "&" : "?";
+                URL url = new URL(apkUrl + separator + "t=" + System.currentTimeMillis());
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(60000);
+                connection.setInstanceFollowRedirects(true);
+                connection.setUseCaches(false);
+                connection.setRequestProperty("Cache-Control", "no-cache");
+                connection.connect();
+
+                int code = connection.getResponseCode();
+                if (code < 200 || code >= 300) {
+                    throw new Exception("HTTP " + code);
+                }
+
+                File updateDir = new File(getCacheDir(), "updates");
+                if (!updateDir.exists() && !updateDir.mkdirs()) {
+                    throw new Exception("Update folder failed");
+                }
+
+                File[] oldFiles = updateDir.listFiles();
                 if (oldFiles != null) {
                     for (File file : oldFiles) {
-                        if (
-                            file != null &&
-                            file.getName() != null &&
-                            file.getName().startsWith("pajaziti-update-") &&
-                            file.getName().endsWith(".apk")
-                        ) {
+                        if (file != null) {
                             try { file.delete(); } catch (Exception ignored) {}
                         }
                     }
                 }
+
+                File apk = new File(
+                    updateDir,
+                    "pajaziti-update-" + System.currentTimeMillis() + ".apk"
+                );
+
+                try (
+                    InputStream input = connection.getInputStream();
+                    FileOutputStream output = new FileOutputStream(apk, false)
+                ) {
+                    byte[] buffer = new byte[64 * 1024];
+                    int read;
+                    while ((read = input.read(buffer)) != -1) {
+                        output.write(buffer, 0, read);
+                    }
+                    output.flush();
+                }
+
+                if (!apk.exists() || apk.length() < 50000L) {
+                    throw new Exception("APK incomplete");
+                }
+
+                pendingApkUrl = apkUrl;
+                runOnUiThread(() -> {
+                    try { progress.dismiss(); } catch (Exception ignored) {}
+                    installDirectApk(apk);
+                });
+            } catch (Exception error) {
+                runOnUiThread(() -> {
+                    try { progress.dismiss(); } catch (Exception ignored) {}
+                    openUpdateInBrowser(apkUrl);
+                });
+            } finally {
+                if (connection != null) connection.disconnect();
             }
+        }).start();
+    }
 
-            activeUpdateFileName = "pajaziti-update-" + System.currentTimeMillis() + ".apk";
-
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
-            request.setTitle("PAJAZITI Update");
-            request.setDescription("Po shkarkohet versioni i ri…");
-            request.setMimeType("application/vnd.android.package-archive");
-            request.setNotificationVisibility(
-                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-            );
-            request.setAllowedOverMetered(true);
-            request.setAllowedOverRoaming(true);
-            request.setDestinationInExternalFilesDir(
+    private void installDirectApk(File apk) {
+        try {
+            Uri apkUri = FileProvider.getUriForFile(
                 this,
-                Environment.DIRECTORY_DOWNLOADS,
-                activeUpdateFileName
+                getPackageName() + ".fileprovider",
+                apk
             );
-            request.addRequestHeader("Cache-Control", "no-cache");
 
-            pendingApkUrl = apkUrl;
-            updateDownloadId = manager.enqueue(request);
+            Intent install = new Intent(Intent.ACTION_VIEW);
+            install.setDataAndType(
+                apkUri,
+                "application/vnd.android.package-archive"
+            );
+            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(install);
         } catch (Exception error) {
-            openUpdateInBrowser(apkUrl);
+            openUpdateInBrowser(pendingApkUrl);
         }
     }
 
