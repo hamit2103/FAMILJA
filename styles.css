@@ -2915,3 +2915,72 @@ linear-gradient(145deg,#020611,#071531 55%,#14062d);color:#fff}
   .war-multi-player.me{grid-column:1!important;min-height:150px}
   .war-multi-soldier{width:72px}
 }
+
+
+/* ANGEL War layout v5.0: weapons compact at bottom */
+.war-battle-scene-new{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:1fr 64px 1fr auto!important;
+  min-height:470px!important;
+}
+.war-combatant{grid-column:1!important}
+.war-combatant-enemy{grid-row:1!important}
+.war-combatant-player{grid-row:3!important}
+.war-weapons-panel{
+  grid-column:1!important;
+  grid-row:4!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  grid-template-rows:auto!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:8px!important;
+  border-radius:15px!important;
+}
+.war-weapons-title{
+  writing-mode:vertical-rl;
+  transform:rotate(180deg);
+  font-size:9px!important;
+  letter-spacing:.5px!important;
+  max-height:86px;
+}
+.war-side-actions{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:86px!important;
+  gap:7px!important;
+}
+.war-side-actions button{
+  height:86px!important;
+  min-height:86px!important;
+  padding:5px 4px!important;
+  font-size:24px!important;
+}
+.war-side-actions button strong{font-size:11px!important}
+.war-side-actions button small{font-size:8.5px!important}
+.war-weapons-panel .war-reroll{
+  width:88px!important;
+  min-height:76px!important;
+  margin:0!important;
+  padding:6px!important;
+  font-size:11px!important;
+}
+.war-battle-scene-new .war-shot-lane{
+  left:14px!important;
+  right:14px!important;
+  top:90px!important;
+  bottom:116px!important;
+}
+@media(max-width:560px){
+  .war-battle-scene-new{min-height:500px!important}
+  .war-weapons-panel{grid-template-columns:minmax(0,1fr) 82px!important}
+  .war-weapons-title{
+    grid-column:1/-1;
+    writing-mode:horizontal-tb;
+    transform:none;
+    max-height:none;
+    font-size:9px!important;
+  }
+  .war-side-actions{grid-column:1;grid-row:2}
+  .war-weapons-panel .war-reroll{grid-column:2;grid-row:2;width:82px!important}
+}
