@@ -228,6 +228,7 @@ const galleryTab = $("galleryTab");
 const infoTab = $("infoTab");
 const infoUnreadBadge = $("infoUnreadBadge");
 const prayerTab = $("prayerTab");
+const clockTab = $("clockTab");
 const sportTab = $("sportTab");
 const gamesTab = $("gamesTab");
 const tvTab = $("tvTab");
@@ -240,6 +241,7 @@ const menuOrderStatus = $("menuOrderStatus");
 const galleryView = $("galleryView");
 const infoView = $("infoView");
 const prayerView = $("prayerView");
+const clockView = $("clockView");
 const sportView = $("sportView");
 const gamesView = $("gamesView");
 const tvView = $("tvView");
@@ -291,6 +293,9 @@ const chatSendBtn = $("chatSendBtn");
 const chatStatus = $("chatStatus");
 const chatRefreshBtn = $("chatRefreshBtn");
 const chatList = $("chatList");
+const addClockWidgetBtn = $("addClockWidgetBtn");
+const clockWidgetStatus = $("clockWidgetStatus");
+let clockPreviewTimer = null;
 
 languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
@@ -403,11 +408,12 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","sportTab","gamesTab","tvTab","radioTab","chatTab"];
+const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","chatTab"];
 const TAB_LABELS = {
   galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
   prayerTab:"🕌 Namazi",
+  clockTab:"🕒 Ora",
   sportTab:"⚽ Sport",
   gamesTab:"🎮 Lojëra",
   tvTab:"📺 TV",
@@ -668,11 +674,52 @@ async function saveSharedMenuOrder(){
 
 menuOrderSave?.addEventListener("click",saveSharedMenuOrder);
 
+function updateClockPreview(){
+  document.querySelectorAll("[data-clock-zone]").forEach((el)=>{
+    try{
+      el.textContent=new Intl.DateTimeFormat("sq-AL",{
+        timeZone:el.dataset.clockZone,
+        hour:"2-digit",
+        minute:"2-digit",
+        second:"2-digit",
+        hour12:false
+      }).format(new Date());
+    }catch(_){
+      el.textContent="--:--";
+    }
+  });
+}
+
+function startClockPreview(){
+  updateClockPreview();
+  if(clockPreviewTimer) clearInterval(clockPreviewTimer);
+  clockPreviewTimer=setInterval(updateClockPreview,1000);
+}
+
+function stopClockPreview(){
+  if(clockPreviewTimer){
+    clearInterval(clockPreviewTimer);
+    clockPreviewTimer=null;
+  }
+}
+
+addClockWidgetBtn?.addEventListener("click",()=>{
+  try{
+    if(window.AndroidClock?.isNativeAndroid?.()){
+      clockWidgetStatus.textContent="📌 Android do të hapë kërkesën për widget. Zgjidh “Add/Shto”.";
+      window.AndroidClock.requestClockWidget();
+      return;
+    }
+  }catch(_){}
+  clockWidgetStatus.textContent="Widgeti i ekranit kryesor është i disponueshëm në versionin Android të PAJAZITI.";
+});
+
 function setSection(next) {
   activeSection = next;
   const showGallery = next === "gallery";
   const showInfo = next === "info";
   const showPrayer = next === "prayer";
+  const showClock = next === "clock";
   const showSport = next === "sport";
   const showGames = next === "games";
   const showTv = next === "tv";
@@ -682,6 +729,7 @@ function setSection(next) {
   galleryTab.classList.toggle("active", showGallery);
   infoTab.classList.toggle("active", showInfo);
   prayerTab.classList.toggle("active", showPrayer);
+  clockTab.classList.toggle("active", showClock);
   sportTab.classList.toggle("active", showSport);
   gamesTab.classList.toggle("active", showGames);
   tvTab.classList.toggle("active", showTv);
@@ -691,6 +739,7 @@ function setSection(next) {
   galleryView.classList.toggle("hidden", !showGallery);
   infoView.classList.toggle("hidden", !showInfo);
   prayerView.classList.toggle("hidden", !showPrayer);
+  clockView.classList.toggle("hidden", !showClock);
   sportView.classList.toggle("hidden", !showSport);
   gamesView.classList.toggle("hidden", !showGames);
   tvView.classList.toggle("hidden", !showTv);
@@ -699,6 +748,7 @@ function setSection(next) {
 
   if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
+  if (showClock) startClockPreview(); else stopClockPreview();
   if (showSport) window.PajazitiSports?.activate?.();
   if (showGames) window.PajazitiGames?.activate?.();
   if (showTv) window.PajazitiTV?.activate?.();
@@ -708,6 +758,7 @@ function setSection(next) {
 galleryTab.addEventListener("click", () => setSection("gallery"));
 infoTab.addEventListener("click", () => setSection("info"));
 prayerTab.addEventListener("click", () => setSection("prayer"));
+clockTab.addEventListener("click", () => setSection("clock"));
 sportTab.addEventListener("click", () => setSection("sport"));
 gamesTab.addEventListener("click", () => setSection("games"));
 tvTab.addEventListener("click", () => setSection("tv"));
@@ -2345,7 +2396,10 @@ function startRealtime() {
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "app_settings" },
-      () => loadSharedMenuOrder()
+      () => {
+        loadSharedMenuOrder();
+        window.PajazitiGames?.reloadSettings?.();
+      }
     )
     .on(
       "postgres_changes",
