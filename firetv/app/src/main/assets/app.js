@@ -357,6 +357,8 @@ const themeCardColor = $("themeCardColor");
 const themeButtonColor = $("themeButtonColor");
 const themeAccentColor = $("themeAccentColor");
 const themeTextColor = $("themeTextColor");
+const installStatsCard = $("installStatsCard");
+const installCount = $("installCount");
 const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
@@ -875,6 +877,34 @@ function showMessage(el, text, kind = "") {
 
 function isAdmin() {
   return currentUser?.email === ADMIN_EMAIL;
+}
+
+async function registerInstall(){
+  if(!supabase || !currentUser) return;
+  try{
+    await supabase.from("app_installs").upsert({
+      device_id: presenceDeviceId,
+      user_id: currentUser.id,
+      package_name: "com.pajaziti.familja",
+      version_name: "3.7",
+      last_seen: new Date().toISOString()
+    },{onConflict:"device_id"});
+  }catch(error){
+    console.warn("Install register",error);
+  }
+}
+
+async function loadInstallCount(){
+  if(!supabase || !isAdmin() || !installCount) return;
+  try{
+    const {count,error}=await supabase
+      .from("app_installs")
+      .select("device_id",{count:"exact",head:true});
+    if(error) throw error;
+    installCount.textContent=String(count||0);
+  }catch(error){
+    console.warn("Install count",error);
+  }
 }
 
 async function login() {
@@ -2517,6 +2547,7 @@ async function applySession(session) {
   appView.classList.toggle("hidden", !signedIn);
   infoCompose?.classList.toggle("hidden", !signedIn || !isAdmin());
   menuOrderAdmin?.classList.toggle("hidden", !signedIn || !isAdmin());
+  installStatsCard?.classList.toggle("hidden", !signedIn || !isAdmin());
   if (isAdmin()) infoUnreadBadge?.classList.add("hidden");
 
   if (!signedIn) {
@@ -2552,6 +2583,8 @@ async function applySession(session) {
   if (chatName) chatName.value = chatSavedName();
   loadChatProfile().catch(console.warn);
   startPrayerAlarmChecker();
+  await registerInstall();
+  if(isAdmin()) await loadInstallCount();
   startRealtime();
 }
 
