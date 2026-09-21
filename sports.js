@@ -1,4 +1,17 @@
 const root=document.getElementById("sportRoot");
+const LANG_KEY="pajaziti-language";
+const SPORT_TXT={
+  sq:{finished:"Përfundoi",other:"Tjetër",desc:"${st("desc")}",refresh:"Rifresko",refreshing:"Po rifreskon…",search:"Kërko ekip ose ligë…",all:"Të gjitha",finishedBtn:"Përfunduara",matches:"ndeshje",updated:"Përditësuar",none:"Nuk u gjetën ndeshje.",loadError:"Nuk u ngarkuan rezultatet. Provo përsëri pas pak.",retry:"Provo përsëri"},
+  de:{finished:"Beendet",other:"Andere",desc:"Die wichtigsten Wettbewerbe erscheinen zuerst, danach die führenden nationalen Ligen.",refresh:"Aktualisieren",refreshing:"Wird aktualisiert…",search:"Team oder Liga suchen…",all:"Alle",finishedBtn:"Beendet",matches:"Spiele",updated:"Aktualisiert",none:"Keine Spiele gefunden.",loadError:"Ergebnisse konnten nicht geladen werden. Versuche es später erneut.",retry:"Erneut versuchen"},
+  tr:{finished:"Bitti",other:"Diğer",desc:"Önce en önemli turnuvalar, ardından ülkelerin önde gelen ligleri gösterilir.",refresh:"Yenile",refreshing:"Yenileniyor…",search:"Takım veya lig ara…",all:"Tümü",finishedBtn:"Bitenler",matches:"maç",updated:"Güncellendi",none:"Maç bulunamadı.",loadError:"Sonuçlar yüklenemedi. Biraz sonra tekrar dene.",retry:"Tekrar dene"},
+  it:{finished:"Terminata",other:"Altro",desc:"Prima le competizioni più importanti, poi i principali campionati nazionali.",refresh:"Aggiorna",refreshing:"Aggiornamento…",search:"Cerca squadra o campionato…",all:"Tutte",finishedBtn:"Terminate",matches:"partite",updated:"Aggiornato",none:"Nessuna partita trovata.",loadError:"Impossibile caricare i risultati. Riprova tra poco.",retry:"Riprova"},
+  hr:{finished:"Završeno",other:"Ostalo",desc:"Najvažnija natjecanja prikazuju se prva, zatim najbolje nacionalne lige.",refresh:"Osvježi",refreshing:"Osvježavanje…",search:"Traži momčad ili ligu…",all:"Sve",finishedBtn:"Završene",matches:"utakmica",updated:"Ažurirano",none:"Nema pronađenih utakmica.",loadError:"Rezultati se nisu učitali. Pokušaj ponovno kasnije.",retry:"Pokušaj ponovno"},
+  ar:{finished:"انتهت",other:"أخرى",desc:"تظهر أهم البطولات أولاً، ثم أقوى الدوريات المحلية.",refresh:"تحديث",refreshing:"جارٍ التحديث…",search:"ابحث عن فريق أو دوري…",all:"الكل",finishedBtn:"المنتهية",matches:"مباريات",updated:"تم التحديث",none:"لم يتم العثور على مباريات.",loadError:"تعذر تحميل النتائج. حاول مرة أخرى بعد قليل.",retry:"حاول مرة أخرى"},
+  en:{finished:"Finished",other:"Other",desc:"The most important competitions appear first, followed by the leading national leagues.",refresh:"Refresh",refreshing:"Refreshing…",search:"Search team or league…",all:"All",finishedBtn:"Finished",matches:"matches",updated:"Updated",none:"No matches found.",loadError:"Results could not be loaded. Try again shortly.",retry:"Try again"},
+  fr:{finished:"Terminé",other:"Autre",desc:"Les compétitions les plus importantes apparaissent d'abord, puis les principaux championnats nationaux.",refresh:"Actualiser",refreshing:"Actualisation…",search:"Rechercher une équipe ou un championnat…",all:"Tous",finishedBtn:"Terminés",matches:"matchs",updated:"Mis à jour",none:"Aucun match trouvé.",loadError:"Les résultats n'ont pas pu être chargés. Réessayez plus tard.",retry:"Réessayer"}
+};
+function sportLang(){const l=localStorage.getItem(LANG_KEY)||"sq";return SPORT_TXT[l]?l:"sq";}
+function st(k){return SPORT_TXT[sportLang()]?.[k]||SPORT_TXT.en[k]||k;}
 
 const API="https://sportscore.com/api/widget/matches/?sport=football&limit=50&src=pajaziti-app";
 let matches=[];
@@ -30,14 +43,14 @@ function formatTime(value){
   if(!value) return "";
   const d=new Date(value);
   if(Number.isNaN(d.getTime())) return "";
-  return new Intl.DateTimeFormat(undefined,{
+  return new Intl.DateTimeFormat(sportLang()==="ar"?"ar":sportLang(),{
     day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"
   }).format(d);
 }
 
 function translatedStatus(m){
   if(isLive(m)) return "LIVE";
-  if(isFinished(m)) return "Përfundoi";
+  if(isFinished(m)) return st("finished");
   const raw=String(m?.status_text||m?.status||"").trim();
   return raw || "—";
 }
@@ -82,7 +95,7 @@ function competitionPriority(name){
 function groupByCompetition(rows){
   const groups=new Map();
   for(const m of rows){
-    const key=m.competition||"Tjetër";
+    const key=m.competition||st("other");
     if(!groups.has(key)) groups.set(key,[]);
     groups.get(key).push(m);
   }
@@ -144,18 +157,18 @@ function render(){
             <h2>⚽ Sport</h2>
             <p class="muted">Garat më të rëndësishme shfaqen të parat, pastaj ligat kryesore të shteteve.</p>
           </div>
-          <button id="sportRefresh" class="secondary sport-refresh" type="button">${loading?"Po rifreskon…":"Rifresko"}</button>
+          <button id="sportRefresh" class="secondary sport-refresh" type="button">${loading?st("refreshing"):st("refresh")}</button>
         </div>
 
         <div class="sport-controls">
-          <input id="sportSearch" class="sport-search" type="search" placeholder="Kërko ekip ose ligë…" value="${esc(search)}">
+          <input id="sportSearch" class="sport-search" type="search" placeholder="${esc(st("search"))}" value="${esc(search)}">
           <div class="sport-filters">
-            <button class="sport-filter ${filter==="all"?"active":""}" data-sport-filter="all">Të gjitha</button>
+            <button class="sport-filter ${filter==="all"?"active":""}" data-sport-filter="all">${st("all")}</button>
             <button class="sport-filter ${filter==="live"?"active":""}" data-sport-filter="live">🔴 Live</button>
-            <button class="sport-filter ${filter==="finished"?"active":""}" data-sport-filter="finished">✅ Përfunduara</button>
+            <button class="sport-filter ${filter==="finished"?"active":""}" data-sport-filter="finished">✅ ${st("finishedBtn")}</button>
           </div>
           <div class="muted sport-meta">
-            ${rows.length} ndeshje${lastUpdated?" · Përditësuar: "+esc(formatTime(lastUpdated)):""}
+            ${rows.length} ${st("matches")}${lastUpdated?" · "+st("updated")+": "+esc(formatTime(lastUpdated)):""}
           </div>
         </div>
       </section>
@@ -169,7 +182,7 @@ function render(){
             </div>
             ${list.map(matchHtml).join("")}
           </div>
-        `).join("") : '<section class="card sport-empty"><strong>Nuk u gjetën ndeshje.</strong></section>'}
+        `).join("") : '<section class="card sport-empty"><strong>${st("none")}</strong></section>'}
       </section>
 
       <div class="sport-source">
@@ -205,8 +218,8 @@ async function loadMatches(force=false){
       root.innerHTML=`
         <section class="card sport-empty">
           <h2>⚽ Sport</h2>
-          <p>Nuk u ngarkuan rezultatet. Provo përsëri pas pak.</p>
-          <button id="sportRetry" class="primary" type="button">Provo përsëri</button>
+          <p>${st("loadError")}</p>
+          <button id="sportRetry" class="primary" type="button">${st("retry")}</button>
         </section>
         <div class="sport-source"><a href="https://sportscore.com/" rel="dofollow" target="_blank">Powered by SportScore</a></div>`;
       document.getElementById("sportRetry")?.addEventListener("click",()=>loadMatches(true));
@@ -228,4 +241,4 @@ function activate(){
   },60000);
 }
 
-window.PajazitiSports={activate,refresh:()=>loadMatches(true)};
+window.PajazitiSports={activate,refresh:()=>loadMatches(true),reloadLanguage:render};
