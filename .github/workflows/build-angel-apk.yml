@@ -40,27 +40,31 @@ jobs:
           base64 -d pajaziti-release.jks.b64 > pajaziti-release.jks
           test -s pajaziti-release.jks
 
-      - name: Build signed release APK
-        run: gradle -p firetv :app:assembleRelease --no-daemon
+      - name: Build signed release APKs
+        run: |
+          gradle -p firetv :app:assembleRelease --no-daemon
+          cp firetv/app/build/outputs/apk/release/app-release.apk /tmp/angel-main.apk
+          gradle -p firetv clean :app:assembleRelease -PappId=com.pajaziti.familja.fresh --no-daemon
+          cp firetv/app/build/outputs/apk/release/app-release.apk /tmp/angel-fresh.apk
 
       - name: Publish APK files
         run: |
-          APK="firetv/app/build/outputs/apk/release/app-release.apk"
-          test -f "$APK"
-          cp "$APK" pajaziti-android.apk
-          cp "$APK" pajaziti-firetv.apk
-          cp "$APK" pajaziti-fresh.apk
+          test -f /tmp/angel-main.apk
+          test -f /tmp/angel-fresh.apk
+          cp /tmp/angel-main.apk pajaziti-android.apk
+          cp /tmp/angel-main.apk pajaziti-firetv.apk
+          cp /tmp/angel-fresh.apk pajaziti-fresh.apk
 
-      - name: Upload ANGEL 4.5 to update server
+      - name: Upload ANGEL 4.6 to update server
         run: |
           curl --fail --show-error --silent \
-            -H "x-angel-build-token: angel-build-4-5-20260921" \
+            -H "x-angel-build-token: angel-build-4-6-20260921" \
             --data-binary @pajaziti-android.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.5.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.6.apk"
           curl --fail --show-error --silent \
-            -H "x-angel-build-token: angel-build-4-5-20260921" \
+            -H "x-angel-build-token: angel-build-4-6-20260921" \
             --data-binary @pajaziti-fresh.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.5-fresh.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.6-fresh.apk"
 
       - name: Commit APK update
         run: |
@@ -70,13 +74,13 @@ jobs:
           if git diff --cached --quiet; then
             echo "APK already up to date."
           else
-            git commit -m "Publish ANGEL 4.5 APK [skip ci]"
+            git commit -m "Publish ANGEL 4.6 APK [skip ci]"
             git push
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ANGEL-4.5
-          path: firetv/app/build/outputs/apk/release/app-release.apk
+          name: ANGEL-4.6
+          path: /tmp/angel-main.apk
           if-no-files-found: error
