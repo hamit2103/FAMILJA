@@ -228,6 +228,7 @@ const galleryTab = $("galleryTab");
 const infoTab = $("infoTab");
 const infoUnreadBadge = $("infoUnreadBadge");
 const prayerTab = $("prayerTab");
+const sportTab = $("sportTab");
 const gamesTab = $("gamesTab");
 const tvTab = $("tvTab");
 const radioTab = $("radioTab");
@@ -239,6 +240,7 @@ const menuOrderStatus = $("menuOrderStatus");
 const galleryView = $("galleryView");
 const infoView = $("infoView");
 const prayerView = $("prayerView");
+const sportView = $("sportView");
 const gamesView = $("gamesView");
 const tvView = $("tvView");
 const radioView = $("radioView");
@@ -401,11 +403,12 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab","chatTab"];
+const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","sportTab","gamesTab","tvTab","radioTab","chatTab"];
 const TAB_LABELS = {
   galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
   prayerTab:"🕌 Namazi",
+  sportTab:"⚽ Sport",
   gamesTab:"🎮 Lojëra",
   tvTab:"📺 TV",
   radioTab:"📻 Radio",
@@ -670,6 +673,7 @@ function setSection(next) {
   const showGallery = next === "gallery";
   const showInfo = next === "info";
   const showPrayer = next === "prayer";
+  const showSport = next === "sport";
   const showGames = next === "games";
   const showTv = next === "tv";
   const showRadio = next === "radio";
@@ -678,6 +682,7 @@ function setSection(next) {
   galleryTab.classList.toggle("active", showGallery);
   infoTab.classList.toggle("active", showInfo);
   prayerTab.classList.toggle("active", showPrayer);
+  sportTab.classList.toggle("active", showSport);
   gamesTab.classList.toggle("active", showGames);
   tvTab.classList.toggle("active", showTv);
   radioTab.classList.toggle("active", showRadio);
@@ -686,6 +691,7 @@ function setSection(next) {
   galleryView.classList.toggle("hidden", !showGallery);
   infoView.classList.toggle("hidden", !showInfo);
   prayerView.classList.toggle("hidden", !showPrayer);
+  sportView.classList.toggle("hidden", !showSport);
   gamesView.classList.toggle("hidden", !showGames);
   tvView.classList.toggle("hidden", !showTv);
   radioView.classList.toggle("hidden", !showRadio);
@@ -693,6 +699,7 @@ function setSection(next) {
 
   if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
+  if (showSport) window.PajazitiSports?.activate?.();
   if (showGames) window.PajazitiGames?.activate?.();
   if (showTv) window.PajazitiTV?.activate?.();
   if (showRadio) window.PajazitiRadio?.activate?.();
@@ -701,6 +708,7 @@ function setSection(next) {
 galleryTab.addEventListener("click", () => setSection("gallery"));
 infoTab.addEventListener("click", () => setSection("info"));
 prayerTab.addEventListener("click", () => setSection("prayer"));
+sportTab.addEventListener("click", () => setSection("sport"));
 gamesTab.addEventListener("click", () => setSection("games"));
 tvTab.addEventListener("click", () => setSection("tv"));
 radioTab.addEventListener("click", () => setSection("radio"));
