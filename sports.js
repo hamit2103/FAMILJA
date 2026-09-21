@@ -1,244 +1,75 @@
 const root=document.getElementById("sportRoot");
 const LANG_KEY="pajaziti-language";
-const SPORT_TXT={
-  sq:{finished:"Përfundoi",other:"Tjetër",desc:"${st("desc")}",refresh:"Rifresko",refreshing:"Po rifreskon…",search:"Kërko ekip ose ligë…",all:"Të gjitha",finishedBtn:"Përfunduara",matches:"ndeshje",updated:"Përditësuar",none:"Nuk u gjetën ndeshje.",loadError:"Nuk u ngarkuan rezultatet. Provo përsëri pas pak.",retry:"Provo përsëri"},
-  de:{finished:"Beendet",other:"Andere",desc:"Die wichtigsten Wettbewerbe erscheinen zuerst, danach die führenden nationalen Ligen.",refresh:"Aktualisieren",refreshing:"Wird aktualisiert…",search:"Team oder Liga suchen…",all:"Alle",finishedBtn:"Beendet",matches:"Spiele",updated:"Aktualisiert",none:"Keine Spiele gefunden.",loadError:"Ergebnisse konnten nicht geladen werden. Versuche es später erneut.",retry:"Erneut versuchen"},
-  tr:{finished:"Bitti",other:"Diğer",desc:"Önce en önemli turnuvalar, ardından ülkelerin önde gelen ligleri gösterilir.",refresh:"Yenile",refreshing:"Yenileniyor…",search:"Takım veya lig ara…",all:"Tümü",finishedBtn:"Bitenler",matches:"maç",updated:"Güncellendi",none:"Maç bulunamadı.",loadError:"Sonuçlar yüklenemedi. Biraz sonra tekrar dene.",retry:"Tekrar dene"},
-  it:{finished:"Terminata",other:"Altro",desc:"Prima le competizioni più importanti, poi i principali campionati nazionali.",refresh:"Aggiorna",refreshing:"Aggiornamento…",search:"Cerca squadra o campionato…",all:"Tutte",finishedBtn:"Terminate",matches:"partite",updated:"Aggiornato",none:"Nessuna partita trovata.",loadError:"Impossibile caricare i risultati. Riprova tra poco.",retry:"Riprova"},
-  hr:{finished:"Završeno",other:"Ostalo",desc:"Najvažnija natjecanja prikazuju se prva, zatim najbolje nacionalne lige.",refresh:"Osvježi",refreshing:"Osvježavanje…",search:"Traži momčad ili ligu…",all:"Sve",finishedBtn:"Završene",matches:"utakmica",updated:"Ažurirano",none:"Nema pronađenih utakmica.",loadError:"Rezultati se nisu učitali. Pokušaj ponovno kasnije.",retry:"Pokušaj ponovno"},
-  ar:{finished:"انتهت",other:"أخرى",desc:"تظهر أهم البطولات أولاً، ثم أقوى الدوريات المحلية.",refresh:"تحديث",refreshing:"جارٍ التحديث…",search:"ابحث عن فريق أو دوري…",all:"الكل",finishedBtn:"المنتهية",matches:"مباريات",updated:"تم التحديث",none:"لم يتم العثور على مباريات.",loadError:"تعذر تحميل النتائج. حاول مرة أخرى بعد قليل.",retry:"حاول مرة أخرى"},
-  en:{finished:"Finished",other:"Other",desc:"The most important competitions appear first, followed by the leading national leagues.",refresh:"Refresh",refreshing:"Refreshing…",search:"Search team or league…",all:"All",finishedBtn:"Finished",matches:"matches",updated:"Updated",none:"No matches found.",loadError:"Results could not be loaded. Try again shortly.",retry:"Try again"},
-  fr:{finished:"Terminé",other:"Autre",desc:"Les compétitions les plus importantes apparaissent d'abord, puis les principaux championnats nationaux.",refresh:"Actualiser",refreshing:"Actualisation…",search:"Rechercher une équipe ou un championnat…",all:"Tous",finishedBtn:"Terminés",matches:"matchs",updated:"Mis à jour",none:"Aucun match trouvé.",loadError:"Les résultats n'ont pas pu être chargés. Réessayez plus tard.",retry:"Réessayer"}
-};
-function sportLang(){const l=localStorage.getItem(LANG_KEY)||"sq";return SPORT_TXT[l]?l:"sq";}
-function st(k){return SPORT_TXT[sportLang()]?.[k]||SPORT_TXT.en[k]||k;}
-
-const API="https://sportscore.com/api/widget/matches/?sport=football&limit=50&src=pajaziti-app";
+const API_BASE="https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-football";
 let matches=[];
-let filter="all";
-let search="";
+let selectedDate=0;
 let loading=false;
 let lastUpdated="";
-let autoTimer=null;
 
-function esc(v=""){
-  return String(v)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;");
-}
-
-function isLive(m){
-  const s=String(m?.status||"").toLowerCase();
-  return ["live","inprogress","in_progress","playing","1h","2h","ht"].some(x=>s.includes(x));
-}
-
-function isFinished(m){
-  const s=String(m?.status||"").toLowerCase();
-  return s==="finished" || s==="ft" || s.includes("finish");
-}
-
-function formatTime(value){
-  if(!value) return "";
-  const d=new Date(value);
-  if(Number.isNaN(d.getTime())) return "";
-  return new Intl.DateTimeFormat(sportLang()==="ar"?"ar":sportLang(),{
-    day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"
-  }).format(d);
-}
-
-function translatedStatus(m){
-  if(isLive(m)) return "LIVE";
-  if(isFinished(m)) return st("finished");
-  const raw=String(m?.status_text||m?.status||"").trim();
-  return raw || "—";
-}
-
-function selectedMatches(){
-  const q=search.trim().toLocaleLowerCase();
-  return matches.filter(m=>{
-    if(filter==="live" && !isLive(m)) return false;
-    if(filter==="finished" && !isFinished(m)) return false;
-    if(!q) return true;
-    return [m.home,m.away,m.competition].some(v=>String(v||"").toLocaleLowerCase().includes(q));
-  });
-}
-
-function competitionPriority(name){
-  const n=String(name||"").toLocaleLowerCase();
-  const rules=[
-    [0,/(world cup|fifa world cup|uefa euro|european championship|nations league|world championship)/],
-    [10,/champions league/],
-    [20,/europa league/],
-    [30,/conference league/],
-    [40,/(world cup qual|euro qual|qualification|qualifiers|international friendly|friendlies)/],
-    [100,/(premier league|england.*premier|english premier)/],
-    [110,/(la liga|primera division|spain.*liga)/],
-    [120,/(serie a|italy.*serie)/],
-    [130,/(bundesliga|germany.*bundesliga)/],
-    [140,/(ligue 1|france.*ligue)/],
-    [150,/(super lig|süper lig|turkey.*super)/],
-    [160,/(primeira liga|portugal.*liga)/],
-    [170,/(eredivisie|netherlands.*eredivisie)/],
-    [180,/(pro league|belgium.*league)/],
-    [190,/(austria.*bundesliga|austrian bundesliga)/],
-    [200,/(swiss super league|switzerland.*super)/],
-    [210,/(kosovo.*super|superliga.*kosov)/]
-  ];
-  for(const [priority,rx] of rules){
-    if(rx.test(n)) return priority;
-  }
-  return 500;
-}
-
-function groupByCompetition(rows){
-  const groups=new Map();
-  for(const m of rows){
-    const key=m.competition||st("other");
-    if(!groups.has(key)) groups.set(key,[]);
-    groups.get(key).push(m);
-  }
-  return [...groups.entries()]
-    .map(([name,list])=>[
-      name,
-      [...list].sort((a,b)=>{
-        const liveDiff=Number(isLive(b))-Number(isLive(a));
-        if(liveDiff) return liveDiff;
-        const ta=new Date(a.time||0).getTime()||0;
-        const tb=new Date(b.time||0).getTime()||0;
-        return ta-tb;
-      })
-    ])
-    .sort((a,b)=>{
-      const pa=competitionPriority(a[0]);
-      const pb=competitionPriority(b[0]);
-      if(pa!==pb) return pa-pb;
-      return String(a[0]).localeCompare(String(b[0]),"sq");
-    });
-}
-
-function matchHtml(m){
-  const live=isLive(m);
-  const score=(m.home_score!==null && m.home_score!==undefined && m.away_score!==null && m.away_score!==undefined)
-    ? esc(m.home_score)+" : "+esc(m.away_score)
-    : "–";
-  const homeLogo=m.home_logo?'<img src="'+esc(m.home_logo)+'" alt="" loading="lazy">':"⚽";
-  const awayLogo=m.away_logo?'<img src="'+esc(m.away_logo)+'" alt="" loading="lazy">':"⚽";
-
-  return `
-    <article class="sport-match">
-      <div class="sport-team">
-        ${homeLogo}
-        <span class="sport-team-name">${esc(m.home||"—")}</span>
-      </div>
-      <div class="sport-score">
-        <strong>${score}</strong>
-        <div class="sport-status ${live?"live":""}">${esc(translatedStatus(m))}</div>
-        <div class="muted small">${esc(formatTime(m.time))}</div>
-      </div>
-      <div class="sport-team away">
-        <span class="sport-team-name">${esc(m.away||"—")}</span>
-        ${awayLogo}
-      </div>
-    </article>`;
-}
-
+const T={
+  sq:{today:"Sot",tomorrow:"Nesër",dayAfter:"Pasnesër",days:"7 ditë",refresh:"Rifresko",loading:"Po ngarkohet…",none:"Nuk u gjetën ndeshje për këtë ditë.",match:"ndeshje",updated:"Përditësuar",finished:"Përfundoi",scheduled:"Planifikuar"},
+  de:{today:"Heute",tomorrow:"Morgen",dayAfter:"Übermorgen",days:"7 Tage",refresh:"Aktualisieren",loading:"Wird geladen…",none:"Keine Spiele an diesem Tag.",match:"Spiele",updated:"Aktualisiert",finished:"Beendet",scheduled:"Geplant"},
+  tr:{today:"Bugün",tomorrow:"Yarın",dayAfter:"Öbür gün",days:"7 gün",refresh:"Yenile",loading:"Yükleniyor…",none:"Bu gün için maç bulunamadı.",match:"maç",updated:"Güncellendi",finished:"Bitti",scheduled:"Planlandı"},
+  it:{today:"Oggi",tomorrow:"Domani",dayAfter:"Dopodomani",days:"7 giorni",refresh:"Aggiorna",loading:"Caricamento…",none:"Nessuna partita per questo giorno.",match:"partite",updated:"Aggiornato",finished:"Terminata",scheduled:"Programmata"},
+  hr:{today:"Danas",tomorrow:"Sutra",dayAfter:"Prekosutra",days:"7 dana",refresh:"Osvježi",loading:"Učitavanje…",none:"Nema utakmica za taj dan.",match:"utakmica",updated:"Ažurirano",finished:"Završeno",scheduled:"Zakazano"},
+  ar:{today:"اليوم",tomorrow:"غدًا",dayAfter:"بعد غد",days:"7 أيام",refresh:"تحديث",loading:"جارٍ التحميل…",none:"لا توجد مباريات لهذا اليوم.",match:"مباريات",updated:"تم التحديث",finished:"انتهت",scheduled:"مجدولة"},
+  en:{today:"Today",tomorrow:"Tomorrow",dayAfter:"Day after",days:"7 days",refresh:"Refresh",loading:"Loading…",none:"No matches for this day.",match:"matches",updated:"Updated",finished:"Finished",scheduled:"Scheduled"},
+  fr:{today:"Aujourd’hui",tomorrow:"Demain",dayAfter:"Après-demain",days:"7 jours",refresh:"Actualiser",loading:"Chargement…",none:"Aucun match pour ce jour.",match:"matchs",updated:"Mis à jour",finished:"Terminé",scheduled:"Prévu"}
+};
+function lang(){const l=localStorage.getItem(LANG_KEY)||"sq";return T[l]?l:"sq";}
+function tr(k){return T[lang()][k]||T.en[k]||k;}
+function esc(v=""){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");}
+function dateKey(offset){const d=new Date();d.setDate(d.getDate()+offset);return d.toISOString().slice(0,10);}
+function niceDate(offset){const d=new Date();d.setDate(d.getDate()+offset);return new Intl.DateTimeFormat(lang()==="ar"?"ar":lang(),{weekday:"short",day:"2-digit",month:"2-digit"}).format(d);}
+function statusText(m){if(m.status==="live")return "LIVE";if(m.status==="finished")return tr("finished");return tr("scheduled");}
+function group(rows){const map=new Map();for(const m of rows){const k=m.competition||"Other";if(!map.has(k))map.set(k,[]);map.get(k).push(m);}return [...map.entries()];}
 function render(){
-  if(!root) return;
-  const rows=selectedMatches();
-  const groups=groupByCompetition(rows);
-
-  root.innerHTML=`
-    <div class="sport-shell">
-      <section class="card">
-        <div class="sport-head">
-          <div>
-            <h2>⚽ Sport</h2>
-            <p class="muted">Garat më të rëndësishme shfaqen të parat, pastaj ligat kryesore të shteteve.</p>
-          </div>
-          <button id="sportRefresh" class="secondary sport-refresh" type="button">${loading?st("refreshing"):st("refresh")}</button>
-        </div>
-
-        <div class="sport-controls">
-          <input id="sportSearch" class="sport-search" type="search" placeholder="${esc(st("search"))}" value="${esc(search)}">
-          <div class="sport-filters">
-            <button class="sport-filter ${filter==="all"?"active":""}" data-sport-filter="all">${st("all")}</button>
-            <button class="sport-filter ${filter==="live"?"active":""}" data-sport-filter="live">🔴 Live</button>
-            <button class="sport-filter ${filter==="finished"?"active":""}" data-sport-filter="finished">✅ ${st("finishedBtn")}</button>
-          </div>
-          <div class="muted sport-meta">
-            ${rows.length} ${st("matches")}${lastUpdated?" · "+st("updated")+": "+esc(formatTime(lastUpdated)):""}
-          </div>
-        </div>
-      </section>
-
-      <section class="sport-list">
-        ${groups.length ? groups.map(([name,list])=>`
-          <div class="sport-league">
-            <div class="sport-league-title">
-              ${list[0]?.competition_logo?'<img class="sport-league-logo" src="'+esc(list[0].competition_logo)+'" alt="" loading="lazy">':"🏆"}
-              <span>${esc(name)}</span>
-            </div>
-            ${list.map(matchHtml).join("")}
-          </div>
-        `).join("") : '<section class="card sport-empty"><strong>${st("none")}</strong></section>'}
-      </section>
-
-      <div class="sport-source">
-        <a href="https://sportscore.com/" rel="dofollow" target="_blank" title="Sports data by SportScore">Powered by SportScore</a>
-      </div>
-    </div>`;
-
-  document.getElementById("sportRefresh")?.addEventListener("click",()=>loadMatches(true));
-  document.getElementById("sportSearch")?.addEventListener("input",(e)=>{search=e.target.value;render();});
-  root.querySelectorAll("[data-sport-filter]").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      filter=btn.dataset.sportFilter;
-      render();
-    });
-  });
+ if(!root)return;
+ const groups=group(matches);
+ root.innerHTML=`
+ <div class="sport-shell">
+  <section class="card sport-top">
+   <div class="sport-head">
+    <div><h2>⚽ Sport</h2><p class="muted">Champions League dhe garat kryesore dalin të parat, pastaj ligat më të forta.</p></div>
+    <button id="sportRefresh" class="secondary" type="button">${loading?tr("loading"):tr("refresh")}</button>
+   </div>
+   <div class="sport-day-tabs">
+    ${[0,1,2,3,4,5,6].map((n)=>`<button class="sport-day ${selectedDate===n?"active":""}" data-day="${n}">
+      <strong>${n===0?tr("today"):n===1?tr("tomorrow"):n===2?tr("dayAfter"):niceDate(n)}</strong>
+      <small>${niceDate(n)}</small>
+    </button>`).join("")}
+   </div>
+   <div class="sport-meta">${matches.length} ${tr("match")}${lastUpdated?" · "+tr("updated")+": "+new Intl.DateTimeFormat(lang(),{hour:"2-digit",minute:"2-digit"}).format(new Date(lastUpdated)):""}</div>
+  </section>
+  <section class="sport-list">
+   ${groups.length?groups.map(([name,list])=>`
+    <div class="sport-league">
+      <div class="sport-league-title">🏆 <span>${esc(name)}</span></div>
+      ${list.map(m=>`<article class="sport-match">
+       <div class="sport-team">${m.home_logo?'<img src="'+esc(m.home_logo)+'" alt="">':"⚽"}<span>${esc(m.home)}</span></div>
+       <div class="sport-score">
+        <strong>${m.home_score!=null&&m.away_score!=null?esc(m.home_score)+" : "+esc(m.away_score):new Intl.DateTimeFormat(lang(),{hour:"2-digit",minute:"2-digit"}).format(new Date(m.time))}</strong>
+        <div class="sport-status ${m.status==="live"?"live":""}">${statusText(m)}</div>
+       </div>
+       <div class="sport-team away"><span>${esc(m.away)}</span>${m.away_logo?'<img src="'+esc(m.away_logo)+'" alt="">':"⚽"}</div>
+      </article>`).join("")}
+    </div>`).join(""):`<section class="card sport-empty"><strong>${tr("none")}</strong></section>`}
+  </section>
+ </div>`;
+ document.getElementById("sportRefresh")?.addEventListener("click",()=>load(true));
+ root.querySelectorAll("[data-day]").forEach(b=>b.addEventListener("click",()=>{selectedDate=Number(b.dataset.day);load(true);}));
 }
-
-async function loadMatches(force=false){
-  if(loading) return;
-  if(!force && matches.length) { render(); return; }
-  loading=true;
-  render();
-
-  try{
-    const response=await fetch(API,{cache:"no-store"});
-    if(!response.ok) throw new Error("HTTP "+response.status);
-    const data=await response.json();
-    matches=Array.isArray(data?.matches)?data.matches:[];
-    lastUpdated=data?.updated||new Date().toISOString();
-  }catch(error){
-    console.warn("Sport results",error);
-    if(!matches.length){
-      root.innerHTML=`
-        <section class="card sport-empty">
-          <h2>⚽ Sport</h2>
-          <p>${st("loadError")}</p>
-          <button id="sportRetry" class="primary" type="button">${st("retry")}</button>
-        </section>
-        <div class="sport-source"><a href="https://sportscore.com/" rel="dofollow" target="_blank">Powered by SportScore</a></div>`;
-      document.getElementById("sportRetry")?.addEventListener("click",()=>loadMatches(true));
-      loading=false;
-      return;
-    }
-  }
-
-  loading=false;
-  render();
+async function load(force=false){
+ if(loading)return;loading=true;render();
+ try{
+  const res=await fetch(API_BASE+"?date="+dateKey(selectedDate),{cache:"no-store"});
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const data=await res.json();
+  matches=Array.isArray(data.matches)?data.matches:[];
+  lastUpdated=data.updated||new Date().toISOString();
+ }catch(e){console.warn("football",e);matches=[];}
+ loading=false;render();
 }
-
-function activate(){
-  loadMatches(matches.length===0);
-  if(autoTimer) clearInterval(autoTimer);
-  autoTimer=setInterval(()=>{
-    if(document.getElementById("sportView")?.classList.contains("hidden")) return;
-    loadMatches(true);
-  },60000);
-}
-
-window.PajazitiSports={activate,refresh:()=>loadMatches(true),reloadLanguage:render};
+function activate(){load(true);}
+function reloadLanguage(){render();}
+window.PajazitiSports={activate,refresh:()=>load(true),reloadLanguage};
