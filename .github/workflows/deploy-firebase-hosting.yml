@@ -3,6 +3,11 @@ name: Deploy Firebase Hosting
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - "firetv/**"
+  workflow_run:
+    workflows: [ "Build Android APK" ]
+    types: [ completed ]
   workflow_dispatch:
 
 permissions:
@@ -14,10 +19,13 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout latest main
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
