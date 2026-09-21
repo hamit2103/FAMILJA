@@ -9,22 +9,22 @@
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical" android:paddingEnd="8dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🇩🇪  GJERMANI" android:textColor="#BFFFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            <TextView android:id="@+id/clockCountryGermany" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🇩🇪  GJERMANI" android:textColor="#BFFFFFFF" android:textSize="10sp" android:textStyle="bold" />
             <TextClock android:layout_width="wrap_content" android:layout_height="wrap_content" android:format12Hour="HH:mm" android:format24Hour="HH:mm" android:timeZone="Europe/Berlin" android:textColor="#FFFFFFFF" android:textSize="28sp" android:textStyle="bold" />
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical" android:paddingStart="8dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🇽🇰  KOSOVË" android:textColor="#BFFFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            <TextView android:id="@+id/clockCountryKosovo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🇽🇰  KOSOVË" android:textColor="#BFFFFFFF" android:textSize="10sp" android:textStyle="bold" />
             <TextClock android:layout_width="wrap_content" android:layout_height="wrap_content" android:format12Hour="HH:mm" android:format24Hour="HH:mm" android:timeZone="Europe/Belgrade" android:textColor="#FFFFFFFF" android:textSize="28sp" android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical" android:paddingEnd="8dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🇹🇷  TURQI" android:textColor="#BFFFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            <TextView android:id="@+id/clockCountryTurkey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🇹🇷  TURQI" android:textColor="#BFFFFFFF" android:textSize="10sp" android:textStyle="bold" />
             <TextClock android:layout_width="wrap_content" android:layout_height="wrap_content" android:format12Hour="HH:mm" android:format24Hour="HH:mm" android:timeZone="Europe/Istanbul" android:textColor="#FFFFFFFF" android:textSize="28sp" android:textStyle="bold" />
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical" android:paddingStart="8dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🇺🇸  NEW YORK" android:textColor="#BFFFFFFF" android:textSize="10sp" android:textStyle="bold" />
+            <TextView android:id="@+id/clockCountryNewYork" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🇺🇸  NEW YORK" android:textColor="#BFFFFFFF" android:textSize="10sp" android:textStyle="bold" />
             <TextClock android:layout_width="wrap_content" android:layout_height="wrap_content" android:format12Hour="HH:mm" android:format24Hour="HH:mm" android:timeZone="America/New_York" android:textColor="#FFFFFFFF" android:textSize="28sp" android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
