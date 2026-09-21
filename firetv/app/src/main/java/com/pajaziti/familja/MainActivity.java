@@ -34,6 +34,7 @@ import android.webkit.WebViewClient;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -54,6 +55,7 @@ public class MainActivity extends Activity {
     private boolean openExactAfterNotification = false;
     private long updateDownloadId = -1L;
     private String pendingApkUrl = null;
+    private String activeUpdateFileName = null;
     private boolean waitingForInstallPermission = false;
     private long lastUpdateCheckAt = 0L;
 
@@ -359,7 +361,29 @@ public class MainActivity extends Activity {
     private void downloadUpdate(String apkUrl) {
         try {
             DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            if (manager == null) return;
+            if (manager == null) {
+                openUpdateInBrowser(apkUrl);
+                return;
+            }
+
+            File dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (dir != null && dir.exists()) {
+                File[] oldFiles = dir.listFiles();
+                if (oldFiles != null) {
+                    for (File file : oldFiles) {
+                        if (
+                            file != null &&
+                            file.getName() != null &&
+                            file.getName().startsWith("pajaziti-update-") &&
+                            file.getName().endsWith(".apk")
+                        ) {
+                            try { file.delete(); } catch (Exception ignored) {}
+                        }
+                    }
+                }
+            }
+
+            activeUpdateFileName = "pajaziti-update-" + System.currentTimeMillis() + ".apk";
 
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
             request.setTitle("PAJAZITI Update");
@@ -373,27 +397,47 @@ public class MainActivity extends Activity {
             request.setDestinationInExternalFilesDir(
                 this,
                 Environment.DIRECTORY_DOWNLOADS,
-                "pajaziti-update.apk"
+                activeUpdateFileName
             );
+            request.addRequestHeader("Cache-Control", "no-cache");
 
+            pendingApkUrl = apkUrl;
             updateDownloadId = manager.enqueue(request);
-            pendingApkUrl = null;
         } catch (Exception error) {
-            new AlertDialog.Builder(this)
-                .setTitle("Update")
-                .setMessage("Shkarkimi nuk filloi. Provo përsëri.")
-                .setPositiveButton("OK", null)
-                .show();
+            openUpdateInBrowser(apkUrl);
         }
     }
 
     private void installDownloadedUpdate() {
         try {
             DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            if (manager == null) return;
+            if (manager == null) {
+                openUpdateInBrowser(pendingApkUrl);
+                return;
+            }
+
+            DownloadManager.Query query = new DownloadManager.Query();
+            query.setFilterById(updateDownloadId);
+
+            try (android.database.Cursor cursor = manager.query(query)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                    if (statusIndex >= 0) {
+                        int status = cursor.getInt(statusIndex);
+                        if (status == DownloadManager.STATUS_FAILED) {
+                            openUpdateInBrowser(pendingApkUrl);
+                            return;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
 
             Uri apkUri = manager.getUriForDownloadedFile(updateDownloadId);
-            if (apkUri == null) return;
+            if (apkUri == null) {
+                openUpdateInBrowser(pendingApkUrl);
+                return;
+            }
 
             Intent install = new Intent(Intent.ACTION_VIEW);
             install.setDataAndType(apkUri, "application/vnd.android.package-archive");
@@ -401,12 +445,29 @@ public class MainActivity extends Activity {
             install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(install);
         } catch (Exception error) {
-            new AlertDialog.Builder(this)
-                .setTitle("Update")
-                .setMessage("APK-ja u shkarkua, por Android nuk e hapi instalimin.")
-                .setPositiveButton("OK", null)
-                .show();
+            openUpdateInBrowser(pendingApkUrl);
         }
+    }
+
+    private void openUpdateInBrowser(String apkUrl) {
+        if (apkUrl == null || apkUrl.trim().isEmpty()) return;
+        runOnUiThread(() -> {
+            try {
+                new AlertDialog.Builder(this)
+                    .setTitle("Update")
+                    .setMessage("Shkarkimi automatik nuk u hap. Shtyp “Hap shkarkimin” për ta instaluar direkt.")
+                    .setPositiveButton("Hap shkarkimin", (dialog, which) -> {
+                        try {
+                            Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
+                            startActivity(browser);
+                        } catch (Exception ignored) {
+                        }
+                    })
+                    .setNegativeButton("Mbyll", null)
+                    .show();
+            } catch (Exception ignored) {
+            }
+        });
     }
 
     private void enterImmersiveFullscreen() {
