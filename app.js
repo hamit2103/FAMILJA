@@ -346,6 +346,7 @@ const infoList = $("infoList");
 const infoEmpty = $("infoEmpty");
 const infoCount = $("infoCount");
 const onlineCount = $("onlineCount");
+const appVersionLabel = $("appVersionLabel");
 const languageSelectLogin = $("languageSelectLogin");
 const languageSelectApp = $("languageSelectApp");
 const themeBtn = $("themeBtn");
@@ -387,6 +388,19 @@ const chatList = $("chatList");
 const addClockWidgetBtn = $("addClockWidgetBtn");
 const clockWidgetStatus = $("clockWidgetStatus");
 let clockPreviewTimer = null;
+
+function refreshAppVersionLabel(){
+  if(!appVersionLabel) return;
+  try{
+    const version=window.AndroidApp?.getVersionName?.();
+    if(version){
+      appVersionLabel.textContent="v"+String(version).replace(/^v/i,"");
+      return;
+    }
+  }catch(_){}
+  if(!appVersionLabel.textContent.trim()) appVersionLabel.textContent="v4.1";
+}
+refreshAppVersionLabel();
 
 languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
