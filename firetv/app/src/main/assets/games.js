@@ -18,6 +18,11 @@ const WAR_WINS_KEY = "pajaziti-war-wins";
 const WAR_GAMES_KEY = "pajaziti-war-games";
 const WAR_BONUS_HEARTS_KEY = "pajaziti-war-bonus-hearts";
 const WAR_NAME_KEY = "pajaziti-war-name";
+const ADMIN_EMAIL = "admin@familja.local";
+const GAME_ORDER_SETTING_KEY = "game_order";
+const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war"];
+let gameOrder = [...DEFAULT_GAME_ORDER];
+let gamesAdmin = false;
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -867,7 +872,7 @@ function warRecordCompletedGame(won){
 
 function warActionCard(action){
   const item=warSpecial(action);
-  return `<button data-war-action="${item.key}" type="button">${item.icon}<strong>${item.label}</strong><small>${item.small}</small></button>`;
+  return `<button data-war-action="${item.key}" type="button"><span class="war-action-icon" aria-hidden="true">${item.icon}</span><strong>${item.label}</strong><small>${item.small}</small></button>`;
 }
 
 function renderWarGame(){
@@ -1514,6 +1519,97 @@ function myColor(){
   return room.player1_device===deviceId ? "w" : room.player2_device===deviceId ? "b" : null;
 }
 
+function normalizeGameOrder(value){
+  const input=Array.isArray(value)?value:[];
+  const clean=input.filter((id,index)=>DEFAULT_GAME_ORDER.includes(id)&&input.indexOf(id)===index);
+  for(const id of DEFAULT_GAME_ORDER){
+    if(!clean.includes(id)) clean.push(id);
+  }
+  return clean;
+}
+
+function gameChoiceLabel(id){
+  if(id==="chess") return "♟️ "+tr("chess");
+  if(id==="morris") return "🟣 "+tr("morris");
+  if(id==="timer") return "⏱️ "+tr("timer");
+  if(id==="tetris") return "🧱 "+tr("tetris");
+  if(id==="war") return "⚔️ "+tr("war");
+  return id;
+}
+
+function renderGameChoices(){
+  return gameOrder.map((id)=>
+    `<button class="game-choice ${selectedType===id?"active":""}" data-game="${id}">${gameChoiceLabel(id)}</button>`
+  ).join("");
+}
+
+async function loadGameOrder(){
+  try{
+    const {data:sessionData}=await supabase.auth.getSession();
+    const user=sessionData?.session?.user||null;
+    gamesAdmin=user?.email===ADMIN_EMAIL;
+
+    const {data,error}=await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key",GAME_ORDER_SETTING_KEY)
+      .maybeSingle();
+
+    if(error){
+      console.warn("Game order load",error);
+      gameOrder=[...DEFAULT_GAME_ORDER];
+      return;
+    }
+    gameOrder=normalizeGameOrder(data?.value);
+  }catch(error){
+    console.warn("Game order load",error);
+    gameOrder=[...DEFAULT_GAME_ORDER];
+  }
+}
+
+async function saveGameOrder(){
+  const status=document.getElementById("gameOrderStatus");
+  const save=document.getElementById("gameOrderSave");
+  if(!gamesAdmin) return;
+  if(save) save.disabled=true;
+  if(status) status.textContent="Po ruhet…";
+  try{
+    const {data:sessionData}=await supabase.auth.getSession();
+    const user=sessionData?.session?.user;
+    if(!user || user.email!==ADMIN_EMAIL) throw new Error("Vetëm admini mund ta ndryshojë renditjen.");
+
+    const {error}=await supabase.from("app_settings").upsert({
+      key:GAME_ORDER_SETTING_KEY,
+      value:gameOrder,
+      updated_at:new Date().toISOString(),
+      updated_by:user.id
+    },{onConflict:"key"});
+    if(error) throw error;
+    if(status) status.textContent="✅ U ruajt. Kjo renditje u del të gjithëve.";
+  }catch(error){
+    if(status) status.textContent="❌ Nuk u ruajt: "+(error?.message||"gabim");
+  }finally{
+    if(save) save.disabled=false;
+  }
+}
+
+function bindGameOrderAdmin(){
+  if(!gamesAdmin) return;
+  root.querySelectorAll("[data-game-order-move]").forEach((button)=>{
+    button.onclick=()=>{
+      const id=button.dataset.gameId;
+      const index=gameOrder.indexOf(id);
+      const delta=button.dataset.gameOrderMove==="up"?-1:1;
+      const next=index+delta;
+      if(index<0 || next<0 || next>=gameOrder.length) return;
+      [gameOrder[index],gameOrder[next]]=[gameOrder[next],gameOrder[index]];
+      renderLobby();
+    };
+  });
+  const save=document.getElementById("gameOrderSave");
+  if(save) save.onclick=saveGameOrder;
+}
+
 function renderLobby(msg=""){
   if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; }
   room=null; selected=null;
@@ -1523,12 +1619,30 @@ function renderLobby(msg=""){
         <h2>🎮 ${tr("games")}</h2>
         <p class="muted">${tr("choose")}</p>
         <div class="games-choice">
-          <button class="game-choice ${selectedType==="chess"?"active":""}" data-game="chess">♟️ ${tr("chess")}</button>
-          <button class="game-choice ${selectedType==="morris"?"active":""}" data-game="morris">🟣 ${tr("morris")}</button>
-          <button class="game-choice ${selectedType==="timer"?"active":""}" data-game="timer">⏱️ ${tr("timer")}</button>
-          <button class="game-choice ${selectedType==="tetris"?"active":""}" data-game="tetris">🧱 ${tr("tetris")}</button>
-          <button class="game-choice ${selectedType==="war"?"active":""}" data-game="war">⚔️ ${tr("war")}</button>
+          ${renderGameChoices()}
         </div>
+
+        ${gamesAdmin?`
+          <section class="game-order-admin">
+            <div class="game-order-head">
+              <strong>👑 Renditja e lojërave</strong>
+              <small>Admini zgjedh cila lojë del e para për të gjithë.</small>
+            </div>
+            <div class="game-order-list">
+              ${gameOrder.map((id,index)=>`
+                <div class="game-order-row">
+                  <span>${index+1}. ${gameChoiceLabel(id)}</span>
+                  <div>
+                    <button class="secondary game-order-move" type="button" data-game-id="${id}" data-game-order-move="up" ${index===0?"disabled":""}>⬆️</button>
+                    <button class="secondary game-order-move" type="button" data-game-id="${id}" data-game-order-move="down" ${index===gameOrder.length-1?"disabled":""}>⬇️</button>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+            <button id="gameOrderSave" class="primary" type="button">Ruaj renditjen</button>
+            <div id="gameOrderStatus" class="message"></div>
+          </section>
+        `:""}
 
         ${selectedType==="timer" ? `
           <input id="timerPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TIMER_NAME_KEY)||"")}">
@@ -1566,6 +1680,7 @@ function renderLobby(msg=""){
     </div>`;
   if(selectedType==="timer") loadTimerLeaderboard();
   root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{selectedType=btn.dataset.game;renderLobby();});
+  bindGameOrderAdmin();
   const computerButton=document.getElementById("computerGame");
   if(computerButton) computerButton.onclick=startComputerGame;
   const timerName=document.getElementById("timerPlayerName");
@@ -2822,10 +2937,16 @@ function startTetrisGame(){
 }
 
 
-function activate(){
+async function activate(){
   startTetrisScoreRealtime();
   if(tabLabel)tabLabel.textContent=tr("games");
+  await loadGameOrder();
   if(room)renderRoom();else renderLobby();
+}
+
+async function reloadSettings(){
+  await loadGameOrder();
+  if(!room) renderLobby();
 }
 
 document.addEventListener("fullscreenchange",()=>{
@@ -2834,5 +2955,5 @@ document.addEventListener("fullscreenchange",()=>{
   }
 });
 
-window.PajazitiGames={activate};
+window.PajazitiGames={activate,reloadSettings};
 if(tabLabel)tabLabel.textContent=tr("games");
