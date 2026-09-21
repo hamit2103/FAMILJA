@@ -3018,3 +3018,208 @@ linear-gradient(145deg,#020611,#071531 55%,#14062d);color:#fff}
   .war-admin-profile-row button{grid-column:1/-1}
   .war-shared-room{padding-inline:8px}
 }
+
+
+/* ANGEL Luftra Online approved arena layout v77 */
+.war-online-shared-room{
+  min-height:470px;
+  padding:42px 10px 16px !important;
+  background:
+    radial-gradient(circle at 14% 18%,rgba(96,165,250,.20),transparent 30%),
+    radial-gradient(circle at 86% 20%,rgba(125,211,252,.16),transparent 28%),
+    linear-gradient(180deg,#17304f 0%,#18324f 56%,#244867 56%,#172b42 100%) !important;
+  border:1px solid rgba(191,219,254,.28) !important;
+  box-shadow:inset 0 0 38px rgba(2,6,23,.28),0 10px 28px rgba(2,6,23,.16);
+}
+.war-online-shared-room .war-room-wall{
+  inset:0 0 44% 0 !important;
+  background:
+    radial-gradient(circle at 8% 38%,rgba(255,255,255,.10) 0 2px,transparent 3px),
+    radial-gradient(circle at 92% 38%,rgba(255,255,255,.10) 0 2px,transparent 3px),
+    linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01)) !important;
+}
+.war-online-shared-room .war-room-wall span{
+  top:12px !important;
+  font-size:12px !important;
+  letter-spacing:4px !important;
+  color:#e2e8f0 !important;
+}
+.war-online-shared-room .war-room-floor{
+  height:44% !important;
+  background:
+    radial-gradient(ellipse at 50% 55%,rgba(148,163,184,.20),transparent 58%),
+    linear-gradient(180deg,#355a78,#203a54) !important;
+}
+.war-online-stage{
+  position:relative;
+  z-index:2;
+  min-height:410px;
+  display:grid;
+  grid-template-rows:auto 54px auto;
+  align-content:space-between;
+  gap:8px;
+}
+.war-online-opponents{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:8px;
+  align-items:start;
+}
+.war-online-opponents>.war-room-player-wrap:only-child{
+  width:min(100%,300px);
+  justify-self:center;
+}
+.war-online-me{
+  display:grid;
+  grid-template-columns:minmax(0,300px);
+  justify-content:center;
+  align-self:end;
+}
+.war-online-vs{
+  display:grid;
+  place-items:center;
+  align-self:center;
+  color:#e0f2fe;
+  font-size:34px;
+  font-weight:1000;
+  letter-spacing:2px;
+  text-shadow:0 0 14px rgba(56,189,248,.75),0 3px 8px rgba(0,0,0,.4);
+}
+.war-online-vs span{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.war-online-vs span::before,
+.war-online-vs span::after{
+  content:"";
+  width:46px;
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,transparent,#7dd3fc);
+  box-shadow:0 0 8px rgba(125,211,252,.7);
+}
+.war-online-vs span::after{transform:scaleX(-1)}
+.war-online-stage .war-room-player-wrap{
+  position:relative;
+  min-width:0;
+}
+.war-online-stage .war-multi-player{
+  width:100%;
+  min-height:126px !important;
+  padding:7px 8px !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 48px !important;
+  grid-template-areas:
+    "name name"
+    "soldier hearts"
+    "status status" !important;
+  grid-template-rows:auto 88px auto !important;
+  gap:2px 5px !important;
+  align-items:center !important;
+  justify-items:center !important;
+  text-align:center !important;
+  overflow:hidden !important;
+  border-radius:17px !important;
+  background:rgba(7,24,43,.48) !important;
+  border:1px solid rgba(191,219,254,.13) !important;
+  box-shadow:none !important;
+}
+.war-online-stage .war-multi-player.me{
+  min-height:136px !important;
+  background:rgba(30,64,175,.28) !important;
+  border-color:rgba(96,165,250,.42) !important;
+}
+.war-online-stage .war-multi-player.turn{
+  box-shadow:0 0 0 2px rgba(250,204,21,.46),0 0 18px rgba(250,204,21,.18) !important;
+}
+.war-online-stage .war-multi-name{
+  grid-area:name;
+  width:100%;
+  font-size:14px;
+  font-weight:950;
+  color:#f8fafc;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.war-online-stage .war-multi-status{
+  grid-area:status;
+  width:100%;
+  min-height:14px;
+  font-size:9px !important;
+  line-height:1.15;
+  color:#bfdbfe !important;
+}
+.war-online-stage .war-multi-hearts{
+  grid-area:hearts;
+  width:46px;
+  height:86px;
+  display:flex !important;
+  flex-direction:column-reverse;
+  flex-wrap:wrap-reverse;
+  align-content:center;
+  justify-content:flex-start;
+  gap:0 1px !important;
+  font-size:12px !important;
+  line-height:1 !important;
+  overflow:visible;
+}
+.war-online-stage .war-multi-hearts .war-heart{
+  width:14px;
+  height:13px;
+  display:grid;
+  place-items:center;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));
+}
+.war-online-stage .war-multi-hearts .war-heart.empty{
+  opacity:.26;
+  filter:grayscale(1);
+}
+.war-online-stage .war-multi-soldier{
+  grid-area:soldier;
+  position:relative !important;
+  right:auto !important;
+  bottom:auto !important;
+  width:82px !important;
+  height:88px !important;
+  display:grid !important;
+  place-items:end center !important;
+  margin:0 auto !important;
+  overflow:visible;
+}
+.war-online-stage .war-multi-soldier img{
+  width:70px !important;
+  height:86px !important;
+  object-fit:contain;
+  filter:drop-shadow(0 5px 6px rgba(0,0,0,.38)) !important;
+}
+.war-online-stage .war-multi-soldier.enemy{transform:scaleX(-1) !important}
+.war-online-stage .war-multi-soldier.mine{transform:scaleX(1) !important}
+.war-online-stage .war-multi-player.burned{
+  background:#111827 !important;
+}
+.war-online-stage .war-multi-player.offline::after{
+  right:5px;
+  top:5px;
+  font-size:8px;
+  padding:2px 5px;
+}
+.war-online-stage .war-admin-kick-pick{
+  width:max-content;
+  margin:4px auto 0;
+}
+@media(max-width:560px){
+  .war-online-shared-room{min-height:500px;padding-inline:8px !important}
+  .war-online-stage{min-height:438px}
+  .war-online-opponents{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .war-online-opponents>.war-room-player-wrap:only-child{grid-column:1/-1;width:min(100%,260px)}
+  .war-online-me{grid-template-columns:minmax(0,270px)}
+  .war-online-stage .war-multi-player{min-height:118px !important;grid-template-rows:auto 80px auto !important}
+  .war-online-stage .war-multi-player.me{min-height:128px !important}
+  .war-online-stage .war-multi-soldier{width:72px !important;height:80px !important}
+  .war-online-stage .war-multi-soldier img{width:62px !important;height:78px !important}
+  .war-online-stage .war-multi-hearts{height:78px;font-size:11px !important}
+  .war-online-vs{font-size:30px}
+  .war-online-vs span::before,.war-online-vs span::after{width:34px}
+}
