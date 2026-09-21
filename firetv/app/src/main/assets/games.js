@@ -710,7 +710,8 @@ function renderWarMultiGame(){
 
   const special=me?.special||"attack";
   const special2=me?.special2||"attack";
-  const displayPlayers=[...warMultiPlayers.filter(p=>p.device_id!==deviceId),...warMultiPlayers.filter(p=>p.device_id===deviceId)];
+  const enemyPlayers=warMultiPlayers.filter(p=>p.device_id!==deviceId);
+  const myPlayer=warMultiPlayers.find(p=>p.device_id===deviceId)||null;
 
   root.innerHTML=`
     <div class="war-shell">
@@ -727,10 +728,14 @@ function renderWarMultiGame(){
           <span>${escapeHtml(warMultiRoom.message||"")}</span>
         </div>
 
-        <div class="war-shared-room">
+        <div class="war-shared-room war-online-shared-room">
           <div class="war-room-wall"><span>ANGEL ARENA</span></div>
           <div class="war-room-floor"></div>
-          <div class="war-multi-grid war-room-grid">${displayPlayers.map(warMultiPlayerCard).join("")}</div>
+          <div class="war-online-stage">
+            <div class="war-online-opponents">${enemyPlayers.map(warMultiPlayerCard).join("")}</div>
+            <div class="war-online-vs" aria-hidden="true"><span>VS</span></div>
+            <div class="war-online-me">${myPlayer?warMultiPlayerCard(myPlayer):""}</div>
+          </div>
         </div>
 
         <div class="war-room-tools">
