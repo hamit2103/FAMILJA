@@ -87,6 +87,10 @@ let sharedRecord=null;
 let pendingSource=null;
 let lastTriedChannel=null;
 let hlsRecoveryCount=0;
+const TV_CATALOG_KIND="angel-tv-v2";
+const TV_ACTIVE_SERVER_KEY="angel-tv-active-server";
+let serverCatalog=[];
+let activeServerId=localStorage.getItem(TV_ACTIVE_SERVER_KEY)||"";
 
 async function refreshUser(){
   const {data}=await supabase.auth.getUser();
@@ -313,6 +317,296 @@ function renderSourceCards(){
   });
 }
 
+
+function makeServerId(){
+  return "srv_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8);
+}
+
+function normalizeCountryGroup(value=""){
+  const v=String(value||"").trim();
+  return v || "Tjera";
+}
+
+function catalogChannel(ch,countryGroup){
+  return {
+    name:String(ch?.name||tr("direct")),
+    logo:String(ch?.logo||""),
+    url:String(ch?.url||""),
+    countryGroup:normalizeCountryGroup(countryGroup),
+    sourceGroup:String(ch?.group||ch?.sourceGroup||""),
+    mediaType:classifyChannel(ch),
+    catchup:String(ch?.catchup||""),
+    catchupSource:String(ch?.catchupSource||""),
+    catchupDays:String(ch?.catchupDays||"")
+  };
+}
+
+function activeServer(){
+  return serverCatalog.find(s=>s.id===activeServerId)||serverCatalog[0]||null;
+}
+
+function syncActiveChannels(){
+  const server=activeServer();
+  if(server){
+    activeServerId=server.id;
+    localStorage.setItem(TV_ACTIVE_SERVER_KEY,server.id);
+    channels=(server.channels||[]).map(ch=>({...ch}));
+  }else{
+    activeServerId="";
+    localStorage.removeItem(TV_ACTIVE_SERVER_KEY);
+    channels=[];
+  }
+}
+
+async function loadCatalog(){
+  serverCatalog=[];
+  if(!sharedRecord){ syncActiveChannels(); return; }
+
+  try{
+    const parsed=JSON.parse(sharedRecord.source_value||"");
+    if(parsed?.kind===TV_CATALOG_KIND && Array.isArray(parsed.servers)){
+      serverCatalog=parsed.servers
+        .filter(s=>s && s.id && Array.isArray(s.channels))
+        .map(s=>({
+          id:String(s.id),
+          title:String(s.title||"Server"),
+          countryGroup:normalizeCountryGroup(s.countryGroup),
+          channels:s.channels.map(ch=>({
+            ...ch,
+            countryGroup:normalizeCountryGroup(ch.countryGroup||s.countryGroup),
+            sourceGroup:String(ch.sourceGroup||ch.group||""),
+            mediaType:["live","movies","series","replay"].includes(ch.mediaType)?ch.mediaType:classifyChannel(ch)
+          }))
+        }));
+      syncActiveChannels();
+      return;
+    }
+  }catch(_){}
+
+  const legacy=await sourceToChannels(sharedRecord);
+  if(legacy.length){
+    serverCatalog=[{
+      id:makeServerId(),
+      title:sharedRecord.title||"Lista kryesore",
+      countryGroup:"Tjera",
+      channels:legacy.map(ch=>catalogChannel(ch,"Tjera"))
+    }];
+    syncActiveChannels();
+    if(isAdmin()) await persistCatalog();
+  }else{
+    syncActiveChannels();
+  }
+}
+
+async function persistCatalog(){
+  if(!isAdmin()) return false;
+  const payload={
+    id:1,
+    title:"ANGEL TV",
+    source_type:"m3u",
+    source_value:JSON.stringify({
+      kind:TV_CATALOG_KIND,
+      updatedAt:new Date().toISOString(),
+      servers:serverCatalog
+    }),
+    updated_at:new Date().toISOString(),
+    updated_by:currentUser?.id||null
+  };
+  const {error}=await supabase.from("tv_shared_playlist").upsert(payload,{onConflict:"id"});
+  if(error){
+    console.warn("TV catalog save",error);
+    const status=document.getElementById("tvServerStatus");
+    if(status) status.textContent=error.message;
+    return false;
+  }
+  sharedRecord=payload;
+  return true;
+}
+
+async function addM3UServerFromText(text,title,countryGroup){
+  const parsed=parseM3U(text);
+  if(!parsed.length) throw new Error(tr("invalid"));
+  const server={
+    id:makeServerId(),
+    title:String(title||"Server "+(serverCatalog.length+1)).trim(),
+    countryGroup:normalizeCountryGroup(countryGroup),
+    channels:parsed.map(ch=>catalogChannel(ch,countryGroup))
+  };
+  serverCatalog.push(server);
+  activeServerId=server.id;
+  syncActiveChannels();
+  await persistCatalog();
+  return server;
+}
+
+async function adminAddM3U(){
+  if(!isAdmin()) return;
+  const title=(document.getElementById("tvServerTitle")?.value||"").trim()||("Server "+(serverCatalog.length+1));
+  const country=normalizeCountryGroup(document.getElementById("tvServerCountry")?.value||"Tjera");
+  const url=(document.getElementById("tvServerUrl")?.value||"").trim();
+  const status=document.getElementById("tvServerStatus");
+  if(!url){ if(status) status.textContent="Shkruaj linkun M3U."; return; }
+  if(status) status.textContent=tr("loading");
+  try{
+    const res=await fetch(url,{cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const text=await res.text();
+    const server=await addM3UServerFromText(text,title,country);
+    currentMode="home";
+    render();
+    const next=document.getElementById("tvServerStatus");
+    if(next) next.textContent="U shtua "+server.channels.length+" kanale.";
+  }catch(error){
+    console.warn(error);
+    if(status) status.textContent="Lista M3U nuk u lexua. Provo skedarin M3U.";
+  }
+}
+
+async function adminAddM3UFile(file){
+  if(!isAdmin() || !file) return;
+  const status=document.getElementById("tvServerStatus");
+  try{
+    if(status) status.textContent=tr("loading");
+    const text=await file.text();
+    const title=(document.getElementById("tvServerTitle")?.value||file.name||"Server").trim();
+    const country=normalizeCountryGroup(document.getElementById("tvServerCountry")?.value||"Tjera");
+    const server=await addM3UServerFromText(text,title,country);
+    currentMode="home";
+    render();
+    const next=document.getElementById("tvServerStatus");
+    if(next) next.textContent="U shtua "+server.channels.length+" kanale.";
+  }catch(error){
+    console.warn(error);
+    if(status) status.textContent=tr("invalid");
+  }
+}
+
+async function adminAddDirectChannel(){
+  if(!isAdmin()) return;
+  const name=(document.getElementById("tvDirectName")?.value||"").trim();
+  const url=(document.getElementById("tvDirectUrl")?.value||"").trim();
+  const mediaType=document.getElementById("tvDirectType")?.value||"live";
+  const country=normalizeCountryGroup(document.getElementById("tvDirectCountry")?.value||"Tjera");
+  const target=document.getElementById("tvDirectServer")?.value||"";
+  const status=document.getElementById("tvServerStatus");
+  if(!name || !url){ if(status) status.textContent="Shkruaj emrin dhe linkun e kanalit."; return; }
+
+  let server=serverCatalog.find(s=>s.id===target);
+  if(!server){
+    server={
+      id:makeServerId(),
+      title:"Kanale direkte",
+      countryGroup:country,
+      channels:[]
+    };
+    serverCatalog.push(server);
+  }
+  server.channels.push({
+    name,logo:"",url,
+    countryGroup:country,
+    sourceGroup:"",
+    mediaType:["live","movies","series","replay"].includes(mediaType)?mediaType:"live",
+    catchup:"",catchupSource:"",catchupDays:""
+  });
+  activeServerId=server.id;
+  syncActiveChannels();
+  await persistCatalog();
+  render();
+  const next=document.getElementById("tvServerStatus");
+  if(next) next.textContent="Kanali u shtua.";
+}
+
+async function adminDeleteServer(id){
+  if(!isAdmin()) return;
+  const server=serverCatalog.find(s=>s.id===id);
+  if(!server) return;
+  if(!confirm("Ta fshij listën "+server.title+"?")) return;
+  serverCatalog=serverCatalog.filter(s=>s.id!==id);
+  if(activeServerId===id) activeServerId=serverCatalog[0]?.id||"";
+  syncActiveChannels();
+  await persistCatalog();
+  render();
+}
+
+function useServer(id){
+  const server=serverCatalog.find(s=>s.id===id);
+  if(!server) return;
+  activeServerId=server.id;
+  syncActiveChannels();
+  currentMode="home";
+  currentFilter="";
+  currentGroup="";
+  destroyPlayer();
+  render();
+}
+
+function countrySelect(id,selected="Shqiptare"){
+  const groups=["Shqiptare","Gjermane","Turke","Italiane","Franceze","Arabe","Tjera"];
+  return '<select id="'+id+'" class="tv-server-select">'+groups.map(g=>'<option value="'+esc(g)+'" '+(g===selected?"selected":"")+'>'+esc(g)+'</option>').join("")+'</select>';
+}
+
+function renderServers(){
+  const cards=serverCatalog.length
+    ? serverCatalog.map(server=>`
+      <article class="tv-server-card ${server.id===activeServerId?"active":""}">
+        <button type="button" class="tv-server-open" data-tv-server="${esc(server.id)}">
+          <span class="tv-server-icon">🗄️</span>
+          <span><strong>${esc(server.title)}</strong><small>${esc(server.countryGroup)} · ${server.channels?.length||0} ${tr("channels")}</small></span>
+        </button>
+        ${isAdmin()?'<button type="button" class="tv-server-delete" data-tv-delete-server="'+esc(server.id)+'">🗑️</button>':""}
+      </article>`).join("")
+    : '<div class="tv-empty-server">Ende nuk ka listë TV.</div>';
+
+  const admin=isAdmin()?`
+    <section class="tv-server-admin">
+      <h3>🔒 Admin – shto listë M3U</h3>
+      <p class="tv-admin-private-note">Linkat nuk shfaqen në menunë e përdoruesve.</p>
+      <div class="tv-server-form-grid">
+        <input id="tvServerTitle" type="text" placeholder="Emri i listës, p.sh. Shqip TV">
+        ${countrySelect("tvServerCountry","Shqiptare")}
+        <input id="tvServerUrl" type="password" inputmode="url" autocomplete="off" placeholder="Linku M3U">
+        <button id="tvAddM3U" class="primary" type="button">+ Shto M3U</button>
+        <label class="tv-file-button">📁 Zgjidh skedar M3U<input id="tvServerFile" type="file" accept=".m3u,.m3u8,application/x-mpegURL,audio/mpegurl"></label>
+      </div>
+
+      <h3>➕ Shto kanal direkt</h3>
+      <div class="tv-server-form-grid">
+        <input id="tvDirectName" type="text" placeholder="Emri i kanalit">
+        <input id="tvDirectUrl" type="password" inputmode="url" autocomplete="off" placeholder="Linku i kanalit">
+        ${countrySelect("tvDirectCountry","Shqiptare")}
+        <select id="tvDirectType" class="tv-server-select">
+          <option value="live">Live TV</option>
+          <option value="movies">Film / Video</option>
+          <option value="series">Serial</option>
+          <option value="replay">Replay</option>
+        </select>
+        <select id="tvDirectServer" class="tv-server-select">
+          <option value="">Server i ri / Kanale direkte</option>
+          ${serverCatalog.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join("")}
+        </select>
+        <button id="tvAddDirect" class="primary" type="button">+ Shto kanal</button>
+      </div>
+      <div id="tvServerStatus" class="message"></div>
+    </section>`:"";
+
+  return `
+    <section class="tv-servers-view">
+      <div class="tv-category-head">
+        <button id="tvBackHome" class="tv-back-btn" type="button">← ${tr("back")}</button>
+        <h2>🗄️ ${tr("server")}</h2>
+      </div>
+      <div class="tv-server-grid">${cards}</div>
+      ${admin}
+    </section>`;
+}
+
+function exitTvShell(target="galleryTab"){
+  destroyPlayer();
+  document.body.classList.remove("angel-tv-open");
+  root?.classList.remove("angel-tv-fullscreen");
+  document.getElementById(target)?.click();
+}
+
 function setPlayerStatus(text="",kind=""){
   const el=document.getElementById("tvPlayerStatus");
   if(!el) return;
@@ -389,30 +683,31 @@ function destroyPlayer(){
 }
 
 function classifyChannel(ch){
-  const group=(ch.group||"").toLowerCase();
-  const name=(ch.name||"").toLowerCase();
+  if(["live","movies","series","replay"].includes(ch?.mediaType)) return ch.mediaType;
+  const group=(ch?.group||ch?.sourceGroup||"").toLowerCase();
+  const name=(ch?.name||"").toLowerCase();
   const hay=group+" "+name;
-  if(ch.catchup && !["","none","0","false"].includes(String(ch.catchup).toLowerCase())) return "replay";
+  if(ch?.catchup && !["","none","0","false"].includes(String(ch.catchup).toLowerCase())) return "replay";
   if(/\b(movie|movies|film|films|filma|kino|cinema|vod)\b/i.test(hay)) return "movies";
   if(/\b(series|serial|seriale|serie|serien|dizi|diziler)\b/i.test(hay)) return "series";
   return "live";
 }
 
 function channelsForMode(){
-  if(currentMode==="home") return [];
+  if(currentMode==="home" || currentMode==="servers") return [];
   let list=channels.filter(ch=>classifyChannel(ch)===currentMode);
-  if(currentGroup) list=list.filter(ch=>(ch.group||"")===currentGroup);
+  if(currentGroup) list=list.filter(ch=>(ch.countryGroup||ch.group||"Tjera")===currentGroup);
   const q=currentFilter.trim().toLowerCase();
-  if(q) list=list.filter(ch=>(ch.name+" "+ch.group).toLowerCase().includes(q));
+  if(q) list=list.filter(ch=>((ch.name||"")+" "+(ch.countryGroup||"")+" "+(ch.sourceGroup||ch.group||"")).toLowerCase().includes(q));
   return list;
 }
 
 function groupsForMode(){
   const set=new Set();
   for(const ch of channels){
-    if(classifyChannel(ch)===currentMode && ch.group) set.add(ch.group);
+    if(classifyChannel(ch)===currentMode) set.add(ch.countryGroup||ch.group||"Tjera");
   }
-  return [...set].sort((a,b)=>a.localeCompare(b));
+  return [...set].filter(Boolean).sort((a,b)=>a.localeCompare(b));
 }
 
 async function loadFromUrl(){
@@ -607,16 +902,17 @@ function renderChannels(){
   }
 
   const frag=document.createDocumentFragment();
-  for(const ch of shown.slice(0,1500)){
+  for(const ch of shown.slice(0,2500)){
     const btn=document.createElement("button");
     btn.type="button";
     btn.className="tv-channel";
     const logo=ch.logo
       ? '<img src="'+esc(ch.logo)+'" alt="">'
       : '<div class="tv-channel-icon">'+(currentMode==="movies"?"🎬":currentMode==="series"?"🎞️":currentMode==="replay"?"↩️":"📺")+'</div>';
+    const groupText=[ch.countryGroup||"",ch.sourceGroup||ch.group||""].filter(Boolean).join(" · ");
     btn.innerHTML=logo+
       '<div class="tv-channel-text"><strong>'+esc(ch.name)+'</strong>'+
-      (ch.group?'<span>'+esc(ch.group)+'</span>':"")+'</div>'+
+      (groupText?'<span>'+esc(groupText)+'</span>':"")+'</div>'+
       (ch.catchup?'<span class="tv-replay-badge">↩️</span>':"");
     btn.addEventListener("click",()=>playChannel(ch));
     frag.appendChild(btn);
@@ -642,17 +938,18 @@ function renderHome(){
   const movieCount=channels.filter(ch=>classifyChannel(ch)==="movies").length;
   const seriesCount=channels.filter(ch=>classifyChannel(ch)==="series").length;
   const replayCount=channels.filter(ch=>classifyChannel(ch)==="replay").length;
+  const server=activeServer();
 
   return `
     <section class="tv-hero-real">
       <div class="tv-brand-real">
-        <div class="tv-brand-main">shtime tv</div>
-        <div class="tv-brand-subtitle">SMART IPTV</div>
+        <div class="tv-brand-main">ANGEL TV</div>
+        <div class="tv-brand-subtitle">${server?esc(server.title):"SMART IPTV"}</div>
       </div>
       <div class="tv-top-menu">
-        <button type="button">⚽ ${tr("sports")}</button>
-        <button type="button">🗄️ ${tr("server")}</button>
-        <button type="button">⚙️ ${tr("settings")}</button>
+        <button id="tvSportsGuide" type="button">⚽ ${tr("sports")}</button>
+        <button id="tvChangeServer" type="button">🗄️ ${tr("server")}</button>
+        <button id="tvSettingsBtn" type="button">⚙️ ${tr("settings")}</button>
       </div>
     </section>
 
@@ -677,6 +974,11 @@ function renderHome(){
         <strong>${tr("replay")}</strong>
         <small>${replayCount}</small>
       </button>
+    </section>
+
+    <section class="tv-home-foot">
+      <span>${server?"🗄️ "+esc(server.title):"🗄️ "+tr("noShared")}</span>
+      <span>📺 ${channels.length} ${tr("channels")}</span>
     </section>`;
 }
 
@@ -693,7 +995,7 @@ function renderCategory(){
       ${currentMode==="replay"?'<p>'+esc(tr("replayInfo"))+'</p>':""}
     </section>
 
-    <section class="card tv-list-card">
+    <section class="tv-list-card">
       <div class="tv-list-head tv-list-tools">
         <div><strong>${tr("channels")}: </strong><span id="tvChannelCount">0</span></div>
         <select id="tvGroupSelect" class="tv-group-select">${options}</select>
@@ -705,12 +1007,22 @@ function renderCategory(){
 
 function render(){
   if(tabLabel) tabLabel.textContent=tr("tv");
+  if(!root) return;
+
+  const categoryMode=["live","movies","series","replay"].includes(currentMode);
+  const body=currentMode==="home"
+    ? renderHome()
+    : currentMode==="servers"
+      ? renderServers()
+      : renderCategory();
 
   root.innerHTML=`
     <div class="tv-app-real">
-      ${currentMode==="home" ? renderHome() : renderCategory()}
+      <button id="tvExitApp" class="tv-exit-app" type="button" aria-label="Back">‹</button>
+      ${body}
 
-      <section id="tvPlayerCard" class="card tv-player-card tv-player-real">
+      ${categoryMode?`
+      <section id="tvPlayerCard" class="tv-player-card tv-player-real">
         <div class="tv-now-row">
           <strong id="tvNow">${esc(localStorage.getItem(TV_NAME_KEY)||tr("direct"))}</strong>
           <div class="tv-player-actions">
@@ -723,101 +1035,64 @@ function render(){
           <div id="tvPlayerStatus" class="message tv-player-status"></div>
           <button id="tvRetry" class="secondary hidden" type="button">${tr("retry")}</button>
         </div>
-      </section>
-
-      ${isAdmin() ? `
-      <section class="card tv-control-card tv-admin-only">
-        <h2>${tr("title")}</h2>
-        <div class="tv-admin-private-note">🔒 Vetëm administratori i sheh dhe i ndryshon linkat.</div>
-        <label for="tvUrl">${tr("url")}</label>
-        <div class="tv-url-row">
-          <input id="tvUrl" type="password" inputmode="url" autocomplete="off" placeholder="${tr("urlPlaceholder")}" value="${esc(localStorage.getItem(TV_URL_KEY)||"")}">
-          <button id="tvLoadUrl" class="primary" type="button">${tr("loadUrl")}</button>
-        </div>
-
-        <label for="tvFile">${tr("file")}</label>
-        <input id="tvFile" type="file" accept=".m3u,.m3u8,application/x-mpegURL,audio/mpegurl">
-
-        <div class="tv-share-actions">
-          <button id="tvSaveLocal" class="secondary" type="button">${tr("saveLocal")}</button>
-          <button id="tvPublishAll" class="primary" type="button">${tr("publish")}</button>
-        </div>
-        <div id="tvStatus" class="message"></div>
-      </section>` : ""}
-
-      <section class="card">
-        <div id="tvSources" class="tv-sources"></div>
-      </section>
-
-      <section class="tv-bottom-info">
-        <div>📱 ${tr("source")}: ${pendingSource===sharedRecord?tr("shared"):tr("local")}</div>
-        <div>📺 ${channels.length} ${tr("channels")}</div>
-      </section>
+      </section>`:""}
     </div>`;
+
+  document.getElementById("tvExitApp")?.addEventListener("click",()=>exitTvShell("galleryTab"));
+  document.getElementById("tvSportsGuide")?.addEventListener("click",()=>exitTvShell("sportTab"));
+  document.getElementById("tvChangeServer")?.addEventListener("click",()=>{currentMode="servers";render();});
+  document.getElementById("tvSettingsBtn")?.addEventListener("click",()=>{currentMode="servers";render();});
 
   document.querySelectorAll("[data-tv-mode]").forEach(btn=>{
     btn.addEventListener("click",()=>openMode(btn.dataset.tvMode));
   });
-
   document.getElementById("tvBackHome")?.addEventListener("click",()=>openMode("home"));
+
+  document.querySelectorAll("[data-tv-server]").forEach(btn=>{
+    btn.addEventListener("click",()=>useServer(btn.dataset.tvServer));
+  });
+  document.querySelectorAll("[data-tv-delete-server]").forEach(btn=>{
+    btn.addEventListener("click",()=>adminDeleteServer(btn.dataset.tvDeleteServer));
+  });
+  document.getElementById("tvAddM3U")?.addEventListener("click",adminAddM3U);
+  document.getElementById("tvServerFile")?.addEventListener("change",e=>adminAddM3UFile(e.target.files?.[0]));
+  document.getElementById("tvAddDirect")?.addEventListener("click",adminAddDirectChannel);
 
   document.getElementById("tvSearch")?.addEventListener("input",e=>{
     currentFilter=e.target.value;
     renderChannels();
   });
-
   document.getElementById("tvGroupSelect")?.addEventListener("change",e=>{
     currentGroup=e.target.value;
     renderChannels();
   });
 
-  const tvLoadUrlBtn=document.getElementById("tvLoadUrl");
-  if(tvLoadUrlBtn) tvLoadUrlBtn.onclick=loadFromUrl;
-  const tvFileInput=document.getElementById("tvFile");
-  if(tvFileInput) tvFileInput.onchange=e=>loadFromFile(e.target.files?.[0]);
-
-  const tvSaveLocalBtn=document.getElementById("tvSaveLocal");
-  if(tvSaveLocalBtn) tvSaveLocalBtn.onclick=()=>{
-    if(pendingSource){
-      saveLocalSource(pendingSource);
-      document.getElementById("tvStatus").textContent=tr("savedLocal");
-      renderSourceCards();
-    }
-  };
-
-  const publish=document.getElementById("tvPublishAll");
-  if(publish) publish.onclick=publishPendingForAll;
-
-  document.getElementById("tvFullscreen").onclick=toggleTvFullscreen;
-  document.getElementById("tvStop").onclick=()=>{
-    destroyPlayer();
-    document.body.classList.remove("tv-fullscreen-fallback");
-    document.getElementById("tvPlayerCard")?.classList.remove("tv-fullscreen-card");
-    setPlayerStatus("");
-    showRetry(null);
-  };
-  const retry=document.getElementById("tvRetry");
-  if(retry) retry.onclick=()=>{ if(lastTriedChannel) playChannel(lastTriedChannel); };
-  renderSourceCards();
-  if(currentMode!=="home") renderChannels();
+  if(categoryMode){
+    document.getElementById("tvFullscreen")?.addEventListener("click",toggleTvFullscreen);
+    document.getElementById("tvStop")?.addEventListener("click",()=>{
+      destroyPlayer();
+      document.body.classList.remove("tv-fullscreen-fallback");
+      document.getElementById("tvPlayerCard")?.classList.remove("tv-fullscreen-card");
+      setPlayerStatus("");
+      showRetry(null);
+    });
+    const retry=document.getElementById("tvRetry");
+    if(retry) retry.onclick=()=>{ if(lastTriedChannel) playChannel(lastTriedChannel); };
+    renderChannels();
+  }
 }
 
 async function activate(){
+  document.body.classList.add("angel-tv-open");
+  root?.classList.add("angel-tv-fullscreen");
   await refreshUser();
   await loadSharedRecord();
-
-  if(!pendingSource){
-    const local=getLocalSource();
-    if(sharedRecord){
-      pendingSource=sharedRecord;
-      channels=await sourceToChannels(sharedRecord);
-    }else if(local){
-      pendingSource=local;
-      channels=await sourceToChannels(local);
-    }
-  }
+  await loadCatalog();
+  currentMode="home";
+  currentFilter="";
+  currentGroup="";
   render();
 }
 
-window.PajazitiTV={activate,reloadLanguage:()=>{if(currentMode==="home")renderHome();else renderCurrentView?.();}};
+window.PajazitiTV={activate,reloadLanguage:()=>render(),exit:()=>exitTvShell("galleryTab")};
 if(tabLabel) tabLabel.textContent=tr("tv");
