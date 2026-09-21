@@ -1,7 +1,7 @@
 {
   "name": "ANGEL",
   "short_name": "ANGEL",
-  "description": "Album privat për foto dhe video",
+  "description": "ANGEL",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,15 +9,9 @@
   "theme_color": "#dc2626",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "angel-icon.jpg",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     }
   ],
