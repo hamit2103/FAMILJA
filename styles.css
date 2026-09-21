@@ -2877,3 +2877,41 @@ linear-gradient(145deg,#020611,#071531 55%,#14062d);color:#fff}
   .tv-top-menu{justify-content:flex-start}
   .tv-exit-app{right:6px}
 }
+
+
+/* ANGEL Luftra economy + online battlefield v4.8 */
+.war-economy-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.war-diamonds{padding:8px 12px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:16px;white-space:nowrap}
+.war-name-locked{background:#e5e7eb!important;color:#475569!important;font-weight:850}
+.war-rename-btn{min-height:44px;font-weight:900}
+.war-diamond-note{padding:9px 11px;border-radius:12px;background:#ecfdf5;color:#166534;font-size:12px;font-weight:850;line-height:1.4}
+.war-reroll{border:0;border-radius:13px;padding:9px 8px;background:#fef3c7;color:#78350f;font-weight:950;line-height:1.2}
+.war-reroll:disabled{opacity:.45}
+.war-weapons-panel .war-reroll{margin-top:7px}
+.war-retry-card .primary{width:min(100%,320px);min-height:54px}
+.war-retry-icon{font-size:64px}
+.war-multi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch}
+.war-multi-player{position:relative;min-height:138px;padding-right:86px!important;overflow:hidden}
+.war-multi-player.me{grid-column:1/-1!important;order:999;min-height:154px;background:linear-gradient(180deg,#dbeafe,#bfdbfe)!important;border-color:#3b82f6!important}
+.war-multi-soldier{position:absolute;right:5px;bottom:4px;width:76px;height:108px;display:grid;place-items:end center;pointer-events:none;transform-origin:50% 70%}
+.war-multi-soldier img{width:72px;height:100px;object-fit:contain;filter:drop-shadow(0 6px 7px rgba(15,23,42,.28))}
+.war-multi-soldier.enemy{transform:scaleX(-1)}
+.war-multi-soldier.mine{transform:scaleX(1)}
+.war-multi-player.turn .war-multi-soldier::after,
+.war-shooter.firing::after{
+  content:"";position:absolute;width:18px;height:18px;border-radius:50%;
+  background:radial-gradient(circle,#fff 0 16%,#fde047 18% 45%,#f97316 48% 67%,transparent 70%);
+  filter:drop-shadow(0 0 7px #f97316);opacity:0
+}
+.war-multi-player.turn .war-multi-soldier::after{left:2px;top:49px}
+.war-shooter.firing::after{left:1px;top:55px;animation:warMuzzleFlash .24s steps(2,end) 2}
+.war-multi-player.war-firing .war-multi-soldier{animation:warOnlineRecoil .28s ease}
+.war-multi-player.war-firing .war-multi-soldier::after{opacity:1;animation:warMuzzleFlash .24s steps(2,end) 2}
+@keyframes warMuzzleFlash{0%,100%{opacity:0;transform:scale(.4)}30%,65%{opacity:1;transform:scale(1.25)}}
+@keyframes warOnlineRecoil{0%,100%{translate:0 0}45%{translate:7px 2px}}
+@media(max-width:560px){
+  .war-multi-grid{grid-template-columns:1fr!important}
+  .war-multi-player{grid-column:1!important;min-height:132px}
+  .war-multi-player.me{grid-column:1!important;min-height:150px}
+  .war-multi-soldier{width:72px}
+}

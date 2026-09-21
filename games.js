@@ -295,6 +295,7 @@ function roomCode(){
 
 
 let warProfile=null;
+let warRenameEditing=false;
 let warLeaderboardRows=[];
 let warChampion=null;
 let warMultiRoom=null;
@@ -303,27 +304,47 @@ let warMultiChannel=null;
 let warMultiPollTimer=null;
 let warMultiSelectedTarget=null;
 
-async function loadWarProfileAndLeaderboard(){
+async async function loadWarProfileAndLeaderboard(){
   const info=document.getElementById("warNameInfo");
   const board=document.getElementById("warLeaderboard");
+  const diamondEl=document.getElementById("warDiamonds");
+  const renameBtn=document.getElementById("warRenameBtn");
+  const input=document.getElementById("warPlayerName");
   try{
     const {data:{user}}=await supabase.auth.getUser();
     if(!user) return;
 
-    const {data:profile}=await supabase
-      .from("war_profiles")
-      .select("device_id,display_name,rename_count")
-      .eq("device_id",deviceId)
-      .maybeSingle();
+    const {data:profile,error:profileError}=await supabase.rpc("war_get_profile",{p_device:deviceId});
+    if(profileError) throw profileError;
 
     if(profile){
       warProfile=profile;
       localStorage.setItem(WAR_NAME_KEY,profile.display_name);
-      const input=document.getElementById("warPlayerName");
-      if(input) input.value=profile.display_name;
-      if(info) info.textContent="Emrin mund ta ndryshosh edhe "+Math.max(0,2-Number(profile.rename_count||0))+" herë.";
-    }else if(info){
-      info.textContent="Vendose emrin. Pas krijimit mund ta ndryshosh vetëm 2 herë.";
+      if(input){
+        input.value=profile.display_name;
+        input.readOnly=!warRenameEditing;
+        input.classList.toggle("war-name-locked",!warRenameEditing);
+      }
+      if(diamondEl) diamondEl.textContent=String(Number(profile.diamonds||0));
+      if(renameBtn){
+        renameBtn.hidden=false;
+        renameBtn.textContent=warRenameEditing ? "💾 Ruaj emrin · 25 💎" : "✏️ Ndrysho emrin · 25 💎";
+      }
+      if(info){
+        info.textContent=warRenameEditing
+          ? "Shkruaje emrin e ri. Ruajtja kushton 25 💎."
+          : "🔒 Ky emër është i përhershëm. Ndryshimi kushton 25 💎.";
+      }
+    }else{
+      warProfile=null;
+      warRenameEditing=false;
+      if(input){
+        input.readOnly=false;
+        input.classList.remove("war-name-locked");
+      }
+      if(diamondEl) diamondEl.textContent="200";
+      if(renameBtn) renameBtn.hidden=true;
+      if(info) info.textContent="Zgjidhe emrin e parë. Emri i ri ruhet përgjithmonë; më pas ndryshimi kushton 25 💎.";
     }
 
     const {data:weekKey}=await supabase.rpc("war_week_key",{});
@@ -353,8 +374,8 @@ async function loadWarProfileAndLeaderboard(){
 
     if(board){
       board.innerHTML=`
-        <h3>🏆 Rekordi javor</h3>
-        <div class="war-week-note">Fituesi shpallet çdo të diel në ora 23:00.</div>
+        <h3>🏆 Renditja javore</h3>
+        <div class="war-week-note">Shpërblimet: 🥇 500 💎 · 🥈 100 💎 · 🥉 50 💎</div>
         ${warChampion?`<div class="war-champion">👑 Fituesi i javës së kaluar: <strong>${escapeHtml(warChampion.display_name)}</strong> — ${warChampion.points} pikë</div>`:""}
         <div class="war-ranking">
           ${warLeaderboardRows.length?warLeaderboardRows.map((row,i)=>`
@@ -366,24 +387,29 @@ async function loadWarProfileAndLeaderboard(){
     }
   }catch(error){
     console.warn("War profile/leaderboard",error);
-    if(board) board.innerHTML='<div class="muted">Rekordi javor nuk u ngarkua.</div>';
+    if(board) board.innerHTML='<div class="muted">Renditja javore nuk u ngarkua.</div>';
   }
 }
 
-async function saveWarProfile(){
+async async function saveWarProfile(){
   const input=document.getElementById("warPlayerName");
   const name=(input?.value||localStorage.getItem(WAR_NAME_KEY)||"").trim().slice(0,20);
   if(name.length<2){
     throw new Error("Emri duhet të ketë së paku 2 shkronja.");
   }
+  const previousName=warProfile?.display_name||"";
   const {data,error}=await supabase.rpc("war_set_profile",{p_device:deviceId,p_name:name});
   if(error){
     const raw=String(error.message||error);
-    if(raw.includes("RENAME_LIMIT")) throw new Error("Emrin e ke ndryshuar 2 herë. Nuk mund ta ndryshosh më.");
+    if(raw.includes("NOT_ENOUGH_DIAMONDS")) throw new Error("Nuk ke 25 💎 për ta ndryshuar emrin.");
     throw error;
   }
-  warProfile=data?.[0]||warProfile;
   localStorage.setItem(WAR_NAME_KEY,name);
+  const {data:fresh,error:freshError}=await supabase.rpc("war_get_profile",{p_device:deviceId});
+  if(!freshError && fresh) warProfile=fresh;
+  else warProfile={...(warProfile||{}),...(data?.[0]||{}),display_name:name};
+
+  if(previousName && previousName!==name) warRenameEditing=false;
   return warProfile;
 }
 
@@ -457,6 +483,10 @@ function warMultiPlayerCard(player){
         ${player.burned?" 🔥":""}
         ${isTurn&&!player.eliminated?" 🎯 Radha":""}
       </span>
+      <span class="war-multi-soldier ${isMe?"mine":"enemy"}" aria-hidden="true">
+        <img src="./war-soldier.svg" alt="">
+        <i class="war-multi-muzzle"></i>
+      </span>
     </button>`;
 }
 
@@ -476,11 +506,11 @@ function renderWarMultiWaiting(){
           <div class="war-multi-count-big">${warMultiPlayers.length} / 8</div>
           <h2>👥 Duke pritur lojtarët…</h2>
           <div class="war-multi-countdown">${sec}</div>
-          <p>Loja nis pas ${sec} sekondash me lojtarët që janë futur.</p>
+          <p>Po presim deri në 10 sekonda që të hyjë së paku një lojtar tjetër.</p>
           <div class="war-multi-wait-list">
             ${warMultiPlayers.map((p,i)=>`<div><strong>${i+1}. ${escapeHtml(p.display_name)}</strong></div>`).join("")}
           </div>
-          <p class="muted">Nëse mbetesh vetëm, loja kalon automatikisht te kompjuteri.</p>
+          <p class="muted">Nëse askush nuk hyn, nuk luan kundër kompjuterit — del pulla “Provo përsëri”.</p>
         </div>
       </section>
     </div>`;
@@ -495,6 +525,26 @@ function renderWarMultiWaiting(){
     warMultiPlayers=[];
     renderLobby();
   };
+}
+
+function renderWarMultiRetry(){
+  root.innerHTML=`
+    <div class="war-shell">
+      <section class="war-arena war-multi-waiting">
+        <div class="war-topbar">
+          <button id="warRetryBack" class="war-exit" type="button">← ${tr("backGames")}</button>
+          <strong>🌐 Luftra Online</strong>
+        </div>
+        <div class="war-multi-wait-card war-retry-card">
+          <div class="war-retry-icon">⏱️</div>
+          <h2>Nuk u gjet lojtar tjetër.</h2>
+          <p>Nuk kalon automatikisht te kompjuteri.</p>
+          <button id="warRetryOnline" class="primary" type="button">🔄 Provo përsëri</button>
+        </div>
+      </section>
+    </div>`;
+  document.getElementById("warRetryBack").onclick=()=>renderLobby();
+  document.getElementById("warRetryOnline").onclick=()=>startWarMultiSearch();
 }
 
 function renderWarMultiGame(){
@@ -513,6 +563,10 @@ function renderWarMultiGame(){
 
   const special=me?.special||"attack";
   const special2=me?.special2||"attack";
+  const displayPlayers=[
+    ...warMultiPlayers.filter(p=>p.device_id!==deviceId),
+    ...warMultiPlayers.filter(p=>p.device_id===deviceId)
+  ];
 
   root.innerHTML=`
     <div class="war-shell">
@@ -525,11 +579,12 @@ function renderWarMultiGame(){
 
         <div class="war-multi-summary">
           <strong>👥 ${alive.length} gjallë / ${warMultiPlayers.length} lojtarë</strong>
+          <span>💎 ${Number(warProfile?.diamonds||0)}</span>
           <span>${escapeHtml(warMultiRoom.message||"")}</span>
         </div>
 
         <div class="war-multi-grid">
-          ${warMultiPlayers.map(warMultiPlayerCard).join("")}
+          ${displayPlayers.map(warMultiPlayerCard).join("")}
         </div>
 
         ${warMultiRoom.status==="finished"?`
@@ -537,7 +592,7 @@ function renderWarMultiGame(){
             🏆 Fituesi:
             <strong>${escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiRoom.winner_device)?.display_name||"—")}</strong>
           </div>
-          <button id="warMultiAgain" class="primary" type="button">🌐 Kërko lojë të re</button>
+          <button id="warMultiAgain" class="primary" type="button">🌐 Përsëri luaj online</button>
         `:`
           <div class="war-multi-target-hint">
             ${myTurn
@@ -551,6 +606,7 @@ function renderWarMultiGame(){
             ${warActionCard(special)}
             ${warActionCard(special2)}
           </div>
+          <button id="warMultiReroll" class="secondary war-reroll" type="button" ${myTurn?"":"disabled"}>🎲 Ndrysho armët · 3 💎</button>
         `}
       </section>
     </div>`;
@@ -576,6 +632,24 @@ function renderWarMultiGame(){
     btn.onclick=()=>warMultiDoAction(btn.dataset.warAction);
   });
 
+  document.getElementById("warMultiReroll")?.addEventListener("click",async()=>{
+    if(!myTurn) return;
+    const btn=document.getElementById("warMultiReroll");
+    if(btn) btn.disabled=true;
+    try{
+      const {data,error}=await supabase.rpc("war_multi_reroll",{p_room:warMultiRoom.id,p_device:deviceId});
+      if(error) throw error;
+      warProfile={...(warProfile||{}),diamonds:Number(data?.diamonds||0)};
+      await loadWarMultiState(warMultiRoom.id);
+      renderWarMultiGame();
+    }catch(error){
+      const raw=String(error?.message||error);
+      const hint=root.querySelector(".war-multi-target-hint");
+      if(hint) hint.textContent=raw.includes("NOT_ENOUGH_DIAMONDS")?"⚠️ Nuk ke 3 💎.":"⚠️ Armët nuk u ndryshuan.";
+      if(btn) btn.disabled=false;
+    }
+  });
+
   document.getElementById("warMultiBack").onclick=()=>{
     clearWarMultiPolling();
     if(warMultiChannel){
@@ -589,6 +663,7 @@ function renderWarMultiGame(){
   };
 
   document.getElementById("warMultiAgain")?.addEventListener("click",()=>{
+    clearWarMultiPolling();
     if(warMultiChannel){
       supabase.removeChannel(warMultiChannel);
       warMultiChannel=null;
@@ -596,7 +671,7 @@ function renderWarMultiGame(){
     warMultiRoom=null;
     warMultiPlayers=[];
     warMultiSelectedTarget=null;
-    renderLobby("🌐 Shtyp Luaj Online për lojë të re.");
+    startWarMultiSearch();
   });
 }
 
@@ -662,13 +737,15 @@ async function subscribeWarMultiRoom(roomId){
     .subscribe();
 }
 
-async function startWarMultiSearch(){
-  const button=document.getElementById("warMultiBtn");
+async async function startWarMultiSearch(){
+  const button=document.getElementById("warMultiBtn")||document.getElementById("warRetryOnline")||document.getElementById("warMultiAgain");
   const info=document.getElementById("warNameInfo");
   if(button) button.disabled=true;
 
   try{
     await saveWarProfile();
+    const {data:econ}=await supabase.rpc("war_get_profile",{p_device:deviceId});
+    if(econ) warProfile=econ;
     const name=warProfile?.display_name||localStorage.getItem(WAR_NAME_KEY)||"User";
     const {data,error}=await supabase.rpc("war_multi_join",{
       p_device:deviceId,
@@ -701,9 +778,8 @@ async function startWarMultiSearch(){
           }
           warMultiRoom=null;
           warMultiPlayers=[];
-          warGameState=warInitialState();
-          warGameState.message="⏱️ Nuk u gjet asnjë lojtar tjetër. Po luan me kompjuterin.";
-          renderWarGame();
+          warMultiSelectedTarget=null;
+          renderWarMultiRetry();
           return;
         }
 
@@ -725,6 +801,7 @@ async function startWarMultiSearch(){
   }catch(error){
     console.warn("war multi join",error);
     if(info) info.textContent="Nuk u hap loja online. Provo përsëri.";
+    else renderWarMultiRetry();
     if(button) button.disabled=false;
   }
 }
@@ -815,6 +892,7 @@ function warInitialState(){
     turn:"player",
     over:false,
     gameCounted:false,
+    serverRewardRecorded:false,
     message:bonus>0
       ? "Ke "+bonus+" zemër bonus aktive për 24 orë."
       : "Zgjidh njërën nga 2 armët."
@@ -949,13 +1027,14 @@ function renderWarGame(){
               ${warActionCard(p.special)}
               ${warActionCard(p.special2)}
             </div>
+            <button id="warReroll" class="war-reroll" type="button" ${s.over||s.turn!=="player"?"disabled":""}>🎲 Ndrysho armët<br><small>3 💎</small></button>
           </aside>
         </div>
 
         <div class="war-battle-info">
           <div class="war-progress war-progress-inline">
             <strong>🏆 ${wins} fitore</strong>
-            <small>🎮 ${games} lojëra · ❤️ bonus: ${activeBonus}</small>
+            <small>🎮 ${games} lojëra · ❤️ bonus: ${activeBonus} · 💎 ${Number(warProfile?.diamonds||0)}</small>
           </div>
           <div class="war-vs">VS</div>
           <p id="warMessage" class="war-message">${escapeHtml(s.message)}</p>
@@ -985,6 +1064,25 @@ function renderWarGame(){
     renderWarGame();
   });
 
+  document.getElementById("warReroll")?.addEventListener("click",async()=>{
+    if(s.over||s.turn!=="player") return;
+    const btn=document.getElementById("warReroll");
+    if(btn) btn.disabled=true;
+    try{
+      const {data,error}=await supabase.rpc("war_spend_reroll",{p_device:deviceId});
+      if(error) throw error;
+      warProfile={...(warProfile||{}),diamonds:Number(data?.diamonds||0)};
+      [p.special,p.special2]=warRollPair();
+      s.message="🎲 Armët u ndryshuan për 3 💎.";
+      renderWarGame();
+    }catch(error){
+      s.message=String(error?.message||error).includes("NOT_ENOUGH_DIAMONDS")
+        ?"⚠️ Nuk ke 3 💎 për t'i ndryshuar armët."
+        :"⚠️ Armët nuk u ndryshuan.";
+      renderWarGame();
+    }
+  });
+
   root.querySelectorAll("[data-war-action]").forEach(btn=>{
     btn.disabled=s.over||s.turn!=="player";
     btn.onclick=()=>warPlayerAction(btn.dataset.warAction);
@@ -998,11 +1096,13 @@ function renderWarGame(){
   }
 }
 
-async function startWarGame(){
+async async function startWarGame(){
   const button=document.getElementById("warGame");
   if(button) button.disabled=true;
   try{
     await saveWarProfile();
+    const {data:econ}=await supabase.rpc("war_get_profile",{p_device:deviceId});
+    if(econ) warProfile=econ;
     warGameState=warInitialState();
     renderWarGame();
   }catch(error){
@@ -1025,10 +1125,11 @@ function warFinishIfNeeded(){
     s.turn="none";
     const result=warRecordCompletedGame(true);
     awardWarWeeklyPoint();
-    s.message="🏆 Fitove luftën! +1 pikë në rekordin javor.";
+    s.message="🏆 Fitove luftën! +1 pikë në renditjen javore.";
     if(result.bonusAdded){
       s.message+=" ❤️ Arrite "+result.games+" lojëra: fitove +1 zemër për 24 orë.";
     }
+    recordWarComputerReward(s);
     return true;
   }
 
@@ -1040,10 +1141,27 @@ function warFinishIfNeeded(){
     if(result.bonusAdded){
       s.message+=" ❤️ Arrite "+result.games+" lojëra: fitove +1 zemër për 24 orë.";
     }
+    recordWarComputerReward(s);
     return true;
   }
 
   return false;
+}
+
+async function recordWarComputerReward(state){
+  if(!state||state.serverRewardRecorded) return;
+  state.serverRewardRecorded=true;
+  try{
+    const {data,error}=await supabase.rpc("war_record_computer_game",{p_device:deviceId});
+    if(error) throw error;
+    warProfile={...(warProfile||{}),diamonds:Number(data?.diamonds||0),computer_games:Number(data?.computer_games||0)};
+    if(Number(data?.reward||0)>0){
+      state.message+=" 💎 Çdo 5 lojë: fitove +20 diamanta!";
+    }
+    if(warGameState===state) renderWarGame();
+  }catch(error){
+    console.warn("war computer reward",error);
+  }
 }
 
 async function ensureWarAudio(){
@@ -1655,15 +1773,20 @@ function renderLobby(msg=""){
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
         ` : selectedType==="war" ? `
           <div class="war-user-setup">
-            <label for="warPlayerName"><strong>👤 User</strong></label>
+            <div class="war-economy-head">
+              <label for="warPlayerName"><strong>👤 User</strong></label>
+              <strong class="war-diamonds">💎 <span id="warDiamonds">200</span></strong>
+            </div>
             <input id="warPlayerName" type="text" maxlength="20" placeholder="Emri i userit" value="${escapeHtml(localStorage.getItem(WAR_NAME_KEY)||"")}">
-            <div id="warNameInfo" class="game-help">Emri mund të ndryshohet maksimum 2 herë.</div>
+            <button id="warRenameBtn" class="secondary war-rename-btn" type="button" hidden>✏️ Ndrysho emrin · 25 💎</button>
+            <div id="warNameInfo" class="game-help">Po ngarkohet profili…</div>
+            <div class="war-diamond-note">💎 +5 çdo orë · 🎮 +20 💎 çdo 5 lojëra kundër kompjuterit · 🎲 armë të reja 3 💎</div>
             <button id="warGame" class="primary" type="button">🤖 Luaj me kompjuter</button>
             <button id="warMultiBtn" class="secondary war-online-btn" type="button">🌐 Luaj Online (deri 8 veta)</button>
             <div id="warMultiCount" class="war-online-count">👥 Në pritje: 0 / 8</div>
-            <div class="game-help">Pas 10 sekondash loja nis me 2–8 lojtarë. Nëse je vetëm, luan me kompjuterin.</div>
+            <div class="game-help">Online pret 10 sekonda. Nëse askush nuk hyn, del “Provo përsëri” — nuk kalon te kompjuteri.</div>
           </div>
-          <section id="warLeaderboard" class="war-leaderboard"><div class="muted">🏆 Po ngarkohet rekordi javor…</div></section>
+          <section id="warLeaderboard" class="war-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
         ` : selectedType==="tetris" ? `
           <input id="tetrisPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TETRIS_NAME_KEY)||"")}">
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
@@ -1703,7 +1826,38 @@ function renderLobby(msg=""){
 
   const warNameInput=document.getElementById("warPlayerName");
   if(warNameInput){
-    warNameInput.addEventListener("input",()=>localStorage.setItem(WAR_NAME_KEY,warNameInput.value.trim().slice(0,20)));
+    warNameInput.addEventListener("input",()=>{
+      if(!warProfile||warRenameEditing) localStorage.setItem(WAR_NAME_KEY,warNameInput.value.trim().slice(0,20));
+    });
+  }
+  const warRenameBtn=document.getElementById("warRenameBtn");
+  if(warRenameBtn){
+    warRenameBtn.onclick=async()=>{
+      const info=document.getElementById("warNameInfo");
+      if(!warProfile) return;
+      if(!warRenameEditing){
+        warRenameEditing=true;
+        if(warNameInput){
+          warNameInput.readOnly=false;
+          warNameInput.classList.remove("war-name-locked");
+          warNameInput.focus();
+          warNameInput.select();
+        }
+        warRenameBtn.textContent="💾 Ruaj emrin · 25 💎";
+        if(info) info.textContent="Shkruaje emrin e ri. Ruajtja kushton 25 💎.";
+        return;
+      }
+      warRenameBtn.disabled=true;
+      try{
+        await saveWarProfile();
+        warRenameEditing=false;
+        await loadWarProfileAndLeaderboard();
+      }catch(error){
+        if(info) info.textContent=error?.message||"Emri nuk u ndryshua.";
+      }finally{
+        warRenameBtn.disabled=false;
+      }
+    };
   }
   const warButton=document.getElementById("warGame");
   if(warButton) warButton.onclick=startWarGame;

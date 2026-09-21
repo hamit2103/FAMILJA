@@ -55,16 +55,16 @@ jobs:
           cp /tmp/angel-main.apk pajaziti-firetv.apk
           cp /tmp/angel-fresh.apk pajaziti-fresh.apk
 
-      - name: Upload ANGEL 4.7 to update server
+      - name: Upload ANGEL 4.8 to update server
         run: |
           curl --fail --show-error --silent \
             -H "x-angel-build-token: angel-build-4-7-20260921" \
             --data-binary @pajaziti-android.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.7.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.8.apk"
           curl --fail --show-error --silent \
             -H "x-angel-build-token: angel-build-4-7-20260921" \
             --data-binary @pajaziti-fresh.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.7-fresh.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.8-fresh.apk"
 
       - name: Commit APK update
         run: |
@@ -74,13 +74,13 @@ jobs:
           if git diff --cached --quiet; then
             echo "APK already up to date."
           else
-            git commit -m "Publish ANGEL 4.7 APK [skip ci]"
+            git commit -m "Publish ANGEL 4.8 APK [skip ci]"
             git push
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ANGEL-4.7
+          name: ANGEL-4.8
           path: /tmp/angel-main.apk
           if-no-files-found: error
