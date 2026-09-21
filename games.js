@@ -304,7 +304,7 @@ let warMultiChannel=null;
 let warMultiPollTimer=null;
 let warMultiSelectedTarget=null;
 
-async async function loadWarProfileAndLeaderboard(){
+async function loadWarProfileAndLeaderboard(){
   const info=document.getElementById("warNameInfo");
   const board=document.getElementById("warLeaderboard");
   const diamondEl=document.getElementById("warDiamonds");
@@ -391,7 +391,7 @@ async async function loadWarProfileAndLeaderboard(){
   }
 }
 
-async async function saveWarProfile(){
+async function saveWarProfile(){
   const input=document.getElementById("warPlayerName");
   const name=(input?.value||localStorage.getItem(WAR_NAME_KEY)||"").trim().slice(0,20);
   if(name.length<2){
@@ -737,7 +737,7 @@ async function subscribeWarMultiRoom(roomId){
     .subscribe();
 }
 
-async async function startWarMultiSearch(){
+async function startWarMultiSearch(){
   const button=document.getElementById("warMultiBtn")||document.getElementById("warRetryOnline")||document.getElementById("warMultiAgain");
   const info=document.getElementById("warNameInfo");
   if(button) button.disabled=true;
@@ -1096,7 +1096,7 @@ function renderWarGame(){
   }
 }
 
-async async function startWarGame(){
+async function startWarGame(){
   const button=document.getElementById("warGame");
   if(button) button.disabled=true;
   try{
