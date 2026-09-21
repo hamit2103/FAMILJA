@@ -318,6 +318,8 @@ let warMultiPollTimer=null;
 let warMultiSelectedTarget=null;
 let warChatOpen=false;
 let warChatMessages=[];
+let warChatDraft="";
+let warChatFocused=false;
 let warChatTimer=null;
 let warActiveTimer=null;
 let warAdminProfiles=[];
@@ -519,6 +521,11 @@ function warMultiPlayerCard(player){
 }
 
 
+function warChatIsEditing(){
+  const input=document.getElementById("warChatInput");
+  return !!(warChatFocused || (input && document.activeElement===input));
+}
+
 async function loadWarChat(){
   if(!warMultiRoom?.id) return;
   const {data,error}=await supabase.from("war_room_messages")
@@ -537,10 +544,15 @@ async function loadWarChat(){
 
 async function sendWarChat(){
   const input=document.getElementById("warChatInput");
-  const body=(input?.value||"").trim().slice(0,300);
+  if(input) warChatDraft=input.value.slice(0,300);
+  const body=(warChatDraft||"").trim().slice(0,300);
   if(!body||!warMultiRoom?.id) return;
   const {error}=await supabase.rpc("war_room_send_message",{p_room:warMultiRoom.id,p_device:deviceId,p_body:body});
-  if(!error && input) input.value="";
+  if(!error){
+    warChatDraft="";
+    warChatFocused=false;
+    if(input) input.value="";
+  }
   await loadWarChat();
 }
 
@@ -576,8 +588,7 @@ function startWarActivePolling(roomId){
       const sig=[warMultiRoom.status,warMultiRoom.turn_device,warMultiRoom.action_seq,...warMultiPlayers.map(p=>p.device_id+":"+p.hp+":"+p.eliminated+":"+p.kicked)].join("|");
       if(sig!==lastSig){
         lastSig=sig;
-        const active=document.activeElement?.id;
-        if(active!=="warChatInput") renderWarMultiGame();
+        if(!warChatIsEditing()) renderWarMultiGame();
       }
     }catch(error){
       console.warn("war active poll",error);
@@ -680,6 +691,9 @@ function renderWarMultiRetry(){
 
 function renderWarMultiGame(){
   if(!warMultiRoom) return;
+  const previousChatInput=document.getElementById("warChatInput");
+  if(previousChatInput) warChatDraft=previousChatInput.value.slice(0,300);
+  const restoreChatFocus=warChatOpen && warChatIsEditing();
   const me=warMultiMe();
   if(me?.kicked){
     clearWarMultiPolling();
@@ -727,7 +741,7 @@ function renderWarMultiGame(){
         <section id="warChatPanel" class="war-chat-panel ${warChatOpen?"":"hidden"}">
           <div id="warChatList" class="war-chat-list">${warChatMessages.map(m=>`<div class="war-chat-line ${m.device_id===deviceId?"mine":""}"><strong>${escapeHtml(m.display_name)}</strong><span>${escapeHtml(m.body)}</span></div>`).join("")}</div>
           <div class="war-chat-compose">
-            <input id="warChatInput" maxlength="300" placeholder="Shkruaj mesazh…">
+            <input id="warChatInput" type="text" maxlength="300" autocomplete="off" enterkeyhint="send" placeholder="Shkruaj mesazh…" value="${escapeHtml(warChatDraft)}">
             <button id="warChatSend" class="primary" type="button">Dërgo</button>
           </div>
         </section>
@@ -755,9 +769,42 @@ function renderWarMultiGame(){
     btn.disabled=!myTurn;btn.onclick=()=>warMultiDoAction(btn.dataset.warAction);
   });
 
-  document.getElementById("warChatToggle")?.addEventListener("click",()=>{warChatOpen=!warChatOpen;renderWarMultiGame();if(warChatOpen)loadWarChat();});
+  document.getElementById("warChatToggle")?.addEventListener("click",()=>{
+    const current=document.getElementById("warChatInput");
+    if(current) warChatDraft=current.value.slice(0,300);
+    warChatOpen=!warChatOpen;
+    if(!warChatOpen) warChatFocused=false;
+    renderWarMultiGame();
+    if(warChatOpen) loadWarChat();
+  });
   document.getElementById("warChatSend")?.addEventListener("click",sendWarChat);
-  document.getElementById("warChatInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();sendWarChat();}});
+  const warChatInput=document.getElementById("warChatInput");
+  if(warChatInput){
+    warChatInput.addEventListener("input",()=>{warChatDraft=warChatInput.value.slice(0,300);});
+    warChatInput.addEventListener("focus",()=>{warChatFocused=true;});
+    warChatInput.addEventListener("compositionstart",()=>{warChatFocused=true;});
+    warChatInput.addEventListener("compositionend",()=>{warChatDraft=warChatInput.value.slice(0,300);});
+    warChatInput.addEventListener("blur",()=>{
+      setTimeout(()=>{
+        if(document.activeElement?.id!=="warChatInput") warChatFocused=false;
+      },180);
+    });
+    warChatInput.addEventListener("keydown",e=>{
+      if(e.key==="Enter" && !e.isComposing){
+        e.preventDefault();
+        sendWarChat();
+      }
+    });
+    if(restoreChatFocus){
+      requestAnimationFrame(()=>{
+        const input=document.getElementById("warChatInput");
+        if(!input) return;
+        try{ input.focus({preventScroll:true}); }catch(_){ input.focus(); }
+        const end=input.value.length;
+        try{ input.setSelectionRange(end,end); }catch(_){}
+      });
+    }
+  }
   document.getElementById("warAdminKickBtn")?.addEventListener("click",adminKickSelected);
 
   document.getElementById("warMultiReroll")?.addEventListener("click",async()=>{
@@ -779,13 +826,13 @@ function renderWarMultiGame(){
   document.getElementById("warMultiBack").onclick=()=>{
     clearWarMultiPolling();
     if(warMultiChannel){supabase.removeChannel(warMultiChannel);warMultiChannel=null;}
-    warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;warChatOpen=false;warChatMessages=[];
+    warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;warChatOpen=false;warChatMessages=[];warChatDraft="";warChatFocused=false;
     renderLobby();
   };
   document.getElementById("warMultiAgain")?.addEventListener("click",()=>{
     clearWarMultiPolling();
     if(warMultiChannel){supabase.removeChannel(warMultiChannel);warMultiChannel=null;}
-    warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;warChatOpen=false;warChatMessages=[];
+    warMultiRoom=null;warMultiPlayers=[];warMultiSelectedTarget=null;warChatOpen=false;warChatMessages=[];warChatDraft="";warChatFocused=false;
     startWarMultiSearch();
   });
 }
@@ -840,14 +887,14 @@ async function subscribeWarMultiRoom(roomId){
     },async()=>{
       await loadWarMultiState(roomId).catch(()=>{});
       if(warMultiRoom?.status==="waiting") renderWarMultiWaiting();
-      else renderWarMultiGame();
+      else if(!warChatIsEditing()) renderWarMultiGame();
     })
     .on("postgres_changes",{
       event:"*",schema:"public",table:"war_multi_players",filter:"room_id=eq."+roomId
     },async()=>{
       await loadWarMultiState(roomId).catch(()=>{});
       if(warMultiRoom?.status==="waiting") renderWarMultiWaiting();
-      else renderWarMultiGame();
+      else if(!warChatIsEditing()) renderWarMultiGame();
     })
     .subscribe();
 }
