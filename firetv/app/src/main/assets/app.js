@@ -2641,7 +2641,7 @@ installBtn.addEventListener("click", triggerInstall);
 installLoginBtn.addEventListener("click", triggerInstall);
 
 shareBtn.addEventListener("click", async () => {
-  const url = new URL("/pajaziti-android.apk", window.location.origin).href;
+  const url = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-apk";
   try {
     if (navigator.share) {
       await navigator.share({
