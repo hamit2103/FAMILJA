@@ -98,6 +98,7 @@ public class MainActivity extends Activity {
 
         webView.addJavascriptInterface(new PrayerBridge(this), "AndroidPrayer");
         webView.addJavascriptInterface(new ClockWidgetBridge(this), "AndroidClock");
+        webView.addJavascriptInterface(new AppInfoBridge(this), "AndroidApp");
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(
