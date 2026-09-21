@@ -60,11 +60,11 @@ jobs:
           curl --fail --show-error --silent \
             -H "x-angel-build-token: angel-build-4-7-20260921" \
             --data-binary @pajaziti-android.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.9.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.8.apk"
           curl --fail --show-error --silent \
             -H "x-angel-build-token: angel-build-4-7-20260921" \
             --data-binary @pajaziti-fresh.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.9-fresh.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.8-fresh.apk"
 
       - name: Commit APK update
         run: |
