@@ -44,6 +44,19 @@ const TXT = {
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
 function tr(k){ return TXT[lang()][k] || TXT.sq[k] || k; }
 
+const WAR_TXT={
+  sq:{yourTurnCaps:"RADHA JOTE",opponent:"KUNDËRSHTARI",you:"TI",yourWeapons:"ARMËT E TUA",soundOn:"🔊 Zëri ON",soundOff:"🔇 Zëri OFF",changeWeapons:"🎲 Ndrysho armët",wins:"fitore",games:"lojëra",bonus:"bonus",chooseWeapon:"Zgjidh njërën nga 2 armët.",playAgain:"🔄 Luaj përsëri",weaponAttack:"Sulm",weaponBomb:"Bombë",weaponHeart:"Zemër",weaponHelicopter:"Helikopter",weaponAtom:"Atom",weaponProtect:"Mbrojtje",weaponAzrael:"Melaqja Asrail",weaponIce:"Akull",weaponDrone:"Droni",weaponFire:"Rreth i zjarrtë",twoAttacks:"2 sulme",shootAgain2:"−2 ❤️ · gjuan prapë",protect2:"mbron 2 herë",koNoDefense:"KO pa mbrojtje",nextAttack:"arma tjetër bëhet Sulm",shootAgain1:"−1 ❤️ · gjuan prapë",burnBlack:"−2 ❤️ · e bën të zi",finish:"FUND",warOnline:"Luftra Online",waitingPlayers:"Duke pritur lojtarët…",wait10:"Po presim deri në 10 sekonda që të hyjë së paku një lojtar tjetër.",noComputerNote:"Nëse askush nuk hyn, nuk luan kundër kompjuterit — del pulla “Provo përsëri”.",retry:"🔄 Provo përsëri",noPlayer:"Nuk u gjet lojtar tjetër.",noComputerSwitch:"Nuk kalon automatikisht te kompjuteri.",waitTurnCaps:"PRIT RADHËN",alive:"gjallë",players:"lojtarë",winner:"Fituesi",playOnlineAgain:"🌐 Përsëri luaj online",target:"Objektivi",tapTarget:"Prek lojtarin që dëshiron ta sulmosh.",waitYourTurn:"Prit deri sa të vijë radha jote.",eliminated:"Eliminuar",turn:"Radha",notEnough3:"Nuk ke 3 💎.",weaponsNotChanged:"Armët nuk u ndryshuan.",chooseTarget:"Zgjidh së pari cilin lojtar dëshiron ta godasësh."},
+  de:{yourTurnCaps:"DU BIST DRAN",opponent:"GEGNER",you:"DU",yourWeapons:"DEINE WAFFEN",soundOn:"🔊 Ton AN",soundOff:"🔇 Ton AUS",changeWeapons:"🎲 Waffen wechseln",wins:"Siege",games:"Spiele",bonus:"Bonus",chooseWeapon:"Wähle eine deiner 2 Waffen.",playAgain:"🔄 Noch einmal spielen",weaponAttack:"Angriff",weaponBomb:"Bombe",weaponHeart:"Herz",weaponHelicopter:"Hubschrauber",weaponAtom:"Atom",weaponProtect:"Schutz",weaponAzrael:"Engel Azrael",weaponIce:"Eis",weaponDrone:"Drohne",weaponFire:"Feuerring",twoAttacks:"2 Angriffe",shootAgain2:"−2 ❤️ · nochmal schießen",protect2:"schützt 2-mal",koNoDefense:"KO ohne Schutz",nextAttack:"nächste Waffe wird Angriff",shootAgain1:"−1 ❤️ · nochmal schießen",burnBlack:"−2 ❤️ · verbrennt Gegner",finish:"ENDE",warOnline:"Krieg Online",waitingPlayers:"Warte auf Spieler…",wait10:"Wir warten bis zu 10 Sekunden auf mindestens einen weiteren Spieler.",noComputerNote:"Wenn niemand beitritt, spielst du nicht gegen den Computer — „Erneut versuchen“ erscheint.",retry:"🔄 Erneut versuchen",noPlayer:"Kein weiterer Spieler gefunden.",noComputerSwitch:"Es wird nicht automatisch auf den Computer gewechselt.",waitTurnCaps:"WARTE AUF DEINEN ZUG",alive:"am Leben",players:"Spieler",winner:"Gewinner",playOnlineAgain:"🌐 Erneut online spielen",target:"Ziel",tapTarget:"Tippe den Spieler an, den du angreifen willst.",waitYourTurn:"Warte, bis du an der Reihe bist.",eliminated:"Ausgeschieden",turn:"Zug",notEnough3:"Du hast keine 3 💎.",weaponsNotChanged:"Waffen wurden nicht geändert.",chooseTarget:"Wähle zuerst einen Spieler als Ziel."},
+  tr:{yourTurnCaps:"SIRA SENDE",opponent:"RAKİP",you:"SEN",yourWeapons:"SİLAHLARIN",soundOn:"🔊 Ses AÇIK",soundOff:"🔇 Ses KAPALI",changeWeapons:"🎲 Silahları değiştir",wins:"galibiyet",games:"oyun",bonus:"bonus",chooseWeapon:"2 silahtan birini seç.",playAgain:"🔄 Tekrar oyna",weaponAttack:"Saldırı",weaponBomb:"Bomba",weaponHeart:"Kalp",weaponHelicopter:"Helikopter",weaponAtom:"Atom",weaponProtect:"Koruma",weaponAzrael:"Azrail Meleği",weaponIce:"Buz",weaponDrone:"Dron",weaponFire:"Ateş çemberi",twoAttacks:"2 saldırı",shootAgain2:"−2 ❤️ · tekrar ateş et",protect2:"2 kez korur",koNoDefense:"koruma yoksa KO",nextAttack:"sonraki silah Saldırı olur",shootAgain1:"−1 ❤️ · tekrar ateş et",burnBlack:"−2 ❤️ · rakibi yakar",finish:"BİTTİ",warOnline:"Çevrimiçi Savaş",waitingPlayers:"Oyuncular bekleniyor…",wait10:"En az bir oyuncunun daha katılması için 10 saniye bekliyoruz.",noComputerNote:"Kimse katılmazsa bilgisayara karşı başlamaz — “Tekrar dene” düğmesi çıkar.",retry:"🔄 Tekrar dene",noPlayer:"Başka oyuncu bulunamadı.",noComputerSwitch:"Otomatik olarak bilgisayara geçmez.",waitTurnCaps:"SIRANI BEKLE",alive:"hayatta",players:"oyuncu",winner:"Kazanan",playOnlineAgain:"🌐 Yeniden çevrimiçi oyna",target:"Hedef",tapTarget:"Saldırmak istediğin oyuncuya dokun.",waitYourTurn:"Sıranın gelmesini bekle.",eliminated:"Elendi",turn:"Sıra",notEnough3:"3 💎 yok.",weaponsNotChanged:"Silahlar değiştirilmedi.",chooseTarget:"Önce vurmak istediğin oyuncuyu seç."},
+  en:{yourTurnCaps:"YOUR TURN",opponent:"OPPONENT",you:"YOU",yourWeapons:"YOUR WEAPONS",soundOn:"🔊 Sound ON",soundOff:"🔇 Sound OFF",changeWeapons:"🎲 Change weapons",wins:"wins",games:"games",bonus:"bonus",chooseWeapon:"Choose one of your 2 weapons.",playAgain:"🔄 Play again",weaponAttack:"Attack",weaponBomb:"Bomb",weaponHeart:"Heart",weaponHelicopter:"Helicopter",weaponAtom:"Atom",weaponProtect:"Protection",weaponAzrael:"Angel Azrael",weaponIce:"Ice",weaponDrone:"Drone",weaponFire:"Fire ring",twoAttacks:"2 attacks",shootAgain2:"−2 ❤️ · shoot again",protect2:"blocks 2 times",koNoDefense:"KO without protection",nextAttack:"next weapon becomes Attack",shootAgain1:"−1 ❤️ · shoot again",burnBlack:"−2 ❤️ · burns opponent",finish:"END",warOnline:"War Online",waitingPlayers:"Waiting for players…",wait10:"Waiting up to 10 seconds for at least one more player.",noComputerNote:"If nobody joins, you will not play the computer — “Try again” appears.",retry:"🔄 Try again",noPlayer:"No other player found.",noComputerSwitch:"It will not switch automatically to the computer.",waitTurnCaps:"WAIT FOR YOUR TURN",alive:"alive",players:"players",winner:"Winner",playOnlineAgain:"🌐 Play online again",target:"Target",tapTarget:"Tap the player you want to attack.",waitYourTurn:"Wait until it is your turn.",eliminated:"Eliminated",turn:"Turn",notEnough3:"You do not have 3 💎.",weaponsNotChanged:"Weapons were not changed.",chooseTarget:"Choose the player you want to hit first."},
+  it:{yourTurnCaps:"TOCCA A TE",opponent:"AVVERSARIO",you:"TU",yourWeapons:"LE TUE ARMI",soundOn:"🔊 Audio ON",soundOff:"🔇 Audio OFF",changeWeapons:"🎲 Cambia armi",wins:"vittorie",games:"partite",bonus:"bonus",chooseWeapon:"Scegli una delle 2 armi.",playAgain:"🔄 Gioca ancora",weaponAttack:"Attacco",weaponBomb:"Bomba",weaponHeart:"Cuore",weaponHelicopter:"Elicottero",weaponAtom:"Atomica",weaponProtect:"Protezione",weaponAzrael:"Angelo Azrael",weaponIce:"Ghiaccio",weaponDrone:"Drone",weaponFire:"Cerchio di fuoco",twoAttacks:"2 attacchi",shootAgain2:"−2 ❤️ · spara di nuovo",protect2:"protegge 2 volte",koNoDefense:"KO senza protezione",nextAttack:"la prossima arma diventa Attacco",shootAgain1:"−1 ❤️ · spara di nuovo",burnBlack:"−2 ❤️ · brucia il nemico",finish:"FINE",warOnline:"Guerra Online",waitingPlayers:"In attesa dei giocatori…",wait10:"Attendiamo fino a 10 secondi per almeno un altro giocatore.",noComputerNote:"Se non entra nessuno, non giochi contro il computer — appare “Riprova”.",retry:"🔄 Riprova",noPlayer:"Nessun altro giocatore trovato.",noComputerSwitch:"Non passa automaticamente al computer.",waitTurnCaps:"ASPETTA IL TUO TURNO",alive:"vivi",players:"giocatori",winner:"Vincitore",playOnlineAgain:"🌐 Gioca di nuovo online",target:"Bersaglio",tapTarget:"Tocca il giocatore che vuoi attaccare.",waitYourTurn:"Aspetta il tuo turno.",eliminated:"Eliminato",turn:"Turno",notEnough3:"Non hai 3 💎.",weaponsNotChanged:"Le armi non sono state cambiate.",chooseTarget:"Scegli prima il giocatore da colpire."},
+  hr:{yourTurnCaps:"TVOJ POTEZ",opponent:"PROTIVNIK",you:"TI",yourWeapons:"TVOJE ORUŽJE",soundOn:"🔊 Zvuk UKLJ.",soundOff:"🔇 Zvuk ISKLJ.",changeWeapons:"🎲 Promijeni oružje",wins:"pobjeda",games:"igara",bonus:"bonus",chooseWeapon:"Odaberi jedno od 2 oružja.",playAgain:"🔄 Igraj ponovno",weaponAttack:"Napad",weaponBomb:"Bomba",weaponHeart:"Srce",weaponHelicopter:"Helikopter",weaponAtom:"Atom",weaponProtect:"Zaštita",weaponAzrael:"Anđeo Azrael",weaponIce:"Led",weaponDrone:"Dron",weaponFire:"Vatreni krug",twoAttacks:"2 napada",shootAgain2:"−2 ❤️ · pucaj ponovno",protect2:"štiti 2 puta",koNoDefense:"KO bez zaštite",nextAttack:"sljedeće oružje postaje Napad",shootAgain1:"−1 ❤️ · pucaj ponovno",burnBlack:"−2 ❤️ · spaljuje protivnika",finish:"KRAJ",warOnline:"Rat Online",waitingPlayers:"Čekanje igrača…",wait10:"Čekamo do 10 sekundi da se pridruži barem još jedan igrač.",noComputerNote:"Ako se nitko ne pridruži, ne igraš protiv računala — pojavit će se “Pokušaj ponovno”.",retry:"🔄 Pokušaj ponovno",noPlayer:"Nije pronađen drugi igrač.",noComputerSwitch:"Ne prebacuje se automatski na računalo.",waitTurnCaps:"ČEKAJ SVOJ POTEZ",alive:"živih",players:"igrača",winner:"Pobjednik",playOnlineAgain:"🌐 Ponovno igraj online",target:"Meta",tapTarget:"Dodirni igrača kojeg želiš napasti.",waitYourTurn:"Čekaj svoj potez.",eliminated:"Eliminiran",turn:"Potez",notEnough3:"Nemaš 3 💎.",weaponsNotChanged:"Oružje nije promijenjeno.",chooseTarget:"Prvo odaberi igrača kojeg želiš pogoditi."},
+  fr:{yourTurnCaps:"À TON TOUR",opponent:"ADVERSAIRE",you:"TOI",yourWeapons:"TES ARMES",soundOn:"🔊 Son ON",soundOff:"🔇 Son OFF",changeWeapons:"🎲 Changer les armes",wins:"victoires",games:"parties",bonus:"bonus",chooseWeapon:"Choisis une de tes 2 armes.",playAgain:"🔄 Rejouer",weaponAttack:"Attaque",weaponBomb:"Bombe",weaponHeart:"Cœur",weaponHelicopter:"Hélicoptère",weaponAtom:"Atome",weaponProtect:"Protection",weaponAzrael:"Ange Azraël",weaponIce:"Glace",weaponDrone:"Drone",weaponFire:"Cercle de feu",twoAttacks:"2 attaques",shootAgain2:"−2 ❤️ · tire encore",protect2:"protège 2 fois",koNoDefense:"KO sans protection",nextAttack:"la prochaine arme devient Attaque",shootAgain1:"−1 ❤️ · tire encore",burnBlack:"−2 ❤️ · brûle l'adversaire",finish:"FIN",warOnline:"Guerre en ligne",waitingPlayers:"En attente des joueurs…",wait10:"Nous attendons jusqu'à 10 secondes qu'un autre joueur arrive.",noComputerNote:"Si personne ne rejoint, tu ne joues pas contre l'ordinateur — « Réessayer » apparaît.",retry:"🔄 Réessayer",noPlayer:"Aucun autre joueur trouvé.",noComputerSwitch:"Pas de passage automatique à l'ordinateur.",waitTurnCaps:"ATTENDS TON TOUR",alive:"en vie",players:"joueurs",winner:"Gagnant",playOnlineAgain:"🌐 Rejouer en ligne",target:"Cible",tapTarget:"Touche le joueur que tu veux attaquer.",waitYourTurn:"Attends ton tour.",eliminated:"Éliminé",turn:"Tour",notEnough3:"Tu n'as pas 3 💎.",weaponsNotChanged:"Les armes n'ont pas été changées.",chooseTarget:"Choisis d'abord le joueur à frapper."},
+  ar:{yourTurnCaps:"دورك",opponent:"الخصم",you:"أنت",yourWeapons:"أسلحتك",soundOn:"🔊 الصوت يعمل",soundOff:"🔇 الصوت متوقف",changeWeapons:"🎲 تغيير الأسلحة",wins:"انتصارات",games:"ألعاب",bonus:"إضافي",chooseWeapon:"اختر أحد السلاحين.",playAgain:"🔄 العب مرة أخرى",weaponAttack:"هجوم",weaponBomb:"قنبلة",weaponHeart:"قلب",weaponHelicopter:"مروحية",weaponAtom:"ذري",weaponProtect:"حماية",weaponAzrael:"ملك الموت عزرائيل",weaponIce:"جليد",weaponDrone:"طائرة مسيّرة",weaponFire:"حلقة نار",twoAttacks:"هجومان",shootAgain2:"−2 ❤️ · أطلق مجددًا",protect2:"يحمي مرتين",koNoDefense:"إقصاء بلا حماية",nextAttack:"السلاح التالي يصبح هجومًا",shootAgain1:"−1 ❤️ · أطلق مجددًا",burnBlack:"−2 ❤️ · يحرق الخصم",finish:"النهاية",warOnline:"الحرب أونلاين",waitingPlayers:"بانتظار اللاعبين…",wait10:"ننتظر حتى 10 ثوانٍ لانضمام لاعب آخر.",noComputerNote:"إذا لم ينضم أحد فلن تلعب ضد الكمبيوتر — سيظهر زر «حاول مجددًا».",retry:"🔄 حاول مجددًا",noPlayer:"لم يتم العثور على لاعب آخر.",noComputerSwitch:"لن يتم التحويل تلقائيًا إلى الكمبيوتر.",waitTurnCaps:"انتظر دورك",alive:"أحياء",players:"لاعبين",winner:"الفائز",playOnlineAgain:"🌐 العب أونلاين مرة أخرى",target:"الهدف",tapTarget:"اضغط على اللاعب الذي تريد مهاجمته.",waitYourTurn:"انتظر حتى يحين دورك.",eliminated:"تم الإقصاء",turn:"الدور",notEnough3:"ليس لديك 3 💎.",weaponsNotChanged:"لم يتم تغيير الأسلحة.",chooseTarget:"اختر أولًا اللاعب الذي تريد ضربه."}
+};
+function wtr(k){ return WAR_TXT[lang()]?.[k] || WAR_TXT.sq[k] || k; }
+
+
 let selectedType="chess";
 let room=null;
 let channel=null;
@@ -477,11 +490,11 @@ function warMultiPlayerCard(player){
       <span class="war-multi-name">${isMe?"🇦🇱 ":""}${escapeHtml(player.display_name)} ${isMe?"(Ti)":""}</span>
       <span class="war-multi-hearts">${warHearts(player.hp,player.max_hp)}</span>
       <span class="war-multi-status">
-        ${player.eliminated?"☠️ Eliminuar":""}
+        ${player.eliminated?"☠️ "+wtr("eliminated"):""}
         ${player.protect>0?" 🛡️×"+player.protect:""}
         ${player.frozen?" 🧊":""}
         ${player.burned?" 🔥":""}
-        ${isTurn&&!player.eliminated?" 🎯 Radha":""}
+        ${isTurn&&!player.eliminated?" 🎯 "+wtr("turn"):""}
       </span>
       <span class="war-multi-soldier ${isMe?"mine":"enemy"}" aria-hidden="true">
         <img src="./war-soldier.svg" alt="">
@@ -500,17 +513,17 @@ function renderWarMultiWaiting(){
       <section class="war-arena war-multi-waiting">
         <div class="war-topbar">
           <button id="warMultiBack" class="war-exit" type="button">← ${tr("backGames")}</button>
-          <strong>🌐 Luftra Online</strong>
+          <strong>🌐 ${wtr("warOnline")}</strong>
         </div>
         <div class="war-multi-wait-card">
           <div class="war-multi-count-big">${warMultiPlayers.length} / 8</div>
-          <h2>👥 Duke pritur lojtarët…</h2>
+          <h2>👥 ${wtr("waitingPlayers")}</h2>
           <div class="war-multi-countdown">${sec}</div>
-          <p>Po presim deri në 10 sekonda që të hyjë së paku një lojtar tjetër.</p>
+          <p>${wtr("wait10")}</p>
           <div class="war-multi-wait-list">
             ${warMultiPlayers.map((p,i)=>`<div><strong>${i+1}. ${escapeHtml(p.display_name)}</strong></div>`).join("")}
           </div>
-          <p class="muted">Nëse askush nuk hyn, nuk luan kundër kompjuterit — del pulla “Provo përsëri”.</p>
+          <p class="muted">${wtr("noComputerNote")}</p>
         </div>
       </section>
     </div>`;
@@ -533,13 +546,13 @@ function renderWarMultiRetry(){
       <section class="war-arena war-multi-waiting">
         <div class="war-topbar">
           <button id="warRetryBack" class="war-exit" type="button">← ${tr("backGames")}</button>
-          <strong>🌐 Luftra Online</strong>
+          <strong>🌐 ${wtr("warOnline")}</strong>
         </div>
         <div class="war-multi-wait-card war-retry-card">
           <div class="war-retry-icon">⏱️</div>
-          <h2>Nuk u gjet lojtar tjetër.</h2>
-          <p>Nuk kalon automatikisht te kompjuteri.</p>
-          <button id="warRetryOnline" class="primary" type="button">🔄 Provo përsëri</button>
+          <h2>${wtr("noPlayer")}</h2>
+          <p>${wtr("noComputerSwitch")}</p>
+          <button id="warRetryOnline" class="primary" type="button">${wtr("retry")}</button>
         </div>
       </section>
     </div>`;
@@ -573,12 +586,12 @@ function renderWarMultiGame(){
       <section class="war-arena war-multi-arena">
         <div class="war-topbar">
           <button id="warMultiBack" class="war-exit" type="button">← ${tr("backGames")}</button>
-          <strong>🌐 Luftra Online</strong>
-          <span class="war-turn">${warMultiRoom.status==="finished"?"FUND":(myTurn?"RADHA JOTE":"PRIT RADHËN")}</span>
+          <strong>🌐 ${wtr("warOnline")}</strong>
+          <span class="war-turn">${warMultiRoom.status==="finished"?wtr("finish"):(myTurn?wtr("yourTurnCaps"):wtr("waitTurnCaps"))}</span>
         </div>
 
         <div class="war-multi-summary">
-          <strong>👥 ${alive.length} gjallë / ${warMultiPlayers.length} lojtarë</strong>
+          <strong>👥 ${alive.length} ${wtr("alive")} / ${warMultiPlayers.length} ${wtr("players")}</strong>
           <span>💎 ${Number(warProfile?.diamonds||0)}</span>
           <span>${escapeHtml(warMultiRoom.message||"")}</span>
         </div>
@@ -589,17 +602,17 @@ function renderWarMultiGame(){
 
         ${warMultiRoom.status==="finished"?`
           <div class="war-multi-winner">
-            🏆 Fituesi:
+            🏆 ${wtr("winner")}:
             <strong>${escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiRoom.winner_device)?.display_name||"—")}</strong>
           </div>
-          <button id="warMultiAgain" class="primary" type="button">🌐 Përsëri luaj online</button>
+          <button id="warMultiAgain" class="primary" type="button">${wtr("playOnlineAgain")}</button>
         `:`
           <div class="war-multi-target-hint">
             ${myTurn
               ? (warMultiSelectedTarget
-                  ? "🎯 Objektivi: "+escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiSelectedTarget)?.display_name||"")
-                  : "🎯 Prek lojtarin që dëshiron ta sulmosh.")
-              : "⏳ Prit deri sa të vijë radha jote."}
+                  ? "🎯 "+wtr("target")+": "+escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiSelectedTarget)?.display_name||"")
+                  : "🎯 "+wtr("tapTarget"))
+              : "⏳ "+wtr("waitYourTurn")}
           </div>
 
           <div class="war-actions">
@@ -645,7 +658,7 @@ function renderWarMultiGame(){
     }catch(error){
       const raw=String(error?.message||error);
       const hint=root.querySelector(".war-multi-target-hint");
-      if(hint) hint.textContent=raw.includes("NOT_ENOUGH_DIAMONDS")?"⚠️ Nuk ke 3 💎.":"⚠️ Armët nuk u ndryshuan.";
+      if(hint) hint.textContent=raw.includes("NOT_ENOUGH_DIAMONDS")?"⚠️ "+wtr("notEnough3"):"⚠️ "+wtr("weaponsNotChanged");
       if(btn) btn.disabled=false;
     }
   });
@@ -687,7 +700,7 @@ async function warMultiDoAction(action){
     if(opponents.length===1) target=opponents[0].device_id;
     else {
       const hint=root.querySelector(".war-multi-target-hint");
-      if(hint) hint.textContent="⚠️ Zgjidh së pari cilin lojtar dëshiron ta godasësh.";
+      if(hint) hint.textContent="⚠️ "+wtr("chooseTarget");
       return;
     }
   }
@@ -809,16 +822,16 @@ async function startWarMultiSearch(){
 let warGameState=null;
 
 const WAR_SPECIALS=[
-  {key:"attack",label:"Sulm",icon:"🔫",weight:80,small:"−1 ❤️"},
-  {key:"bomb",label:"Bombë",icon:"💣",weight:28,small:"2 sulme"},
-  {key:"heart",label:"Zemër",icon:"❤️",weight:16,small:"+1 ❤️ · max 20"},
-  {key:"helicopter",label:"Helikopter",icon:"🚁",weight:3,small:"−2 ❤️ · gjuan prapë"},
-  {key:"atom",label:"Atom",icon:"☢️",weight:5,small:"−3 ❤️"},
-  {key:"protect",label:"Mbrojtje",icon:"🛡️",weight:30,small:"mbron 2 herë"},
-  {key:"azrael",label:"Melaqja Asrail",icon:"👼",weight:2,small:"KO pa mbrojtje"},
-  {key:"ice",label:"Akull",icon:"🧊",weight:15,small:"arma tjetër bëhet Sulm"},
-  {key:"drone",label:"Droni",icon:"🛸",weight:12,small:"−1 ❤️ · gjuan prapë"},
-  {key:"fire",label:"Rreth i zjarrtë",icon:"⭕",weight:13,small:"−2 ❤️ · e bën të zi"}
+  {key:"attack",labelKey:"weaponAttack",icon:"🔫",weight:80,small:"−1 ❤️"},
+  {key:"bomb",labelKey:"weaponBomb",icon:"💣",weight:28,smallKey:"twoAttacks"},
+  {key:"heart",labelKey:"weaponHeart",icon:"❤️",weight:16,small:"+1 ❤️ · max 20"},
+  {key:"helicopter",labelKey:"weaponHelicopter",icon:"🚁",weight:3,smallKey:"shootAgain2"},
+  {key:"atom",labelKey:"weaponAtom",icon:"☢️",weight:5,small:"−3 ❤️"},
+  {key:"protect",labelKey:"weaponProtect",icon:"🛡️",weight:30,smallKey:"protect2"},
+  {key:"azrael",labelKey:"weaponAzrael",icon:"👼",weight:2,smallKey:"koNoDefense"},
+  {key:"ice",labelKey:"weaponIce",icon:"🧊",weight:15,smallKey:"nextAttack"},
+  {key:"drone",labelKey:"weaponDrone",icon:"🛸",weight:12,smallKey:"shootAgain1"},
+  {key:"fire",labelKey:"weaponFire",icon:"⭕",weight:13,smallKey:"burnBlack"}
 ];
 
 function warWins(){
@@ -955,7 +968,7 @@ function warRecordCompletedGame(won){
 
 function warActionCard(action){
   const item=warSpecial(action);
-  return `<button data-war-action="${item.key}" type="button"><span class="war-action-icon" aria-hidden="true">${item.icon}</span><strong>${item.label}</strong><small>${item.small}</small></button>`;
+  return `<button data-war-action="${item.key}" type="button"><span class="war-action-icon" aria-hidden="true">${item.icon}</span><strong>${wtr(item.labelKey)}</strong><small>${item.smallKey?wtr(item.smallKey):item.small}</small></button>`;
 }
 
 function renderWarGame(){
@@ -978,15 +991,15 @@ function renderWarGame(){
         <div class="war-topbar">
           <button id="warBack" class="war-exit" type="button">← ${tr("backGames")}</button>
           <strong>⚔️ ${tr("war")}</strong>
-          <span class="war-turn">${s.over?"FUND":(s.turn==="player"?"RADHA JOTE":"KUNDËRSHTARI")}</span>
-          <button id="warSoundToggle" class="war-sound-toggle" type="button">${warSoundEnabled?"🔊 Zëri ON":"🔇 Zëri OFF"}</button>
+          <span class="war-turn">${s.over?wtr("finish"):(s.turn==="player"?wtr("yourTurnCaps"):wtr("opponent"))}</span>
+          <button id="warSoundToggle" class="war-sound-toggle" type="button">${warSoundEnabled?wtr("soundOn"):wtr("soundOff")}</button>
           <span id="warAudioStatus" class="war-audio-status"></span>
         </div>
 
         <div id="warBattleScene" class="war-battle-scene war-battle-scene-new">
           <div class="war-combatant war-combatant-enemy ${e.burned?"burned":""}">
             <div class="war-combatant-info">
-              <span class="war-side-label">KUNDËRSHTARI</span>
+              <span class="war-side-label">${wtr("opponent")}</span>
               <strong class="war-combatant-name">🤖 ${escapeHtml(e.name)}</strong>
               <div class="war-hearts war-compact-hearts" aria-label="${e.hp} zemra">${warHearts(e.hp,e.maxHp)}</div>
               <div class="war-status-icons war-status-compact">
@@ -1007,7 +1020,7 @@ function renderWarGame(){
 
           <div class="war-combatant war-combatant-player ${p.burned?"burned":""}">
             <div class="war-combatant-info">
-              <span class="war-side-label">TI</span>
+              <span class="war-side-label">${wtr("you")}</span>
               <strong class="war-combatant-name">🇦🇱 ${escapeHtml(p.name)}</strong>
               <div class="war-hearts war-compact-hearts" aria-label="${p.hp} zemra">${warHearts(p.hp,p.maxHp)}</div>
               <div class="war-status-icons war-status-compact">
@@ -1022,25 +1035,25 @@ function renderWarGame(){
           </div>
 
           <aside class="war-weapons-panel">
-            <div class="war-weapons-title">ARMËT E TUA</div>
+            <div class="war-weapons-title">${wtr("yourWeapons")}</div>
             <div class="war-actions war-side-actions">
               ${warActionCard(p.special)}
               ${warActionCard(p.special2)}
             </div>
-            <button id="warReroll" class="war-reroll" type="button" ${s.over||s.turn!=="player"?"disabled":""}>🎲 Ndrysho armët<br><small>3 💎</small></button>
+            <button id="warReroll" class="war-reroll" type="button" ${s.over||s.turn!=="player"?"disabled":""}>${wtr("changeWeapons")}<br><small>3 💎</small></button>
           </aside>
         </div>
 
         <div class="war-battle-info">
           <div class="war-progress war-progress-inline">
-            <strong>🏆 ${wins} fitore</strong>
-            <small>🎮 ${games} lojëra · ❤️ bonus: ${activeBonus} · 💎 ${Number(warProfile?.diamonds||0)}</small>
+            <strong>🏆 ${wins} ${wtr("wins")}</strong>
+            <small>🎮 ${games} ${wtr("games")} · ❤️ ${wtr("bonus")}: ${activeBonus} · 💎 ${Number(warProfile?.diamonds||0)}</small>
           </div>
           <div class="war-vs">VS</div>
           <p id="warMessage" class="war-message">${escapeHtml(s.message)}</p>
         </div>
 
-        ${s.over?'<button id="warRestart" class="primary war-restart" type="button">🔄 Luaj përsëri</button>':""}
+        ${s.over?`<button id="warRestart" class="primary war-restart" type="button">${wtr("playAgain")}</button>`:""}
       </section>
     </div>`;
 
