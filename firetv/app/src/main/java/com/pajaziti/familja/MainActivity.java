@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -89,6 +91,7 @@ public class MainActivity extends Activity {
         settings.setGeolocationEnabled(true);
 
         webView.addJavascriptInterface(new PrayerBridge(this), "AndroidPrayer");
+        webView.addJavascriptInterface(new ClockWidgetBridge(this), "AndroidClock");
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(
@@ -461,6 +464,27 @@ public class MainActivity extends Activity {
         }
 
         enterImmersiveFullscreen();
+    }
+
+    public void requestClockWidget() {
+        runOnUiThread(() -> {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    AppWidgetManager manager = AppWidgetManager.getInstance(this);
+                    ComponentName provider = new ComponentName(this, PajazitiClockWidget.class);
+                    if (manager.isRequestPinAppWidgetSupported()) {
+                        manager.requestPinAppWidget(provider, null, null);
+                        return;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+            new AlertDialog.Builder(this)
+                .setTitle("🕒 Ora Pajaziti")
+                .setMessage("Mbaje të shtypur ekranin kryesor të telefonit, zgjidh Widgets dhe pastaj PAJAZITI Ora.")
+                .setPositiveButton("OK", null)
+                .show();
+        });
     }
 
     public void requestAlarmPermissions() {
