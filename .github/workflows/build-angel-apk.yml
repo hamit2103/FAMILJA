@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: angel-apk-main
@@ -34,11 +35,38 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Restore signing keystore
-        working-directory: firetv
+      - name: Request GitHub OIDC token
+        id: oidc
+        shell: bash
         run: |
-          base64 -d pajaziti-release.jks.b64 > pajaziti-release.jks
-          test -s pajaziti-release.jks
+          set -euo pipefail
+          TOKEN_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=angel-build")"
+          TOKEN="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$TOKEN_JSON")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Restore signing keystore securely
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SECRET_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-build-secret")"
+          python3 - <<'PY' <<<"$SECRET_JSON"
+import json, os, pathlib, sys
+data=json.load(sys.stdin)
+path=pathlib.Path("firetv/pajaziti-release.jks")
+path.write_bytes(__import__("base64").b64decode(data["keystore_b64"]))
+with open(os.environ["GITHUB_ENV"],"a",encoding="utf-8") as f:
+    f.write("ANGEL_KEYSTORE_PASSWORD="+data["store_password"]+"\n")
+    f.write("ANGEL_KEY_ALIAS="+data["key_alias"]+"\n")
+    f.write("ANGEL_KEY_PASSWORD="+data["key_password"]+"\n")
+PY
+          test -s firetv/pajaziti-release.jks
 
       - name: Build signed release APKs
         run: |
@@ -55,14 +83,16 @@ jobs:
           cp /tmp/angel-main.apk pajaziti-firetv.apk
           cp /tmp/angel-fresh.apk pajaziti-fresh.apk
 
-      - name: Upload ANGEL 5.1 to update server
+      - name: Upload ANGEL 5.3 to update server
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           curl --fail --show-error --silent \
-            -H "x-angel-build-token: angel-build-4-7-20260921" \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-android.apk \
             "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.8.apk"
           curl --fail --show-error --silent \
-            -H "x-angel-build-token: angel-build-4-7-20260921" \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-fresh.apk \
             "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.8-fresh.apk"
 
@@ -70,17 +100,18 @@ jobs:
         run: |
           git config user.name "ANGEL Build"
           git config user.email "actions@users.noreply.github.com"
+          git pull --rebase origin main
           git add pajaziti-android.apk pajaziti-firetv.apk pajaziti-fresh.apk
           if git diff --cached --quiet; then
             echo "APK already up to date."
           else
-            git commit -m "Publish ANGEL 5.1 APK [skip ci]"
+            git commit -m "Publish ANGEL 5.3 APK [skip ci]"
             git push
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ANGEL-5.1
+          name: ANGEL-5.3
           path: /tmp/angel-main.apk
           if-no-files-found: error
