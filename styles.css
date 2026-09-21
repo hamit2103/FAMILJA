@@ -2800,3 +2800,19 @@ body,
 .install-stats-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .install-stats-row h2{margin:0 0 4px}
 .install-stats-row strong{font-size:2.2rem}
+
+
+.app-title-row{
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+}
+.app-version-label{
+  font-size:11px;
+  line-height:1.4;
+  font-weight:700;
+  color:#6b7280;
+  opacity:.82;
+  padding-bottom:5px;
+  letter-spacing:.2px;
+}
