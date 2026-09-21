@@ -7,7 +7,7 @@
   <meta name="description" content="PAJAZITI – album privat për foto dhe video">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=67">
+  <link rel="stylesheet" href="styles.css?v=68">
   <title>PAJAZITI</title>
   <style>
     /* Inline menu-order hotfix */
@@ -147,6 +147,7 @@
         <button id="galleryTab" class="app-tab active" type="button"><span>📢 </span><span data-i18n="tabs.photos">Reklama</span></button>
         <button id="infoTab" class="app-tab info-tab-button" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span><span id="infoUnreadBadge" class="info-unread-badge hidden">0</span></button>
         <button id="prayerTab" class="app-tab" type="button"><span>🕌 </span><span data-i18n="tabs.prayer">Namazi</span></button>
+        <button id="sportTab" class="app-tab" type="button"><span>⚽ </span><span>Sport</span></button>
         <button id="gamesTab" class="app-tab" type="button"><span>🎮 </span><span id="gamesTabLabel">Lojëra</span></button>
         <button id="tvTab" class="app-tab" type="button"><span>📺 </span><span id="tvTabLabel">TV</span></button>
         <button id="radioTab" class="app-tab" type="button"><span>📻 </span><span id="radioTabLabel">Radio</span></button>
@@ -228,6 +229,10 @@
           <h2 data-i18n="info.emptyTitle">Ende nuk ka informacion</h2>
           <p class="muted" data-i18n="info.emptyBody">Kur administratori të publikojë diçka, do të shfaqet këtu.</p>
         </section>
+      </section>
+
+      <section id="sportView" class="hidden">
+        <div id="sportRoot"></div>
       </section>
 
       <section id="gamesView" class="hidden">
@@ -346,11 +351,12 @@
       window.__PAJAZITI_MENU_ORDER_HOTFIX__ = true;
 
       const ADMIN_EMAIL = "admin@familja.local";
-      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","gamesTab","tvTab","radioTab","chatTab"];
+      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","sportTab","gamesTab","tvTab","radioTab","chatTab"];
       const LABELS = {
         galleryTab:"📢 Reklama",
         infoTab:"ℹ️ Informacion",
         prayerTab:"🕌 Namazi",
+        sportTab:"⚽ Sport",
         gamesTab:"🎮 Lojëra",
         tvTab:"📺 TV",
         radioTab:"📻 Radio",
@@ -459,8 +465,9 @@
       await load();
     }
   </script>
-  <script type="module" src="app.js?v=64"></script>
-  <script type="module" src="games.js?v=67"></script>
+  <script type="module" src="app.js?v=68"></script>
+  <script type="module" src="sports.js?v=1"></script>
+  <script type="module" src="games.js?v=68"></script>
   <script type="module" src="tv.js?v=52"></script>
   <script type="module" src="radio.js?v=52"></script>
   <script type="module">
