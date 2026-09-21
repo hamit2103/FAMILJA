@@ -2790,3 +2790,13 @@ body,
   .clock-preview-grid{grid-template-columns:1fr 1fr;gap:8px}
   .clock-zone{padding:12px}
 }
+
+.sport-day-tabs{display:flex;gap:8px;overflow-x:auto;padding:6px 0 2px;scrollbar-width:none}
+.sport-day-tabs::-webkit-scrollbar{display:none}
+.sport-day{min-width:92px;border:0;border-radius:16px;padding:10px 12px;background:var(--theme-button);color:var(--theme-text);display:grid;gap:3px;text-align:center}
+.sport-day.active{background:var(--theme-accent);color:#fff}
+.sport-day small{font-size:.72rem;opacity:.8}
+.install-stats-card{margin-bottom:14px}
+.install-stats-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.install-stats-row h2{margin:0 0 4px}
+.install-stats-row strong{font-size:2.2rem}
