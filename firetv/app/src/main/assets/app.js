@@ -295,12 +295,12 @@ const chatList = $("chatList");
 languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
 
-const PERSONAL_THEME_KEY = "pajaziti_personal_theme_v1";
+const PERSONAL_THEME_KEY = "pajaziti_personal_theme_v2";
 const DEFAULT_PERSONAL_THEME = {
-  bg: "#dc2626",
-  card: "#dbeafe",
-  button: "#e5e7eb",
-  accent: "#7c3aed",
+  bg: "#91d7df",
+  card: "#d6d3c2",
+  button: "#c4dbc1",
+  accent: "#7b3aec",
   text: "#111827"
 };
 
