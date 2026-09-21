@@ -52,6 +52,33 @@ function selectedMatches(){
   });
 }
 
+function competitionPriority(name){
+  const n=String(name||"").toLocaleLowerCase();
+  const rules=[
+    [0,/(world cup|fifa world cup|uefa euro|european championship|nations league|world championship)/],
+    [10,/champions league/],
+    [20,/europa league/],
+    [30,/conference league/],
+    [40,/(world cup qual|euro qual|qualification|qualifiers|international friendly|friendlies)/],
+    [100,/(premier league|england.*premier|english premier)/],
+    [110,/(la liga|primera division|spain.*liga)/],
+    [120,/(serie a|italy.*serie)/],
+    [130,/(bundesliga|germany.*bundesliga)/],
+    [140,/(ligue 1|france.*ligue)/],
+    [150,/(super lig|süper lig|turkey.*super)/],
+    [160,/(primeira liga|portugal.*liga)/],
+    [170,/(eredivisie|netherlands.*eredivisie)/],
+    [180,/(pro league|belgium.*league)/],
+    [190,/(austria.*bundesliga|austrian bundesliga)/],
+    [200,/(swiss super league|switzerland.*super)/],
+    [210,/(kosovo.*super|superliga.*kosov)/]
+  ];
+  for(const [priority,rx] of rules){
+    if(rx.test(n)) return priority;
+  }
+  return 500;
+}
+
 function groupByCompetition(rows){
   const groups=new Map();
   for(const m of rows){
@@ -59,7 +86,23 @@ function groupByCompetition(rows){
     if(!groups.has(key)) groups.set(key,[]);
     groups.get(key).push(m);
   }
-  return [...groups.entries()];
+  return [...groups.entries()]
+    .map(([name,list])=>[
+      name,
+      [...list].sort((a,b)=>{
+        const liveDiff=Number(isLive(b))-Number(isLive(a));
+        if(liveDiff) return liveDiff;
+        const ta=new Date(a.time||0).getTime()||0;
+        const tb=new Date(b.time||0).getTime()||0;
+        return ta-tb;
+      })
+    ])
+    .sort((a,b)=>{
+      const pa=competitionPriority(a[0]);
+      const pb=competitionPriority(b[0]);
+      if(pa!==pb) return pa-pb;
+      return String(a[0]).localeCompare(String(b[0]),"sq");
+    });
 }
 
 function matchHtml(m){
@@ -99,7 +142,7 @@ function render(){
         <div class="sport-head">
           <div>
             <h2>⚽ Sport</h2>
-            <p class="muted">Futboll real — rezultate dhe ndeshje live.</p>
+            <p class="muted">Garat më të rëndësishme shfaqen të parat, pastaj ligat kryesore të shteteve.</p>
           </div>
           <button id="sportRefresh" class="secondary sport-refresh" type="button">${loading?"Po rifreskon…":"Rifresko"}</button>
         </div>
