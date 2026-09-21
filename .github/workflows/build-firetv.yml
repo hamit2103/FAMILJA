@@ -10,11 +10,11 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: build-android-apk-main
   cancel-in-progress: true
-
 
 jobs:
   build:
@@ -34,8 +34,38 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Decode signing keystore
-        run: base64 -d firetv/pajaziti-release.jks.b64 > firetv/pajaziti-release.jks
+      - name: Request GitHub OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          TOKEN_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=angel-build")"
+          TOKEN="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$TOKEN_JSON")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Restore signing keystore securely
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SECRET_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-build-secret")"
+          python3 - <<'PY' <<<"$SECRET_JSON"
+import json, os, pathlib, sys
+data=json.load(sys.stdin)
+path=pathlib.Path("firetv/pajaziti-release.jks")
+path.write_bytes(__import__("base64").b64decode(data["keystore_b64"]))
+with open(os.environ["GITHUB_ENV"],"a",encoding="utf-8") as f:
+    f.write("ANGEL_KEYSTORE_PASSWORD="+data["store_password"]+"\n")
+    f.write("ANGEL_KEY_ALIAS="+data["key_alias"]+"\n")
+    f.write("ANGEL_KEY_PASSWORD="+data["key_password"]+"\n")
+PY
+          test -s firetv/pajaziti-release.jks
 
       - name: Build universal Android APK
         run: |
@@ -56,7 +86,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "APK unchanged"
           else
-            git commit -m "Publish Android APK"
+            git commit -m "Publish Android APK [skip ci]"
             git push
           fi
 
