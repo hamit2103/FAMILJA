@@ -57,6 +57,17 @@ jobs:
           cp "$APK" pajaziti-firetv.apk
           cp "$APK" pajaziti-fresh.apk
 
+      - name: Upload ANGEL 4.5 to update server
+        run: |
+          curl --fail --show-error --silent \
+            -H "x-angel-build-token: angel-build-4-5-20260921" \
+            --data-binary @pajaziti-android.apk \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.5.apk"
+          curl --fail --show-error --silent \
+            -H "x-angel-build-token: angel-build-4-5-20260921" \
+            --data-binary @pajaziti-fresh.apk \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.5-fresh.apk"
+
       - name: Commit APK update
         run: |
           git config user.name "ANGEL Build"
