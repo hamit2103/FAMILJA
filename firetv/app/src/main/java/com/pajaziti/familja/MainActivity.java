@@ -29,14 +29,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import androidx.core.content.FileProvider;
-
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -359,108 +354,41 @@ public class MainActivity extends Activity {
     }
 
     private void downloadUpdate(String apkUrl) {
-        final AlertDialog progress = new AlertDialog.Builder(this)
-            .setTitle("PAJAZITI Update")
-            .setMessage("Po shkarkohet versioni i ri…")
-            .setCancelable(false)
-            .create();
-        progress.show();
-
-        new Thread(() -> {
-            HttpURLConnection connection = null;
-            try {
-                URL url = new URL(apkUrl + (apkUrl.contains("?") ? "&" : "?") + "t=" + System.currentTimeMillis());
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(15000);
-                connection.setReadTimeout(30000);
-                connection.setInstanceFollowRedirects(true);
-                connection.setUseCaches(false);
-                connection.setRequestProperty("Cache-Control", "no-cache");
-                connection.connect();
-
-                int code = connection.getResponseCode();
-                if (code < 200 || code >= 300) {
-                    throw new Exception("HTTP " + code);
-                }
-
-                File dir = new File(getCacheDir(), "updates");
-                if (!dir.exists() && !dir.mkdirs()) {
-                    throw new Exception("Nuk u krijua dosja e update-it");
-                }
-
-                File apk = new File(dir, "pajaziti-update.apk");
-                try (InputStream input = connection.getInputStream();
-                     FileOutputStream output = new FileOutputStream(apk, false)) {
-                    byte[] buffer = new byte[64 * 1024];
-                    int read;
-                    while ((read = input.read(buffer)) != -1) {
-                        output.write(buffer, 0, read);
-                    }
-                    output.flush();
-                }
-
-                if (!apk.exists() || apk.length() < 50_000L) {
-                    throw new Exception("APK-ja nuk u shkarkua si duhet");
-                }
-
-                runOnUiThread(() -> {
-                    try { progress.dismiss(); } catch (Exception ignored) {}
-                    openApkInstaller(apk, apkUrl);
-                });
-            } catch (Exception error) {
-                runOnUiThread(() -> {
-                    try { progress.dismiss(); } catch (Exception ignored) {}
-                    showUpdateDownloadError(apkUrl);
-                });
-            } finally {
-                if (connection != null) connection.disconnect();
-            }
-        }).start();
-    }
-
-    private void openApkInstaller(File apk, String fallbackUrl) {
         try {
-            Uri apkUri = FileProvider.getUriForFile(
+            DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            if (manager == null) return;
+
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
+            request.setTitle("PAJAZITI Update");
+            request.setDescription("Po shkarkohet versioni i ri…");
+            request.setMimeType("application/vnd.android.package-archive");
+            request.setNotificationVisibility(
+                DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            );
+            request.setAllowedOverMetered(true);
+            request.setAllowedOverRoaming(true);
+            request.setDestinationInExternalFilesDir(
                 this,
-                getPackageName() + ".fileprovider",
-                apk
+                Environment.DIRECTORY_DOWNLOADS,
+                "pajaziti-update.apk"
             );
 
-            Intent install = new Intent(Intent.ACTION_VIEW);
-            install.setDataAndType(apkUri, "application/vnd.android.package-archive");
-            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            if (install.resolveActivity(getPackageManager()) == null) {
-                throw new Exception("Package installer not found");
-            }
-
-            startActivity(install);
+            updateDownloadId = manager.enqueue(request);
+            pendingApkUrl = null;
         } catch (Exception error) {
-            showUpdateDownloadError(fallbackUrl);
+            new AlertDialog.Builder(this)
+                .setTitle("Update")
+                .setMessage("Shkarkimi nuk filloi. Provo përsëri.")
+                .setPositiveButton("OK", null)
+                .show();
         }
     }
 
-    private void showUpdateDownloadError(String apkUrl) {
-        new AlertDialog.Builder(this)
-            .setTitle("Update")
-            .setMessage("Update-i nuk u hap automatikisht. Shtyp “Hap shkarkimin” për ta instaluar.")
-            .setPositiveButton("Hap shkarkimin", (dialog, which) -> {
-                try {
-                    Intent browser = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
-                    startActivity(browser);
-                } catch (Exception ignored) {
-                }
-            })
-            .setNegativeButton("Mbyll", null)
-            .show();
-    }
-
-    // Kept for compatibility with older DownloadManager completion callbacks.
     private void installDownloadedUpdate() {
         try {
             DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             if (manager == null) return;
+
             Uri apkUri = manager.getUriForDownloadedFile(updateDownloadId);
             if (apkUri == null) return;
 
@@ -469,7 +397,12 @@ public class MainActivity extends Activity {
             install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             install.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(install);
-        } catch (Exception ignored) {
+        } catch (Exception error) {
+            new AlertDialog.Builder(this)
+                .setTitle("Update")
+                .setMessage("APK-ja u shkarkua, por Android nuk e hapi instalimin.")
+                .setPositiveButton("OK", null)
+                .show();
         }
     }
 
