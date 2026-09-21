@@ -2689,3 +2689,49 @@ body,
     right:132px !important;
   }
 }
+
+
+/* Sport results v1 */
+.sport-shell{display:grid;gap:14px}
+.sport-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.sport-head h2{margin:0 0 4px}
+.sport-refresh{min-width:112px}
+.sport-controls{display:grid;grid-template-columns:1fr;gap:10px}
+.sport-search{width:100%;box-sizing:border-box}
+.sport-filters{display:flex;gap:8px;flex-wrap:wrap}
+.sport-filter{
+  border:0;border-radius:999px;padding:10px 14px;font-weight:800;
+  background:var(--pajaziti-button,#e5e7eb);color:var(--pajaziti-text,#111827)
+}
+.sport-filter.active{background:var(--pajaziti-accent,#7c3aed);color:#fff}
+.sport-meta{font-size:.9rem}
+.sport-list{display:grid;gap:12px}
+.sport-league{display:grid;gap:8px}
+.sport-league-title{
+  display:flex;align-items:center;gap:8px;font-weight:900;
+  padding:3px 4px
+}
+.sport-league-logo{width:24px;height:24px;object-fit:contain;border-radius:5px}
+.sport-match{
+  background:rgba(255,255,255,.88);border-radius:18px;padding:12px;
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;
+  box-shadow:0 4px 16px rgba(15,23,42,.08)
+}
+.sport-team{display:flex;align-items:center;gap:8px;min-width:0;font-weight:800}
+.sport-team.away{justify-content:flex-end;text-align:right}
+.sport-team img{width:34px;height:34px;object-fit:contain;flex:0 0 34px}
+.sport-team-name{overflow:hidden;text-overflow:ellipsis}
+.sport-score{text-align:center;min-width:74px}
+.sport-score strong{display:block;font-size:1.35rem;line-height:1.1}
+.sport-status{font-size:.76rem;font-weight:800;margin-top:4px}
+.sport-status.live{color:#dc2626}
+.sport-empty{padding:24px;text-align:center}
+.sport-source{text-align:center;font-size:.82rem;padding:4px 0 10px}
+.sport-source a{font-weight:800;color:inherit}
+@media(max-width:560px){
+  .sport-match{grid-template-columns:1fr 64px 1fr;gap:6px;padding:10px}
+  .sport-team{font-size:.86rem;display:grid;justify-items:start}
+  .sport-team.away{justify-items:end}
+  .sport-team img{width:30px;height:30px}
+  .sport-score strong{font-size:1.2rem}
+}
