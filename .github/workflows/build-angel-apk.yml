@@ -56,16 +56,7 @@ jobs:
           SECRET_JSON="$(curl --fail --silent --show-error \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-build-secret")"
-          python3 - <<'PY' <<<"$SECRET_JSON"
-import json, os, pathlib, sys
-data=json.load(sys.stdin)
-path=pathlib.Path("firetv/pajaziti-release.jks")
-path.write_bytes(__import__("base64").b64decode(data["keystore_b64"]))
-with open(os.environ["GITHUB_ENV"],"a",encoding="utf-8") as f:
-    f.write("ANGEL_KEYSTORE_PASSWORD="+data["store_password"]+"\n")
-    f.write("ANGEL_KEY_ALIAS="+data["key_alias"]+"\n")
-    f.write("ANGEL_KEY_PASSWORD="+data["key_password"]+"\n")
-PY
+          python3 -c 'import json,os,pathlib,sys,base64; d=json.load(sys.stdin); pathlib.Path("firetv/pajaziti-release.jks").write_bytes(base64.b64decode(d["keystore_b64"])); f=open(os.environ["GITHUB_ENV"],"a",encoding="utf-8"); f.write("ANGEL_KEYSTORE_PASSWORD="+d["store_password"]+"\\nANGEL_KEY_ALIAS="+d["key_alias"]+"\\nANGEL_KEY_PASSWORD="+d["key_password"]+"\\n"); f.close()' <<<"$SECRET_JSON"
           test -s firetv/pajaziti-release.jks
 
       - name: Build signed release APKs
