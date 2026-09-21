@@ -1,0 +1,8 @@
+.gradle/
+.idea/
+*.iml
+firetv/pajaziti-release.jks
+firetv/pajaziti-release.jks.b64
+local.properties
+.env
+.env.*
