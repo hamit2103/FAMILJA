@@ -14,10 +14,47 @@ const TV_LOCAL_PLAYLIST_KEY = "pajaziti-tv-local-playlist";
 const ADMIN_EMAIL = "admin@familja.local";
 
 const FREE_TV_PLAYLISTS = [
-  { title:"🇩🇪 Gjermani", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/de.m3u" },
   { title:"🇦🇱 Shqipëri", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/al.m3u" },
   { title:"🇽🇰 Kosovë", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/xk.m3u" },
+  { title:"🇩🇪 Gjermani", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/de.m3u" },
   { title:"🇹🇷 Turqi", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/tr.m3u" }
+];
+
+const BUILTIN_FREE_SERVERS = [
+  {
+    id:"free-shqip",
+    title:"🇦🇱🇽🇰 Shqip FREE",
+    countryGroup:"Shqiptare",
+    playlistUrls:[
+      "https://iptv-org.github.io/iptv/countries/al.m3u",
+      "https://iptv-org.github.io/iptv/countries/xk.m3u"
+    ]
+  },
+  {
+    id:"free-germany",
+    title:"🇩🇪 Gjermani FREE",
+    countryGroup:"Gjermane",
+    playlistUrls:["https://iptv-org.github.io/iptv/countries/de.m3u"]
+  },
+  {
+    id:"free-turkiye",
+    title:"🇹🇷 Turqi FREE",
+    countryGroup:"Turke",
+    playlistUrls:["https://iptv-org.github.io/iptv/countries/tr.m3u"]
+  },
+  {
+    id:"free-exyu",
+    title:"🌍 EX-YU FREE",
+    countryGroup:"EX-YU",
+    playlistUrls:[
+      "https://iptv-org.github.io/iptv/countries/ba.m3u",
+      "https://iptv-org.github.io/iptv/countries/hr.m3u",
+      "https://iptv-org.github.io/iptv/countries/me.m3u",
+      "https://iptv-org.github.io/iptv/countries/mk.m3u",
+      "https://iptv-org.github.io/iptv/countries/rs.m3u",
+      "https://iptv-org.github.io/iptv/countries/si.m3u"
+    ]
+  }
 ];
 
 const TXT = {
@@ -341,6 +378,42 @@ function catalogChannel(ch,countryGroup){
   };
 }
 
+function appendBuiltInFreeServers(){
+  const known=new Set(serverCatalog.map(s=>s.id));
+  for(const def of BUILTIN_FREE_SERVERS){
+    if(known.has(def.id)) continue;
+    serverCatalog.push({
+      id:def.id,
+      title:def.title,
+      countryGroup:def.countryGroup,
+      playlistUrls:[...def.playlistUrls],
+      builtIn:true,
+      channels:[]
+    });
+  }
+}
+
+async function loadBuiltInServer(server){
+  if(!server?.builtIn || server.channels?.length) return server;
+  server.loading=true;
+  try{
+    const batches=await Promise.all((server.playlistUrls||[]).map(async url=>{
+      try{
+        const res=await fetch(url,{cache:"no-store"});
+        if(!res.ok) return [];
+        const text=await res.text();
+        return parseM3U(text).map(ch=>catalogChannel(ch,server.countryGroup));
+      }catch(_){
+        return [];
+      }
+    }));
+    server.channels=mergeChannels([],batches.flat());
+  }finally{
+    server.loading=false;
+  }
+  return server;
+}
+
 function activeServer(){
   return serverCatalog.find(s=>s.id===activeServerId)||serverCatalog[0]||null;
 }
@@ -360,42 +433,48 @@ function syncActiveChannels(){
 
 async function loadCatalog(){
   serverCatalog=[];
-  if(!sharedRecord){ syncActiveChannels(); return; }
+  let importedLegacy=false;
 
-  try{
-    const parsed=JSON.parse(sharedRecord.source_value||"");
-    if(parsed?.kind===TV_CATALOG_KIND && Array.isArray(parsed.servers)){
-      serverCatalog=parsed.servers
-        .filter(s=>s && s.id && Array.isArray(s.channels))
-        .map(s=>({
-          id:String(s.id),
-          title:String(s.title||"Server"),
-          countryGroup:normalizeCountryGroup(s.countryGroup),
-          channels:s.channels.map(ch=>({
-            ...ch,
-            countryGroup:normalizeCountryGroup(ch.countryGroup||s.countryGroup),
-            sourceGroup:String(ch.sourceGroup||ch.group||""),
-            mediaType:["live","movies","series","replay"].includes(ch.mediaType)?ch.mediaType:classifyChannel(ch)
-          }))
-        }));
-      syncActiveChannels();
-      return;
+  if(sharedRecord){
+    try{
+      const parsed=JSON.parse(sharedRecord.source_value||"");
+      if(parsed?.kind===TV_CATALOG_KIND && Array.isArray(parsed.servers)){
+        serverCatalog=parsed.servers
+          .filter(s=>s && s.id && Array.isArray(s.channels))
+          .map(s=>({
+            id:String(s.id),
+            title:String(s.title||"Server"),
+            countryGroup:normalizeCountryGroup(s.countryGroup),
+            channels:s.channels.map(ch=>({
+              ...ch,
+              countryGroup:normalizeCountryGroup(ch.countryGroup||s.countryGroup),
+              sourceGroup:String(ch.sourceGroup||ch.group||""),
+              mediaType:["live","movies","series","replay"].includes(ch.mediaType)?ch.mediaType:classifyChannel(ch)
+            }))
+          }));
+      }
+    }catch(_){}
+
+    if(!serverCatalog.length){
+      const legacy=await sourceToChannels(sharedRecord);
+      if(legacy.length){
+        serverCatalog=[{
+          id:makeServerId(),
+          title:sharedRecord.title||"Lista kryesore",
+          countryGroup:"Tjera",
+          channels:legacy.map(ch=>catalogChannel(ch,"Tjera"))
+        }];
+        importedLegacy=true;
+      }
     }
-  }catch(_){}
-
-  const legacy=await sourceToChannels(sharedRecord);
-  if(legacy.length){
-    serverCatalog=[{
-      id:makeServerId(),
-      title:sharedRecord.title||"Lista kryesore",
-      countryGroup:"Tjera",
-      channels:legacy.map(ch=>catalogChannel(ch,"Tjera"))
-    }];
-    syncActiveChannels();
-    if(isAdmin()) await persistCatalog();
-  }else{
-    syncActiveChannels();
   }
+
+  appendBuiltInFreeServers();
+  let selected=activeServer();
+  if(selected?.builtIn) await loadBuiltInServer(selected);
+  syncActiveChannels();
+
+  if(importedLegacy && isAdmin()) await persistCatalog();
 }
 
 async function persistCatalog(){
@@ -408,6 +487,8 @@ async function persistCatalog(){
       kind:TV_CATALOG_KIND,
       updatedAt:new Date().toISOString(),
       servers:serverCatalog
+        .filter(server=>!server.builtIn)
+        .map(({builtIn,playlistUrls,loading,...server})=>server)
     }),
     updated_at:new Date().toISOString(),
     updated_by:currentUser?.id||null
@@ -519,7 +600,7 @@ async function adminAddDirectChannel(){
 async function adminDeleteServer(id){
   if(!isAdmin()) return;
   const server=serverCatalog.find(s=>s.id===id);
-  if(!server) return;
+  if(!server || server.builtIn) return;
   if(!confirm("Ta fshij listën "+server.title+"?")) return;
   serverCatalog=serverCatalog.filter(s=>s.id!==id);
   if(activeServerId===id) activeServerId=serverCatalog[0]?.id||"";
@@ -528,10 +609,16 @@ async function adminDeleteServer(id){
   render();
 }
 
-function useServer(id){
+async function useServer(id){
   const server=serverCatalog.find(s=>s.id===id);
   if(!server) return;
   activeServerId=server.id;
+  localStorage.setItem(TV_ACTIVE_SERVER_KEY,server.id);
+  if(server.builtIn && !server.channels?.length){
+    server.loading=true;
+    render();
+    await loadBuiltInServer(server);
+  }
   syncActiveChannels();
   currentMode="home";
   currentFilter="";
@@ -541,7 +628,7 @@ function useServer(id){
 }
 
 function countrySelect(id,selected="Shqiptare"){
-  const groups=["Shqiptare","Gjermane","Turke","Italiane","Franceze","Arabe","Tjera"];
+  const groups=["Shqiptare","Gjermane","Turke","EX-YU","Italiane","Franceze","Arabe","Tjera"];
   return '<select id="'+id+'" class="tv-server-select">'+groups.map(g=>'<option value="'+esc(g)+'" '+(g===selected?"selected":"")+'>'+esc(g)+'</option>').join("")+'</select>';
 }
 
@@ -551,9 +638,9 @@ function renderServers(){
       <article class="tv-server-card ${server.id===activeServerId?"active":""}">
         <button type="button" class="tv-server-open" data-tv-server="${esc(server.id)}">
           <span class="tv-server-icon">🗄️</span>
-          <span><strong>${esc(server.title)}</strong><small>${esc(server.countryGroup)} · ${server.channels?.length||0} ${tr("channels")}</small></span>
+          <span><strong>${esc(server.title)}</strong><small>${server.builtIn?"FREE · ":""}${esc(server.countryGroup)} · ${server.loading?"…":(server.channels?.length||0)} ${tr("channels")}</small></span>
         </button>
-        ${isAdmin()?'<button type="button" class="tv-server-delete" data-tv-delete-server="'+esc(server.id)+'">🗑️</button>':""}
+        ${isAdmin() && !server.builtIn?'<button type="button" class="tv-server-delete" data-tv-delete-server="'+esc(server.id)+'">🗑️</button>':""}
       </article>`).join("")
     : '<div class="tv-empty-server">Ende nuk ka listë TV.</div>';
 
@@ -582,7 +669,7 @@ function renderServers(){
         </select>
         <select id="tvDirectServer" class="tv-server-select">
           <option value="">Server i ri / Kanale direkte</option>
-          ${serverCatalog.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join("")}
+          ${serverCatalog.filter(s=>!s.builtIn).map(s=>'<option value="'+esc(s.id)+'">'+esc(s.title)+'</option>').join("")}
         </select>
         <button id="tvAddDirect" class="primary" type="button">+ Shto kanal</button>
       </div>
