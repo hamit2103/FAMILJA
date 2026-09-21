@@ -55,7 +55,7 @@ jobs:
           cp /tmp/angel-main.apk pajaziti-firetv.apk
           cp /tmp/angel-fresh.apk pajaziti-fresh.apk
 
-      - name: Upload ANGEL 4.9 to update server
+      - name: Upload ANGEL 5.0 to update server
         run: |
           curl --fail --show-error --silent \
             -H "x-angel-build-token: angel-build-4-7-20260921" \
@@ -74,13 +74,13 @@ jobs:
           if git diff --cached --quiet; then
             echo "APK already up to date."
           else
-            git commit -m "Publish ANGEL 4.9 APK [skip ci]"
+            git commit -m "Publish ANGEL 5.0 APK [skip ci]"
             git push
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ANGEL-4.9
+          name: ANGEL-5.0
           path: /tmp/angel-main.apk
           if-no-files-found: error
