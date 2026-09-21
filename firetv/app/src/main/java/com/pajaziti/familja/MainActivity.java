@@ -252,7 +252,7 @@ public class MainActivity extends Activity {
             "<style>body{font-family:sans-serif;background:#111827;color:#fff;margin:0;padding:28px}" +
             ".box{max-width:520px;margin:12vh auto;background:#1f2937;border-radius:18px;padding:22px}" +
             "button{width:100%;padding:14px;border:0;border-radius:12px;background:#dc2626;color:#fff;font-weight:700;font-size:16px}</style>" +
-            "</head><body><div class='box'><h2>PAJAZITI</h2>" +
+            "</head><body><div class='box'><h2>ANGEL</h2>" +
             "<p>Aplikacioni u hap, por faqja nuk u ngarkua. Kontrollo internetin dhe provo përsëri.</p>" +
             "<button onclick=\"location.href='" + APP_URL + "'\">Provo përsëri</button>" +
             "</div></body></html>";
@@ -365,7 +365,7 @@ public class MainActivity extends Activity {
 
     private void downloadUpdate(String apkUrl) {
         final AlertDialog progress = new AlertDialog.Builder(this)
-            .setTitle("PAJAZITI Update")
+            .setTitle("ANGEL Update")
             .setMessage("Po shkarkohet versioni i ri…")
             .setCancelable(false)
             .create();
@@ -594,8 +594,8 @@ public class MainActivity extends Activity {
             } catch (Exception ignored) {
             }
             new AlertDialog.Builder(this)
-                .setTitle("🕒 Ora Pajaziti")
-                .setMessage("Mbaje të shtypur ekranin kryesor të telefonit, zgjidh Widgets dhe pastaj PAJAZITI Ora.")
+                .setTitle("🕒 Ora ANGEL")
+                .setMessage("Mbaje të shtypur ekranin kryesor të telefonit, zgjidh Widgets dhe pastaj ANGEL Ora.")
                 .setPositiveButton("OK", null)
                 .show();
         });
