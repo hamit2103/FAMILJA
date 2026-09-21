@@ -9,6 +9,19 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 });
 
 const root = document.getElementById("radioRoot");
+const LANG_KEY="pajaziti-language";
+const RADIO_TXT={
+  sq:{choose:"${rt("choose")}",pick:"Zgjidh radion",pickList:"${rt("pickList")}",tap:"${rt("tap")}",radios:"Radiot",folders:"${rt("folders")}",back:"${rt("back")}",add:"Shto radio",admin:"${rt("admin")}",name:"Emri i radios",url:"Linku i radios",folder:"Folderi",save:"Shto radion",playing:"Radioja po luan.",connecting:"Po lidhet me radion...",failed:"Kjo radio nuk po lidhet për momentin. Provo një radio tjetër.",delete:"Fshi",empty:"Ende nuk ka radio në këtë folder."},
+  de:{choose:"Wähle den Radiosender, den du hören möchtest.",pick:"Radio wählen",pickList:"Wähle einen Sender aus der Liste",tap:"Tippe unten auf einen Sender.",radios:"Radios",folders:"Wähle einen Ordner für albanische oder türkische Radiosender.",back:"← Ordner",add:"Radio hinzufügen",admin:"Nur der Administrator kann Radiosender hinzufügen oder löschen. Für das Web ist ein HTTPS-Link sicherer.",name:"Name des Radios",url:"Radio-Link",folder:"Ordner",save:"Radio hinzufügen",playing:"Radio läuft.",connecting:"Verbindung zum Radio…",failed:"Dieses Radio ist momentan nicht erreichbar. Probiere ein anderes.",delete:"Löschen",empty:"Noch keine Radios in diesem Ordner."},
+  tr:{choose:"Dinlemek istediğin radyoyu seç.",pick:"Radyo seç",pickList:"Listeden bir radyo seç",tap:"Aşağıdan bir radyoya dokun.",radios:"Radyolar",folders:"Arnavutça veya Türkçe radyolar için bir klasör seç.",back:"← Klasörler",add:"Radyo ekle",admin:"Yalnızca yönetici radyo ekleyebilir veya silebilir. Web için HTTPS bağlantısı daha güvenlidir.",name:"Radyo adı",url:"Radyo bağlantısı",folder:"Klasör",save:"Radyoyu ekle",playing:"Radyo çalıyor.",connecting:"Radyoya bağlanıyor...",failed:"Bu radyoya şu anda bağlanılamıyor. Başka bir radyo dene.",delete:"Sil",empty:"Bu klasörde henüz radyo yok."},
+  en:{choose:"Choose the radio you want to listen to.",pick:"Choose radio",pickList:"Choose a radio from the list",tap:"Tap a radio below.",radios:"Radios",folders:"Choose a folder for Albanian or Turkish radio stations.",back:"← Folders",add:"Add radio",admin:"Only the administrator can add or delete radio stations. HTTPS links are safer for web playback.",name:"Radio name",url:"Radio link",folder:"Folder",save:"Add radio",playing:"Radio is playing.",connecting:"Connecting to radio...",failed:"This radio is not connecting right now. Try another station.",delete:"Delete",empty:"No radio stations in this folder yet."},
+  it:{choose:"Scegli la radio che vuoi ascoltare.",pick:"Scegli radio",pickList:"Scegli una radio dalla lista",tap:"Tocca una radio qui sotto.",radios:"Radio",folders:"Scegli una cartella per le radio albanesi o turche.",back:"← Cartelle",add:"Aggiungi radio",admin:"Solo l'amministratore può aggiungere o eliminare radio. Un link HTTPS è più sicuro sul web.",name:"Nome radio",url:"Link radio",folder:"Cartella",save:"Aggiungi radio",playing:"La radio è in riproduzione.",connecting:"Connessione alla radio...",failed:"Questa radio non è raggiungibile al momento. Provane un'altra.",delete:"Elimina",empty:"Nessuna radio in questa cartella."},
+  hr:{choose:"Odaberi radio koji želiš slušati.",pick:"Odaberi radio",pickList:"Odaberi radio s popisa",tap:"Dodirni radio ispod.",radios:"Radio",folders:"Odaberi mapu za albanske ili turske radio postaje.",back:"← Mape",add:"Dodaj radio",admin:"Samo administrator može dodavati ili brisati radio postaje. HTTPS poveznica je sigurnija za web.",name:"Naziv radija",url:"Poveznica radija",folder:"Mapa",save:"Dodaj radio",playing:"Radio svira.",connecting:"Povezivanje s radiom...",failed:"Ovaj radio trenutačno nije dostupan. Pokušaj drugi.",delete:"Izbriši",empty:"U ovoj mapi još nema radija."},
+  ar:{choose:"اختر الراديو الذي تريد الاستماع إليه.",pick:"اختر الراديو",pickList:"اختر محطة من القائمة",tap:"اضغط على محطة في الأسفل.",radios:"الراديو",folders:"اختر مجلدًا لمحطات الراديو الألبانية أو التركية.",back:"← المجلدات",add:"إضافة راديو",admin:"يمكن للمشرف فقط إضافة أو حذف محطات الراديو. رابط HTTPS أكثر أمانًا على الويب.",name:"اسم الراديو",url:"رابط الراديو",folder:"المجلد",save:"إضافة الراديو",playing:"الراديو يعمل.",connecting:"جارٍ الاتصال بالراديو...",failed:"تعذر الاتصال بهذه المحطة حاليًا. جرّب محطة أخرى.",delete:"حذف",empty:"لا توجد محطات في هذا المجلد بعد."},
+  fr:{choose:"Choisissez la radio que vous souhaitez écouter.",pick:"Choisir une radio",pickList:"Choisissez une radio dans la liste",tap:"Touchez une radio ci-dessous.",radios:"Radios",folders:"Choisissez un dossier pour les radios albanaises ou turques.",back:"← Dossiers",add:"Ajouter une radio",admin:"Seul l'administrateur peut ajouter ou supprimer des radios. Un lien HTTPS est plus sûr sur le web.",name:"Nom de la radio",url:"Lien de la radio",folder:"Dossier",save:"Ajouter la radio",playing:"La radio est en lecture.",connecting:"Connexion à la radio...",failed:"Cette radio ne répond pas pour le moment. Essayez-en une autre.",delete:"Supprimer",empty:"Aucune radio dans ce dossier pour le moment."}
+};
+function radioLang(){const l=localStorage.getItem(LANG_KEY)||"sq";return RADIO_TXT[l]?l:"sq";}
+function rt(k){return RADIO_TXT[radioLang()]?.[k]||RADIO_TXT.en[k]||k;}
 let rendered = false;
 let channel = null;
 let currentUser = null;
@@ -49,7 +62,7 @@ function render() {
       <section class="card radio-player-card">
         <div class="radio-live-badge">
           <span class="radio-live-dot"></span>
-          <span id="radioLiveText">Zgjidh radion</span>
+          <span id="radioLiveText">${rt("pick")}</span>
         </div>
         <h2 id="radioStationTitle">Zgjidh një radio nga lista</h2>
         <audio id="radioPlayer" class="radio-player" controls preload="none" playsinline></audio>
@@ -57,7 +70,7 @@ function render() {
       </section>
 
       <section class="card radio-list-card">
-        <h2>📻 Radiot</h2>
+        <h2>📻 ${rt("radios")}</h2>
         <p class="muted small">Zgjidh një folder për radiot shqiptare ose turke.</p>
 
         <div id="radioFolderGrid" class="radio-folder-grid">
@@ -83,22 +96,22 @@ function render() {
       </section>
 
       <section id="radioAdminCard" class="card radio-admin-card hidden">
-        <h2>⚙️ Shto radio</h2>
+        <h2>⚙️ ${rt("add")}</h2>
         <p class="muted radio-admin-note">Vetëm administratori mund të shtojë ose fshijë radio. Për web, linku HTTPS është më i sigurt.</p>
 
-        <label for="radioNameInput">Emri i radios</label>
+        <label for="radioNameInput">${rt("name")}</label>
         <input id="radioNameInput" type="text" maxlength="80" placeholder="p.sh. Radio Ferizaj">
 
-        <label for="radioUrlInput">Linku i radios</label>
+        <label for="radioUrlInput">${rt("url")}</label>
         <input id="radioUrlInput" type="url" inputmode="url" placeholder="https://...">
 
-        <label for="radioLanguageInput">Folderi</label>
+        <label for="radioLanguageInput">${rt("folder")}</label>
         <select id="radioLanguageInput" class="radio-folder-select">
           <option value="sq">🇦🇱 Shqip</option>
           <option value="tr">🇹🇷 Turqisht</option>
         </select>
 
-        <button id="radioSaveBtn" class="primary" type="button">Shto radion</button>
+        <button id="radioSaveBtn" class="primary" type="button">${rt("save")}</button>
         <div id="radioAdminStatus" class="message"></div>
       </section>
     </div>
@@ -112,13 +125,13 @@ function render() {
 
   const player = document.getElementById("radioPlayer");
   player?.addEventListener("playing", () => {
-    showStatus("Radioja po luan.", "success");
+    showStatus(rt("playing"), "success");
   });
   player?.addEventListener("waiting", () => {
-    showStatus("Po lidhet me radion...");
+    showStatus(rt("connecting"));
   });
   player?.addEventListener("error", () => {
-    showStatus("Kjo radio nuk po lidhet për momentin. Provo një radio tjetër.", "error");
+    showStatus(rt("failed"), "error");
   });
 }
 
@@ -154,9 +167,9 @@ async function selectStation(station) {
       player.pause();
       player.src = station.stream_url;
       player.load();
-      showStatus("Po lidhet me radion...");
+      showStatus(rt("connecting"));
       await player.play();
-      showStatus("Radioja po luan.", "success");
+      showStatus(rt("playing"), "success");
     } catch (error) {
       console.error("Radio play failed", error);
       showStatus("Radioja nuk u nis automatikisht. Provo përsëri.", "error");
@@ -223,14 +236,14 @@ function renderStationList() {
   const visibleStations = stations.filter((station) => station.language_group === activeFolder);
 
   if (!visibleStations.length) {
-    list.innerHTML = '<div class="muted">Ende nuk ka radio në këtë folder.</div>';
+    list.innerHTML = '<div class="muted">'+rt("empty")+'</div>';
     return;
   }
 
   list.innerHTML = visibleStations.map((station) => {
     const active = station.id === currentStationId ? " active" : "";
     const deleteButton = isAdmin()
-      ? `<button class="radio-delete-btn" type="button" data-delete-radio="${station.id}">Fshi</button>`
+      ? `<button class="radio-delete-btn" type="button" data-delete-radio="${station.id}">${rt("delete")}</button>`
       : "";
 
     return `
@@ -337,6 +350,14 @@ function startRealtime() {
     .subscribe();
 }
 
+function reloadLanguage(){
+  rendered=false;
+  if(root) root.innerHTML="";
+  render();
+  updateFolderCounts();
+  if(activeFolder) openFolder(activeFolder);
+}
+
 async function activate() {
   render();
 
@@ -349,4 +370,4 @@ async function activate() {
   startRealtime();
 }
 
-window.PajazitiRadio = { activate };
+window.PajazitiRadio={ activate ,reloadLanguage};
