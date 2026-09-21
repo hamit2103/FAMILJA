@@ -7,7 +7,7 @@
   <meta name="description" content="PAJAZITI – album privat për foto dhe video">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=68">
+  <link rel="stylesheet" href="styles.css?v=69">
   <title>PAJAZITI</title>
   <style>
     /* Inline menu-order hotfix */
@@ -147,6 +147,7 @@
         <button id="galleryTab" class="app-tab active" type="button"><span>📢 </span><span data-i18n="tabs.photos">Reklama</span></button>
         <button id="infoTab" class="app-tab info-tab-button" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span><span id="infoUnreadBadge" class="info-unread-badge hidden">0</span></button>
         <button id="prayerTab" class="app-tab" type="button"><span>🕌 </span><span data-i18n="tabs.prayer">Namazi</span></button>
+        <button id="clockTab" class="app-tab" type="button"><span>🕒 </span><span>Ora</span></button>
         <button id="sportTab" class="app-tab" type="button"><span>⚽ </span><span>Sport</span></button>
         <button id="gamesTab" class="app-tab" type="button"><span>🎮 </span><span id="gamesTabLabel">Lojëra</span></button>
         <button id="tvTab" class="app-tab" type="button"><span>📺 </span><span id="tvTabLabel">TV</span></button>
@@ -228,6 +229,26 @@
         <section id="infoEmpty" class="card empty">
           <h2 data-i18n="info.emptyTitle">Ende nuk ka informacion</h2>
           <p class="muted" data-i18n="info.emptyBody">Kur administratori të publikojë diçka, do të shfaqet këtu.</p>
+        </section>
+      </section>
+
+      <section id="clockView" class="hidden">
+        <section class="card clock-widget-card">
+          <div class="clock-widget-head">
+            <div>
+              <h2>🕒 Ora Pajaziti</h2>
+              <p class="muted">Widget modern për ekranin kryesor. Ora vazhdon të shihet edhe kur app-i është i mbyllur.</p>
+            </div>
+          </div>
+          <div class="clock-preview-grid">
+            <div class="clock-zone"><span>🇩🇪 Gjermani</span><strong data-clock-zone="Europe/Berlin">--:--</strong></div>
+            <div class="clock-zone"><span>🇽🇰 Kosovë</span><strong data-clock-zone="Europe/Belgrade">--:--</strong></div>
+            <div class="clock-zone"><span>🇹🇷 Turqi</span><strong data-clock-zone="Europe/Istanbul">--:--</strong></div>
+            <div class="clock-zone"><span>🇺🇸 New York</span><strong data-clock-zone="America/New_York">--:--</strong></div>
+          </div>
+          <div class="clock-brand">PAJAZITI</div>
+          <button id="addClockWidgetBtn" class="primary clock-widget-add" type="button">📌 Shto orën në ekran</button>
+          <div id="clockWidgetStatus" class="message">Në Android, shtype butonin për ta vendosur widgetin në Home Screen.</div>
         </section>
       </section>
 
@@ -351,11 +372,12 @@
       window.__PAJAZITI_MENU_ORDER_HOTFIX__ = true;
 
       const ADMIN_EMAIL = "admin@familja.local";
-      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","sportTab","gamesTab","tvTab","radioTab","chatTab"];
+      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","chatTab"];
       const LABELS = {
         galleryTab:"📢 Reklama",
         infoTab:"ℹ️ Informacion",
         prayerTab:"🕌 Namazi",
+        clockTab:"🕒 Ora",
         sportTab:"⚽ Sport",
         gamesTab:"🎮 Lojëra",
         tvTab:"📺 TV",
@@ -465,9 +487,9 @@
       await load();
     }
   </script>
-  <script type="module" src="app.js?v=68"></script>
-  <script type="module" src="sports.js?v=1"></script>
-  <script type="module" src="games.js?v=68"></script>
+  <script type="module" src="app.js?v=69"></script>
+  <script type="module" src="sports.js?v=2"></script>
+  <script type="module" src="games.js?v=69"></script>
   <script type="module" src="tv.js?v=52"></script>
   <script type="module" src="radio.js?v=52"></script>
   <script type="module">
