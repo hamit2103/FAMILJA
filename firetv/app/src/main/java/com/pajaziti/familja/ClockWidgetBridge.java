@@ -11,4 +11,9 @@ public class ClockWidgetBridge {
 
     @JavascriptInterface
     public void requestClockWidget() { activity.requestClockWidget(); }
+
+    @JavascriptInterface
+    public void setLanguage(String language) {
+        PajazitiClockWidget.setLanguage(activity, language);
+    }
 }
