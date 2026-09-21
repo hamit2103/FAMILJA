@@ -20,6 +20,18 @@ const FREE_TV_PLAYLISTS = [
   { title:"🇹🇷 Turqi", source_type:"url", source_value:"https://iptv-org.github.io/iptv/countries/tr.m3u" }
 ];
 
+const BUILTIN_TURKISH_SERIES = [
+  {
+    name:"Vatanım Sensin",
+    countryGroup:"Turke",
+    sourceGroup:"Kanal D · Zyrtare · FREE",
+    mediaType:"series",
+    officialPage:true,
+    url:"https://www.kanald.com.tr/vatanim-sensin/bolumler",
+    logo:""
+  }
+];
+
 const BUILTIN_FREE_SERVERS = [
   {
     id:"free-shqip",
@@ -782,7 +794,14 @@ function classifyChannel(ch){
 
 function channelsForMode(){
   if(currentMode==="home" || currentMode==="servers") return [];
-  let list=channels.filter(ch=>classifyChannel(ch)===currentMode);
+  let base=[...channels];
+  if(currentMode==="series"){
+    const seen=new Set(base.map(ch=>String(ch?.url||"").trim()));
+    for(const item of BUILTIN_TURKISH_SERIES){
+      if(!seen.has(item.url)) base.push({...item});
+    }
+  }
+  let list=base.filter(ch=>classifyChannel(ch)===currentMode);
   if(currentGroup) list=list.filter(ch=>(ch.countryGroup||ch.group||"Tjera")===currentGroup);
   const q=currentFilter.trim().toLowerCase();
   if(q) list=list.filter(ch=>((ch.name||"")+" "+(ch.countryGroup||"")+" "+(ch.sourceGroup||ch.group||"")).toLowerCase().includes(q));
@@ -858,6 +877,17 @@ function loadHlsJs(){
 
 async function playChannel(channel){
   if(!channel?.url) return;
+
+  if(channel.officialPage){
+    localStorage.setItem(TV_NAME_KEY,channel.name||"");
+    try{
+      window.location.href=channel.url;
+    }catch(_){
+      window.open(channel.url,"_self");
+    }
+    return;
+  }
+
   const video=document.getElementById("tvPlayer");
   const title=document.getElementById("tvNow");
   if(!video) return;
