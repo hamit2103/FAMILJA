@@ -84,3 +84,10 @@ async function load(){
 function activate(){load();}
 function reloadLanguage(){render();}
 window.PajazitiSports={activate,refresh:load,reloadLanguage};
+
+
+const SPORT_MODULE_READY=true;
+render();
+document.getElementById("sportTab")?.addEventListener("click",()=>{
+  if(!loading) load();
+});
