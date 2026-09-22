@@ -999,24 +999,7 @@ async function registerInstall(){
 async function registerDailyActivity(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    const now=new Date();
-    const day=new Intl.DateTimeFormat("en-CA",{
-      timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"
-    }).format(now);
-    const {data}=await supabase
-      .from("app_daily_activity")
-      .select("visits")
-      .eq("day",day)
-      .eq("device_id",presenceDeviceId)
-      .maybeSingle();
-
-    await supabase.from("app_daily_activity").upsert({
-      day,
-      device_id:presenceDeviceId,
-      first_seen: data ? undefined : now.toISOString(),
-      last_seen: now.toISOString(),
-      visits: Math.max(1,Number(data?.visits||0)+1)
-    },{onConflict:"day,device_id"});
+    await supabase.rpc("log_daily_activity",{p_device:presenceDeviceId});
   }catch(error){
     console.warn("Daily activity",error);
   }
