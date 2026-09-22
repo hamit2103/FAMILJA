@@ -3713,3 +3713,9 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 @media(max-width:620px){
   .admin-stats-grid{grid-template-columns:1fr}
 }
+
+.ruqya-list{display:grid;gap:12px;margin:16px 0}
+.ruqya-item{background:rgba(255,255,255,.82);border-radius:16px;padding:14px}
+.ruqya-item h3{margin:0 0 7px}
+.ruqya-item p{margin:0;line-height:1.55}
+.ruqya-dua{padding:14px;border-radius:16px;background:#ecfdf5;line-height:1.55;margin:14px 0}
