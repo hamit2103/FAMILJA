@@ -877,24 +877,30 @@ function setMode(next) {
   if (ADMIN_ONLY) next = "admin";
   else next = "family";
   mode = next;
+
   familyMode.classList.toggle("active", next === "family");
   adminMode.classList.toggle("active", next === "admin");
   codeInput.value = "";
   codeInput.placeholder = t("login.adminPlaceholder");
-  adminCodeWrap?.classList.toggle("hidden", next !== "admin");
-  familyDirectHint?.classList.toggle("hidden", true);
   loginBtn.textContent = next === "admin" ? t("login.button") : t("login.userButton");
   loginMessage.textContent = "";
 
-  document.querySelector(".mode-switch")?.classList.add("hidden");
   if (ADMIN_ONLY) {
+    document.querySelector(".mode-switch")?.classList.add("hidden");
+    familyDirectHint?.classList.add("hidden");
     adminCodeWrap?.classList.remove("hidden");
   } else {
+    document.querySelector(".mode-switch")?.classList.remove("hidden");
+    familyMode?.classList.remove("hidden");
+    adminMode?.classList.add("hidden");
+    familyDirectHint?.classList.remove("hidden");
     adminCodeWrap?.classList.add("hidden");
   }
 }
 familyMode.addEventListener("click", () => setMode("family"));
-adminMode.addEventListener("click", () => setMode("admin"));
+adminMode.addEventListener("click", () => {
+  if (ADMIN_ONLY) setMode("admin");
+});
 
 function showMessage(el, text, kind = "") {
   el.textContent = text;
@@ -2635,9 +2641,8 @@ if (supabase) {
 
   await applySession(session);
 
-  if (!ADMIN_ONLY && !session) {
-    setMode("family");
-    await login();
+  if (!session) {
+    setMode(ADMIN_ONLY ? "admin" : "family");
   }
 
   supabase.auth.onAuthStateChange((_event, nextSession) => {
