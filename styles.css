@@ -3741,3 +3741,297 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
   .news-head-card{align-items:flex-start;flex-direction:column}
   .news-head-card button{width:100%}
 }
+
+/* DIAMOND 8D PREMIUM HOME v5.24 */
+html:has(#appView:not(.hidden)),
+body:has(#appView:not(.hidden)){
+  background:
+    radial-gradient(circle at 9% 3%,rgba(255,255,255,.98) 0 8%,rgba(255,255,255,0) 28%),
+    radial-gradient(circle at 92% 14%,rgba(88,197,255,.38) 0 7%,rgba(88,197,255,0) 31%),
+    radial-gradient(circle at 24% 72%,rgba(209,247,255,.72) 0 10%,rgba(209,247,255,0) 34%),
+    linear-gradient(145deg,#edfaff 0%,#c7f1fb 35%,#98dff0 72%,#b6eef7 100%)!important;
+  background-attachment:fixed!important;
+  color:#0a2445;
+}
+#appView{
+  position:relative;
+  isolation:isolate;
+}
+#appView::before{
+  content:"";
+  position:fixed;
+  inset:-10vh -20vw auto;
+  height:55vh;
+  pointer-events:none;
+  z-index:-1;
+  background:linear-gradient(112deg,rgba(255,255,255,.58),rgba(255,255,255,0) 34%,rgba(77,190,242,.16) 66%,rgba(255,255,255,.22));
+  transform:skewY(-8deg);
+  filter:blur(2px);
+}
+#appView .topbar{
+  align-items:flex-start;
+  margin:4px 0 24px;
+  padding:8px 2px 0;
+}
+#appView .app-title-row{
+  align-items:baseline;
+  gap:10px;
+}
+#appView .app-title-row h1{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  font-size:clamp(35px,7.4vw,54px);
+  line-height:.96;
+  letter-spacing:-1.7px;
+  font-weight:950;
+  color:#092b52;
+  text-shadow:0 2px 0 rgba(255,255,255,.78),0 8px 22px rgba(9,43,82,.10);
+}
+#appView .app-title-row h1::before{
+  content:"◆";
+  font-size:.72em;
+  color:#20a9e0;
+  text-shadow:0 1px 0 #eaffff,0 5px 12px rgba(0,133,205,.34);
+  filter:drop-shadow(0 8px 10px rgba(17,149,214,.22));
+}
+#appView .app-version-label{
+  font-size:15px;
+  font-weight:900;
+  color:#52769a;
+  text-shadow:0 1px 0 rgba(255,255,255,.75);
+}
+#appView #roleLabel{
+  margin:8px 0 11px;
+  font-size:19px;
+  color:#56799f;
+  font-weight:500;
+}
+#appView .online-badge{
+  min-height:52px;
+  padding:10px 17px;
+  gap:10px;
+  border:1px solid rgba(255,255,255,.96);
+  border-radius:999px;
+  background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(235,255,249,.74));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,1),
+    inset 0 -8px 18px rgba(85,220,187,.06),
+    0 11px 24px rgba(13,94,125,.13);
+  color:#0d5f3a;
+  font-size:17px;
+  font-weight:900;
+  backdrop-filter:blur(14px);
+}
+#appView .online-dot{
+  width:16px;
+  height:16px;
+  background:radial-gradient(circle at 35% 30%,#6dffb2 0 18%,#20d77b 46%,#06a85b 100%);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 0 0 6px rgba(32,215,123,.14),0 0 18px rgba(32,215,123,.56),inset 0 2px 3px rgba(255,255,255,.8);
+}
+#appView .top-actions{
+  max-width:340px;
+  gap:10px;
+}
+#appView .top-actions .secondary,
+#appView .language-select.compact{
+  min-height:54px;
+  border:1px solid rgba(255,255,255,.98);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(225,247,250,.80));
+  color:#0d2748;
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,.98),
+    inset 0 -10px 20px rgba(51,154,196,.06),
+    0 10px 24px rgba(8,81,123,.14);
+  font-weight:900;
+  backdrop-filter:blur(16px);
+}
+#appView .theme-open-btn{
+  width:58px;
+  min-width:58px;
+  padding:0;
+  font-size:25px;
+  border-radius:24px!important;
+  background:linear-gradient(145deg,#effff4,#cfead5)!important;
+}
+#appView #logoutBtn{
+  padding-inline:18px;
+  background:linear-gradient(145deg,#f2fff5,#cce6d1)!important;
+}
+#appView>.app-tabs{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin:0 0 20px;
+  perspective:900px;
+}
+#appView .app-tab{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:13px;
+  min-height:108px;
+  padding:15px 44px 15px 15px;
+  border:1px solid rgba(255,255,255,.98);
+  border-radius:30px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.96) 0%,rgba(246,254,255,.89) 46%,rgba(224,246,250,.78) 100%);
+  color:#0d2342;
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,1),
+    inset 0 -12px 24px rgba(55,154,196,.055),
+    0 15px 28px rgba(11,83,122,.13),
+    0 4px 0 rgba(255,255,255,.42);
+  font-size:20px;
+  font-weight:950;
+  letter-spacing:-.2px;
+  text-align:left;
+  text-shadow:0 1px 0 rgba(255,255,255,.72);
+  backdrop-filter:blur(18px) saturate(130%);
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+#appView .app-tab::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  left:-12%;
+  top:-35%;
+  width:88%;
+  height:72%;
+  border-radius:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,0));
+  transform:rotate(-8deg);
+  pointer-events:none;
+}
+#appView .app-tab::after{
+  content:"›";
+  position:absolute;
+  right:17px;
+  top:50%;
+  transform:translateY(-54%);
+  font-size:38px;
+  line-height:1;
+  color:#648ab0;
+  font-weight:800;
+  text-shadow:0 1px 0 #fff;
+}
+#appView .app-tab>span{
+  position:relative;
+  z-index:1;
+}
+#appView .app-tab>span:first-child{
+  display:grid;
+  place-items:center;
+  flex:0 0 58px;
+  width:58px;
+  height:58px;
+  border-radius:21px;
+  border:1px solid rgba(255,255,255,.96);
+  background:linear-gradient(145deg,#edf8ff,#cfeefe);
+  font-size:30px;
+  box-shadow:
+    inset 0 2px 2px rgba(255,255,255,1),
+    inset 0 -8px 14px rgba(53,150,197,.08),
+    0 9px 16px rgba(25,94,132,.15);
+  filter:drop-shadow(0 4px 5px rgba(16,79,110,.08));
+}
+#sportTab>span:first-child{background:linear-gradient(145deg,#e9fff0,#96efab)!important}
+#tvTab>span:first-child{background:linear-gradient(145deg,#e9faff,#9ddfff)!important}
+#radioTab>span:first-child{background:linear-gradient(145deg,#fff9dd,#ffd66f)!important}
+#gamesTab>span:first-child{background:linear-gradient(145deg,#f5eaff,#c6a8ff)!important}
+#prayerTab>span:first-child{background:linear-gradient(145deg,#fffce8,#ffe7a3)!important}
+#infoTab>span:first-child{background:linear-gradient(145deg,#eef9ff,#9ed4ff)!important}
+#shareAppTab>span:first-child{background:linear-gradient(145deg,#e9fbff,#9fe6f5)!important}
+#newsTab>span:first-child{background:linear-gradient(145deg,#f5f7fa,#dbe3eb)!important}
+#clockTab>span:first-child{background:linear-gradient(145deg,#effaff,#bee9ff)!important}
+#dietTab>span:first-child{background:linear-gradient(145deg,#effff2,#ade9bd)!important}
+#kiTab>span:first-child{background:linear-gradient(145deg,#f1f0ff,#c8c2ff)!important}
+#galleryTab>span:first-child{background:linear-gradient(145deg,#efe8ff,#c8a9ff)!important}
+#appView .app-tab.active{
+  border-color:rgba(255,255,255,.55);
+  background:
+    radial-gradient(circle at 22% 14%,rgba(255,255,255,.27),rgba(255,255,255,0) 31%),
+    linear-gradient(140deg,#7745f5 0%,#6d35ee 47%,#8d2de3 100%);
+  color:#fff;
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,.45),
+    inset 0 -14px 28px rgba(53,9,143,.20),
+    0 17px 34px rgba(111,50,226,.32),
+    0 0 0 2px rgba(185,130,255,.25);
+  text-shadow:0 2px 7px rgba(57,20,128,.25);
+}
+#appView .app-tab.active::before{
+  background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,0));
+}
+#appView .app-tab.active::after{
+  color:#fff;
+  text-shadow:0 1px 5px rgba(70,20,160,.28);
+}
+#appView .app-tab.active>span:first-child{
+  background:linear-gradient(145deg,rgba(255,255,255,.27),rgba(255,255,255,.10))!important;
+  border-color:rgba(255,255,255,.38);
+  box-shadow:inset 0 2px 1px rgba(255,255,255,.38),0 8px 18px rgba(48,10,119,.22);
+}
+#appView .app-tab:active{
+  transform:translateY(2px) scale(.985);
+  box-shadow:inset 0 2px 1px rgba(255,255,255,.95),0 8px 18px rgba(11,83,122,.11);
+}
+#appView .card,
+#appView .theme-panel{
+  border:1px solid rgba(255,255,255,.92);
+  border-radius:28px;
+  background:linear-gradient(145deg,rgba(255,255,255,.91),rgba(236,250,252,.78));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,1),0 15px 32px rgba(11,83,122,.12);
+  backdrop-filter:blur(16px);
+}
+#appView .toolbar .secondary{
+  min-height:54px;
+  border:1px solid rgba(255,255,255,.95);
+  border-radius:23px;
+  background:linear-gradient(145deg,#f1fff5,#cfe8d4);
+  color:#0c5b51;
+  box-shadow:inset 0 2px 1px #fff,0 10px 22px rgba(11,83,122,.12);
+  font-weight:900;
+}
+#refreshBtn::before{
+  content:"↻";
+  font-size:27px;
+  margin-right:8px;
+  font-weight:950;
+}
+@media(max-width:620px){
+  .shell{padding:16px 12px 46px}
+  #appView .topbar{grid-template-columns:minmax(0,1fr) auto;gap:9px;margin-bottom:20px}
+  #appView .top-actions{max-width:168px;gap:7px}
+  #appView .top-actions .secondary,#appView .language-select.compact{min-height:50px;border-radius:20px}
+  #appView .theme-open-btn{width:52px;min-width:52px;border-radius:21px!important}
+  #appView>.app-tabs{gap:12px}
+  #appView .app-tab{
+    min-height:100px;
+    border-radius:27px;
+    padding:13px 36px 13px 12px;
+    gap:9px;
+    font-size:18px;
+  }
+  #appView .app-tab>span:first-child{
+    flex-basis:52px;
+    width:52px;
+    height:52px;
+    border-radius:19px;
+    font-size:27px;
+  }
+  #appView .app-tab::after{right:12px;font-size:35px}
+}
+@media(max-width:390px){
+  #appView .app-tab{font-size:16.5px;min-height:94px;padding-left:10px;gap:8px}
+  #appView .app-tab>span:first-child{flex-basis:47px;width:47px;height:47px;border-radius:17px;font-size:24px}
+  #appView .app-title-row h1{font-size:33px}
+  #appView .app-version-label{font-size:13px}
+}
+/* END DIAMOND 8D PREMIUM HOME v5.24 */
+
