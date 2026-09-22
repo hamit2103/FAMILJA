@@ -105,5 +105,9 @@ jobs:
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-fresh.apk \
             "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.19-fresh.apk"
+          curl --max-time 180 --fail --show-error --silent \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            --data-binary @DIAMOND-ADMIN.apk \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=DIAMOND-ADMIN.apk"
 
 # republish-diamond-5.19
