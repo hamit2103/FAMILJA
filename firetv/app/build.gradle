@@ -3,6 +3,10 @@ plugins {
 }
 
 def adminBuild = project.hasProperty("adminBuild") && project.property("adminBuild").toString().toBoolean()
+def asyaBuild = project.hasProperty("asyaBuild") && project.property("asyaBuild").toString().toBoolean()
+def requestedLabel = project.findProperty("appLabel") ?: (adminBuild ? "DIAMOND ADMIN" : (asyaBuild ? "ASYA" : "DIAMOND"))
+def requestedVersionName = project.findProperty("versionName") ?: (asyaBuild ? "0.1.0" : "5.23")
+def requestedVersionCode = (project.findProperty("versionCode") ?: (asyaBuild ? "1" : "55")).toString().toInteger()
 
 android {
     namespace "com.pajaziti.familja"
@@ -25,10 +29,10 @@ android {
         applicationId project.findProperty("appId") ?: "com.pajaziti.familja"
         minSdk 23
         targetSdk 35
-        versionCode 55
-        versionName "5.23"
+        versionCode requestedVersionCode
+        versionName requestedVersionName
         buildConfigField "boolean", "ADMIN_BUILD", adminBuild ? "true" : "false"
-        manifestPlaceholders = [appLabel: adminBuild ? "DIAMOND ADMIN" : "DIAMOND"]
+        manifestPlaceholders = [appLabel: requestedLabel]
     }
 
     buildTypes {
@@ -43,7 +47,6 @@ android {
         }
     }
 }
-
 
 dependencies {
     implementation "androidx.core:core:1.13.1"
