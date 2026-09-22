@@ -268,6 +268,7 @@ function applyLanguage(language = currentLanguage) {
   window.PajazitiTV?.reloadLanguage?.();
   window.PajazitiRadio?.reloadLanguage?.();
   window.DiamondQuran?.reloadLanguage?.();
+  window.DiamondPrayerGuide?.reloadLanguage?.();
 
   if (typeof mode !== "undefined" && codeInput) {
     codeInput.placeholder = mode === "admin"
@@ -2719,3 +2720,24 @@ shareBtn.addEventListener("click", async () => {
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(console.error);
 }
+
+
+window.DiamondNavigationBack = function(){
+  try {
+    if (window.DiamondQuran?.back?.()) return true;
+    const quranPanel=document.getElementById("quranPanel");
+    if(quranPanel && !quranPanel.classList.contains("hidden")){
+      window.DiamondQuran?.close?.();
+      return true;
+    }
+    if(window.DiamondPrayerGuide?.back?.()) return true;
+    if(activeSection && activeSection!=="gallery"){
+      setSection("gallery");
+      return true;
+    }
+    if(appView && !appView.classList.contains("hidden")){
+      return true;
+    }
+  } catch(_) {}
+  return false;
+};
