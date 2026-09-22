@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
     private static final int REQ_LOCATION = 1001;
     private static final int REQ_FILES = 1002;
     private static final int REQ_NOTIFICATIONS = 1003;
+    private static final int REQ_GOAL_NOTIFICATIONS = 1004;
 
     private WebView webView;
     private View customView;
@@ -99,6 +100,7 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new PrayerBridge(this), "AndroidPrayer");
         webView.addJavascriptInterface(new ClockWidgetBridge(this), "AndroidClock");
         webView.addJavascriptInterface(new AppInfoBridge(this), "AndroidApp");
+        webView.addJavascriptInterface(new GoalAlertBridge(this), "AndroidGoal");
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(
@@ -210,6 +212,7 @@ public class MainActivity extends Activity {
         }
 
         webView.postDelayed(this::checkForUpdates, 1800);
+        handleSportIntent(getIntent());
     }
 
 
@@ -599,6 +602,28 @@ public class MainActivity extends Activity {
                 .setPositiveButton("OK", null)
                 .show();
         });
+    }
+
+    public void requestGoalNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_GOAL_NOTIFICATIONS);
+        }
+    }
+
+    private void handleSportIntent(Intent intent) {
+        if (intent == null || !intent.getBooleanExtra("openSport", false) || webView == null) return;
+        String matchId = intent.getStringExtra("matchId");
+        String safe = matchId == null ? "" : matchId.replace("\\", "\\\\").replace("'", "\\'");
+        webView.postDelayed(() -> webView.evaluateJavascript(
+            "(function(){var t=document.getElementById(\'sportTab\');if(t)t.click();setTimeout(function(){if(window.PajazitiSports&&window.PajazitiSports.openMatch)window.PajazitiSports.openMatch(\'"+safe+"\');},500);})()", null), 900);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleSportIntent(intent);
     }
 
     public void requestAlarmPermissions() {
