@@ -37,7 +37,7 @@ android {
 
     buildTypes {
         debug {
-            if (!adminBuild) {
+            if (!adminBuild && !asyaBuild) {
                 signingConfig signingConfigs.pajazitiRelease
             }
         }
