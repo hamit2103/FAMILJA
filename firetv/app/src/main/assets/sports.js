@@ -1,6 +1,21 @@
 const root=document.getElementById("sportRoot");
 
 const API="https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-football";
+const SPORT_LANG_KEY="pajaziti-language";
+const SPORT_TXT={
+  sq:{todayLive:"Sot / Live",sevenDays:"7 ditë",leaguesTables:"Ligat & tabelat",other:"Tjetër",noMatches:"Nuk ka ndeshje.",finished:"Përfundoi",time:"Ora",today:"Sot",tomorrow:"Nesër",allLeagues:"Të gjitha ligat",loadingTable:"Po ngarkohet tabela…",team:"Ekipi",played:"L",wins:"F",draws:"B",losses:"H",goalDiff:"Gola +/-",points:"Pikë",noData:"Nuk ka të dhëna",tableMissing:"Tabela nuk u gjet për këtë ligë.",searchLeague:"Kërko ligë…",majorLeagues:"⭐ Ligat kryesore",kosovoLeagues:"🇽🇰 Ligat e Kosovës",otherLeagues:"🌍 Ligat tjera",liveNow:"LIVE TANI",todayMatches:"NDESHJET E SOTME",sport:"Sport",liveRefresh:"Live rifreskohet automatikisht çdo 10 sekonda.",refreshing:"Po rifreskon…",refresh:"Rifresko",autoRefresh:"Auto refresh: 10 sekonda",goalAlert:"Njoftim për gol",zones:"Zonat e tabelës",zoneNote:"ℹ️ Vendet europiane tregojnë qasjen bazë. Kupa kombëtare dhe UEFA EPS mund t'i zhvendosin disa vende në fund të sezonit.",cl:"Champions League",clq:"Champions kualifikime",el:"Europa League",elq:"Europa kualifikime",eclq:"Conference kualifikime",playoff:"Playoff",relegation:"Rënie nga liga"},
+  de:{todayLive:"Heute / Live",sevenDays:"7 Tage",leaguesTables:"Ligen & Tabellen",other:"Sonstige",noMatches:"Keine Spiele.",finished:"Beendet",time:"Uhr",today:"Heute",tomorrow:"Morgen",allLeagues:"Alle Ligen",loadingTable:"Tabelle wird geladen…",team:"Team",played:"Sp",wins:"S",draws:"U",losses:"N",goalDiff:"Tore +/-",points:"Pkt",noData:"Keine Daten",tableMissing:"Für diese Liga wurde keine Tabelle gefunden.",searchLeague:"Liga suchen…",majorLeagues:"⭐ Top-Ligen",kosovoLeagues:"🇽🇰 Kosovo-Ligen",otherLeagues:"🌍 Weitere Ligen",liveNow:"JETZT LIVE",todayMatches:"HEUTIGE SPIELE",sport:"Sport",liveRefresh:"Live wird automatisch alle 10 Sekunden aktualisiert.",refreshing:"Wird aktualisiert…",refresh:"Aktualisieren",autoRefresh:"Auto-Aktualisierung: 10 Sekunden",goalAlert:"Torbenachrichtigung",zones:"Tabellenzonen",zoneNote:"ℹ️ Die europäischen Plätze zeigen die Grundzuordnung. Nationale Pokale und UEFA-EPS können Plätze am Saisonende verschieben.",cl:"Champions League",clq:"Champions-League-Qualifikation",el:"Europa League",elq:"Europa-League-Qualifikation",eclq:"Conference-League-Qualifikation",playoff:"Relegation/Playoff",relegation:"Abstieg"},
+  tr:{todayLive:"Bugün / Canlı",sevenDays:"7 gün",leaguesTables:"Ligler & puan durumu",other:"Diğer",noMatches:"Maç yok.",finished:"Bitti",time:"Saat",today:"Bugün",tomorrow:"Yarın",allLeagues:"Tüm ligler",loadingTable:"Puan durumu yükleniyor…",team:"Takım",played:"O",wins:"G",draws:"B",losses:"M",goalDiff:"Averaj",points:"Puan",noData:"Veri yok",tableMissing:"Bu lig için puan durumu bulunamadı.",searchLeague:"Lig ara…",majorLeagues:"⭐ Önemli ligler",kosovoLeagues:"🇽🇰 Kosova ligleri",otherLeagues:"🌍 Diğer ligler",liveNow:"ŞİMDİ CANLI",todayMatches:"BUGÜNÜN MAÇLARI",sport:"Spor",liveRefresh:"Canlı sonuçlar her 10 saniyede otomatik yenilenir.",refreshing:"Yenileniyor…",refresh:"Yenile",autoRefresh:"Otomatik yenileme: 10 saniye",goalAlert:"Gol bildirimi",zones:"Puan durumu bölgeleri",zoneNote:"ℹ️ Avrupa kupası sıraları temel dağılımı gösterir. Ulusal kupalar ve UEFA EPS sezon sonunda bazı sıraları değiştirebilir.",cl:"Şampiyonlar Ligi",clq:"Şampiyonlar Ligi elemeleri",el:"Avrupa Ligi",elq:"Avrupa Ligi elemeleri",eclq:"Konferans Ligi elemeleri",playoff:"Playoff",relegation:"Küme düşme"},
+  en:{todayLive:"Today / Live",sevenDays:"7 days",leaguesTables:"Leagues & tables",other:"Other",noMatches:"No matches.",finished:"Finished",time:"Time",today:"Today",tomorrow:"Tomorrow",allLeagues:"All leagues",loadingTable:"Loading table…",team:"Team",played:"P",wins:"W",draws:"D",losses:"L",goalDiff:"Goals +/-",points:"Pts",noData:"No data",tableMissing:"No table was found for this league.",searchLeague:"Search league…",majorLeagues:"⭐ Major leagues",kosovoLeagues:"🇽🇰 Kosovo leagues",otherLeagues:"🌍 Other leagues",liveNow:"LIVE NOW",todayMatches:"TODAY'S MATCHES",sport:"Sport",liveRefresh:"Live scores refresh automatically every 10 seconds.",refreshing:"Refreshing…",refresh:"Refresh",autoRefresh:"Auto refresh: 10 seconds",goalAlert:"Goal notification",zones:"Table zones",zoneNote:"ℹ️ European places show the base allocation. Domestic cups and UEFA EPS can shift places at the end of the season.",cl:"Champions League",clq:"Champions League qualifying",el:"Europa League",elq:"Europa League qualifying",eclq:"Conference League qualifying",playoff:"Playoff",relegation:"Relegation"},
+  it:{todayLive:"Oggi / Live",sevenDays:"7 giorni",leaguesTables:"Campionati e classifiche",other:"Altro",noMatches:"Nessuna partita.",finished:"Finita",time:"Ora",today:"Oggi",tomorrow:"Domani",allLeagues:"Tutti i campionati",loadingTable:"Classifica in caricamento…",team:"Squadra",played:"G",wins:"V",draws:"N",losses:"P",goalDiff:"Gol +/-",points:"Pt",noData:"Nessun dato",tableMissing:"Classifica non trovata per questo campionato.",searchLeague:"Cerca campionato…",majorLeagues:"⭐ Campionati principali",kosovoLeagues:"🇽🇰 Campionati del Kosovo",otherLeagues:"🌍 Altri campionati",liveNow:"LIVE ORA",todayMatches:"PARTITE DI OGGI",sport:"Sport",liveRefresh:"I risultati live si aggiornano automaticamente ogni 10 secondi.",refreshing:"Aggiornamento…",refresh:"Aggiorna",autoRefresh:"Aggiornamento automatico: 10 secondi",goalAlert:"Notifica gol",zones:"Zone classifica",zoneNote:"ℹ️ I posti europei mostrano l'assegnazione di base. Coppe nazionali e UEFA EPS possono spostare alcuni posti a fine stagione.",cl:"Champions League",clq:"Qualificazioni Champions",el:"Europa League",elq:"Qualificazioni Europa League",eclq:"Qualificazioni Conference League",playoff:"Playoff",relegation:"Retrocessione"},
+  hr:{todayLive:"Danas / Uživo",sevenDays:"7 dana",leaguesTables:"Lige i tablice",other:"Ostalo",noMatches:"Nema utakmica.",finished:"Završeno",time:"Vrijeme",today:"Danas",tomorrow:"Sutra",allLeagues:"Sve lige",loadingTable:"Tablica se učitava…",team:"Momčad",played:"O",wins:"P",draws:"N",losses:"I",goalDiff:"Golovi +/-",points:"Bod",noData:"Nema podataka",tableMissing:"Tablica nije pronađena za ovu ligu.",searchLeague:"Traži ligu…",majorLeagues:"⭐ Glavne lige",kosovoLeagues:"🇽🇰 Kosovske lige",otherLeagues:"🌍 Ostale lige",liveNow:"UŽIVO SADA",todayMatches:"DANAŠNJE UTAKMICE",sport:"Sport",liveRefresh:"Rezultati uživo osvježavaju se automatski svakih 10 sekundi.",refreshing:"Osvježavanje…",refresh:"Osvježi",autoRefresh:"Automatsko osvježavanje: 10 sekundi",goalAlert:"Obavijest o golu",zones:"Zone tablice",zoneNote:"ℹ️ Europska mjesta prikazuju osnovnu raspodjelu. Domaći kupovi i UEFA EPS mogu promijeniti mjesta na kraju sezone.",cl:"Liga prvaka",clq:"Kvalifikacije Lige prvaka",el:"Europska liga",elq:"Kvalifikacije Europske lige",eclq:"Kvalifikacije Konferencijske lige",playoff:"Doigravanje",relegation:"Ispadanje"},
+  fr:{todayLive:"Aujourd'hui / Direct",sevenDays:"7 jours",leaguesTables:"Ligues et classements",other:"Autre",noMatches:"Aucun match.",finished:"Terminé",time:"Heure",today:"Aujourd'hui",tomorrow:"Demain",allLeagues:"Toutes les ligues",loadingTable:"Classement en cours de chargement…",team:"Équipe",played:"J",wins:"V",draws:"N",losses:"D",goalDiff:"Buts +/-",points:"Pts",noData:"Aucune donnée",tableMissing:"Aucun classement trouvé pour cette ligue.",searchLeague:"Rechercher une ligue…",majorLeagues:"⭐ Ligues principales",kosovoLeagues:"🇽🇰 Ligues du Kosovo",otherLeagues:"🌍 Autres ligues",liveNow:"EN DIRECT",todayMatches:"MATCHS DU JOUR",sport:"Sport",liveRefresh:"Les scores en direct s'actualisent automatiquement toutes les 10 secondes.",refreshing:"Actualisation…",refresh:"Actualiser",autoRefresh:"Actualisation auto : 10 secondes",goalAlert:"Notification de but",zones:"Zones du classement",zoneNote:"ℹ️ Les places européennes indiquent l'attribution de base. Les coupes nationales et l'UEFA EPS peuvent déplacer certaines places en fin de saison.",cl:"Ligue des champions",clq:"Qualifications Ligue des champions",el:"Ligue Europa",elq:"Qualifications Ligue Europa",eclq:"Qualifications Ligue Conférence",playoff:"Barrage",relegation:"Relégation"},
+  ar:{todayLive:"اليوم / مباشر",sevenDays:"7 أيام",leaguesTables:"الدوريات والترتيب",other:"أخرى",noMatches:"لا توجد مباريات.",finished:"انتهت",time:"الوقت",today:"اليوم",tomorrow:"غداً",allLeagues:"كل الدوريات",loadingTable:"جارٍ تحميل الترتيب…",team:"الفريق",played:"ل",wins:"ف",draws:"ت",losses:"خ",goalDiff:"الأهداف +/-",points:"نقاط",noData:"لا توجد بيانات",tableMissing:"لم يتم العثور على ترتيب لهذا الدوري.",searchLeague:"ابحث عن دوري…",majorLeagues:"⭐ الدوريات الرئيسية",kosovoLeagues:"🇽🇰 دوريات كوسوفو",otherLeagues:"🌍 دوريات أخرى",liveNow:"مباشر الآن",todayMatches:"مباريات اليوم",sport:"الرياضة",liveRefresh:"يتم تحديث النتائج المباشرة تلقائياً كل 10 ثوانٍ.",refreshing:"جارٍ التحديث…",refresh:"تحديث",autoRefresh:"تحديث تلقائي: 10 ثوانٍ",goalAlert:"تنبيه هدف",zones:"مناطق الترتيب",zoneNote:"ℹ️ المراكز الأوروبية تعرض التوزيع الأساسي. قد تغيّر الكؤوس المحلية ونقاط UEFA EPS بعض المراكز في نهاية الموسم.",cl:"دوري أبطال أوروبا",clq:"تصفيات دوري الأبطال",el:"الدوري الأوروبي",elq:"تصفيات الدوري الأوروبي",eclq:"تصفيات دوري المؤتمر",playoff:"ملحق",relegation:"هبوط"}
+};
+function sportLang(){const l=localStorage.getItem(SPORT_LANG_KEY)||"sq";return SPORT_TXT[l]?l:"en";}
+function st(k){return SPORT_TXT[sportLang()]?.[k]??SPORT_TXT.en[k]??k;}
+function sportLocale(){return {sq:"sq-AL",de:"de-DE",tr:"tr-TR",en:"en-GB",it:"it-IT",hr:"hr-HR",fr:"fr-FR",ar:"ar"}[sportLang()]||"en-GB";}
+
 let matches=[];
 let loading=false;
 let lastUpdated="";
@@ -19,10 +34,10 @@ function esc(v=""){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;
 function isLive(m){const s=String(m?.status||"").toLowerCase();return ["live","inprogress","in_progress","playing","1h","2h","ht"].some(x=>s.includes(x));}
 function isFinished(m){const s=String(m?.status||"").toLowerCase();return s==="finished"||s==="ft"||s.includes("finish");}
 function dateKey(offset){const d=new Date();d.setDate(d.getDate()+offset);return d.toISOString().slice(0,10);}
-function niceDate(offset){const d=new Date();d.setDate(d.getDate()+offset);return new Intl.DateTimeFormat("sq",{weekday:"long",day:"2-digit",month:"2-digit"}).format(d);}
-function formatTime(value){if(!value)return "";const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return new Intl.DateTimeFormat(undefined,{hour:"2-digit",minute:"2-digit"}).format(d);}
-function formatUpdated(value){if(!value)return "";const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return new Intl.DateTimeFormat(undefined,{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(d);}
-function statusText(m){if(isLive(m))return "LIVE";if(isFinished(m))return "Përfundoi";const t=formatTime(m?.time);return t?"Ora "+t:"Sot";}
+function niceDate(offset){const d=new Date();d.setDate(d.getDate()+offset);return new Intl.DateTimeFormat(sportLocale(),{weekday:"long",day:"2-digit",month:"2-digit"}).format(d);}
+function formatTime(value){if(!value)return "";const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return new Intl.DateTimeFormat(sportLocale(),{hour:"2-digit",minute:"2-digit"}).format(d);}
+function formatUpdated(value){if(!value)return "";const d=new Date(value);if(Number.isNaN(d.getTime()))return "";return new Intl.DateTimeFormat(sportLocale(),{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(d);}
+function statusText(m){if(isLive(m))return "LIVE";if(isFinished(m))return st("finished");const t=formatTime(m?.time);return t?st("time")+" "+t:st("today");}
 function scoreText(m){const h=m?.home_score,a=m?.away_score;return h!=null&&a!=null?esc(h)+" : "+esc(a):"–";}
 function eventKey(m){return String(m?.id||[m?.home,m?.away,m?.time].join("|"));}
 function readJson(key,fallback){try{return JSON.parse(localStorage.getItem(key)||"")||fallback;}catch{return fallback;}}
@@ -40,86 +55,47 @@ function matchHtml(m){
    <div class="sport-match-bottom">
      <span class="sport-status-pill ${live?"live":""}">${esc(statusText(m))}</span>
      <strong class="sport-main-score">${scoreText(m)}</strong>
-     <button class="goal-bell ${on?"active":""}" type="button" data-goal-bell="${esc(key)}" title="Njoftim për gol">${on?"🔔":"🔕"}</button>
+     <button class="goal-bell ${on?"active":""}" type="button" data-goal-bell="${esc(key)}" title="${esc(st("goalAlert"))}">${on?"🔔":"🔕"}</button>
    </div>
  </article>`;
 }
 
 function groupRows(list){
  const map=new Map();
- for(const m of list){const k=m?.competition||"Tjetër";if(!map.has(k))map.set(k,[]);map.get(k).push(m);}
+ for(const m of list){const k=m?.competition||st("other");if(!map.has(k))map.set(k,[]);map.get(k).push(m);}
  return [...map.entries()];
 }
-function matchesSection(title,list){
- if(!list.length)return '<div class="sport-no-live">Nuk ka ndeshje.</div>';
+function matchesSection(_title,list){
+ if(!list.length)return '<div class="sport-no-live">'+esc(st("noMatches"))+'</div>';
  return groupRows(list).map(([name,rows])=>`<div class="sport-competition-block"><div class="sport-competition-title">${esc(name)}</div>${rows.map(matchHtml).join("")}</div>`).join("");
 }
 
 function mainButtons(){
  return `<div class="sport-main-actions">
-   <button class="secondary sport-main-btn ${mode==="today"?"active":""}" data-sport-mode="today">⚽ Sot / Live</button>
-   <button class="secondary sport-main-btn ${mode==="days"?"active":""}" data-sport-mode="days">📅 7 ditë</button>
-   <button class="secondary sport-main-btn ${mode==="leagues"?"active":""}" data-sport-mode="leagues">🏆 Ligat & tabelat</button>
+   <button class="secondary sport-main-btn ${mode==="today"?"active":""}" data-sport-mode="today">⚽ ${esc(st("todayLive"))}</button>
+   <button class="secondary sport-main-btn ${mode==="days"?"active":""}" data-sport-mode="days">📅 ${esc(st("sevenDays"))}</button>
+   <button class="secondary sport-main-btn ${mode==="leagues"?"active":""}" data-sport-mode="leagues">🏆 ${esc(st("leaguesTables"))}</button>
  </div>`;
 }
 
-
-const ZONE_LABELS={
- "zone-cl":"Champions League",
- "zone-clq":"Champions kualifikime",
- "zone-el":"Europa League",
- "zone-elq":"Europa kualifikime",
- "zone-eclq":"Conference kualifikime",
- "zone-playoff":"Playoff",
- "zone-relegation":"Rënie nga liga"
+const ZONE_LABEL_KEYS={
+ "zone-cl":"cl","zone-clq":"clq","zone-el":"el","zone-elq":"elq",
+ "zone-eclq":"eclq","zone-playoff":"playoff","zone-relegation":"relegation"
 };
-
-/*
- * Zonat europiane janë të lidhura me ligën, jo me numrin e ekipeve.
- * Këto janë vendet bazë sipas modelit aktual të UEFA-s; kupa kombëtare,
- * fituesit e kupave europiane dhe European Performance Spots mund t'i
- * zhvendosin disa vende Europa/Conference në fund të sezonit.
- */
 const LEAGUE_ZONE_RULES={
- "eng.1":[
-   [1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]
- ],
- "esp.1":[
-   [1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]
- ],
- "ita.1":[
-   [1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]
- ],
- "ger.1":[
-   [1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]
- ],
- "fra.1":[
-   [1,3,"zone-cl"],[4,4,"zone-clq"],[5,5,"zone-el"],[6,6,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]
- ],
- "ned.1":[
-   [1,2,"zone-cl"],[3,3,"zone-clq"],[4,4,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]
- ],
- "por.1":[
-   [1,2,"zone-cl"],[3,3,"zone-elq"],[4,4,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]
- ],
- "bel.1":[
-   [1,1,"zone-cl"],[2,2,"zone-clq"],[3,3,"zone-elq"],[4,4,"zone-eclq"]
- ],
- "tur.1":[
-   [1,1,"zone-cl"],[2,2,"zone-clq"],[3,3,"zone-elq"],[4,4,"zone-eclq"],[16,18,"zone-relegation"]
- ],
- "sco.1":[
-   [1,1,"zone-clq"],[2,2,"zone-elq"],[3,3,"zone-eclq"],[11,11,"zone-playoff"],[12,12,"zone-relegation"]
- ],
- "ger.2":[
-   [16,16,"zone-playoff"],[17,18,"zone-relegation"]
- ],
- "eng.2":[
-   [22,24,"zone-relegation"]
- ],
- "kosovo":[
-   [1,1,"zone-clq"],[2,3,"zone-eclq"]
- ]
+ "eng.1":[[1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]],
+ "esp.1":[[1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]],
+ "ita.1":[[1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]],
+ "ger.1":[[1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]],
+ "fra.1":[[1,3,"zone-cl"],[4,4,"zone-clq"],[5,5,"zone-el"],[6,6,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]],
+ "ned.1":[[1,2,"zone-cl"],[3,3,"zone-clq"],[4,4,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]],
+ "por.1":[[1,2,"zone-cl"],[3,3,"zone-elq"],[4,4,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]],
+ "bel.1":[[1,1,"zone-cl"],[2,2,"zone-clq"],[3,3,"zone-elq"],[4,4,"zone-eclq"]],
+ "tur.1":[[1,1,"zone-cl"],[2,2,"zone-clq"],[3,3,"zone-elq"],[4,4,"zone-eclq"],[16,18,"zone-relegation"]],
+ "sco.1":[[1,1,"zone-clq"],[2,2,"zone-elq"],[3,3,"zone-eclq"],[11,11,"zone-playoff"],[12,12,"zone-relegation"]],
+ "ger.2":[[16,16,"zone-playoff"],[17,18,"zone-relegation"]],
+ "eng.2":[[22,24,"zone-relegation"]],
+ "kosovo":[[1,1,"zone-clq"],[2,3,"zone-eclq"]]
 };
 
 function leagueRuleKey(league){
@@ -128,33 +104,26 @@ function leagueRuleKey(league){
  if(league?.group==="Kosovë"||String(league?.country||"").toLowerCase().includes("kosov"))return "kosovo";
  return "";
 }
-
 function standingZoneClass(league,rank,totalTeams){
- const key=leagueRuleKey(league);
- if(!key)return "";
- const pos=Number(rank);
- const rules=LEAGUE_ZONE_RULES[key]||[];
+ const key=leagueRuleKey(league);if(!key)return "";
+ const pos=Number(rank),rules=LEAGUE_ZONE_RULES[key]||[];
  const found=rules.find(([from,to])=>pos>=from&&pos<=Math.min(to,totalTeams));
  return found?found[2]:"";
 }
-
 function standingsLegendHtml(league,totalTeams){
- const key=leagueRuleKey(league);
- if(!key)return "";
- const seen=new Set();
- const items=[];
+ const key=leagueRuleKey(league);if(!key)return "";
+ const seen=new Set(),items=[];
  for(const [from,to,cls] of LEAGUE_ZONE_RULES[key]||[]){
    if(from>totalTeams||seen.has(cls))continue;
    seen.add(cls);
-   items.push(`<span class="legend-item ${cls}">${ZONE_LABELS[cls]||cls}</span>`);
+   items.push(`<span class="legend-item ${cls}">${esc(st(ZONE_LABEL_KEYS[cls]||cls))}</span>`);
  }
- return items.length?`<div class="standings-legend" aria-label="Zonat e tabelës">${items.join("")}</div>`:"";
+ return items.length?`<div class="standings-legend" aria-label="${esc(st("zones"))}">${items.join("")}</div>`:"";
 }
-
 function standingsZoneNoteHtml(league){
  const key=leagueRuleKey(league);
  if(!key||key==="ger.2"||key==="eng.2")return "";
- return `<p class="standings-zone-note">ℹ️ Vendet europiane tregojnë qasjen bazë. Kupa kombëtare dhe UEFA EPS mund t'i zhvendosin disa vende në fund të sezonit.</p>`;
+ return `<p class="standings-zone-note">${esc(st("zoneNote"))}</p>`;
 }
 
 function render(){
@@ -162,15 +131,15 @@ function render(){
  let body="";
  if(mode==="days"){
    body=`<section class="sport-days-layout">
-     <div class="sport-days-vertical">${[0,1,2,3,4,5,6].map(n=>`<button class="sport-day-vertical ${selectedDay===n?"active":""}" data-sport-day="${n}"><strong>${n===0?"Sot":n===1?"Nesër":niceDate(n).split(",")[0]}</strong><small>${niceDate(n)}</small></button>`).join("")}</div>
-     <div class="sport-day-content"><div class="sport-section-title"><strong>${esc(niceDate(selectedDay))}</strong></div>${matchesSection("Ndeshjet",matches)}</div>
+     <div class="sport-days-vertical">${[0,1,2,3,4,5,6].map(n=>`<button class="sport-day-vertical ${selectedDay===n?"active":""}" data-sport-day="${n}"><strong>${n===0?esc(st("today")):n===1?esc(st("tomorrow")):esc(niceDate(n).split(",")[0])}</strong><small>${esc(niceDate(n))}</small></button>`).join("")}</div>
+     <div class="sport-day-content"><div class="sport-section-title"><strong>${esc(niceDate(selectedDay))}</strong></div>${matchesSection("",matches)}</div>
    </section>`;
  } else if(mode==="leagues"){
    if(selectedLeague){
      body=`<section class="card sport-standings-card">
-       <button class="secondary" id="leagueBack">← Të gjitha ligat</button>
+       <button class="secondary" id="leagueBack">← ${esc(st("allLeagues"))}</button>
        <h2>🏆 ${esc(selectedLeague.name)}</h2>
-       ${standingsLoading?'<p>Po ngarkohet tabela…</p>':standings.length?`${standingsLegendHtml(selectedLeague,standings.length)}${standingsZoneNoteHtml(selectedLeague)}<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Ekipi</th><th>L</th><th>F</th><th>B</th><th>H</th><th>Gola +/-</th><th>Pikë</th></tr></thead><tbody>${standings.map(r=>{const rowClass=standingZoneClass(selectedLeague,r.rank,standings.length);return `<tr class="${rowClass}"><td class="rank-cell"><span class="rank-badge">${esc(r.rank??"")}</span></td><td class="standing-team">${r.logo?'<img class="standing-team-logo" src="'+esc(r.logo)+'" alt="" loading="lazy">':'<span class="standing-team-logo placeholder">⚽</span>'}<span>${esc(r.team||"Ekipi")}</span></td><td>${esc(r.played??0)}</td><td>${esc(r.wins??0)}</td><td>${esc(r.draws??0)}</td><td>${esc(r.losses??0)}</td><td class="goal-diff-cell"><strong>${Number(r.gd)>0?"+"+esc(r.gd):esc(r.gd??0)}</strong></td><td class="points-cell"><strong>${esc(r.points??0)}</strong></td></tr>`;}).join("")}</tbody></table></div>`:'<div class="sports-empty-card"><h3>Nuk ka të dhëna</h3><p>Tabela nuk u gjet për këtë ligë.</p></div>'}
+       ${standingsLoading?`<p>${esc(st("loadingTable"))}</p>`:standings.length?`${standingsLegendHtml(selectedLeague,standings.length)}${standingsZoneNoteHtml(selectedLeague)}<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>${esc(st("team"))}</th><th>${esc(st("played"))}</th><th>${esc(st("wins"))}</th><th>${esc(st("draws"))}</th><th>${esc(st("losses"))}</th><th>${esc(st("goalDiff"))}</th><th>${esc(st("points"))}</th></tr></thead><tbody>${standings.map(r=>{const rowClass=standingZoneClass(selectedLeague,r.rank,standings.length);return `<tr class="${rowClass}"><td class="rank-cell"><span class="rank-badge">${esc(r.rank??"")}</span></td><td class="standing-team">${r.logo?'<img class="standing-team-logo" src="'+esc(r.logo)+'" alt="" loading="lazy">':'<span class="standing-team-logo placeholder">⚽</span>'}<span>${esc(r.team||st("team"))}</span></td><td>${esc(r.played??0)}</td><td>${esc(r.wins??0)}</td><td>${esc(r.draws??0)}</td><td>${esc(r.losses??0)}</td><td class="goal-diff-cell"><strong>${Number(r.gd)>0?"+"+esc(r.gd):esc(r.gd??0)}</strong></td><td class="points-cell"><strong>${esc(r.points??0)}</strong></td></tr>`;}).join("")}</tbody></table></div>`:`<div class="sports-empty-card"><h3>${esc(st("noData"))}</h3><p>${esc(st("tableMissing"))}</p></div>`}
      </section>`;
    }else{
      const q=leagueSearch.trim().toLocaleLowerCase();
@@ -179,15 +148,15 @@ function render(){
      const major=filtered.filter(l=>l.group==="Kryesore");
      const other=filtered.filter(l=>l.group!=="Kosovë"&&l.group!=="Kryesore");
      const list=(title,arr)=>arr.length?`<div class="league-group"><h3>${title}</h3>${arr.map(l=>`<button class="league-row" data-league-id="${esc(l.id)}"><span>🏆</span><strong>${esc(l.name)}</strong><small>${esc(l.country||"")}</small><span>›</span></button>`).join("")}</div>`:"";
-     body=`<section class="card league-browser"><input id="leagueSearch" class="sport-search" placeholder="Kërko ligë…" value="${esc(leagueSearch)}">${list("⭐ Ligat kryesore",major)}${list("🇽🇰 Ligat e Kosovës",kosovo)}${list("🌍 Ligat tjera",other)}</section>`;
+     body=`<section class="card league-browser"><input id="leagueSearch" class="sport-search" placeholder="${esc(st("searchLeague"))}" value="${esc(leagueSearch)}">${list(st("majorLeagues"),major)}${list(st("kosovoLeagues"),kosovo)}${list(st("otherLeagues"),other)}</section>`;
    }
  }else{
    const live=matches.filter(isLive),rest=matches.filter(m=>!isLive(m));
-   body=`<section class="sport-section"><div class="sport-section-title"><span class="live-dot"></span><strong>LIVE TANI</strong></div>${matchesSection("Live",live)}</section>
-   <section class="sport-section"><div class="sport-section-title">⚽ <strong>NDESHJET E SOTME</strong></div>${matchesSection("Sot",rest)}</section>`;
+   body=`<section class="sport-section"><div class="sport-section-title"><span class="live-dot"></span><strong>${esc(st("liveNow"))}</strong></div>${matchesSection("",live)}</section>
+   <section class="sport-section"><div class="sport-section-title">⚽ <strong>${esc(st("todayMatches"))}</strong></div>${matchesSection("",rest)}</section>`;
  }
  root.innerHTML=`<div class="sport-simple-shell">
-   <section class="card sport-simple-head"><div><h2>⚽ Sport</h2><p class="muted">Live rifreskohet automatikisht çdo 10 sekonda.</p></div><button id="sportRefresh" class="secondary sport-refresh" type="button">${loading?"Po rifreskon…":"Rifresko"}</button><div class="sport-auto-info"><span class="live-dot"></span><span>Auto refresh: 10 sekonda</span>${lastUpdated?'<span class="muted">· '+esc(formatUpdated(lastUpdated))+'</span>':""}</div>${mainButtons()}</section>
+   <section class="card sport-simple-head"><div><h2>⚽ ${esc(st("sport"))}</h2><p class="muted">${esc(st("liveRefresh"))}</p></div><button id="sportRefresh" class="secondary sport-refresh" type="button">${loading?esc(st("refreshing")):esc(st("refresh"))}</button><div class="sport-auto-info"><span class="live-dot"></span><span>${esc(st("autoRefresh"))}</span>${lastUpdated?'<span class="muted">· '+esc(formatUpdated(lastUpdated))+'</span>':""}</div>${mainButtons()}</section>
    ${body}
  </div>`;
  bind();
@@ -202,7 +171,6 @@ function bind(){
  root.querySelectorAll("[data-league-id]").forEach(b=>b.addEventListener("click",()=>{selectedLeague=leagues.find(l=>l.id===b.dataset.leagueId)||null;if(selectedLeague)loadStandings(selectedLeague);}));
  document.getElementById("leagueBack")?.addEventListener("click",()=>{selectedLeague=null;standings=[];render();});
 }
-
 async function loadMatches(force=false,silent=false){
  if(loading)return;
  loading=true;if(!silent)render();
@@ -212,7 +180,6 @@ async function loadMatches(force=false,silent=false){
  }catch(e){console.warn("sport",e);}
  loading=false;render();
 }
-
 async function loadLeagues(force=false){
  if(leagues.length&&!force){render();return;}
  try{const r=await fetch(API+"?action=leagues&t="+Date.now(),{cache:"no-store"});const d=await r.json();leagues=Array.isArray(d?.leagues)?d.leagues:[];}catch(e){console.warn(e);}
@@ -228,7 +195,6 @@ async function loadStandings(l){
  }catch(e){console.warn(e);}
  standingsLoading=false;render();
 }
-
 function toggleGoalAlert(key){
  const map=alerts(),m=matches.find(x=>eventKey(x)===key);
  if(!m)return;
@@ -240,7 +206,6 @@ function toggleGoalAlert(key){
  }
  writeJson(GOAL_ALERTS_KEY,map);render();
 }
-
 function checkGoalChanges(rows){
  const map=alerts(),scores=readJson(GOAL_SCORE_KEY,{});
  for(const m of rows){
@@ -255,11 +220,10 @@ function checkGoalChanges(rows){
  }
  writeJson(GOAL_SCORE_KEY,scores);
 }
-
 function activate(){
  mode="today";selectedDay=0;loadMatches(true,false);
  if(autoTimer)clearInterval(autoTimer);
- autoTimer=setInterval(()=>{if(document.getElementById("sportView")?.classList.contains("hidden"))return;if(mode==="today"||mode==="days"&&selectedDay===0)loadMatches(true,true);},10000);
+ autoTimer=setInterval(()=>{if(document.getElementById("sportView")?.classList.contains("hidden"))return;if(mode==="today"||(mode==="days"&&selectedDay===0))loadMatches(true,true);},10000);
 }
 window.PajazitiSports={activate,refresh:()=>loadMatches(true,false),reloadLanguage:render,openMatch:(key)=>{mode="today";selectedDay=0;loadMatches(true,false).then(()=>setTimeout(()=>document.getElementById("sport-match-"+String(key).replace(/[^a-zA-Z0-9_-]/g,"-"))?.scrollIntoView({behavior:"smooth",block:"center"}),400));}};
 render();
