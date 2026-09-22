@@ -1,4 +1,4 @@
-name: Deploy PAJAZITI to GitHub Pages
+name: Deploy Diamond to GitHub Pages
 
 on:
   push:
@@ -27,13 +27,13 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site
-          cp index.html styles.css app.js app-config.js games.js tv.js radio.js manifest.webmanifest icon.svg sw.js war.js kosovo-free-https.m3u rtk-free.m3u _site/
+          cp index.html styles.css app.js app-config.js games.js tv.js radio.js manifest.webmanifest icon.svg sw.js war.js kosovo-free-https.m3u rtk-free.m3u pajaziti-android.apk _site/
           touch _site/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
+          with:
+            enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
