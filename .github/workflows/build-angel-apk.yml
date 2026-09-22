@@ -48,6 +48,10 @@ jobs:
             "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-build-secret")"
           python3 -c 'import json,os,pathlib,sys,base64; d=json.load(sys.stdin); pathlib.Path("firetv/pajaziti-release.jks").write_bytes(base64.b64decode(d["keystore_b64"])); pathlib.Path("firetv/.store-password").write_text(d["store_password"],encoding="utf-8"); pathlib.Path("firetv/.key-alias").write_text(d["key_alias"],encoding="utf-8"); pathlib.Path("firetv/.key-password").write_text(d["key_password"],encoding="utf-8"); f=open(os.environ["GITHUB_ENV"],"a",encoding="utf-8"); f.write("ANGEL_KEYSTORE_PASSWORD="+d["store_password"]+"\\nANGEL_KEY_ALIAS="+d["key_alias"]+"\\nANGEL_KEY_PASSWORD="+d["key_password"]+"\\n"); f.close()' <<<"$SECRET_JSON"
           test -s firetv/pajaziti-release.jks
+      - name: Sync current Android web assets
+        run: |
+          cp index.html admin.html styles.css app.js app-config.js games.js sports.js tv.js radio.js manifest.webmanifest admin-manifest.webmanifest icon.svg angel-icon.jpg sw.js war.js kosovo-free-https.m3u rtk-free.m3u diet.js ki.js prayer-guide.js quran.js firetv/app/src/main/assets/
+
       - name: Build signed release APKs
         run: |
           gradle -p firetv :app:assembleRelease --no-daemon
