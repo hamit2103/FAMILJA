@@ -269,6 +269,7 @@ function applyLanguage(language = currentLanguage) {
   window.PajazitiRadio?.reloadLanguage?.();
   window.DiamondQuran?.reloadLanguage?.();
   window.DiamondPrayerGuide?.reloadLanguage?.();
+  window.DiamondRuqya?.reloadLanguage?.();
   window.DiamondDiet?.reloadLanguage?.();
   window.DiamondKI?.reloadLanguage?.();
 
