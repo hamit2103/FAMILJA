@@ -98,7 +98,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.19</span>
+            <span id="appVersionLabel" class="app-version-label">v5.20</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -187,19 +187,26 @@
         <section id="adminPanel" class="card">
           <h2 id="uploadTitle" data-i18n="upload.addPhoto">Shto reklamë</h2>
           <p id="uploadHint" class="muted small"></p>
-          <input id="mediaInput" type="file" accept="image/*" multiple>
+          <input id="mediaInput" type="file" accept="image/*,video/*" multiple>
           <button id="uploadBtn" class="primary" type="button" data-i18n="upload.button">Ngarko</button>
           <div id="uploadStatus" class="message"></div>
         </section>
 
         <section id="installStatsCard" class="card install-stats-card hidden">
-          <div class="install-stats-row">
-            <div>
-              <h2>📲 Instalime</h2>
-              <p class="muted small">Numri i pajisjeve që e kanë hapur versionin e ri të app-it.</p>
-            </div>
-            <strong id="installCount">0</strong>
+          <h2>📊 Statistikat e DIAMOND</h2>
+          <div class="admin-stats-grid">
+            <div class="admin-stat-box"><span>📲 Telefona me app</span><strong id="installCount">0</strong></div>
+            <div class="admin-stat-box"><span>🔗 Telefona që kanë ndarë linkun</span><strong id="shareDeviceCount">0</strong></div>
+            <div class="admin-stat-box"><span>🟢 Telefona aktivë sot</span><strong id="dailyActiveCount">0</strong></div>
           </div>
+          <div class="admin-notify-row">
+            <div>
+              <strong>🔔 Njoftim për telefon të ri</strong>
+              <p class="muted small">Lajmërohu edhe kur ADMIN-i është i mbyllur.</p>
+            </div>
+            <button id="newDeviceNotifyBtn" class="secondary" type="button">Aktivizo</button>
+          </div>
+          <div id="adminStatsStatus" class="message"></div>
         </section>
 
         <section id="storageCard" class="card storage-card hidden">
