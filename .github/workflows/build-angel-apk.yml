@@ -92,3 +92,5 @@ jobs:
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-fresh.apk \
             "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.18-fresh.apk"
+
+# republish-diamond-5.18
