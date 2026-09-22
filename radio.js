@@ -2,10 +2,12 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
 
 const ADMIN_EMAIL = "admin@familja.local";
+const APP_MODE = document.querySelector('meta[name="diamond-mode"]')?.content === "admin" ? "admin" : "public";
+const ADMIN_ONLY = APP_MODE === "admin";
 const TABLE = "radio_stations";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true }
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: ADMIN_ONLY ? "diamond-admin-auth" : "diamond-family-auth" }
 });
 
 const root = document.getElementById("radioRoot");
