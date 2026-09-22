@@ -7,7 +7,6 @@
       ".git/**",
       ".github/**",
       "README.md",
-      "**/*.apk",
       "firetv/**",
       "firebase/**",
       "supabase/**"
