@@ -64,35 +64,97 @@ function mainButtons(){
 }
 
 
-function standingZoneClass(league,rank,totalTeams){
- const name=String(league?.name||"").toLowerCase();
- const isMain=league?.group==="Kryesore"||/bundesliga|premier league|serie a|la liga|laliga|ligue 1|eredivisie|super lig|süper lig|primeira liga/.test(name);
- if(!isMain)return "";
- const pos=Number(rank);
- if(totalTeams===18){
-   if(pos>=1&&pos<=4)return "zone-cl";
-   if(pos===5)return "zone-el";
-   if(pos===6)return "zone-ecl";
-   if(pos===16)return "zone-playoff";
-   if(pos>=17)return "zone-relegation";
- }
- if(totalTeams===20){
-   if(pos>=1&&pos<=4)return "zone-cl";
-   if(pos===5)return "zone-el";
-   if(pos===6)return "zone-ecl";
-   if(pos>=18)return "zone-relegation";
- }
+const ZONE_LABELS={
+ "zone-cl":"Champions League",
+ "zone-clq":"Champions kualifikime",
+ "zone-el":"Europa League",
+ "zone-elq":"Europa kualifikime",
+ "zone-eclq":"Conference kualifikime",
+ "zone-playoff":"Playoff",
+ "zone-relegation":"Rënie nga liga"
+};
+
+/*
+ * Zonat europiane janë të lidhura me ligën, jo me numrin e ekipeve.
+ * Këto janë vendet bazë sipas modelit aktual të UEFA-s; kupa kombëtare,
+ * fituesit e kupave europiane dhe European Performance Spots mund t'i
+ * zhvendosin disa vende Europa/Conference në fund të sezonit.
+ */
+const LEAGUE_ZONE_RULES={
+ "eng.1":[
+   [1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]
+ ],
+ "esp.1":[
+   [1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]
+ ],
+ "ita.1":[
+   [1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[18,20,"zone-relegation"]
+ ],
+ "ger.1":[
+   [1,4,"zone-cl"],[5,5,"zone-el"],[6,6,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]
+ ],
+ "fra.1":[
+   [1,3,"zone-cl"],[4,4,"zone-clq"],[5,5,"zone-el"],[6,6,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]
+ ],
+ "ned.1":[
+   [1,2,"zone-cl"],[3,3,"zone-clq"],[4,4,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]
+ ],
+ "por.1":[
+   [1,2,"zone-cl"],[3,3,"zone-elq"],[4,4,"zone-eclq"],[16,16,"zone-playoff"],[17,18,"zone-relegation"]
+ ],
+ "bel.1":[
+   [1,1,"zone-cl"],[2,2,"zone-clq"],[3,3,"zone-elq"],[4,4,"zone-eclq"]
+ ],
+ "tur.1":[
+   [1,1,"zone-cl"],[2,2,"zone-clq"],[3,3,"zone-elq"],[4,4,"zone-eclq"],[16,18,"zone-relegation"]
+ ],
+ "sco.1":[
+   [1,1,"zone-clq"],[2,2,"zone-elq"],[3,3,"zone-eclq"],[11,11,"zone-playoff"],[12,12,"zone-relegation"]
+ ],
+ "ger.2":[
+   [16,16,"zone-playoff"],[17,18,"zone-relegation"]
+ ],
+ "eng.2":[
+   [22,24,"zone-relegation"]
+ ],
+ "kosovo":[
+   [1,1,"zone-clq"],[2,3,"zone-eclq"]
+ ]
+};
+
+function leagueRuleKey(league){
+ const slug=String(league?.slug||"").toLowerCase();
+ if(slug&&LEAGUE_ZONE_RULES[slug])return slug;
+ if(league?.group==="Kosovë"||String(league?.country||"").toLowerCase().includes("kosov"))return "kosovo";
  return "";
 }
 
-function standingsLegendHtml(){
- return `<div class="standings-legend" aria-label="Zonat e tabelës">
-   <span class="legend-item zone-cl">Champions League</span>
-   <span class="legend-item zone-el">Europa League</span>
-   <span class="legend-item zone-ecl">Conference League</span>
-   <span class="legend-item zone-playoff">Playoff</span>
-   <span class="legend-item zone-relegation">Rënie nga liga</span>
- </div>`;
+function standingZoneClass(league,rank,totalTeams){
+ const key=leagueRuleKey(league);
+ if(!key)return "";
+ const pos=Number(rank);
+ const rules=LEAGUE_ZONE_RULES[key]||[];
+ const found=rules.find(([from,to])=>pos>=from&&pos<=Math.min(to,totalTeams));
+ return found?found[2]:"";
+}
+
+function standingsLegendHtml(league,totalTeams){
+ const key=leagueRuleKey(league);
+ if(!key)return "";
+ const seen=new Set();
+ const items=[];
+ for(const [from,to,cls] of LEAGUE_ZONE_RULES[key]||[]){
+   if(from>totalTeams||seen.has(cls))continue;
+   seen.add(cls);
+   items.push(`<span class="legend-item ${cls}">${ZONE_LABELS[cls]||cls}</span>`);
+ }
+ return items.length?`<div class="standings-legend" aria-label="Zonat e tabelës">${items.join("")}</div>`:"";
+}
+
+function standingsZoneNoteHtml(league){
+ const key=leagueRuleKey(league);
+ if(!key||key==="ger.2"||key==="eng.2")return "";
+ return `<p class="standings-zone-note">ℹ️ Vendet europiane tregojnë qasjen bazë. Kupa kombëtare dhe UEFA EPS mund t'i zhvendosin disa vende në fund të sezonit.</p>`;
 }
 
 function render(){
@@ -108,7 +170,7 @@ function render(){
      body=`<section class="card sport-standings-card">
        <button class="secondary" id="leagueBack">← Të gjitha ligat</button>
        <h2>🏆 ${esc(selectedLeague.name)}</h2>
-       ${standingsLoading?'<p>Po ngarkohet tabela…</p>':standings.length?`${standingsLegendHtml()}<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Ekipi</th><th>L</th><th>F</th><th>B</th><th>H</th><th>Gola +/-</th><th>Pikë</th></tr></thead><tbody>${standings.map(r=>{const rowClass=standingZoneClass(selectedLeague,r.rank,standings.length);return `<tr class="${rowClass}"><td class="rank-cell"><span class="rank-badge">${esc(r.rank??"")}</span></td><td class="standing-team">${r.logo?'<img class="standing-team-logo" src="'+esc(r.logo)+'" alt="" loading="lazy">':'<span class="standing-team-logo placeholder">⚽</span>'}<span>${esc(r.team||"Ekipi")}</span></td><td>${esc(r.played??0)}</td><td>${esc(r.wins??0)}</td><td>${esc(r.draws??0)}</td><td>${esc(r.losses??0)}</td><td class="goal-diff-cell"><strong>${Number(r.gd)>0?"+"+esc(r.gd):esc(r.gd??0)}</strong></td><td class="points-cell"><strong>${esc(r.points??0)}</strong></td></tr>`;}).join("")}</tbody></table></div>`:'<div class="sports-empty-card"><h3>Nuk ka të dhëna</h3><p>Tabela nuk u gjet për këtë ligë.</p></div>'}
+       ${standingsLoading?'<p>Po ngarkohet tabela…</p>':standings.length?`${standingsLegendHtml(selectedLeague,standings.length)}${standingsZoneNoteHtml(selectedLeague)}<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Ekipi</th><th>L</th><th>F</th><th>B</th><th>H</th><th>Gola +/-</th><th>Pikë</th></tr></thead><tbody>${standings.map(r=>{const rowClass=standingZoneClass(selectedLeague,r.rank,standings.length);return `<tr class="${rowClass}"><td class="rank-cell"><span class="rank-badge">${esc(r.rank??"")}</span></td><td class="standing-team">${r.logo?'<img class="standing-team-logo" src="'+esc(r.logo)+'" alt="" loading="lazy">':'<span class="standing-team-logo placeholder">⚽</span>'}<span>${esc(r.team||"Ekipi")}</span></td><td>${esc(r.played??0)}</td><td>${esc(r.wins??0)}</td><td>${esc(r.draws??0)}</td><td>${esc(r.losses??0)}</td><td class="goal-diff-cell"><strong>${Number(r.gd)>0?"+"+esc(r.gd):esc(r.gd??0)}</strong></td><td class="points-cell"><strong>${esc(r.points??0)}</strong></td></tr>`;}).join("")}</tbody></table></div>`:'<div class="sports-empty-card"><h3>Nuk ka të dhëna</h3><p>Tabela nuk u gjet për këtë ligë.</p></div>'}
      </section>`;
    }else{
      const q=leagueSearch.trim().toLocaleLowerCase();
