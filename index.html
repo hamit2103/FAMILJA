@@ -379,7 +379,17 @@
             </div>
             <p class="muted small kerahat-note" data-i18n="prayer.kerahatNote">Këto intervale janë afërsisht dhe mund të ndryshojnë sipas medhhebit.</p>
           </section>
+
+          <button id="quranOpenCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head">
+              <h2>📖 Kuran</h2>
+            </div>
+            <p class="muted small">114 sure · Arabisht · Shqip · Türkçe · Deutsch</p>
+            <strong>Hap Kuranin →</strong>
+          </button>
         </section>
+
+        <section id="quranPanel" class="card quran-panel hidden"></section>
 
         <section id="prayerList" class="prayer-list"></section>
 
@@ -519,6 +529,7 @@
   <script type="module" src="games.js?v=77"></script>
   <script type="module" src="tv.js?v=52"></script>
   <script type="module" src="radio.js?v=55"></script>
+  <script type="module" src="quran.js?v=1"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
