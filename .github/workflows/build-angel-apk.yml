@@ -73,19 +73,6 @@ jobs:
           test -s pajaziti-firetv.apk
           test -s pajaziti-fresh.apk
 
-      - name: Upload Diamond 5.4 to update server
-        env:
-          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
-        run: |
-          curl --fail --show-error --silent \
-            -H "Authorization: Bearer $OIDC_TOKEN" \
-            --data-binary @pajaziti-android.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.4.apk"
-          curl --fail --show-error --silent \
-            -H "Authorization: Bearer $OIDC_TOKEN" \
-            --data-binary @pajaziti-fresh.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.4-fresh.apk"
-
       - name: Commit APK update
         run: |
           git config user.name "Diamond Build"
@@ -105,3 +92,17 @@ jobs:
           name: Diamond-5.4
           path: pajaziti-android.apk
           if-no-files-found: error
+
+      - name: Upload Diamond 5.4 to update server
+        continue-on-error: true
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          curl --max-time 180 --fail --show-error --silent \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            --data-binary @pajaziti-android.apk \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.4.apk"
+          curl --max-time 180 --fail --show-error --silent \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            --data-binary @pajaziti-fresh.apk \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.4-fresh.apk"
