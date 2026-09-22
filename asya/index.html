@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#8b5cf6">
+  <title>ASYA</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <button id="backBtn" class="back hidden" aria-label="Back">‹</button>
+    <div>
+      <h1 id="brand">ASYA</h1>
+      <p id="subtitle">Jeta islame • kujtesa • shënime</p>
+    </div>
+    <button id="langBtn" class="pill">SQ</button>
+  </header>
+
+  <main id="app"></main>
+
+  <div id="langSheet" class="sheet hidden">
+    <div class="sheet-card">
+      <h3 id="langTitle">Gjuha</h3>
+      <button data-lang="sq">🇦🇱 Shqip</button>
+      <button data-lang="tr">🇹🇷 Türkçe</button>
+      <button data-lang="de">🇩🇪 Deutsch</button>
+      <button id="closeLang" class="secondary">✕</button>
+    </div>
+  </div>
+
+  <template id="homeTemplate">
+    <section class="hero">
+      <div class="heart">♥</div>
+      <div>
+        <h2>ASYA</h2>
+        <p id="heroText"></p>
+      </div>
+    </section>
+    <section id="grid" class="grid"></section>
+    <p class="version">ASYA • v0.1.0</p>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
