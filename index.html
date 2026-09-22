@@ -98,7 +98,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.18</span>
+            <span id="appVersionLabel" class="app-version-label">v5.19</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -169,7 +169,8 @@
         <button id="gamesTab" class="app-tab" type="button"><span>🎮 </span><span id="gamesTabLabel" data-i18n="tabs.games">Lojëra</span></button>
         <button id="tvTab" class="app-tab" type="button"><span>📺 </span><span id="tvTabLabel" data-i18n="tabs.tv">TV</span></button>
         <button id="radioTab" class="app-tab" type="button"><span>📻 </span><span id="radioTabLabel" data-i18n="tabs.radio">Radio</span></button>
-        <button id="chatTab" class="app-tab" type="button"><span>💬 </span><span data-i18n="tabs.chat">Chat</span></button>
+        <button id="dietTab" class="app-tab" type="button"><span>🥗 </span><span id="dietTabLabel">Diet</span></button>
+        <button id="kiTab" class="app-tab" type="button"><span>🤖 </span><span id="kiTabLabel">KI</span></button>
       </nav>
 
       <section id="menuOrderAdmin" class="menu-order-admin hidden">
@@ -295,38 +296,12 @@
         <div id="radioRoot"></div>
       </section>
 
-      <section id="chatView" class="hidden">
-        <section class="card chat-head-card">
-          <div>
-            <h2>💬 <span data-i18n="chat.title">Chat</span></h2>
-            <p class="muted small" data-i18n="chat.free">Chat falas dhe pa kufi për të gjithë.</p>
-          </div>
-          <div id="chatPlanBadge" class="chat-plan-badge" data-i18n="chat.freeBadge">FALAS</div>
-        </section>
+      <section id="dietView" class="hidden">
+        <div id="dietRoot"></div>
+      </section>
 
-        <section class="card chat-profile-card">
-          <label for="chatName" data-i18n="chat.account">Emri / llogaria jote</label>
-          <div class="chat-name-row">
-            <input id="chatName" type="text" maxlength="32" autocomplete="nickname" placeholder="Shkruaj emrin" data-i18n-placeholder="chat.namePlaceholder">
-            <button id="chatSaveNameBtn" class="secondary" type="button" data-i18n="chat.saveName">Ruaj emrin</button>
-          </div>
-          <p class="muted small" data-i18n="chat.nameRule">Emrin mund ta zgjedhësh vetëm një herë. Pastaj nuk mund të ndryshohet. Emrat që përdoren nga dikush tjetër nuk lejohen.</p>
-        </section>
-
-        <section class="card chat-compose-card">
-          <textarea id="chatText" maxlength="500" rows="3" placeholder="Shkruaj mesazhin..." data-i18n-placeholder="chat.messagePlaceholder"></textarea>
-          <div class="chat-compose-bottom">
-            <span id="chatLimitText" class="muted small"></span>
-            <button id="chatSendBtn" class="primary" type="button" data-i18n="chat.send">Dërgo</button>
-          </div>
-          <div id="chatStatus" class="message"></div>
-        </section>
-
-        <section class="toolbar">
-          <strong data-i18n="chat.messages">Mesazhet</strong>
-          <button id="chatRefreshBtn" class="secondary" type="button">Rifresko</button>
-        </section>
-        <section id="chatList" class="chat-list"></section>
+      <section id="kiView" class="hidden">
+        <div id="kiRoot"></div>
       </section>
 
       <section id="prayerView" class="hidden">
@@ -548,6 +523,8 @@
   <script type="module" src="radio.js?v=55"></script>
   <script type="module" src="quran.js?v=2"></script>
   <script type="module" src="prayer-guide.js?v=1"></script>
+  <script type="module" src="diet.js?v=1"></script>
+  <script type="module" src="ki.js?v=1"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
