@@ -1,7 +1,7 @@
 {
-  "name": "ANGEL",
-  "short_name": "ANGEL",
-  "description": "ANGEL",
+  "name": "Diamond",
+  "short_name": "Diamond",
+  "description": "Diamond",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
