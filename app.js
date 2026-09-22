@@ -878,8 +878,8 @@ function setMode(next) {
   else next = "family";
   mode = next;
 
-  familyMode.classList.toggle("active", next === "family");
-  adminMode.classList.toggle("active", next === "admin");
+  familyMode?.classList.toggle("active", next === "family");
+  adminMode?.classList.toggle("active", next === "admin");
   codeInput.value = "";
   codeInput.placeholder = t("login.adminPlaceholder");
   loginBtn.textContent = next === "admin" ? t("login.button") : t("login.userButton");
@@ -897,8 +897,8 @@ function setMode(next) {
     adminCodeWrap?.classList.add("hidden");
   }
 }
-familyMode.addEventListener("click", () => setMode("family"));
-adminMode.addEventListener("click", () => {
+familyMode?.addEventListener("click", () => setMode("family"));
+adminMode?.addEventListener("click", () => {
   if (ADMIN_ONLY) setMode("admin");
 });
 
