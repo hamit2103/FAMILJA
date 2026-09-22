@@ -9,5 +9,8 @@ public class BootReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         PrayerAlarmScheduler.rescheduleAll(context);
         GoalAlertService.restore(context);
+        if (BuildConfig.ADMIN_BUILD && AdminDeviceAlertReceiver.isEnabled(context)) {
+            AdminDeviceAlertReceiver.schedule(context);
+        }
     }
 }
