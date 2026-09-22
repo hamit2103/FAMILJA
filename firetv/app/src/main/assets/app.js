@@ -267,6 +267,7 @@ function applyLanguage(language = currentLanguage) {
   window.PajazitiGames?.reloadLanguage?.();
   window.PajazitiTV?.reloadLanguage?.();
   window.PajazitiRadio?.reloadLanguage?.();
+  window.DiamondQuran?.reloadLanguage?.();
 
   if (typeof mode !== "undefined" && codeInput) {
     codeInput.placeholder = mode === "admin"
