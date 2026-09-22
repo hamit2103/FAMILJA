@@ -1,0 +1,73 @@
+name: Build DIAMOND ADMIN APK
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "admin.html"
+      - "admin-manifest.webmanifest"
+      - "app.js"
+      - "app-config.js"
+      - "styles.css"
+      - "games.js"
+      - "sports.js"
+      - "tv.js"
+      - "radio.js"
+      - "war.js"
+      - "firetv/**"
+      - ".github/workflows/build-admin-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: diamond-admin-apk
+  cancel-in-progress: true
+
+jobs:
+  build-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Sync current web assets
+        run: |
+          cp index.html admin.html styles.css app.js app-config.js games.js sports.js tv.js radio.js manifest.webmanifest admin-manifest.webmanifest icon.svg angel-icon.jpg sw.js war.js kosovo-free-https.m3u rtk-free.m3u firetv/app/src/main/assets/
+
+      - name: Build separate Admin APK
+        run: |
+          gradle -p firetv clean :app:assembleDebug -PappId=com.pajaziti.familja.admin -PadminBuild=true --no-daemon
+          cp firetv/app/build/outputs/apk/debug/app-debug.apk DIAMOND-ADMIN.apk
+          test -s DIAMOND-ADMIN.apk
+
+      - name: Publish Admin APK in repository
+        run: |
+          git config user.name "Diamond Admin Build"
+          git config user.email "actions@users.noreply.github.com"
+          git add DIAMOND-ADMIN.apk
+          if git diff --cached --quiet; then
+            echo "Admin APK already current."
+          else
+            git commit -m "Publish DIAMOND ADMIN APK [skip ci]"
+            git push
+          fi
+
+      - name: Upload Admin APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DIAMOND-ADMIN
+          path: DIAMOND-ADMIN.apk
+          if-no-files-found: error
