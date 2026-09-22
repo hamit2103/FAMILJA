@@ -98,7 +98,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.22</span>
+            <span id="appVersionLabel" class="app-version-label">v5.23</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -172,6 +172,7 @@
         <button id="dietTab" class="app-tab" type="button"><span>🥗 </span><span id="dietTabLabel">Diet</span></button>
         <button id="kiTab" class="app-tab" type="button"><span>🤖 </span><span id="kiTabLabel">KI</span></button>
         <button id="shareAppTab" class="app-tab" type="button"><span>🔗 </span><span id="shareAppTabLabel">Ndaje appin</span></button>
+        <button id="newsTab" class="app-tab" type="button"><span>📰 </span><span id="newsTabLabel">Lajme</span></button>
       </nav>
 
       <section id="menuOrderAdmin" class="menu-order-admin hidden">
@@ -310,6 +311,10 @@
 
       <section id="kiView" class="hidden">
         <div id="kiRoot"></div>
+      </section>
+
+      <section id="newsView" class="hidden">
+        <div id="newsRoot"></div>
       </section>
 
       <section id="shareAppView" class="hidden">
@@ -576,6 +581,7 @@
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
   <script type="module" src="share-app.js?v=1"></script>
+  <script type="module" src="news.js?v=1"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
