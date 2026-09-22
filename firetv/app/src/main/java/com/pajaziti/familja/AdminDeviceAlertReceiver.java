@@ -35,7 +35,15 @@ public class AdminDeviceAlertReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (!BuildConfig.ADMIN_BUILD || !isEnabled(context)) return;
 
-        new Thread(() -> checkNow(context.getApplicationContext())).start();
+        final PendingResult pendingResult=goAsync();
+        final Context appContext=context.getApplicationContext();
+        new Thread(() -> {
+            try {
+                checkNow(appContext);
+            } finally {
+                pendingResult.finish();
+            }
+        }).start();
     }
 
     public static boolean isEnabled(Context context) {
