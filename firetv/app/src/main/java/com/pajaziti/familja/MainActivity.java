@@ -46,7 +46,7 @@ import java.net.URL;
 public class MainActivity extends Activity {
     private static final String APP_URL = "https://appassets.androidplatform.net/assets/" + (BuildConfig.ADMIN_BUILD ? "admin.html" : "index.html");
     private static final String APP_ASSET_HOST = "appassets.androidplatform.net";
-    private static final String UPDATE_INFO_URL = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-update";
+    private static final String UPDATE_INFO_URL = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/" + (BuildConfig.ADMIN_BUILD ? "familja-admin-update" : "familja-update");
     private static final int REQ_LOCATION = 1001;
     private static final int REQ_FILES = 1002;
     private static final int REQ_NOTIFICATIONS = 1003;
