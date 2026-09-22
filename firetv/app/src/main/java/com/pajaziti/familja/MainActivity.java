@@ -752,8 +752,15 @@ public class MainActivity extends Activity {
             hideFullscreenVideo();
             return true;
         }
-        if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
-            webView.goBack();
+        if (keyCode == KeyEvent.KEYCODE_BACK && webView != null) {
+            webView.evaluateJavascript(
+                "(function(){try{return !!window.DiamondNavigationBack?.();}catch(e){return false;}})();",
+                value -> {
+                    if (!"true".equals(value) && webView.canGoBack()) {
+                        webView.goBack();
+                    }
+                }
+            );
             return true;
         }
         return super.onKeyDown(keyCode, event);
