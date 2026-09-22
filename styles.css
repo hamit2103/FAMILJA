@@ -3726,3 +3726,18 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 .share-app-link{width:100%;box-sizing:border-box;border:1px solid rgba(100,116,139,.25);border-radius:14px;padding:13px;background:rgba(255,255,255,.9);font:inherit}
 .share-app-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:560px){.share-app-actions{grid-template-columns:1fr}}
+
+.news-head-card{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.news-head-card h2{margin:0}
+.news-head-card p{margin:4px 0 0}
+.news-list{display:grid;gap:12px}
+.news-item{display:grid;gap:10px}
+.news-item-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px}
+.news-source{font-weight:800;padding:5px 9px;border-radius:999px;background:rgba(59,130,246,.12)}
+.news-item time{color:#64748b}
+.news-item h3{margin:0;line-height:1.35;font-size:1.05rem}
+.news-open-btn{justify-self:start}
+@media(max-width:560px){
+  .news-head-card{align-items:flex-start;flex-direction:column}
+  .news-head-card button{width:100%}
+}
