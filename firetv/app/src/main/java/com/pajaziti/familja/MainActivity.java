@@ -101,6 +101,7 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new ClockWidgetBridge(this), "AndroidClock");
         webView.addJavascriptInterface(new AppInfoBridge(this), "AndroidApp");
         webView.addJavascriptInterface(new GoalAlertBridge(this), "AndroidGoal");
+        webView.addJavascriptInterface(new AdminAlertBridge(this), "AndroidAdmin");
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(
