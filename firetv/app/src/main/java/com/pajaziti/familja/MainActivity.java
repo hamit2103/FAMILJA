@@ -44,7 +44,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://appassets.androidplatform.net/assets/index.html";
+    private static final String APP_URL = "https://appassets.androidplatform.net/assets/" + (BuildConfig.ADMIN_BUILD ? "admin.html" : "index.html");
     private static final String APP_ASSET_HOST = "appassets.androidplatform.net";
     private static final String UPDATE_INFO_URL = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-update";
     private static final int REQ_LOCATION = 1001;
@@ -255,7 +255,7 @@ public class MainActivity extends Activity {
             "<style>body{font-family:sans-serif;background:#111827;color:#fff;margin:0;padding:28px}" +
             ".box{max-width:520px;margin:12vh auto;background:#1f2937;border-radius:18px;padding:22px}" +
             "button{width:100%;padding:14px;border:0;border-radius:12px;background:#dc2626;color:#fff;font-weight:700;font-size:16px}</style>" +
-            "</head><body><div class='box'><h2>DIAMOND</h2>" +
+            "</head><body><div class='box'><h2>" + (BuildConfig.ADMIN_BUILD ? "DIAMOND ADMIN" : "DIAMOND") + "</h2>" +
             "<p>Aplikacioni u hap, por faqja nuk u ngarkua. Kontrollo internetin dhe provo përsëri.</p>" +
             "<button onclick=\"location.href='" + APP_URL + "'\">Provo përsëri</button>" +
             "</div></body></html>";
