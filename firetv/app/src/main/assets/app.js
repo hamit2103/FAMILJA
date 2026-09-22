@@ -269,6 +269,8 @@ function applyLanguage(language = currentLanguage) {
   window.PajazitiRadio?.reloadLanguage?.();
   window.DiamondQuran?.reloadLanguage?.();
   window.DiamondPrayerGuide?.reloadLanguage?.();
+  window.DiamondDiet?.reloadLanguage?.();
+  window.DiamondKI?.reloadLanguage?.();
 
   if (typeof mode !== "undefined" && codeInput) {
     codeInput.placeholder = mode === "admin"
@@ -327,7 +329,8 @@ const sportTab = $("sportTab");
 const gamesTab = $("gamesTab");
 const tvTab = $("tvTab");
 const radioTab = $("radioTab");
-const chatTab = $("chatTab");
+const dietTab = $("dietTab");
+const kiTab = $("kiTab");
 const menuOrderAdmin = $("menuOrderAdmin");
 const menuOrderList = $("menuOrderList");
 const menuOrderSave = $("menuOrderSave");
@@ -340,7 +343,8 @@ const sportView = $("sportView");
 const gamesView = $("gamesView");
 const tvView = $("tvView");
 const radioView = $("radioView");
-const chatView = $("chatView");
+const dietView = $("dietView");
+const kiView = $("kiView");
 const infoCompose = $("infoCompose");
 const infoName = $("infoName");
 const infoText = $("infoText");
@@ -518,7 +522,7 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","chatTab"];
+const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab"];
 const TAB_LABELS = {
   galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
@@ -528,7 +532,8 @@ const TAB_LABELS = {
   gamesTab:"🎮 Lojëra",
   tvTab:"📺 TV",
   radioTab:"📻 Radio",
-  chatTab:"💬 Chat"
+  dietTab:"🥗 Diet",
+  kiTab:"🤖 KI"
 };
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
@@ -834,27 +839,30 @@ function setSection(next) {
   const showGames = next === "games";
   const showTv = next === "tv";
   const showRadio = next === "radio";
-  const showChat = next === "chat";
+  const showDiet = next === "diet";
+  const showKI = next === "ki";
 
-  galleryTab.classList.toggle("active", showGallery);
-  infoTab.classList.toggle("active", showInfo);
-  prayerTab.classList.toggle("active", showPrayer);
-  clockTab.classList.toggle("active", showClock);
-  sportTab.classList.toggle("active", showSport);
-  gamesTab.classList.toggle("active", showGames);
-  tvTab.classList.toggle("active", showTv);
-  radioTab.classList.toggle("active", showRadio);
-  chatTab.classList.toggle("active", showChat);
+  galleryTab?.classList.toggle("active", showGallery);
+  infoTab?.classList.toggle("active", showInfo);
+  prayerTab?.classList.toggle("active", showPrayer);
+  clockTab?.classList.toggle("active", showClock);
+  sportTab?.classList.toggle("active", showSport);
+  gamesTab?.classList.toggle("active", showGames);
+  tvTab?.classList.toggle("active", showTv);
+  radioTab?.classList.toggle("active", showRadio);
+  dietTab?.classList.toggle("active", showDiet);
+  kiTab?.classList.toggle("active", showKI);
 
-  galleryView.classList.toggle("hidden", !showGallery);
-  infoView.classList.toggle("hidden", !showInfo);
-  prayerView.classList.toggle("hidden", !showPrayer);
-  clockView.classList.toggle("hidden", !showClock);
-  sportView.classList.toggle("hidden", !showSport);
-  gamesView.classList.toggle("hidden", !showGames);
-  tvView.classList.toggle("hidden", !showTv);
-  radioView.classList.toggle("hidden", !showRadio);
-  chatView.classList.toggle("hidden", !showChat);
+  galleryView?.classList.toggle("hidden", !showGallery);
+  infoView?.classList.toggle("hidden", !showInfo);
+  prayerView?.classList.toggle("hidden", !showPrayer);
+  clockView?.classList.toggle("hidden", !showClock);
+  sportView?.classList.toggle("hidden", !showSport);
+  gamesView?.classList.toggle("hidden", !showGames);
+  tvView?.classList.toggle("hidden", !showTv);
+  radioView?.classList.toggle("hidden", !showRadio);
+  dietView?.classList.toggle("hidden", !showDiet);
+  kiView?.classList.toggle("hidden", !showKI);
 
   if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
@@ -863,17 +871,19 @@ function setSection(next) {
   if (showGames) window.PajazitiGames?.activate?.();
   if (showTv) window.PajazitiTV?.activate?.();
   if (showRadio) window.PajazitiRadio?.activate?.();
-  if (showChat) loadChat();
+  if (showDiet) window.DiamondDiet?.activate?.();
+  if (showKI) window.DiamondKI?.activate?.();
 }
-galleryTab.addEventListener("click", () => setSection("gallery"));
-infoTab.addEventListener("click", () => setSection("info"));
-prayerTab.addEventListener("click", () => setSection("prayer"));
-clockTab.addEventListener("click", () => setSection("clock"));
-sportTab.addEventListener("click", () => setSection("sport"));
-gamesTab.addEventListener("click", () => setSection("games"));
-tvTab.addEventListener("click", () => setSection("tv"));
-radioTab.addEventListener("click", () => setSection("radio"));
-chatTab.addEventListener("click", () => setSection("chat"));
+galleryTab?.addEventListener("click", () => setSection("gallery"));
+infoTab?.addEventListener("click", () => setSection("info"));
+prayerTab?.addEventListener("click", () => setSection("prayer"));
+clockTab?.addEventListener("click", () => setSection("clock"));
+sportTab?.addEventListener("click", () => setSection("sport"));
+gamesTab?.addEventListener("click", () => setSection("games"));
+tvTab?.addEventListener("click", () => setSection("tv"));
+radioTab?.addEventListener("click", () => setSection("radio"));
+dietTab?.addEventListener("click", () => setSection("diet"));
+kiTab?.addEventListener("click", () => setSection("ki"));
 
 function setMode(next) {
   if (ADMIN_ONLY) next = "admin";
@@ -2557,13 +2567,6 @@ function startRealtime() {
       () => {
         loadSharedMenuOrder();
         window.PajazitiGames?.reloadSettings?.();
-      }
-    )
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "chat_messages" },
-      () => {
-        if (activeSection === "chat") loadChatMessages();
       }
     )
     .subscribe(async (status) => {
