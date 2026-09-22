@@ -2618,6 +2618,14 @@ if (supabase) {
   );
 }
 
+const isIosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isStandaloneApp = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+if (isIosDevice && !isStandaloneApp) {
+  installBtn?.classList.remove("hidden");
+  installLoginBtn?.classList.remove("hidden");
+}
+
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   installPrompt = e;
@@ -2627,6 +2635,10 @@ window.addEventListener("beforeinstallprompt", (e) => {
 
 async function triggerInstall() {
   if (!installPrompt) {
+    if (isIosDevice) {
+      alert("Në iPhone: hape DIAMOND në Safari, shtyp Share (katrori me shigjetë lart), pastaj zgjidh “Add to Home Screen” / “Shto në ekranin kryesor” dhe konfirmo Add.");
+      return;
+    }
     alert(t("install.chrome"));
     return;
   }
@@ -2641,7 +2653,7 @@ installBtn.addEventListener("click", triggerInstall);
 installLoginBtn.addEventListener("click", triggerInstall);
 
 shareBtn.addEventListener("click", async () => {
-  const url = "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-apk";
+  const url = isIosDevice ? "https://familja.vercel.app/" : "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-apk";
   try {
     if (navigator.share) {
       await navigator.share({
