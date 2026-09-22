@@ -15,6 +15,113 @@ concurrency:
   group: angel-apk-main
   cancel-in-progress: true
 
+name: Build Diamond APK
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - "*.apk"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: diamond-apk-main
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Request GitHub OIDC token
+        id: oidc
+        shell: bash
+        run: |
+          set -euo pipefail
+          TOKEN_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=angel-build")"
+          TOKEN="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["value"])' <<<"$TOKEN_JSON")"
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Restore signing keystore securely
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SECRET_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-build-secret")"
+          python3 -c 'import json,os,pathlib,sys,base64; d=json.load(sys.stdin); pathlib.Path("firetv/pajaziti-release.jks").write_bytes(base64.b64decode(d["keystore_b64"])); pathlib.Path("firetv/.store-password").write_text(d["store_password"],encoding="utf-8"); pathlib.Path("firetv/.key-alias").write_text(d["key_alias"],encoding="utf-8"); pathlib.Path("firetv/.key-password").write_text(d["key_password"],encoding="utf-8"); f=open(os.environ["GITHUB_ENV"],"a",encoding="utf-8"); f.write("ANGEL_KEYSTORE_PASSWORD="+d["store_password"]+"\\nANGEL_KEY_ALIAS="+d["key_alias"]+"\\nANGEL_KEY_PASSWORD="+d["key_password"]+"\\n"); f.close()' <<<"$SECRET_JSON"
+          test -s firetv/pajaziti-release.jks
+
+      - name: Build signed release APKs
+        run: |
+          gradle -p firetv :app:assembleRelease --no-daemon
+          cp firetv/app/build/outputs/apk/release/app-release.apk pajaziti-android.apk
+          cp pajaziti-android.apk pajaziti-firetv.apk
+          gradle -p firetv clean :app:assembleRelease -PappId=com.pajaziti.familja.fresh --no-daemon
+          cp firetv/app/build/outputs/apk/release/app-release.apk pajaziti-fresh.apk
+
+      - name: Verify APK files
+        run: |
+          test -s pajaziti-android.apk
+          test -s pajaziti-firetv.apk
+          test -s pajaziti-fresh.apk
+
+      - name: Upload Diamond 5.4 to update server
+        env:
+          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          curl --fail --show-error --silent \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            --data-binary @pajaziti-android.apk \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.4.apk"
+          curl --fail --show-error --silent \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            --data-binary @pajaziti-fresh.apk \
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.4-fresh.apk"
+
+      - name: Commit APK update
+        run: |
+          git config user.name "Diamond Build"
+          git config user.email "actions@users.noreply.github.com"
+          git pull --rebase origin main
+          git add pajaziti-android.apk pajaziti-firetv.apk pajaziti-fresh.apk
+          if git diff --cached --quiet; then
+            echo "APK already up to date."
+          else
+            git commit -m "Publish Diamond 5.4 APK [skip ci]"
+            git push
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Diamond-5.4
+          path: pajaziti-android.apk
+          if-no-files-found: error
 jobs:
   build:
     runs-on: ubuntu-latest
