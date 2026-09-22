@@ -68,17 +68,17 @@ jobs:
           if git diff --cached --quiet; then
             echo "APK already up to date."
           else
-            git commit -m "Publish Diamond 5.15 APK [skip ci]"
+            git commit -m "Publish Diamond 5.16 APK [skip ci]"
             git pull --rebase origin main
             git push
           fi
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Diamond-5.15
+          name: Diamond-5.16
           path: pajaziti-android.apk
           if-no-files-found: error
-      - name: Upload Diamond 5.15 to update server
+      - name: Upload Diamond 5.16 to update server
         continue-on-error: true
         env:
           OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
@@ -86,8 +86,8 @@ jobs:
           curl --max-time 180 --fail --show-error --silent \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-android.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.15.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.16.apk"
           curl --max-time 180 --fail --show-error --silent \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-fresh.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.15-fresh.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.16-fresh.apk"
