@@ -1,4 +1,18 @@
 const QURAN_API = "https://api.alquran.cloud/v1";
+const QURAN_UI_LANG_KEY="pajaziti-language";
+const QURAN_UI_TXT={
+  sq:{open:"Hap Kuranin →",close:"Mbyll",desc:"Lexo Kuranin sipas sures dhe zgjidh gjuhën.",surahs:"114 suret",back:"← Suret",loadingSurahs:"Po ngarkohen suret...",loadingSurah:"Po ngarkohet sureja...",loadError:"Kurani nuk u ngarkua. Kontrollo internetin dhe provo përsëri.",surahError:"Sureja nuk u ngarkua. Kontrollo internetin dhe provo përsëri.",ayahs:"ajete"},
+  de:{open:"Koran öffnen →",close:"Schließen",desc:"Lies den Koran nach Sure und wähle die Sprache.",surahs:"114 Suren",back:"← Suren",loadingSurahs:"Suren werden geladen...",loadingSurah:"Sure wird geladen...",loadError:"Der Koran konnte nicht geladen werden. Prüfe die Internetverbindung und versuche es erneut.",surahError:"Die Sure konnte nicht geladen werden. Prüfe die Internetverbindung und versuche es erneut.",ayahs:"Verse"},
+  tr:{open:"Kuran'ı aç →",close:"Kapat",desc:"Surelere göre Kuran'ı oku ve dili seç.",surahs:"114 sure",back:"← Sureler",loadingSurahs:"Sureler yükleniyor...",loadingSurah:"Sure yükleniyor...",loadError:"Kuran yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.",surahError:"Sure yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.",ayahs:"ayet"},
+  en:{open:"Open Quran →",close:"Close",desc:"Read the Quran by surah and choose the language.",surahs:"114 surahs",back:"← Surahs",loadingSurahs:"Loading surahs...",loadingSurah:"Loading surah...",loadError:"The Quran could not be loaded. Check your internet connection and try again.",surahError:"The surah could not be loaded. Check your internet connection and try again.",ayahs:"verses"},
+  it:{open:"Apri Corano →",close:"Chiudi",desc:"Leggi il Corano per sura e scegli la lingua.",surahs:"114 sure",back:"← Sure",loadingSurahs:"Caricamento sure...",loadingSurah:"Caricamento sura...",loadError:"Impossibile caricare il Corano. Controlla Internet e riprova.",surahError:"Impossibile caricare la sura. Controlla Internet e riprova.",ayahs:"versetti"},
+  hr:{open:"Otvori Kur'an →",close:"Zatvori",desc:"Čitaj Kur'an po surama i odaberi jezik.",surahs:"114 sura",back:"← Sure",loadingSurahs:"Učitavanje sura...",loadingSurah:"Učitavanje sure...",loadError:"Kur'an se nije mogao učitati. Provjeri internet i pokušaj ponovno.",surahError:"Sura se nije mogla učitati. Provjeri internet i pokušaj ponovno.",ayahs:"ajeta"},
+  fr:{open:"Ouvrir le Coran →",close:"Fermer",desc:"Lisez le Coran par sourate et choisissez la langue.",surahs:"114 sourates",back:"← Sourates",loadingSurahs:"Chargement des sourates...",loadingSurah:"Chargement de la sourate...",loadError:"Le Coran n'a pas pu être chargé. Vérifiez Internet et réessayez.",surahError:"La sourate n'a pas pu être chargée. Vérifiez Internet et réessayez.",ayahs:"versets"},
+  ar:{open:"افتح القرآن ←",close:"إغلاق",desc:"اقرأ القرآن حسب السورة واختر اللغة.",surahs:"114 سورة",back:"السور →",loadingSurahs:"جارٍ تحميل السور...",loadingSurah:"جارٍ تحميل السورة...",loadError:"تعذر تحميل القرآن. تحقق من اتصال الإنترنت وحاول مرة أخرى.",surahError:"تعذر تحميل السورة. تحقق من اتصال الإنترنت وحاول مرة أخرى.",ayahs:"آيات"}
+};
+function qUiLang(){const l=localStorage.getItem(QURAN_UI_LANG_KEY)||"sq";return QURAN_UI_TXT[l]?l:"en";}
+function qt(k){return QURAN_UI_TXT[qUiLang()]?.[k]??QURAN_UI_TXT.en[k]??k;}
+
 const QURAN_LANG_KEY = "diamond-quran-language";
 const QURAN_EDITION_CACHE = "diamond-quran-editions-v1";
 
@@ -43,9 +57,9 @@ function quranRenderShell() {
     <div class="quran-head">
       <div>
         <h2>📖 Kuran</h2>
-        <p class="muted small">Lexo Kuranin sipas sures dhe zgjidh gjuhën.</p>
+        <p class="muted small">${qt("desc")}</p>
       </div>
-      <button id="quranCloseBtn" class="secondary" type="button">Mbyll</button>
+      <button id="quranCloseBtn" class="secondary" type="button">${qt("close")}</button>
     </div>
 
     <div class="quran-language-row">
@@ -58,13 +72,13 @@ function quranRenderShell() {
     <div id="quranStatus" class="message"></div>
 
     <div id="quranLibrary">
-      <div class="quran-list-title">114 suret</div>
+      <div class="quran-list-title">${qt("surahs")}</div>
       <div id="quranSurahList" class="quran-surah-list"></div>
     </div>
 
     <div id="quranReader" class="hidden">
       <div class="quran-reader-head">
-        <button id="quranBackBtn" class="secondary" type="button">← Suret</button>
+        <button id="quranBackBtn" class="secondary" type="button">${qt("back")}</button>
         <div>
           <strong id="quranSurahTitle"></strong>
           <div id="quranSurahMeta" class="muted small"></div>
@@ -119,7 +133,7 @@ function showQuranLibrary() {
 }
 
 async function loadQuranSurahList() {
-  quranMessage("Po ngarkohen suret...");
+  quranMessage(qt("loadingSurahs"));
   try {
     const response = await fetch(QURAN_API + "/surah", { cache: "no-store" });
     const json = await response.json();
@@ -131,7 +145,7 @@ async function loadQuranSurahList() {
     quranMessage("");
   } catch (error) {
     console.error("Quran surah list failed", error);
-    quranMessage("Kurbani nuk u ngarkua. Kontrollo internetin dhe provo përsëri.", "error");
+    quranMessage(qt("loadError"), "error");
   }
 }
 
@@ -200,7 +214,7 @@ async function loadQuranSurah(number) {
   document.getElementById("quranReader")?.classList.remove("hidden");
   const ayahsEl = document.getElementById("quranAyahs");
   if (ayahsEl) ayahsEl.innerHTML = "";
-  quranMessage("Po ngarkohet sureja...");
+  quranMessage(qt("loadingSurah"));
 
   try {
     const arabicPromise = fetchQuranSurah(number, "quran-uthmani");
@@ -215,7 +229,7 @@ async function loadQuranSurah(number) {
     const title = document.getElementById("quranSurahTitle");
     const meta = document.getElementById("quranSurahMeta");
     if (title) title.textContent = (arabic.number + ". " + (arabic.englishName || "") + " — " + (arabic.name || ""));
-    if (meta) meta.textContent = (arabic.numberOfAyahs || arabic.ayahs.length) + " ajete · " + quranLanguageNames[selectedLanguage];
+    if (meta) meta.textContent = (arabic.numberOfAyahs || arabic.ayahs.length) + " " + qt("ayahs") + " · " + quranLanguageNames[selectedLanguage];
 
     if (ayahsEl) {
       ayahsEl.innerHTML = arabic.ayahs.map((ayah, index) => {
@@ -234,10 +248,27 @@ async function loadQuranSurah(number) {
     document.getElementById("quranReader")?.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     console.error("Quran surah failed", error);
-    quranMessage("Sureja nuk u ngarkua. Kontrollo internetin dhe provo përsëri.", "error");
+    quranMessage(qt("surahError"), "error");
   }
 }
 
 document.getElementById("quranOpenCard")?.addEventListener("click", openQuran);
 
 window.DiamondQuran = { open: openQuran, close: closeQuran };
+
+
+function reloadQuranLanguage(){
+  const wasOpen = !quranRoot()?.classList.contains("hidden");
+  quranState.rendered = false;
+  const root=quranRoot();
+  if(root) root.innerHTML="";
+  quranRenderShell();
+  if(wasOpen) root?.classList.remove("hidden");
+  const card=document.getElementById("quranOpenCard");
+  if(card){
+    const strong=card.querySelector("strong");
+    if(strong) strong.textContent=qt("open");
+  }
+  if(quranState.surahs.length) renderQuranSurahList();
+}
+window.DiamondQuran = { open: openQuran, close: closeQuran, reloadLanguage: reloadQuranLanguage };
