@@ -3,6 +3,8 @@ name: Build ASYA APK
 on:
   push:
     branches: [ asya-build ]
+  pull_request:
+    branches: [ main ]
     paths:
       - "asya/**"
       - "firetv/**"
