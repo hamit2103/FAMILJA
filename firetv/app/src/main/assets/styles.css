@@ -3317,3 +3317,66 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 @media(max-width:620px){.sport-main-actions{grid-template-columns:1fr}.sport-days-layout{grid-template-columns:1fr}.sport-days-vertical{grid-template-columns:1fr 1fr}.sport-day-vertical{text-align:center}}
 /* END SPORT ADVANCED v3 */
 
+/* SPORT STANDINGS QUALIFICATION ZONES v1 */
+.standings-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:2px 0 4px;
+}
+.standings-legend .legend-item{
+  display:inline-flex;
+  align-items:center;
+  min-height:30px;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  line-height:1;
+  font-weight:800;
+  color:#10213d;
+  border:1px solid rgba(255,255,255,.72);
+}
+.standings-legend .zone-cl{background:rgba(34,197,94,.20)}
+.standings-legend .zone-el{background:rgba(59,130,246,.18)}
+.standings-legend .zone-ecl{background:rgba(16,185,129,.16)}
+.standings-legend .zone-playoff{background:rgba(245,158,11,.20)}
+.standings-legend .zone-relegation{background:rgba(239,68,68,.20)}
+.standings-table tbody tr.zone-cl td{background:rgba(34,197,94,.16)}
+.standings-table tbody tr.zone-el td{background:rgba(59,130,246,.14)}
+.standings-table tbody tr.zone-ecl td{background:rgba(16,185,129,.13)}
+.standings-table tbody tr.zone-playoff td{background:rgba(245,158,11,.16)}
+.standings-table tbody tr.zone-relegation td{background:rgba(239,68,68,.16)}
+.standings-table tbody tr.zone-cl td:first-child{box-shadow:inset 4px 0 0 #22c55e}
+.standings-table tbody tr.zone-el td:first-child{box-shadow:inset 4px 0 0 #3b82f6}
+.standings-table tbody tr.zone-ecl td:first-child{box-shadow:inset 4px 0 0 #10b981}
+.standings-table tbody tr.zone-playoff td:first-child{box-shadow:inset 4px 0 0 #f59e0b}
+.standings-table tbody tr.zone-relegation td:first-child{box-shadow:inset 4px 0 0 #ef4444}
+.standings-table .rank-cell{font-weight:900}
+.standings-table .standing-team-logo{
+  width:26px;
+  height:26px;
+  object-fit:contain;
+  flex:0 0 26px;
+  border-radius:50%;
+  background:#fff;
+}
+.standings-table .standing-team-logo.placeholder{
+  display:grid;
+  place-items:center;
+  font-size:15px;
+  background:#e9f1f8;
+}
+.sports-empty-card{
+  padding:18px;
+  border-radius:18px;
+  text-align:center;
+  background:rgba(255,255,255,.84);
+}
+.sports-empty-card h3{margin:0 0 6px}
+.sports-empty-card p{margin:0;color:#64748b}
+@media(max-width:620px){
+  .standings-legend{gap:6px}
+  .standings-legend .legend-item{font-size:11px;padding:6px 8px}
+}
+/* END SPORT STANDINGS QUALIFICATION ZONES v1 */
+

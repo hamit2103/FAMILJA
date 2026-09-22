@@ -63,6 +63,38 @@ function mainButtons(){
  </div>`;
 }
 
+
+function standingZoneClass(league,rank,totalTeams){
+ const name=String(league?.name||"").toLowerCase();
+ const isMain=league?.group==="Kryesore"||/bundesliga|premier league|serie a|la liga|laliga|ligue 1|eredivisie|super lig|süper lig|primeira liga/.test(name);
+ if(!isMain)return "";
+ const pos=Number(rank);
+ if(totalTeams===18){
+   if(pos>=1&&pos<=4)return "zone-cl";
+   if(pos===5)return "zone-el";
+   if(pos===6)return "zone-ecl";
+   if(pos===16)return "zone-playoff";
+   if(pos>=17)return "zone-relegation";
+ }
+ if(totalTeams===20){
+   if(pos>=1&&pos<=4)return "zone-cl";
+   if(pos===5)return "zone-el";
+   if(pos===6)return "zone-ecl";
+   if(pos>=18)return "zone-relegation";
+ }
+ return "";
+}
+
+function standingsLegendHtml(){
+ return `<div class="standings-legend" aria-label="Zonat e tabelës">
+   <span class="legend-item zone-cl">Champions League</span>
+   <span class="legend-item zone-el">Europa League</span>
+   <span class="legend-item zone-ecl">Conference League</span>
+   <span class="legend-item zone-playoff">Playoff</span>
+   <span class="legend-item zone-relegation">Rënie nga liga</span>
+ </div>`;
+}
+
 function render(){
  if(!root)return;
  let body="";
@@ -76,7 +108,7 @@ function render(){
      body=`<section class="card sport-standings-card">
        <button class="secondary" id="leagueBack">← Të gjitha ligat</button>
        <h2>🏆 ${esc(selectedLeague.name)}</h2>
-       ${standingsLoading?'<p>Po ngarkohet tabela…</p>':standings.length?`<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Ekipi</th><th>L</th><th>F</th><th>B</th><th>H</th><th>+/-</th><th>P</th></tr></thead><tbody>${standings.map(r=>`<tr><td>${r.rank}</td><td class="standing-team">${r.logo?'<img src="'+esc(r.logo)+'" alt="">':""}<span>${esc(r.team)}</span></td><td>${r.played}</td><td>${r.wins}</td><td>${r.draws}</td><td>${r.losses}</td><td>${r.gd}</td><td><strong>${r.points}</strong></td></tr>`).join("")}</tbody></table></div>`:'<p>Nuk u gjet tabela për këtë ligë.</p>'}
+       ${standingsLoading?'<p>Po ngarkohet tabela…</p>':standings.length?`${standingsLegendHtml()}<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Ekipi</th><th>L</th><th>F</th><th>B</th><th>H</th><th>+/-</th><th>P</th></tr></thead><tbody>${standings.map(r=>{const rowClass=standingZoneClass(selectedLeague,r.rank,standings.length);return `<tr class="${rowClass}"><td class="rank-cell">${esc(r.rank??"")}</td><td class="standing-team">${r.logo?'<img class="standing-team-logo" src="'+esc(r.logo)+'" alt="" loading="lazy">':'<span class="standing-team-logo placeholder">⚽</span>'}<span>${esc(r.team||"Ekipi")}</span></td><td>${esc(r.played??0)}</td><td>${esc(r.wins??0)}</td><td>${esc(r.draws??0)}</td><td>${esc(r.losses??0)}</td><td>${Number(r.gd)>0?"+"+esc(r.gd):esc(r.gd??0)}</td><td><strong>${esc(r.points??0)}</strong></td></tr>`;}).join("")}</tbody></table></div>`:'<div class="sports-empty-card"><h3>Nuk ka të dhëna</h3><p>Tabela nuk u gjet për këtë ligë.</p></div>'}
      </section>`;
    }else{
      const q=leagueSearch.trim().toLocaleLowerCase();
