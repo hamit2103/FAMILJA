@@ -9,9 +9,9 @@ android {
     signingConfigs {
         pajazitiRelease {
             storeFile file("../pajaziti-release.jks")
-            storePassword System.getenv("ANGEL_KEYSTORE_PASSWORD") ?: ""
-            keyAlias System.getenv("ANGEL_KEY_ALIAS") ?: "pajaziti"
-            keyPassword System.getenv("ANGEL_KEY_PASSWORD") ?: ""
+            storePassword file("../.store-password").exists() ? file("../.store-password").text.trim() : (System.getenv("ANGEL_KEYSTORE_PASSWORD") ?: "")
+            keyAlias file("../.key-alias").exists() ? file("../.key-alias").text.trim() : (System.getenv("ANGEL_KEY_ALIAS") ?: "pajaziti")
+            keyPassword file("../.key-password").exists() ? file("../.key-password").text.trim() : (System.getenv("ANGEL_KEY_PASSWORD") ?: "")
         }
     }
 
