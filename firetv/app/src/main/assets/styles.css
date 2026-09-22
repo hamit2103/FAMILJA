@@ -3458,3 +3458,129 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 .standings-table tbody tr.zone-elq .rank-badge{background:#0ea5e9;color:#fff}
 .standings-table tbody tr.zone-eclq .rank-badge{background:#14b8a6;color:#fff}
 .standings-zone-note{font-size:12px;line-height:1.4;margin:8px 0 12px;color:var(--muted,#667085)}
+
+
+/* Quran reader */
+.quran-open-card{
+  width:100%;
+  border:0;
+  text-align:left;
+  cursor:pointer;
+  display:grid;
+  gap:8px;
+}
+.quran-open-card strong{font-size:18px}
+.quran-panel{margin-top:18px}
+.quran-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+}
+.quran-language-row{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:12px 0 16px;
+}
+.quran-lang-btn{
+  border:0;
+  border-radius:14px;
+  padding:12px;
+  background:#eef2f7;
+  color:#111827;
+  font-weight:800;
+}
+.quran-lang-btn.active{
+  background:#7c3aed;
+  color:white;
+}
+.quran-list-title{
+  font-size:18px;
+  font-weight:800;
+  margin:8px 0 12px;
+}
+.quran-surah-list{
+  display:grid;
+  gap:9px;
+  max-height:62vh;
+  overflow:auto;
+  padding-right:2px;
+}
+.quran-surah-row{
+  border:0;
+  border-radius:16px;
+  padding:12px;
+  display:grid;
+  grid-template-columns:42px 1fr auto;
+  align-items:center;
+  gap:10px;
+  background:rgba(255,255,255,.78);
+  color:#111827;
+  text-align:left;
+}
+.quran-surah-number{
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:#ede9fe;
+  font-weight:900;
+}
+.quran-surah-main{
+  display:grid;
+  gap:3px;
+}
+.quran-surah-main small{color:#6b7280}
+.quran-surah-ar{
+  font-size:20px;
+  font-weight:800;
+  direction:rtl;
+}
+.quran-reader-head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+}
+.quran-ayahs{
+  display:grid;
+  gap:12px;
+}
+.quran-ayah-card{
+  position:relative;
+  background:rgba(255,255,255,.82);
+  border-radius:16px;
+  padding:16px;
+}
+.quran-ayah-number{
+  position:absolute;
+  top:10px;
+  left:10px;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#ede9fe;
+  font-size:12px;
+  font-weight:900;
+}
+.quran-arabic{
+  font-size:28px;
+  line-height:1.95;
+  text-align:right;
+  padding:16px 4px 8px 34px;
+}
+.quran-translation{
+  border-top:1px solid rgba(15,23,42,.08);
+  margin-top:8px;
+  padding-top:12px;
+  font-size:17px;
+  line-height:1.65;
+}
+@media (min-width:700px){
+  .quran-language-row{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
