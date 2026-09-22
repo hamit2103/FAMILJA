@@ -4035,3 +4035,53 @@ body:has(#appView:not(.hidden)){
 }
 /* END DIAMOND 8D PREMIUM HOME v5.24 */
 
+/* QIBLA XL + accuracy colors v5.25 */
+.qibla-compass{
+  width:min(72vw,260px)!important;
+  height:min(72vw,260px)!important;
+  border:7px solid #dbeafe!important;
+  background:
+    radial-gradient(circle at center,#ffffff 0 39%,#eef8ff 40% 66%,#d9efff 67% 100%)!important;
+  box-shadow:
+    inset 0 0 0 3px #93c5fd,
+    inset 0 0 30px rgba(37,99,235,.12),
+    0 14px 32px rgba(37,99,235,.18)!important;
+}
+.qibla-compass::before{
+  content:"N  ·  E  ·  S  ·  W";
+  position:absolute;
+  inset:18px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  color:#54708e;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:10px;
+  pointer-events:none;
+}
+.qibla-north{top:12px!important;font-size:18px!important}
+.qibla-arrow{
+  width:128px!important;
+  height:128px!important;
+  font-size:94px!important;
+  color:#dc2626!important;
+  filter:drop-shadow(0 5px 5px rgba(127,29,29,.28));
+  transition:transform .10s linear,color .12s ease,filter .12s ease!important;
+}
+.qibla-arrow.qibla-wrong{color:#dc2626!important}
+.qibla-arrow.qibla-correct{
+  color:#16a34a!important;
+  filter:drop-shadow(0 0 12px rgba(22,163,74,.55)) drop-shadow(0 5px 5px rgba(21,128,61,.25));
+}
+.qibla-kaaba{font-size:40px!important}
+.qibla-direction{
+  font-size:25px!important;
+  font-weight:950!important;
+}
+.kerahat-row strong{
+  font-size:19px!important;
+  font-weight:950!important;
+  color:#7c2d12;
+}
+

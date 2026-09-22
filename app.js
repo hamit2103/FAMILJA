@@ -1380,27 +1380,22 @@ function dateAtPrayerTime(value, dayOffset = 0) {
 
 function renderKerahatTimes() {
   if (!prayerTimings) return;
-  // Approximate Hanafi-style windows for a practical display.
-  // Sunrise: about 45 min after sunrise.
-  // Midday: about 10 min before Dhuhr.
-  // Sunset: about 45 min before Maghrib.
-  if (kerahatSunrise) {
-    const start = prayerTimings.Sunrise || "--:--";
-    kerahatSunrise.textContent = start === "--:--"
-      ? "--:--"
-      : start + " – " + timeWithOffset(start, 45);
-  }
-  if (kerahatNoon) {
-    const end = prayerTimings.Dhuhr || "--:--";
-    kerahatNoon.textContent = end === "--:--"
-      ? "--:--"
-      : timeWithOffset(end, -10) + " – " + end;
-  }
-  if (kerahatSunset) {
-    const end = prayerTimings.Maghrib || prayerTimings.Sunset || "--:--";
-    kerahatSunset.textContent = end === "--:--"
-      ? "--:--"
-      : timeWithOffset(end, -45) + " – " + end;
+
+  // Practical display windows. They are intentionally marked as approximate
+  // because exact fiqh details can differ by madhhab/local authority.
+  const rows = [
+    { el: kerahatSunrise, start: prayerTimings.Sunrise, end: timeWithOffset(prayerTimings.Sunrise, 45), minutes: 45 },
+    { el: kerahatNoon, start: timeWithOffset(prayerTimings.Dhuhr, -10), end: prayerTimings.Dhuhr, minutes: 10 },
+    { el: kerahatSunset, start: timeWithOffset(prayerTimings.Maghrib || prayerTimings.Sunset, -45), end: prayerTimings.Maghrib || prayerTimings.Sunset, minutes: 45 }
+  ];
+
+  for (const row of rows) {
+    if (!row.el) continue;
+    if (!row.start || row.start === "--:--" || !row.end || row.end === "--:--") {
+      row.el.textContent = "--:--";
+      continue;
+    }
+    row.el.textContent = row.start + " – " + row.end + " · " + row.minutes + " min";
   }
 }
 
@@ -1415,16 +1410,29 @@ function calculateQiblaBearing(latitude, longitude) {
   return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
 
+function normalizeAngleDelta(value) {
+  let delta = ((value + 540) % 360) - 180;
+  return delta;
+}
+
 function renderQiblaArrow() {
   if (!Number.isFinite(qiblaBearing) || !qiblaArrow) return;
   const rotation = Number.isFinite(qiblaHeading)
-    ? (qiblaBearing - qiblaHeading + 360) % 360
+    ? normalizeAngleDelta(qiblaBearing - qiblaHeading)
     : qiblaBearing;
+
   qiblaArrow.style.transform = "translate(-50%, -50%) rotate(" + rotation.toFixed(1) + "deg)";
+
+  const aligned = Number.isFinite(qiblaHeading) && Math.abs(rotation) <= 5;
+  qiblaArrow.classList.toggle("qibla-correct", aligned);
+  qiblaArrow.classList.toggle("qibla-wrong", !aligned);
+
   if (qiblaDirection) {
-    qiblaDirection.textContent = t("prayer.qiblaFromNorth", {
-      degrees: Math.round(qiblaBearing)
-    });
+    const base = t("prayer.qiblaFromNorth", { degrees: Math.round(qiblaBearing) });
+    const difference = Number.isFinite(qiblaHeading) ? Math.round(Math.abs(rotation)) : null;
+    qiblaDirection.textContent = difference === null
+      ? base
+      : base + " · " + difference + "°";
   }
 }
 
@@ -1435,6 +1443,7 @@ function updateQibla(coords) {
     return;
   }
   qiblaBearing = calculateQiblaBearing(coords.latitude, coords.longitude);
+  try { window.AndroidCompass?.setLocation?.(coords.latitude, coords.longitude); } catch (_) {}
   renderQiblaArrow();
   if (qiblaStatus) {
     qiblaStatus.textContent = Number.isFinite(qiblaHeading)
@@ -1458,8 +1467,30 @@ function onDeviceOrientation(event) {
   if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaReady");
 }
 
+let qiblaNativeTimer = null;
+
 async function enableQiblaCompass() {
   try {
+    const coords = savedPrayerCoords();
+    if (window.AndroidCompass?.isAvailable?.()) {
+      if (coords) window.AndroidCompass.setLocation(coords.latitude, coords.longitude);
+      window.AndroidCompass.start();
+      if (qiblaNativeTimer) clearInterval(qiblaNativeTimer);
+      qiblaNativeTimer = setInterval(() => {
+        try {
+          const heading = Number(window.AndroidCompass.getHeading());
+          if (Number.isFinite(heading) && heading >= 0) {
+            qiblaHeading = heading;
+            renderQiblaArrow();
+            if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaReady");
+          }
+        } catch (_) {}
+      }, 120);
+      qiblaCompassListening = true;
+      updateQibla(coords);
+      return;
+    }
+
     if (typeof DeviceOrientationEvent !== "undefined" &&
         typeof DeviceOrientationEvent.requestPermission === "function") {
       const permission = await DeviceOrientationEvent.requestPermission();
@@ -1470,7 +1501,7 @@ async function enableQiblaCompass() {
       window.addEventListener("deviceorientation", onDeviceOrientation, true);
       qiblaCompassListening = true;
     }
-    updateQibla(savedPrayerCoords());
+    updateQibla(coords);
   } catch (error) {
     console.warn("Qibla compass", error);
     if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaNoSensor");
@@ -1523,7 +1554,7 @@ function getPhoneLocation() {
         if (error?.code === 3) message = t("location.timeout");
         reject(new Error(message));
       },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 6 * 60 * 60 * 1000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10 * 60 * 1000 }
     );
   });
 }
@@ -1548,6 +1579,9 @@ async function fetchPrayerTimes(coords) {
   for (const prayer of PRAYERS) {
     prayerTimings[prayer.key] = cleanPrayerTime(json.data.timings[prayer.key]);
   }
+  // Keep solar times too, because the kerahat windows depend on them.
+  prayerTimings.Sunrise = cleanPrayerTime(json.data.timings.Sunrise);
+  prayerTimings.Sunset = cleanPrayerTime(json.data.timings.Sunset);
   prayerTimingsDate = localDateKey(date);
   prayerTimezone = json.data.meta?.timezone || "Europe/Berlin";
 
@@ -1757,6 +1791,7 @@ async function requestAlarmPermission() {
 function renderPrayerTimes() {
   prayerList.innerHTML = "";
   if (!prayerTimings) return;
+  renderKerahatTimes();
 
   for (const prayer of PRAYERS) {
     const row = document.createElement("article");

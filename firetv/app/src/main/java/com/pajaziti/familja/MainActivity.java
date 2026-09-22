@@ -98,6 +98,7 @@ public class MainActivity extends Activity {
         settings.setGeolocationEnabled(true);
 
         webView.addJavascriptInterface(new PrayerBridge(this), "AndroidPrayer");
+        webView.addJavascriptInterface(new CompassBridge(this), "AndroidCompass");
         webView.addJavascriptInterface(new ClockWidgetBridge(this), "AndroidClock");
         webView.addJavascriptInterface(new AppInfoBridge(this), "AndroidApp");
         webView.addJavascriptInterface(new GoalAlertBridge(this), "AndroidGoal");
