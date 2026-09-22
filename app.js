@@ -369,6 +369,10 @@ const themeAccentColor = $("themeAccentColor");
 const themeTextColor = $("themeTextColor");
 const installStatsCard = $("installStatsCard");
 const installCount = $("installCount");
+const shareDeviceCount = $("shareDeviceCount");
+const dailyActiveCount = $("dailyActiveCount");
+const newDeviceNotifyBtn = $("newDeviceNotifyBtn");
+const adminStatsStatus = $("adminStatsStatus");
 const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
@@ -696,6 +700,44 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+let hiddenTabs=[];
+
+function applyHiddenTabs(){
+  for(const id of DEFAULT_TAB_ORDER){
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle("admin-hidden-tab",hiddenTabs.includes(id));
+  }
+}
+
+async function loadHiddenTabs(){
+  if(!supabase || !currentUser) return;
+  const {data,error}=await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key","hidden_tabs")
+    .maybeSingle();
+  if(error){console.warn("Hidden tabs load",error);return;}
+  hiddenTabs=Array.isArray(data?.value)?data.value.filter(id=>DEFAULT_TAB_ORDER.includes(id)):[];
+  applyHiddenTabs();
+  if(isAdmin()) renderMenuOrderAdmin();
+}
+
+async function saveHiddenTabs(){
+  if(!supabase || !isAdmin()) return;
+  const {error}=await supabase.from("app_settings").upsert({
+    key:"hidden_tabs",
+    value:hiddenTabs,
+    updated_at:new Date().toISOString(),
+    updated_by:currentUser.id
+  },{onConflict:"key"});
+  if(error){
+    showMessage(menuOrderStatus,"Nuk u ruajt fshehja: "+error.message,"error");
+    return;
+  }
+  applyHiddenTabs();
+  showMessage(menuOrderStatus,"Folderët u përditësuan për të gjithë.","success");
+}
+
 function normalizeMenuOrder(order){
   const incoming = Array.isArray(order) ? order.filter((id)=>DEFAULT_TAB_ORDER.includes(id)) : [];
   return [...new Set([...incoming,...DEFAULT_TAB_ORDER])];
@@ -722,11 +764,23 @@ function renderMenuOrderAdmin(){
     <div class="menu-order-row" data-menu-id="${id}">
       <span class="menu-order-name">${TAB_LABELS[id] || id}</span>
       <div class="menu-order-actions">
+        <button class="secondary menu-order-visibility" type="button" data-visible-id="${id}">${hiddenTabs.includes(id)?"↩️ Kthe":"🙈 Hiq"}</button>
         <button class="secondary menu-order-move" type="button" data-move="up" ${index===0?"disabled":""}>⬆️</button>
         <button class="secondary menu-order-move" type="button" data-move="down" ${index===order.length-1?"disabled":""}>⬇️</button>
       </div>
     </div>
   `).join("");
+
+  menuOrderList.querySelectorAll(".menu-order-visibility").forEach((button)=>{
+    button.addEventListener("click",async()=>{
+      const id=button.dataset.visibleId;
+      if(!id) return;
+      if(hiddenTabs.includes(id)) hiddenTabs=hiddenTabs.filter(x=>x!==id);
+      else hiddenTabs=[...new Set([...hiddenTabs,id])];
+      await saveHiddenTabs();
+      renderMenuOrderAdmin();
+    });
+  });
 
   menuOrderList.querySelectorAll(".menu-order-move").forEach((button)=>{
     button.addEventListener("click",()=>{
@@ -924,13 +978,17 @@ function isAdmin() {
 }
 
 async function registerInstall(){
-  if(!supabase || !currentUser) return;
+  if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
+    let versionName="5.20";
+    try{
+      versionName=window.AndroidApp?.getVersionName?.() || versionName;
+    }catch(_){}
     await supabase.from("app_installs").upsert({
       device_id: presenceDeviceId,
       user_id: currentUser.id,
       package_name: "com.pajaziti.familja",
-      version_name: "5.4",
+      version_name: versionName,
       last_seen: new Date().toISOString()
     },{onConflict:"device_id"});
   }catch(error){
@@ -938,18 +996,86 @@ async function registerInstall(){
   }
 }
 
-async function loadInstallCount(){
-  if(!supabase || !isAdmin() || !installCount) return;
+async function registerDailyActivity(){
+  if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    const {count,error}=await supabase
-      .from("app_installs")
-      .select("device_id",{count:"exact",head:true});
-    if(error) throw error;
-    installCount.textContent=String(count||0);
+    const now=new Date();
+    const day=new Intl.DateTimeFormat("en-CA",{
+      timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"
+    }).format(now);
+    const {data}=await supabase
+      .from("app_daily_activity")
+      .select("visits")
+      .eq("day",day)
+      .eq("device_id",presenceDeviceId)
+      .maybeSingle();
+
+    await supabase.from("app_daily_activity").upsert({
+      day,
+      device_id:presenceDeviceId,
+      first_seen: data ? undefined : now.toISOString(),
+      last_seen: now.toISOString(),
+      visits: Math.max(1,Number(data?.visits||0)+1)
+    },{onConflict:"day,device_id"});
   }catch(error){
-    console.warn("Install count",error);
+    console.warn("Daily activity",error);
   }
 }
+
+async function registerShareEvent(){
+  if(!supabase || !currentUser || ADMIN_ONLY) return;
+  try{
+    await supabase.from("app_share_events").insert({
+      device_id:presenceDeviceId
+    });
+  }catch(error){
+    console.warn("Share event",error);
+  }
+}
+
+async function loadAdminStats(){
+  if(!isAdmin()) return;
+  try{
+    const res=await fetch(
+      "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/diamond-admin-stats?t="+Date.now(),
+      {cache:"no-store"}
+    );
+    const data=await res.json();
+    if(!res.ok || data?.error) throw new Error(data?.error||("HTTP "+res.status));
+    if(installCount) installCount.textContent=String(data.installs||0);
+    if(shareDeviceCount) shareDeviceCount.textContent=String(data.uniqueSharers||0);
+    if(dailyActiveCount) dailyActiveCount.textContent=String(data.activeToday||0);
+  }catch(error){
+    console.warn("Admin stats",error);
+    if(adminStatsStatus) showMessage(adminStatsStatus,"Statistikat nuk u ngarkuan.","error");
+  }
+}
+
+async function loadInstallCount(){
+  return loadAdminStats();
+}
+
+function refreshNewDeviceNotifyButton(){
+  if(!newDeviceNotifyBtn) return;
+  let enabled=false;
+  try{enabled=!!window.AndroidAdmin?.isNewDeviceAlertsEnabled?.();}catch(_){}
+  newDeviceNotifyBtn.textContent=enabled?"🔔 ON":"🔕 OFF";
+  newDeviceNotifyBtn.classList.toggle("active",enabled);
+}
+
+newDeviceNotifyBtn?.addEventListener("click",()=>{
+  try{
+    if(window.AndroidAdmin?.isNativeAdmin?.()){
+      const next=!window.AndroidAdmin.isNewDeviceAlertsEnabled();
+      window.AndroidAdmin.setNewDeviceAlertsEnabled(next);
+      if(next) window.AndroidAdmin.requestNotificationPermission();
+      refreshNewDeviceNotifyButton();
+      if(adminStatsStatus) showMessage(adminStatsStatus,next?"Njoftimet u aktivizuan.":"Njoftimet u çaktivizuan.","success");
+      return;
+    }
+  }catch(error){console.warn(error);}
+  if(adminStatsStatus) showMessage(adminStatsStatus,"Ky njoftim funksionon në DIAMOND ADMIN Android.","error");
+});
 
 async function login() {
   if (!configured) {
@@ -2566,6 +2692,7 @@ function startRealtime() {
       { event: "*", schema: "public", table: "app_settings" },
       () => {
         loadSharedMenuOrder();
+        loadHiddenTabs();
         window.PajazitiGames?.reloadSettings?.();
       }
     )
@@ -2619,6 +2746,7 @@ async function applySession(session) {
   setSection("gallery");
   await loadMedia();
   await loadSharedMenuOrder();
+  await loadHiddenTabs();
   const savedCoords = savedPrayerCoords();
   if (savedCoords) {
     fetchPrayerTimes(savedCoords).catch((error) => console.warn("Prayer preload failed", error));
@@ -2627,7 +2755,8 @@ async function applySession(session) {
   loadChatProfile().catch(console.warn);
   startPrayerAlarmChecker();
   await registerInstall();
-  if(isAdmin()) await loadInstallCount();
+  await registerDailyActivity();
+  if(isAdmin()) { await loadAdminStats(); refreshNewDeviceNotifyButton(); }
   startRealtime();
 }
 
@@ -2696,6 +2825,7 @@ installBtn.addEventListener("click", triggerInstall);
 installLoginBtn.addEventListener("click", triggerInstall);
 
 shareBtn.addEventListener("click", async () => {
+  await registerShareEvent();
   const url = isIosDevice ? "https://familja.vercel.app/" : "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-apk";
   try {
     if (navigator.share) {
