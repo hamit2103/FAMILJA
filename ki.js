@@ -1,0 +1,22 @@
+const KI_LANG_KEY="pajaziti-language", KI_KEY="diamond-ki-private-v1";
+const KT={
+sq:{tab:"KI",title:"KI Privat",private:"Vetëm në këtë telefon",desc:"Këtu mund të shkruash shënime private. Ato nuk dërgohen në Supabase dhe nuk shihen nga telefonat e tjerë.",ph:"Shkruaj diçka private...",save:"Ruaj",empty:"Ende nuk ka shënime.",del:"Fshi",clear:"Fshi të gjitha"},
+de:{tab:"KI",title:"Private KI",private:"Nur auf diesem Telefon",desc:"Hier kannst du private Notizen schreiben. Sie werden nicht an Supabase gesendet und sind auf anderen Telefonen nicht sichtbar.",ph:"Etwas Privates schreiben...",save:"Speichern",empty:"Noch keine Notizen.",del:"Löschen",clear:"Alle löschen"},
+tr:{tab:"Yapay Zekâ",title:"Özel Yapay Zekâ",private:"Sadece bu telefonda",desc:"Buraya özel notlar yazabilirsin. Supabase'e gönderilmez ve diğer telefonlarda görünmez.",ph:"Özel bir şey yaz...",save:"Kaydet",empty:"Henüz not yok.",del:"Sil",clear:"Tümünü sil"},
+en:{tab:"AI",title:"Private AI",private:"Only on this phone",desc:"Write private notes here. They are not sent to Supabase and cannot be seen on other phones.",ph:"Write something private...",save:"Save",empty:"No notes yet.",del:"Delete",clear:"Delete all"},
+it:{tab:"IA",title:"IA privata",private:"Solo su questo telefono",desc:"Scrivi qui note private. Non vengono inviate a Supabase e non sono visibili sugli altri telefoni.",ph:"Scrivi qualcosa di privato...",save:"Salva",empty:"Nessuna nota.",del:"Elimina",clear:"Elimina tutto"},
+hr:{tab:"AI",title:"Privatni AI",private:"Samo na ovom telefonu",desc:"Ovdje možeš pisati privatne bilješke. Ne šalju se na Supabase i nisu vidljive na drugim telefonima.",ph:"Napiši nešto privatno...",save:"Spremi",empty:"Još nema bilješki.",del:"Izbriši",clear:"Izbriši sve"},
+fr:{tab:"IA",title:"IA privée",private:"Uniquement sur ce téléphone",desc:"Écris ici des notes privées. Elles ne sont pas envoyées à Supabase et ne sont pas visibles sur les autres téléphones.",ph:"Écris quelque chose de privé...",save:"Enregistrer",empty:"Aucune note.",del:"Supprimer",clear:"Tout supprimer"},
+ar:{tab:"ذكاء",title:"ذكاء خاص",private:"على هذا الهاتف فقط",desc:"اكتب هنا ملاحظات خاصة. لا تُرسل إلى Supabase ولا تظهر على الهواتف الأخرى.",ph:"اكتب شيئاً خاصاً...",save:"حفظ",empty:"لا توجد ملاحظات.",del:"حذف",clear:"حذف الكل"}};
+function kl(){const l=localStorage.getItem(KI_LANG_KEY)||"sq";return KT[l]?l:"en"} function kt(k){return KT[kl()]?.[k]??KT.en[k]??k}
+function kread(){try{return JSON.parse(localStorage.getItem(KI_KEY)||"[]")}catch{return[]}} function kwrite(v){localStorage.setItem(KI_KEY,JSON.stringify(v))}
+function kesc(v=""){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function renderKI(){const root=document.getElementById("kiRoot");if(!root)return;const items=kread();
+root.innerHTML=`<section class="card local-private-head"><h2>🤖 ${kesc(kt("title"))}</h2><span>🔒 ${kesc(kt("private"))}</span><p class="muted small">${kesc(kt("desc"))}</p></section>
+<section class="card"><textarea id="kiText" rows="5" maxlength="4000" placeholder="${kesc(kt("ph"))}"></textarea><button id="kiSave" class="primary" type="button">${kesc(kt("save"))}</button></section>
+<section class="card"><div class="ki-list-head"><h3>🗒️ ${items.length}</h3>${items.length?`<button id="kiClear" class="secondary" type="button">${kesc(kt("clear"))}</button>`:""}</div><div class="ki-list">${items.length?items.map((x,i)=>`<article class="ki-note"><p>${kesc(x.text)}</p><div><small>${new Date(x.time).toLocaleString()}</small><button type="button" data-ki-del="${i}">${kesc(kt("del"))}</button></div></article>`).join(""):`<p class="muted">${kesc(kt("empty"))}</p>`}</div></section>`;
+document.getElementById("kiSave")?.addEventListener("click",()=>{const el=document.getElementById("kiText"),text=el?.value.trim()||"";if(!text)return;const a=kread();a.unshift({text,time:new Date().toISOString()});kwrite(a);renderKI();});
+document.getElementById("kiClear")?.addEventListener("click",()=>{if(confirm(kt("clear")+"?")){kwrite([]);renderKI();}});
+root.querySelectorAll("[data-ki-del]").forEach(b=>b.addEventListener("click",()=>{const a=kread();a.splice(Number(b.dataset.kiDel),1);kwrite(a);renderKI();}));}
+function reloadLanguage(){const tab=document.getElementById("kiTabLabel");if(tab)tab.textContent=kt("tab");renderKI();}
+window.DiamondKI={activate:renderKI,reloadLanguage};reloadLanguage();
