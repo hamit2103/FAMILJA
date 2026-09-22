@@ -17,7 +17,7 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/angel_icon"
+        android:icon="@drawable/asya_icon"
         android:label="${appLabel}"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false">
@@ -27,9 +27,7 @@
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
 
         <activity
@@ -43,33 +41,9 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name="com.pajaziti.familja.PajazitiClockWidget"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/pajaziti_clock_widget_info" />
-        </receiver>
-
-        <receiver
-            android:name="com.pajaziti.familja.PrayerAlarmReceiver"
-            android:exported="false" />
-
-        <receiver
-            android:name="com.pajaziti.familja.AdminDeviceAlertReceiver"
-            android:exported="false" />
-
-        <receiver
-            android:name="com.pajaziti.familja.StopAlarmReceiver"
-            android:exported="false" />
-
-        <receiver
-            android:name="com.pajaziti.familja.BootReceiver"
-            android:enabled="true"
-            android:exported="true">
+        <receiver android:name="com.pajaziti.familja.PrayerAlarmReceiver" android:exported="false" />
+        <receiver android:name="com.pajaziti.familja.StopAlarmReceiver" android:exported="false" />
+        <receiver android:name="com.pajaziti.familja.BootReceiver" android:enabled="true" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -78,14 +52,6 @@
             </intent-filter>
         </receiver>
 
-        <service
-            android:name="com.pajaziti.familja.GoalAlertService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
-        <service
-            android:name="com.pajaziti.familja.PrayerAlarmService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
+        <service android:name="com.pajaziti.familja.PrayerAlarmService" android:exported="false" android:foregroundServiceType="mediaPlayback" />
     </application>
 </manifest>
