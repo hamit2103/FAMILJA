@@ -3380,3 +3380,66 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 }
 /* END SPORT STANDINGS QUALIFICATION ZONES v1 */
 
+/* SPORT TABLE STRONG COLORS v2 */
+.standings-table .rank-badge{
+  display:inline-grid;
+  place-items:center;
+  min-width:31px;
+  height:31px;
+  padding:0 8px;
+  border-radius:999px;
+  background:#e5e7eb;
+  color:#334155;
+  font-weight:950;
+  box-shadow:inset 0 0 0 1px rgba(15,23,42,.06);
+}
+.standings-table .goal-diff-cell strong,
+.standings-table .points-cell strong{
+  display:inline-block;
+  min-width:38px;
+  padding:6px 8px;
+  border-radius:10px;
+  font-weight:950;
+}
+.standings-table tbody tr.zone-cl td{
+  background:rgba(34,197,94,.22)!important;
+}
+.standings-table tbody tr.zone-cl .rank-badge{
+  background:#16a34a;
+  color:#fff;
+  box-shadow:0 3px 10px rgba(22,163,74,.28);
+}
+.standings-table tbody tr.zone-cl .goal-diff-cell strong,
+.standings-table tbody tr.zone-cl .points-cell strong{
+  background:#dcfce7;
+  color:#15803d;
+}
+.standings-table tbody tr.zone-relegation td{
+  background:rgba(239,68,68,.22)!important;
+}
+.standings-table tbody tr.zone-relegation .rank-badge{
+  background:#dc2626;
+  color:#fff;
+  box-shadow:0 3px 10px rgba(220,38,38,.28);
+}
+.standings-table tbody tr.zone-relegation .goal-diff-cell strong,
+.standings-table tbody tr.zone-relegation .points-cell strong{
+  background:#fee2e2;
+  color:#b91c1c;
+}
+.standings-table tbody tr.zone-el .rank-badge{background:#2563eb;color:#fff}
+.standings-table tbody tr.zone-ecl .rank-badge{background:#0f9f77;color:#fff}
+.standings-table tbody tr.zone-playoff .rank-badge{background:#d97706;color:#fff}
+.standings-legend .zone-cl{
+  background:#16a34a!important;
+  color:#fff!important;
+}
+.standings-legend .zone-relegation{
+  background:#dc2626!important;
+  color:#fff!important;
+}
+.standings-legend .zone-el{background:#2563eb!important;color:#fff!important}
+.standings-legend .zone-ecl{background:#0f9f77!important;color:#fff!important}
+.standings-legend .zone-playoff{background:#d97706!important;color:#fff!important}
+/* END SPORT TABLE STRONG COLORS v2 */
+
