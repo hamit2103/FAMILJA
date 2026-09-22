@@ -59,6 +59,10 @@
             android:exported="false" />
 
         <receiver
+            android:name="com.pajaziti.familja.AdminDeviceAlertReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name="com.pajaziti.familja.StopAlarmReceiver"
             android:exported="false" />
 
