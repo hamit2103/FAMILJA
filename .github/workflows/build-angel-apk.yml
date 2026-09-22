@@ -56,7 +56,7 @@ jobs:
           SECRET_JSON="$(curl --fail --silent --show-error \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-build-secret")"
-          python3 -c 'import json,os,pathlib,sys,base64; d=json.load(sys.stdin); pathlib.Path("firetv/pajaziti-release.jks").write_bytes(base64.b64decode(d["keystore_b64"])); f=open(os.environ["GITHUB_ENV"],"a",encoding="utf-8"); f.write("ANGEL_KEYSTORE_PASSWORD="+d["store_password"]+"\\nANGEL_KEY_ALIAS="+d["key_alias"]+"\\nANGEL_KEY_PASSWORD="+d["key_password"]+"\\n"); f.close()' <<<"$SECRET_JSON"
+          python3 -c 'import json,os,pathlib,sys,base64; d=json.load(sys.stdin); pathlib.Path("firetv/pajaziti-release.jks").write_bytes(base64.b64decode(d["keystore_b64"])); pathlib.Path("firetv/.store-password").write_text(d["store_password"],encoding="utf-8"); pathlib.Path("firetv/.key-alias").write_text(d["key_alias"],encoding="utf-8"); pathlib.Path("firetv/.key-password").write_text(d["key_password"],encoding="utf-8"); f=open(os.environ["GITHUB_ENV"],"a",encoding="utf-8"); f.write("ANGEL_KEYSTORE_PASSWORD="+d["store_password"]+"\\nANGEL_KEY_ALIAS="+d["key_alias"]+"\\nANGEL_KEY_PASSWORD="+d["key_password"]+"\\n"); f.close()' <<<"$SECRET_JSON"
           test -s firetv/pajaziti-release.jks
 
       - name: Build signed release APKs
@@ -74,35 +74,35 @@ jobs:
           cp /tmp/angel-main.apk pajaziti-firetv.apk
           cp /tmp/angel-fresh.apk pajaziti-fresh.apk
 
-      - name: Upload ANGEL 5.3 to update server
+      - name: Upload Diamond 5.4 to update server
         env:
           OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: |
           curl --fail --show-error --silent \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-android.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.8.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.4.apk"
           curl --fail --show-error --silent \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-fresh.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=ANGEL-4.8-fresh.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.4-fresh.apk"
 
       - name: Commit APK update
         run: |
-          git config user.name "ANGEL Build"
+          git config user.name "Diamond Build"
           git config user.email "actions@users.noreply.github.com"
           git pull --rebase origin main
           git add pajaziti-android.apk pajaziti-firetv.apk pajaziti-fresh.apk
           if git diff --cached --quiet; then
             echo "APK already up to date."
           else
-            git commit -m "Publish ANGEL 5.3 APK [skip ci]"
+            git commit -m "Publish Diamond 5.4 APK [skip ci]"
             git push
           fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ANGEL-5.3
+          name: Diamond-5.4
           path: /tmp/angel-main.apk
           if-no-files-found: error
