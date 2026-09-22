@@ -1,8 +1,8 @@
-def adminBuild = project.hasProperty("adminBuild") && project.property("adminBuild").toString().toBoolean()
-
 plugins {
     id "com.android.application"
 }
+
+def adminBuild = project.hasProperty("adminBuild") && project.property("adminBuild").toString().toBoolean()
 
 android {
     namespace "com.pajaziti.familja"
@@ -33,7 +33,9 @@ android {
 
     buildTypes {
         debug {
-            signingConfig signingConfigs.pajazitiRelease
+            if (!adminBuild) {
+                signingConfig signingConfigs.pajazitiRelease
+            }
         }
         release {
             minifyEnabled false
