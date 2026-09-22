@@ -3584,3 +3584,10 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 @media (min-width:700px){
   .quran-language-row{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+.prayer-guide-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:14px}
+.prayer-guide-list{display:grid;gap:10px;padding-left:22px;line-height:1.55}
+.prayer-rakat-grid{display:grid;gap:10px;margin:14px 0 20px}
+.prayer-rakat-row{display:flex;justify-content:space-between;gap:16px;align-items:center;background:rgba(255,255,255,.78);padding:13px 14px;border-radius:14px}
+.prayer-rakat-row span{text-align:right}
+.prayer-help-open{outline:2px solid rgba(124,58,237,.25)}
