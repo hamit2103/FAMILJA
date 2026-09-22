@@ -272,3 +272,20 @@ function reloadQuranLanguage(){
   if(quranState.surahs.length) renderQuranSurahList();
 }
 window.DiamondQuran = { open: openQuran, close: closeQuran, reloadLanguage: reloadQuranLanguage };
+
+function backQuran(){
+  const reader=document.getElementById("quranReader");
+  if(reader && !reader.classList.contains("hidden")){
+    showQuranLibrary();
+    return true;
+  }
+  const root=quranRoot();
+  if(root && !root.classList.contains("hidden")){
+    closeQuran();
+    return true;
+  }
+  return false;
+}
+if(window.DiamondQuran){
+  window.DiamondQuran.back=backQuran;
+}
