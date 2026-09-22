@@ -273,6 +273,7 @@ function applyLanguage(language = currentLanguage) {
   window.DiamondDiet?.reloadLanguage?.();
   window.DiamondKI?.reloadLanguage?.();
   window.DiamondShareApp?.reloadLanguage?.();
+  window.DiamondNews?.reloadLanguage?.();
 
   if (typeof mode !== "undefined" && codeInput) {
     codeInput.placeholder = mode === "admin"
@@ -334,6 +335,7 @@ const radioTab = $("radioTab");
 const dietTab = $("dietTab");
 const kiTab = $("kiTab");
 const shareAppTab = $("shareAppTab");
+const newsTab = $("newsTab");
 const menuOrderAdmin = $("menuOrderAdmin");
 const menuOrderList = $("menuOrderList");
 const menuOrderSave = $("menuOrderSave");
@@ -349,6 +351,7 @@ const radioView = $("radioView");
 const dietView = $("dietView");
 const kiView = $("kiView");
 const shareAppView = $("shareAppView");
+const newsView = $("newsView");
 const infoCompose = $("infoCompose");
 const infoName = $("infoName");
 const infoText = $("infoText");
@@ -530,7 +533,7 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab"];
+const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
 const TAB_LABELS = {
   galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
@@ -542,7 +545,8 @@ const TAB_LABELS = {
   radioTab:"📻 Radio",
   dietTab:"🥗 Diet",
   kiTab:"🤖 KI",
-  shareAppTab:"🔗 Ndaje appin"
+  shareAppTab:"🔗 Ndaje appin",
+  newsTab:"📰 Lajme"
 };
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
@@ -901,6 +905,7 @@ function setSection(next) {
   const showDiet = next === "diet";
   const showKI = next === "ki";
   const showShareApp = next === "shareapp";
+  const showNews = next === "news";
 
   galleryTab?.classList.toggle("active", showGallery);
   infoTab?.classList.toggle("active", showInfo);
@@ -913,6 +918,7 @@ function setSection(next) {
   dietTab?.classList.toggle("active", showDiet);
   kiTab?.classList.toggle("active", showKI);
   shareAppTab?.classList.toggle("active", showShareApp);
+  newsTab?.classList.toggle("active", showNews);
 
   galleryView?.classList.toggle("hidden", !showGallery);
   infoView?.classList.toggle("hidden", !showInfo);
@@ -925,6 +931,7 @@ function setSection(next) {
   dietView?.classList.toggle("hidden", !showDiet);
   kiView?.classList.toggle("hidden", !showKI);
   shareAppView?.classList.toggle("hidden", !showShareApp);
+  newsView?.classList.toggle("hidden", !showNews);
 
   if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
@@ -936,6 +943,7 @@ function setSection(next) {
   if (showDiet) window.DiamondDiet?.activate?.();
   if (showKI) window.DiamondKI?.activate?.();
   if (showShareApp) window.DiamondShareApp?.activate?.();
+  if (showNews) window.DiamondNews?.activate?.();
 }
 galleryTab?.addEventListener("click", () => setSection("gallery"));
 infoTab?.addEventListener("click", () => setSection("info"));
@@ -948,6 +956,7 @@ radioTab?.addEventListener("click", () => setSection("radio"));
 dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
 shareAppTab?.addEventListener("click", () => setSection("shareapp"));
+newsTab?.addEventListener("click", () => setSection("news"));
 
 function setMode(next) {
   if (ADMIN_ONLY) next = "admin";
