@@ -98,7 +98,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.17</span>
+            <span id="appVersionLabel" class="app-version-label">v5.18</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -387,9 +387,26 @@
             <p class="muted small">114 sure · Arabisht · Shqip · Türkçe · Deutsch</p>
             <strong>Hap Kuranin →</strong>
           </button>
+
+          <button id="prayerGuideCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head">
+              <h2>🕌 <span id="prayerGuideCardTitle">Namazet & rekatet</span></h2>
+            </div>
+            <p id="prayerGuideCardDesc" class="muted small">Si falen 5 namazet dhe sa farz/sunet kanë.</p>
+            <strong id="prayerGuideCardOpen">Hap udhëzimin →</strong>
+          </button>
+
+          <button id="wuduGuideCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head">
+              <h2>💧 <span id="wuduGuideCardTitle">Abdesi & Gusli</span></h2>
+            </div>
+            <p id="wuduGuideCardDesc" class="muted small">Si merret abdesi dhe si bëhet gusli.</p>
+            <strong id="wuduGuideCardOpen">Hap Abdesin & Guslin →</strong>
+          </button>
         </section>
 
         <section id="quranPanel" class="card quran-panel hidden"></section>
+        <section id="prayerHelpPanel" class="card quran-panel hidden"></section>
 
         <section id="prayerList" class="prayer-list"></section>
 
@@ -530,6 +547,7 @@
   <script type="module" src="tv.js?v=52"></script>
   <script type="module" src="radio.js?v=55"></script>
   <script type="module" src="quran.js?v=2"></script>
+  <script type="module" src="prayer-guide.js?v=1"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
