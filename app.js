@@ -1002,7 +1002,12 @@ codeInput.addEventListener("keydown", (e) => {
 });
 
 logoutBtn.addEventListener("click", async () => {
-  if (supabase) await supabase.auth.signOut();
+  if (!supabase) return;
+  await supabase.auth.signOut();
+  if (!ADMIN_ONLY) {
+    setMode("family");
+    await login();
+  }
 });
 
 refreshBtn.addEventListener("click", loadMedia);
