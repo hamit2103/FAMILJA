@@ -3443,3 +3443,18 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 .standings-legend .zone-playoff{background:#d97706!important;color:#fff!important}
 /* END SPORT TABLE STRONG COLORS v2 */
 
+
+
+.standings-legend .zone-clq{background:#16a34a!important;color:#fff!important}
+.standings-legend .zone-elq{background:#0ea5e9!important;color:#fff!important}
+.standings-legend .zone-eclq{background:#14b8a6!important;color:#fff!important}
+.standings-table tbody tr.zone-clq td{background:rgba(34,197,94,.10)}
+.standings-table tbody tr.zone-elq td{background:rgba(14,165,233,.10)}
+.standings-table tbody tr.zone-eclq td{background:rgba(20,184,166,.10)}
+.standings-table tbody tr.zone-clq td:first-child{box-shadow:inset 4px 0 0 #16a34a}
+.standings-table tbody tr.zone-elq td:first-child{box-shadow:inset 4px 0 0 #0ea5e9}
+.standings-table tbody tr.zone-eclq td:first-child{box-shadow:inset 4px 0 0 #14b8a6}
+.standings-table tbody tr.zone-clq .rank-badge{background:#16a34a;color:#fff}
+.standings-table tbody tr.zone-elq .rank-badge{background:#0ea5e9;color:#fff}
+.standings-table tbody tr.zone-eclq .rank-badge{background:#14b8a6;color:#fff}
+.standings-zone-note{font-size:12px;line-height:1.4;margin:8px 0 12px;color:var(--muted,#667085)}
