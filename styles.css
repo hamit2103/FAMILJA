@@ -3719,3 +3719,10 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 .ruqya-item h3{margin:0 0 7px}
 .ruqya-item p{margin:0;line-height:1.55}
 .ruqya-dua{padding:14px;border-radius:16px;background:#ecfdf5;line-height:1.55;margin:14px 0}
+
+.share-app-card{display:grid;gap:14px;text-align:center;max-width:680px;margin:0 auto}
+.share-app-icon{font-size:58px;line-height:1}
+.share-app-card h2{margin:0}
+.share-app-link{width:100%;box-sizing:border-box;border:1px solid rgba(100,116,139,.25);border-radius:14px;padding:13px;background:rgba(255,255,255,.9);font:inherit}
+.share-app-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.share-app-actions{grid-template-columns:1fr}}
