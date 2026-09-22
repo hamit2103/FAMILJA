@@ -3253,3 +3253,44 @@ html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radia
 @media(max-width:620px){.shell{padding:18px 14px 52px}#appView .topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}#appView .top-actions{max-width:170px;gap:7px}#appView .app-tab{min-height:92px;border-radius:22px;padding:12px 34px 12px 12px;gap:9px;font-size:17px}#appView .app-tab>span:first-child{flex-basis:47px;width:47px;height:47px;border-radius:15px;font-size:24px}}
 /* END DIAMOND MODERN HOME */
 
+/* SPORT VERTICAL ONLY v2 */
+#sportView,#sportRoot,.sport-simple-shell,.sport-section,.sport-vertical-list,.sport-competition-block{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  overflow-x:hidden;
+}
+.sport-simple-shell{display:grid;gap:14px}
+.sport-simple-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;align-items:start}
+.sport-simple-head h2{margin:0 0 5px}
+.sport-simple-head p{margin:0;line-height:1.45}
+.sport-simple-head .sport-refresh{min-width:104px}
+.sport-auto-info{grid-column:1/-1;display:flex;align-items:center;gap:7px;font-size:.86rem;font-weight:750}
+.live-dot{display:inline-block;width:10px;height:10px;border-radius:999px;background:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.13);flex:0 0 10px}
+.sport-section{display:grid;gap:9px}
+.sport-section-title{display:flex;align-items:center;gap:9px;padding:4px 2px;font-size:1rem;letter-spacing:.2px}
+.sport-no-live{padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.72);font-weight:750;color:#64748b}
+.sport-vertical-list{display:grid;gap:14px}
+.sport-competition-block{display:grid;gap:8px}
+.sport-competition-title{font-weight:900;font-size:.92rem;padding:0 4px;color:#334155;white-space:normal;overflow-wrap:anywhere}
+.sport-match-vertical{width:100%;max-width:100%;min-width:0;display:grid;gap:8px;padding:13px 14px;border:1px solid rgba(255,255,255,.86);border-radius:20px;background:rgba(255,255,255,.88);box-shadow:0 8px 22px rgba(15,23,42,.08)}
+.sport-match-vertical.is-live{border-color:rgba(239,68,68,.32);box-shadow:0 8px 24px rgba(239,68,68,.10)}
+.sport-match-league{display:none}
+.sport-team-line{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px;min-width:0}
+.sport-team-line img,.sport-ball{width:32px;height:32px;object-fit:contain;display:grid;place-items:center;flex:0 0 32px}
+.sport-team-line strong{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
+.sport-team-score{font-size:1.22rem;font-weight:950;min-width:24px;text-align:right;color:#0f172a}
+.sport-match-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:5px;border-top:1px solid rgba(148,163,184,.18)}
+.sport-status-pill{display:inline-flex;align-items:center;min-height:29px;padding:5px 9px;border-radius:999px;background:#eef2f7;font-size:.76rem;font-weight:900;color:#475569}
+.sport-status-pill.live{background:#fee2e2;color:#b91c1c}
+.sport-main-score{font-size:.95rem;color:#334155}
+.sport-source{text-align:center;font-size:.78rem;padding:3px 0 8px}
+.sport-source a{color:inherit;font-weight:750}
+@media(max-width:560px){
+  .sport-simple-head{grid-template-columns:1fr}
+  .sport-simple-head .sport-refresh{width:100%}
+  .sport-auto-info{grid-column:1}
+  .sport-match-vertical{padding:12px}
+}
+/* END SPORT VERTICAL ONLY v2 */
+
