@@ -1,0 +1,19 @@
+{
+  "name": "DIAMOND ADMIN",
+  "short_name": "D. ADMIN",
+  "description": "DIAMOND administrator app",
+  "start_url": "./admin.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "angel-icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "any"
+}
