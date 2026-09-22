@@ -2569,13 +2569,6 @@ function startRealtime() {
         window.PajazitiGames?.reloadSettings?.();
       }
     )
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "chat_messages" },
-      () => {
-        if (activeSection === "chat") loadChatMessages();
-      }
-    )
     .subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
         await realtimeChannel.track({
