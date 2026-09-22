@@ -1,6 +1,9 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
 
+const APP_MODE = document.querySelector('meta[name="diamond-mode"]')?.content === "admin" ? "admin" : "public";
+const ADMIN_ONLY = APP_MODE === "admin";
+
 const FAMILY_EMAIL = "familja@familja.local";
 const ADMIN_EMAIL = "admin@familja.local";
 const BUCKET = "familja-media";
@@ -19,7 +22,7 @@ const configured =
 
 const supabase = configured
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true }
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: ADMIN_ONLY ? "diamond-admin-auth" : "diamond-family-auth" }
     })
   : null;
 
@@ -494,7 +497,7 @@ themeResetBtn?.addEventListener("click", () => {
   applyPersonalTheme(DEFAULT_PERSONAL_THEME, false);
 });
 
-let mode = "family";
+let mode = ADMIN_ONLY ? "admin" : "family";
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
@@ -546,7 +549,7 @@ let prayerAlarms = (() => {
 })();
 
 applyLanguage(currentLanguage);
-setMode("family");
+setMode(mode);
 
 const PRESENCE_DEVICE_KEY = "pajaziti-presence-device";
 let presenceDeviceId = localStorage.getItem(PRESENCE_DEVICE_KEY);
@@ -871,15 +874,24 @@ radioTab.addEventListener("click", () => setSection("radio"));
 chatTab.addEventListener("click", () => setSection("chat"));
 
 function setMode(next) {
+  if (ADMIN_ONLY) next = "admin";
+  else next = "family";
   mode = next;
   familyMode.classList.toggle("active", next === "family");
   adminMode.classList.toggle("active", next === "admin");
   codeInput.value = "";
   codeInput.placeholder = t("login.adminPlaceholder");
   adminCodeWrap?.classList.toggle("hidden", next !== "admin");
-  familyDirectHint?.classList.toggle("hidden", next === "admin");
+  familyDirectHint?.classList.toggle("hidden", true);
   loginBtn.textContent = next === "admin" ? t("login.button") : t("login.userButton");
   loginMessage.textContent = "";
+
+  document.querySelector(".mode-switch")?.classList.add("hidden");
+  if (ADMIN_ONLY) {
+    adminCodeWrap?.classList.remove("hidden");
+  } else {
+    adminCodeWrap?.classList.add("hidden");
+  }
 }
 familyMode.addEventListener("click", () => setMode("family"));
 adminMode.addEventListener("click", () => setMode("admin"));
@@ -2605,10 +2617,26 @@ async function applySession(session) {
 
 if (supabase) {
   const { data } = await supabase.auth.getSession();
-  await applySession(data.session);
+  let session = data.session;
 
-  supabase.auth.onAuthStateChange((_event, session) => {
-    setTimeout(() => applySession(session), 0);
+  const wrongSession =
+    (ADMIN_ONLY && session?.user?.email !== ADMIN_EMAIL) ||
+    (!ADMIN_ONLY && session?.user?.email === ADMIN_EMAIL);
+
+  if (session && wrongSession) {
+    await supabase.auth.signOut();
+    session = null;
+  }
+
+  await applySession(session);
+
+  if (!ADMIN_ONLY && !session) {
+    setMode("family");
+    await login();
+  }
+
+  supabase.auth.onAuthStateChange((_event, nextSession) => {
+    setTimeout(() => applySession(nextSession), 0);
   });
 } else {
   showMessage(
