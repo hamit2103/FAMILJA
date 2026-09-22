@@ -3223,3 +3223,33 @@ linear-gradient(145deg,#020611,#071531 55%,#14062d);color:#fff}
   .war-online-vs{font-size:30px}
   .war-online-vs span::before,.war-online-vs span::after{width:34px}
 }
+
+/* DIAMOND MODERN HOME */
+html:has(#appView:not(.hidden)),body:has(#appView:not(.hidden)){background:radial-gradient(circle at 10% 6%,rgba(255,255,255,.95),rgba(255,255,255,0) 24%),radial-gradient(circle at 90% 18%,rgba(65,190,255,.28),rgba(65,190,255,0) 28%),linear-gradient(155deg,#ddf9ff 0%,#b9edf7 45%,#91d9e8 100%)!important;background-attachment:fixed;color:#10213d}
+#appView .topbar{align-items:flex-start;margin:4px 0 22px;padding-top:8px}
+#appView .app-title-row{display:flex;align-items:baseline;gap:9px}
+#appView .app-title-row h1{display:flex;align-items:center;gap:8px;font-size:clamp(34px,7vw,52px);line-height:.98;letter-spacing:-1.5px;font-weight:950;color:#082a50}
+#appView .app-title-row h1::before{content:"◆";font-size:.72em;color:#28a7df;filter:drop-shadow(0 5px 10px rgba(40,167,223,.25))}
+#appView .app-version-label{font-size:15px;font-weight:850;color:#56769a}
+#appView #roleLabel{margin:7px 0 10px;font-size:18px;color:#56769a}
+#appView .online-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 15px;border:1px solid rgba(255,255,255,.85);border-radius:999px;background:rgba(255,255,255,.76);box-shadow:0 8px 22px rgba(14,83,123,.10);color:#0f5132;font-weight:800}
+#appView .online-dot{width:14px;height:14px;border-radius:50%;background:#23c875;box-shadow:0 0 0 5px rgba(35,200,117,.15),0 0 14px rgba(35,200,117,.45)}
+#appView .top-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px;max-width:330px}
+#appView .top-actions .secondary,#appView .language-select.compact{min-height:50px;border:1px solid rgba(255,255,255,.9);border-radius:18px;background:rgba(255,255,255,.86);color:#10213d;box-shadow:0 8px 22px rgba(14,83,123,.10);font-weight:800}
+#appView .theme-open-btn{width:54px;min-width:54px;padding:0;font-size:24px}
+#appView>.app-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 18px}
+#appView .app-tab{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:12px;min-height:96px;padding:14px 42px 14px 14px;border:1px solid rgba(255,255,255,.9);border-radius:25px;background:rgba(255,255,255,.86);color:#10213d;box-shadow:0 12px 28px rgba(14,83,123,.11);font-size:18px;font-weight:850;text-align:left}
+#appView .app-tab::after{content:"›";position:absolute;right:16px;top:50%;transform:translateY(-52%);font-size:34px;color:#6e91b2}
+#appView .app-tab>span:first-child{display:grid;place-items:center;flex:0 0 52px;width:52px;height:52px;border-radius:16px;background:#e6f4ff;font-size:26px}
+#radioTab>span:first-child{background:#fff2cf!important}#gamesTab>span:first-child{background:#ece7ff!important}#prayerTab>span:first-child{background:#dcfae9!important}#sportTab>span:first-child{background:#ddf8e7!important}#chatTab>span:first-child{background:#e3edff!important}#galleryTab>span:first-child{background:#eee7ff!important}
+#appView .app-tab.active{border-color:rgba(255,255,255,.38);background:linear-gradient(135deg,#5a49ef,#7a39ef 52%,#8a2ce5);color:#fff;box-shadow:0 14px 30px rgba(98,57,226,.28)}
+#appView .app-tab.active::after{color:#fff}#appView .app-tab.active>span:first-child{background:rgba(255,255,255,.16)!important}
+#appView .card,#appView .theme-panel{border:1px solid rgba(255,255,255,.84);border-radius:24px;background:rgba(255,255,255,.80);box-shadow:0 12px 30px rgba(14,83,123,.10)}
+#appView .toolbar .secondary{min-height:50px;border:1px solid rgba(255,255,255,.86);border-radius:18px;background:rgba(236,255,248,.84);color:#0f5f58;font-weight:850}
+#refreshBtn::before{content:"↻";font-size:25px;margin-right:7px;font-weight:900}
+#emptyState{display:grid;grid-template-columns:auto 1fr;column-gap:18px;row-gap:5px;align-items:center;min-height:150px;margin-top:22px;padding:24px;text-align:left}
+#emptyState::before{content:"📦";grid-row:1/span 2;display:grid;place-items:center;width:86px;height:86px;border-radius:26px;background:linear-gradient(145deg,#edf8ff,#dfefff);font-size:46px}
+#emptyState h2{margin:0;color:#10213d;font-size:23px}#emptyState p{margin:0;line-height:1.45;color:#617996}
+@media(max-width:620px){.shell{padding:18px 14px 52px}#appView .topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}#appView .top-actions{max-width:170px;gap:7px}#appView .app-tab{min-height:92px;border-radius:22px;padding:12px 34px 12px 12px;gap:9px;font-size:17px}#appView .app-tab>span:first-child{flex-basis:47px;width:47px;height:47px;border-radius:15px;font-size:24px}}
+/* END DIAMOND MODERN HOME */
+
