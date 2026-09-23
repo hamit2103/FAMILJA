@@ -4210,3 +4210,12 @@ body:has(#appView:not(.hidden)){
   font-variant-numeric:tabular-nums;min-width:210px;text-align:center
 }
 @media(max-width:620px){.board-admin-row{grid-template-columns:1fr}.board-admin-row button{width:100%}}
+
+.user-name-login-wrap{display:grid;gap:8px;margin:14px 0 12px}
+.user-name-login-wrap input{font-size:18px;font-weight:800}
+.user-name-warning{padding:10px 12px;border-radius:12px;background:#fff7d6;color:#7a5200;font-weight:750;line-height:1.35}
+.admin-users-card{display:grid;gap:10px}
+.admin-users-list{display:grid;gap:8px}
+.admin-user-row{display:grid;grid-template-columns:minmax(150px,1fr) minmax(130px,1fr) auto auto;gap:8px;align-items:center;padding:10px;border:1px solid rgba(15,23,42,.08);border-radius:14px;background:rgba(255,255,255,.72)}
+.admin-user-main{display:grid;gap:3px}.admin-user-main small{color:#64748b}
+@media(max-width:760px){.admin-user-row{grid-template-columns:1fr}.admin-user-row button{width:100%}}
