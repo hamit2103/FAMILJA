@@ -269,8 +269,12 @@ function applyLanguage(language = currentLanguage) {
   window.PajazitiRadio?.reloadLanguage?.();
   window.DiamondQuran?.reloadLanguage?.();
   window.DiamondPrayerGuide?.reloadLanguage?.();
+  window.DiamondPrayerExtras?.reloadLanguage?.(language);
+  window.DiamondRuqya?.reloadLanguage?.();
   window.DiamondDiet?.reloadLanguage?.();
   window.DiamondKI?.reloadLanguage?.();
+  window.DiamondShareApp?.reloadLanguage?.();
+  window.DiamondNews?.reloadLanguage?.();
 
   if (typeof mode !== "undefined" && codeInput) {
     codeInput.placeholder = mode === "admin"
@@ -331,6 +335,8 @@ const tvTab = $("tvTab");
 const radioTab = $("radioTab");
 const dietTab = $("dietTab");
 const kiTab = $("kiTab");
+const shareAppTab = $("shareAppTab");
+const newsTab = $("newsTab");
 const menuOrderAdmin = $("menuOrderAdmin");
 const menuOrderList = $("menuOrderList");
 const menuOrderSave = $("menuOrderSave");
@@ -345,6 +351,8 @@ const tvView = $("tvView");
 const radioView = $("radioView");
 const dietView = $("dietView");
 const kiView = $("kiView");
+const shareAppView = $("shareAppView");
+const newsView = $("newsView");
 const infoCompose = $("infoCompose");
 const infoName = $("infoName");
 const infoText = $("infoText");
@@ -369,6 +377,10 @@ const themeAccentColor = $("themeAccentColor");
 const themeTextColor = $("themeTextColor");
 const installStatsCard = $("installStatsCard");
 const installCount = $("installCount");
+const shareDeviceCount = $("shareDeviceCount");
+const dailyActiveCount = $("dailyActiveCount");
+const newDeviceNotifyBtn = $("newDeviceNotifyBtn");
+const adminStatsStatus = $("adminStatsStatus");
 const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
@@ -522,7 +534,7 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab"];
+const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
 const TAB_LABELS = {
   galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
@@ -533,7 +545,9 @@ const TAB_LABELS = {
   tvTab:"📺 TV",
   radioTab:"📻 Radio",
   dietTab:"🥗 Diet",
-  kiTab:"🤖 KI"
+  kiTab:"🤖 KI",
+  shareAppTab:"🔗 Ndaje appin",
+  newsTab:"📰 Lajme"
 };
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
@@ -696,6 +710,44 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+let hiddenTabs=[];
+
+function applyHiddenTabs(){
+  for(const id of DEFAULT_TAB_ORDER){
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle("admin-hidden-tab",hiddenTabs.includes(id));
+  }
+}
+
+async function loadHiddenTabs(){
+  if(!supabase || !currentUser) return;
+  const {data,error}=await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key","hidden_tabs")
+    .maybeSingle();
+  if(error){console.warn("Hidden tabs load",error);return;}
+  hiddenTabs=Array.isArray(data?.value)?data.value.filter(id=>DEFAULT_TAB_ORDER.includes(id)):[];
+  applyHiddenTabs();
+  if(isAdmin()) renderMenuOrderAdmin();
+}
+
+async function saveHiddenTabs(){
+  if(!supabase || !isAdmin()) return;
+  const {error}=await supabase.from("app_settings").upsert({
+    key:"hidden_tabs",
+    value:hiddenTabs,
+    updated_at:new Date().toISOString(),
+    updated_by:currentUser.id
+  },{onConflict:"key"});
+  if(error){
+    showMessage(menuOrderStatus,"Nuk u ruajt fshehja: "+error.message,"error");
+    return;
+  }
+  applyHiddenTabs();
+  showMessage(menuOrderStatus,"Folderët u përditësuan për të gjithë.","success");
+}
+
 function normalizeMenuOrder(order){
   const incoming = Array.isArray(order) ? order.filter((id)=>DEFAULT_TAB_ORDER.includes(id)) : [];
   return [...new Set([...incoming,...DEFAULT_TAB_ORDER])];
@@ -722,11 +774,23 @@ function renderMenuOrderAdmin(){
     <div class="menu-order-row" data-menu-id="${id}">
       <span class="menu-order-name">${TAB_LABELS[id] || id}</span>
       <div class="menu-order-actions">
+        <button class="secondary menu-order-visibility" type="button" data-visible-id="${id}">${hiddenTabs.includes(id)?"↩️ Kthe":"🙈 Hiq"}</button>
         <button class="secondary menu-order-move" type="button" data-move="up" ${index===0?"disabled":""}>⬆️</button>
         <button class="secondary menu-order-move" type="button" data-move="down" ${index===order.length-1?"disabled":""}>⬇️</button>
       </div>
     </div>
   `).join("");
+
+  menuOrderList.querySelectorAll(".menu-order-visibility").forEach((button)=>{
+    button.addEventListener("click",async()=>{
+      const id=button.dataset.visibleId;
+      if(!id) return;
+      if(hiddenTabs.includes(id)) hiddenTabs=hiddenTabs.filter(x=>x!==id);
+      else hiddenTabs=[...new Set([...hiddenTabs,id])];
+      await saveHiddenTabs();
+      renderMenuOrderAdmin();
+    });
+  });
 
   menuOrderList.querySelectorAll(".menu-order-move").forEach((button)=>{
     button.addEventListener("click",()=>{
@@ -841,6 +905,8 @@ function setSection(next) {
   const showRadio = next === "radio";
   const showDiet = next === "diet";
   const showKI = next === "ki";
+  const showShareApp = next === "shareapp";
+  const showNews = next === "news";
 
   galleryTab?.classList.toggle("active", showGallery);
   infoTab?.classList.toggle("active", showInfo);
@@ -852,6 +918,8 @@ function setSection(next) {
   radioTab?.classList.toggle("active", showRadio);
   dietTab?.classList.toggle("active", showDiet);
   kiTab?.classList.toggle("active", showKI);
+  shareAppTab?.classList.toggle("active", showShareApp);
+  newsTab?.classList.toggle("active", showNews);
 
   galleryView?.classList.toggle("hidden", !showGallery);
   infoView?.classList.toggle("hidden", !showInfo);
@@ -863,6 +931,8 @@ function setSection(next) {
   radioView?.classList.toggle("hidden", !showRadio);
   dietView?.classList.toggle("hidden", !showDiet);
   kiView?.classList.toggle("hidden", !showKI);
+  shareAppView?.classList.toggle("hidden", !showShareApp);
+  newsView?.classList.toggle("hidden", !showNews);
 
   if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
@@ -873,6 +943,8 @@ function setSection(next) {
   if (showRadio) window.PajazitiRadio?.activate?.();
   if (showDiet) window.DiamondDiet?.activate?.();
   if (showKI) window.DiamondKI?.activate?.();
+  if (showShareApp) window.DiamondShareApp?.activate?.();
+  if (showNews) window.DiamondNews?.activate?.();
 }
 galleryTab?.addEventListener("click", () => setSection("gallery"));
 infoTab?.addEventListener("click", () => setSection("info"));
@@ -884,6 +956,8 @@ tvTab?.addEventListener("click", () => setSection("tv"));
 radioTab?.addEventListener("click", () => setSection("radio"));
 dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
+shareAppTab?.addEventListener("click", () => setSection("shareapp"));
+newsTab?.addEventListener("click", () => setSection("news"));
 
 function setMode(next) {
   if (ADMIN_ONLY) next = "admin";
@@ -924,13 +998,17 @@ function isAdmin() {
 }
 
 async function registerInstall(){
-  if(!supabase || !currentUser) return;
+  if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
+    let versionName="5.20";
+    try{
+      versionName=window.AndroidApp?.getVersionName?.() || versionName;
+    }catch(_){}
     await supabase.from("app_installs").upsert({
       device_id: presenceDeviceId,
       user_id: currentUser.id,
       package_name: "com.pajaziti.familja",
-      version_name: "5.4",
+      version_name: versionName,
       last_seen: new Date().toISOString()
     },{onConflict:"device_id"});
   }catch(error){
@@ -938,18 +1016,71 @@ async function registerInstall(){
   }
 }
 
-async function loadInstallCount(){
-  if(!supabase || !isAdmin() || !installCount) return;
+async function registerDailyActivity(){
+  if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    const {count,error}=await supabase
-      .from("app_installs")
-      .select("device_id",{count:"exact",head:true});
-    if(error) throw error;
-    installCount.textContent=String(count||0);
+    await supabase.rpc("log_daily_activity",{p_device:presenceDeviceId});
   }catch(error){
-    console.warn("Install count",error);
+    console.warn("Daily activity",error);
   }
 }
+
+window.DiamondRegisterShareEvent = () => registerShareEvent();
+
+async function registerShareEvent(){
+  if(!supabase || !currentUser || ADMIN_ONLY) return;
+  try{
+    await supabase.from("app_share_events").insert({
+      device_id:presenceDeviceId
+    });
+  }catch(error){
+    console.warn("Share event",error);
+  }
+}
+
+async function loadAdminStats(){
+  if(!isAdmin()) return;
+  try{
+    const res=await fetch(
+      "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/diamond-admin-stats?t="+Date.now(),
+      {cache:"no-store"}
+    );
+    const data=await res.json();
+    if(!res.ok || data?.error) throw new Error(data?.error||("HTTP "+res.status));
+    if(installCount) installCount.textContent=String(data.installs||0);
+    if(shareDeviceCount) shareDeviceCount.textContent=String(data.uniqueSharers||0);
+    if(dailyActiveCount) dailyActiveCount.textContent=String(data.activeToday||0);
+  }catch(error){
+    console.warn("Admin stats",error);
+    if(adminStatsStatus) showMessage(adminStatsStatus,"Statistikat nuk u ngarkuan.","error");
+  }
+}
+
+async function loadInstallCount(){
+  return loadAdminStats();
+}
+
+function refreshNewDeviceNotifyButton(){
+  if(!newDeviceNotifyBtn) return;
+  let enabled=false;
+  try{enabled=!!window.AndroidAdmin?.isNewDeviceAlertsEnabled?.();}catch(_){}
+  newDeviceNotifyBtn.textContent=enabled?"🔔 ON":"🔕 OFF";
+  newDeviceNotifyBtn.classList.toggle("active",enabled);
+}
+
+newDeviceNotifyBtn?.addEventListener("click",()=>{
+  try{
+    if(window.AndroidAdmin?.isNativeAdmin?.()){
+      const next=!window.AndroidAdmin.isNewDeviceAlertsEnabled();
+      window.AndroidAdmin.setNewDeviceAlertsEnabled(next);
+      if(next) window.AndroidAdmin.requestNotificationPermission();
+      refreshNewDeviceNotifyButton();
+      if(adminStatsStatus) showMessage(adminStatsStatus,next?"Njoftimet u aktivizuan.":"Njoftimet u çaktivizuan.","success");
+      return;
+    }
+  }catch(error){console.warn(error);}
+  if(adminStatsStatus) showMessage(adminStatsStatus,"Ky njoftim funksionon në DIAMOND ADMIN Android.","error");
+});
 
 async function login() {
   if (!configured) {
@@ -1250,27 +1381,22 @@ function dateAtPrayerTime(value, dayOffset = 0) {
 
 function renderKerahatTimes() {
   if (!prayerTimings) return;
-  // Approximate Hanafi-style windows for a practical display.
-  // Sunrise: about 45 min after sunrise.
-  // Midday: about 10 min before Dhuhr.
-  // Sunset: about 45 min before Maghrib.
-  if (kerahatSunrise) {
-    const start = prayerTimings.Sunrise || "--:--";
-    kerahatSunrise.textContent = start === "--:--"
-      ? "--:--"
-      : start + " – " + timeWithOffset(start, 45);
-  }
-  if (kerahatNoon) {
-    const end = prayerTimings.Dhuhr || "--:--";
-    kerahatNoon.textContent = end === "--:--"
-      ? "--:--"
-      : timeWithOffset(end, -10) + " – " + end;
-  }
-  if (kerahatSunset) {
-    const end = prayerTimings.Maghrib || prayerTimings.Sunset || "--:--";
-    kerahatSunset.textContent = end === "--:--"
-      ? "--:--"
-      : timeWithOffset(end, -45) + " – " + end;
+
+  // Practical display windows. They are intentionally marked as approximate
+  // because exact fiqh details can differ by madhhab/local authority.
+  const rows = [
+    { el: kerahatSunrise, start: prayerTimings.Sunrise, end: timeWithOffset(prayerTimings.Sunrise, 45), minutes: 45 },
+    { el: kerahatNoon, start: timeWithOffset(prayerTimings.Dhuhr, -10), end: prayerTimings.Dhuhr, minutes: 10 },
+    { el: kerahatSunset, start: timeWithOffset(prayerTimings.Maghrib || prayerTimings.Sunset, -45), end: prayerTimings.Maghrib || prayerTimings.Sunset, minutes: 45 }
+  ];
+
+  for (const row of rows) {
+    if (!row.el) continue;
+    if (!row.start || row.start === "--:--" || !row.end || row.end === "--:--") {
+      row.el.textContent = "--:--";
+      continue;
+    }
+    row.el.textContent = row.start + " – " + row.end + " · " + row.minutes + " min";
   }
 }
 
@@ -1283,6 +1409,11 @@ function calculateQiblaBearing(latitude, longitude) {
   const x = Math.cos(lat) * Math.tan(kaabaLat) -
     Math.sin(lat) * Math.cos(kaabaLon - lon);
   return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function normalizeAngleDelta(value) {
+  let delta = ((value + 540) % 360) - 180;
+  return delta;
 }
 
 let qiblaWasAligned = false;
@@ -1348,6 +1479,7 @@ function updateQibla(coords) {
     return;
   }
   qiblaBearing = calculateQiblaBearing(coords.latitude, coords.longitude);
+  try { window.AndroidCompass?.setLocation?.(coords.latitude, coords.longitude); } catch (_) {}
   renderQiblaArrow();
   if (qiblaStatus) {
     qiblaStatus.textContent = Number.isFinite(qiblaHeading)
@@ -1371,8 +1503,30 @@ function onDeviceOrientation(event) {
   if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaReady");
 }
 
+let qiblaNativeTimer = null;
+
 async function enableQiblaCompass() {
   try {
+    const coords = savedPrayerCoords();
+    if (window.AndroidCompass?.isAvailable?.()) {
+      if (coords) window.AndroidCompass.setLocation(coords.latitude, coords.longitude);
+      window.AndroidCompass.start();
+      if (qiblaNativeTimer) clearInterval(qiblaNativeTimer);
+      qiblaNativeTimer = setInterval(() => {
+        try {
+          const heading = Number(window.AndroidCompass.getHeading());
+          if (Number.isFinite(heading) && heading >= 0) {
+            qiblaHeading = heading;
+            renderQiblaArrow();
+            if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaReady");
+          }
+        } catch (_) {}
+      }, 120);
+      qiblaCompassListening = true;
+      updateQibla(coords);
+      return;
+    }
+
     if (typeof DeviceOrientationEvent !== "undefined" &&
         typeof DeviceOrientationEvent.requestPermission === "function") {
       const permission = await DeviceOrientationEvent.requestPermission();
@@ -1383,7 +1537,7 @@ async function enableQiblaCompass() {
       window.addEventListener("deviceorientation", onDeviceOrientation, true);
       qiblaCompassListening = true;
     }
-    updateQibla(savedPrayerCoords());
+    updateQibla(coords);
   } catch (error) {
     console.warn("Qibla compass", error);
     if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaNoSensor");
@@ -1436,7 +1590,7 @@ function getPhoneLocation() {
         if (error?.code === 3) message = t("location.timeout");
         reject(new Error(message));
       },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 6 * 60 * 60 * 1000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10 * 60 * 1000 }
     );
   });
 }
@@ -1461,6 +1615,9 @@ async function fetchPrayerTimes(coords) {
   for (const prayer of PRAYERS) {
     prayerTimings[prayer.key] = cleanPrayerTime(json.data.timings[prayer.key]);
   }
+  // Keep solar times too, because the kerahat windows depend on them.
+  prayerTimings.Sunrise = cleanPrayerTime(json.data.timings.Sunrise);
+  prayerTimings.Sunset = cleanPrayerTime(json.data.timings.Sunset);
   prayerTimingsDate = localDateKey(date);
   prayerTimezone = json.data.meta?.timezone || "Europe/Berlin";
 
@@ -1670,6 +1827,7 @@ async function requestAlarmPermission() {
 function renderPrayerTimes() {
   prayerList.innerHTML = "";
   if (!prayerTimings) return;
+  renderKerahatTimes();
 
   for (const prayer of PRAYERS) {
     const row = document.createElement("article");
@@ -2609,6 +2767,7 @@ function startRealtime() {
       { event: "*", schema: "public", table: "app_settings" },
       () => {
         loadSharedMenuOrder();
+        loadHiddenTabs();
         window.PajazitiGames?.reloadSettings?.();
       }
     )
@@ -2662,6 +2821,7 @@ async function applySession(session) {
   setSection("gallery");
   await loadMedia();
   await loadSharedMenuOrder();
+  await loadHiddenTabs();
   const savedCoords = savedPrayerCoords();
   if (savedCoords) {
     fetchPrayerTimes(savedCoords).catch((error) => console.warn("Prayer preload failed", error));
@@ -2670,7 +2830,8 @@ async function applySession(session) {
   loadChatProfile().catch(console.warn);
   startPrayerAlarmChecker();
   await registerInstall();
-  if(isAdmin()) await loadInstallCount();
+  await registerDailyActivity();
+  if(isAdmin()) { await loadAdminStats(); refreshNewDeviceNotifyButton(); }
   startRealtime();
 }
 
@@ -2739,6 +2900,7 @@ installBtn.addEventListener("click", triggerInstall);
 installLoginBtn.addEventListener("click", triggerInstall);
 
 shareBtn.addEventListener("click", async () => {
+  await registerShareEvent();
   const url = isIosDevice ? "https://familja.vercel.app/" : "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-apk";
   try {
     if (navigator.share) {
@@ -2770,6 +2932,7 @@ if ("serviceWorker" in navigator) {
 
 window.DiamondNavigationBack = function(){
   try {
+    if (window.DiamondPrayerExtras?.back?.()) return true;
     if (window.DiamondQuran?.back?.()) return true;
     const quranPanel=document.getElementById("quranPanel");
     if(quranPanel && !quranPanel.classList.contains("hidden")){
@@ -2787,3 +2950,47 @@ window.DiamondNavigationBack = function(){
   } catch(_) {}
   return false;
 };
+
+/* DIAMOND Namaz mini-app navigation */
+(() => {
+  const grid = document.querySelector("#prayerView .prayer-tools-grid");
+  const back = document.getElementById("prayerMiniBack");
+  if (!grid || !back) return;
+  const cards = Array.from(grid.children);
+  const prayerTop = document.querySelector("#prayerView > .prayer-card");
+  const prayerListEl = document.getElementById("prayerList");
+  const prayerNote = document.querySelector("#prayerView > .prayer-note");
+  const detailPanels = ["quranPanel","prayerHelpPanel","ruqyaPanel","prayerDuaPanel","quranLearnPanel","tasbihPanel"]
+    .map(id => document.getElementById(id)).filter(Boolean);
+
+  const showMenu = () => {
+    cards.forEach(el => el.classList.remove("hidden"));
+    detailPanels.forEach(el => el.classList.add("hidden"));
+    prayerTop?.classList.remove("hidden");
+    prayerListEl?.classList.add("hidden");
+    prayerNote?.classList.add("hidden");
+    back.classList.add("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+  const openCard = (card) => {
+    cards.forEach(el => { if (el !== card) el.classList.add("hidden"); });
+    prayerTop?.classList.add("hidden");
+    prayerListEl?.classList.add("hidden");
+    prayerNote?.classList.add("hidden");
+    back.classList.remove("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+  const bind = (id) => {
+    const el=document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("click", (ev) => {
+      if (ev.target.closest("button") && ev.target !== el) return;
+      openCard(el);
+    });
+  };
+  bind("qiblaToolCard");
+  bind("kerahatToolCard");
+  back.addEventListener("click", showMenu);
+  document.getElementById("prayerTab")?.addEventListener("click", () => setTimeout(showMenu,0));
+  showMenu();
+})();
