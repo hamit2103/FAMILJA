@@ -4227,3 +4227,9 @@ body:has(#appView:not(.hidden)){
 .home-digital-clock span{grid-column:auto!important;font-size:13px!important;color:#d7efff!important;font-weight:800}
 .admin-online-users{padding:9px 11px;border-radius:12px;background:#dcfce7;color:#14532d}
 .admin-user-main small{word-break:break-all}
+
+.game-choice:disabled{opacity:.55;filter:grayscale(.45);cursor:not-allowed}
+.game-block-note{display:block;margin-top:4px;font-size:9px;line-height:1.15;color:#fecaca}
+.game-block-admin{display:grid;gap:8px;margin-top:14px;padding:12px;border-radius:16px;background:rgba(255,255,255,.72);color:#111827}
+.game-block-admin select,.game-block-admin input{width:100%}
+.game-block-actions{display:flex;gap:8px;flex-wrap:wrap}
