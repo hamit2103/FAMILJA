@@ -341,11 +341,7 @@ function applyLanguage(language = currentLanguage) {
   }
 
   if (currentUser) {
-    if (!isAdmin()) {
-    await playUserIntro();
-    appView.classList.remove("hidden");
-  }
-  roleLabel.textContent = isAdmin() ? t("role.admin") : (globalUserName() || t("role.family"));
+    roleLabel.textContent = isAdmin() ? t("role.admin") : (globalUserName() || t("role.family"));
     updateUploadPanel(mediaItems);
     renderPrayerTimes();
     updateNextPrayer();
@@ -357,8 +353,6 @@ function applyLanguage(language = currentLanguage) {
 
 const loginView = $("loginView");
 const appView = $("appView");
-const userIntro = $("userIntro");
-const userIntroVideo = $("userIntroVideo");
 const familyMode = $("familyMode");
 const adminMode = $("adminMode");
 const codeInput = $("codeInput");
@@ -592,7 +586,6 @@ themeResetBtn?.addEventListener("click", () => {
 
 let mode = ADMIN_ONLY ? "admin" : "family";
 let publicEntryActive = false;
-let userIntroPlayedThisLaunch = false;
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
@@ -1105,7 +1098,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.73";
+    let versionName="5.69";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1496,7 +1489,6 @@ codeInput.addEventListener("keydown", (e) => {
 
 logoutBtn.addEventListener("click", async () => {
   publicEntryActive = false;
-  userIntroPlayedThisLaunch = false;
   if (supabase) await supabase.auth.signOut();
   currentUser = null;
   setSection("home");
@@ -3168,64 +3160,12 @@ function startRealtime() {
     });
 }
 
-function playUserIntro() {
-  if (ADMIN_ONLY || isAdmin() || userIntroPlayedThisLaunch || !userIntro || !userIntroVideo) {
-    return Promise.resolve();
-  }
-
-  userIntroPlayedThisLaunch = true;
-  return new Promise((resolve) => {
-    let finished = false;
-    let safetyTimer = null;
-
-    const finish = () => {
-      if (finished) return;
-      finished = true;
-      if (safetyTimer) clearTimeout(safetyTimer);
-      try { userIntroVideo.pause(); } catch (_) {}
-      userIntro.classList.add("hidden");
-      userIntro.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("user-intro-open");
-      resolve();
-    };
-
-    userIntro.classList.remove("hidden");
-    userIntro.setAttribute("aria-hidden", "false");
-    document.body.classList.add("user-intro-open");
-    try {
-      userIntroVideo.currentTime = 0;
-      userIntroVideo.muted = false;
-      userIntroVideo.volume = 1;
-    } catch (_) {}
-
-    userIntroVideo.addEventListener("ended", finish, { once: true });
-    userIntroVideo.addEventListener("error", finish, { once: true });
-    safetyTimer = setTimeout(finish, 3600);
-
-    try {
-      const playPromise = userIntroVideo.play();
-      if (playPromise?.catch) {
-        playPromise.catch(() => {
-          // Browser/PWA fallback if sound autoplay is blocked.
-          try {
-            userIntroVideo.muted = true;
-            userIntroVideo.play().catch(finish);
-          } catch (_) { finish(); }
-        });
-      }
-    } catch (_) {
-      finish();
-    }
-  });
-}
-
 async function applySession(session) {
   currentUser = session?.user || null;
   const signedIn = !!currentUser;
 
-  const needsUserIntro = signedIn && !isAdmin() && !ADMIN_ONLY && !userIntroPlayedThisLaunch;
   loginView.classList.toggle("hidden", signedIn);
-  appView.classList.toggle("hidden", !signedIn || needsUserIntro);
+  appView.classList.toggle("hidden", !signedIn);
   infoCompose?.classList.toggle("hidden", !signedIn || !isAdmin());
   menuOrderAdmin?.classList.toggle("hidden", !signedIn || !isAdmin());
   installStatsCard?.classList.toggle("hidden", !signedIn || !isAdmin());
