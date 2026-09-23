@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=86">
+  <link rel="stylesheet" href="styles.css?v=87">
   <title>DIAMOND</title>
   <style>
     /* Inline menu-order hotfix */
@@ -78,6 +78,11 @@
       <h1>DIAMOND</h1>
 
       <div id="familyDirectHint" class="small muted" data-i18n="login.userDirectHint">Përdoruesi hyn direkt pa kod.</div>
+      <div id="userNameWrap" class="user-name-login-wrap">
+        <label for="userNameInput"><strong>Emri i përdoruesit</strong></label>
+        <input id="userNameInput" type="text" minlength="4" maxlength="20" autocomplete="off" placeholder="Së paku 4 shkronja ose numra">
+        <div id="userNameNote" class="user-name-warning">Kujdes: emri do të jetë përgjithmonë në këtë app dhe i vlefshëm për të gjitha lojërat.</div>
+      </div>
       <button id="loginBtn" class="primary" type="button">Hyr si Përdorues</button>
 
       <div id="adminCodeWrap">
@@ -103,7 +108,7 @@
         <div>
           <div class="app-title-row" style="display:block">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.64</span>
+            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.65</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -217,6 +222,13 @@
             <button id="newDeviceNotifyBtn" class="secondary" type="button">Aktivizo</button>
           </div>
           <div id="adminStatsStatus" class="message"></div>
+        </section>
+
+        <section id="adminUsersCard" class="card admin-users-card hidden">
+          <h2>👥 Përdoruesit e DIAMOND</h2>
+          <p class="muted small">Admini mund ta ndryshojë emrin, ta bllokojë ose ta lejojë përsëri. Pikët e lojërave nuk ndryshojnë.</p>
+          <div id="adminUsersList" class="admin-users-list"></div>
+          <div id="adminUsersStatus" class="message"></div>
         </section>
 
         <section id="storageCard" class="card storage-card hidden">
@@ -617,9 +629,9 @@
   })();
   </script>
 
-<script type="module" src="app.js?v=91"></script>
+<script type="module" src="app.js?v=92"></script>
   <script type="module" src="sports.js?v=9"></script>
-  <script type="module" src="games.js?v=83"></script>
+  <script type="module" src="games.js?v=84"></script>
   <script type="module" src="tv.js?v=53"></script>
   <script type="module" src="radio.js?v=56"></script>
   <script type="module" src="quran.js?v=2"></script>
