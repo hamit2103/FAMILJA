@@ -4253,3 +4253,12 @@ body:has(#appView:not(.hidden)){
 .admin-message-history{display:grid;gap:7px;margin-top:8px;max-height:320px;overflow:auto}
 .admin-message-history-row{display:grid;gap:3px;padding:9px;border-radius:12px;background:rgba(255,255,255,.7);border:1px solid rgba(15,23,42,.08)}
 .admin-message-history-row small{color:#64748b}
+
+/* DIAMOND 5.70 practice + game INFO */
+.practice-fallback-box,.practice-banner{display:grid;gap:8px;padding:10px 12px;border-radius:14px;background:#ecfeff;border:1px solid #67e8f9;color:#164e63;margin:10px 0}
+.practice-fallback-box small,.practice-banner{font-weight:750;line-height:1.35}
+.game-info-fab{position:sticky;bottom:12px;float:right;z-index:45;margin:12px;border:0;border-radius:999px;padding:11px 16px;background:#0f172a;color:#fff;font-weight:950;box-shadow:0 8px 22px rgba(0,0,0,.22)}
+.game-info-overlay{position:fixed;inset:0;z-index:9999;background:rgba(2,6,23,.76);display:grid;place-items:center;padding:18px}
+.game-info-card{position:relative;width:min(560px,96vw);max-height:86vh;overflow:auto;background:#fff;color:#111827;border-radius:20px;padding:22px;display:grid;gap:14px;box-shadow:0 24px 80px rgba(0,0,0,.42)}
+.game-info-card h2{margin:0}.game-info-card p{margin:0;line-height:1.55;font-size:16px}.game-info-close{position:absolute;right:10px;top:10px;border:0;background:#eef2f7;border-radius:999px;width:36px;height:36px;font-size:18px}
+.game-info-practice{padding:10px 12px;border-radius:12px;background:#fef3c7;color:#78350f;font-weight:800;line-height:1.4}
