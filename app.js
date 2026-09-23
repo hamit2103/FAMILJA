@@ -304,6 +304,7 @@ function applyLanguage(language = currentLanguage) {
   window.PajazitiSports?.reloadLanguage?.();
   window.PajazitiGames?.reloadLanguage?.();
   try{window.AndroidMessages?.updateLanguage?.(language);}catch(_){}
+  if(qiblaCompassBtn)qiblaCompassBtn.textContent=qiblaToggleLabel(qiblaCompassListening);
   window.PajazitiTV?.reloadLanguage?.();
   window.PajazitiRadio?.reloadLanguage?.();
   window.DiamondQuran?.reloadLanguage?.();
@@ -1802,6 +1803,19 @@ function onDeviceOrientation(event) {
 let qiblaNativeTimer = null;
 let qiblaAutoStopTimer = null;
 
+function qiblaToggleLabel(running){
+  const labels={
+    sq:running?"Ndale busullën":"Lësho busullën",
+    de:running?"Kompass stoppen":"Kompass starten",
+    tr:running?"Pusulayı durdur":"Pusulayı başlat",
+    en:running?"Stop compass":"Start compass",
+    it:running?"Ferma bussola":"Avvia bussola",
+    hr:running?"Zaustavi kompas":"Pokreni kompas",
+    fr:running?"Arrêter la boussole":"Démarrer la boussole",
+    ar:running?"إيقاف البوصلة":"تشغيل البوصلة"
+  };
+  return labels[currentLanguage]||labels.sq;
+}
 function stopQiblaCompass(){
   if(qiblaNativeTimer){clearInterval(qiblaNativeTimer);qiblaNativeTimer=null;}
   if(qiblaAutoStopTimer){clearTimeout(qiblaAutoStopTimer);qiblaAutoStopTimer=null;}
@@ -1809,7 +1823,7 @@ function stopQiblaCompass(){
   window.removeEventListener("deviceorientationabsolute",onDeviceOrientation,true);
   window.removeEventListener("deviceorientation",onDeviceOrientation,true);
   qiblaCompassListening=false;
-  if(qiblaCompassBtn)qiblaCompassBtn.textContent=currentLanguage==="de"?"Kompass starten":currentLanguage==="tr"?"Pusulayı başlat":currentLanguage==="en"?"Start compass":"Lësho busullën";
+  if(qiblaCompassBtn)qiblaCompassBtn.textContent=qiblaToggleLabel(false);
 }
 function scheduleQiblaAutoStop(){
   if(qiblaAutoStopTimer)clearTimeout(qiblaAutoStopTimer);
@@ -1834,7 +1848,7 @@ async function enableQiblaCompass() {
       }, 120);
       qiblaCompassListening = true;
       updateQibla(coords);
-      if(qiblaCompassBtn)qiblaCompassBtn.textContent=currentLanguage==="de"?"Kompass stoppen":currentLanguage==="tr"?"Pusulayı durdur":currentLanguage==="en"?"Stop compass":"Ndale busullën";
+      if(qiblaCompassBtn)qiblaCompassBtn.textContent=qiblaToggleLabel(true);
       scheduleQiblaAutoStop();
       return;
     }
@@ -1850,7 +1864,7 @@ async function enableQiblaCompass() {
       qiblaCompassListening = true;
     }
     updateQibla(coords);
-    if(qiblaCompassBtn)qiblaCompassBtn.textContent=currentLanguage==="de"?"Kompass stoppen":currentLanguage==="tr"?"Pusulayı durdur":currentLanguage==="en"?"Stop compass":"Ndale busullën";
+    if(qiblaCompassBtn)qiblaCompassBtn.textContent=qiblaToggleLabel(true);
     scheduleQiblaAutoStop();
   } catch (error) {
     console.warn("Qibla compass", error);
