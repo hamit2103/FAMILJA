@@ -48,6 +48,7 @@ let arcadePollTimer=null;
 let arcadeMode=null;
 let arcadeStarted=false;
 let tetrisOnline=false;
+let tetrisPractice=false;
 let tetrisOnlineProgressTimer=null;
 let boardProfile=null;
 let boardLeaderboardRows=[];
@@ -58,6 +59,7 @@ let boardRematchRequested=false;
 let arcadeClockTimer=null;
 let timerVisibleClockTimer=null;
 let gameBlocks={};
+let practiceFallbackGame=null;
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -80,16 +82,51 @@ function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"
 function tr(k){ return TXT[lang()][k] || TXT.sq[k] || k; }
 
 const GX={
-  sq:{musicOn:"🎵 Muzika ON",musicOff:"🎵 Muzika OFF",colors:"🎨 Ngjyrat",soundAllOn:"🔊 Tingulli ON",soundAllOff:"🔇 Tingulli OFF",adminColors:"Ngjyrat standarde të Adminit",saveAdminColors:"Ruaj ngjyrat për të gjithë",myColors:"Ngjyrat e mia",resetColors:"Kthe ngjyrat e Adminit",onlineWait:"Duke pritur lojtar online…",resign:"🏳️ Dorëzohu",rematch:"🔄 Luajmë përsëri?",pause:"⏸️ Pauzë",score:"Pikë",lines:"Rreshta",level:"Nivel",best:"Rekordi",loading:"Po ngarkohet…",blocked:"Kjo lojë është e bllokuar nga Admini",name:"Emri",online2to8:"🌐 Luaj Online · 2–8 veta",online2to4:"🌐 Blloqe Online · 2–4 veta"},
-  de:{musicOn:"🎵 Musik AN",musicOff:"🎵 Musik AUS",colors:"🎨 Farben",soundAllOn:"🔊 Ton AN",soundAllOff:"🔇 Ton AUS",adminColors:"Standardfarben des Admins",saveAdminColors:"Farben für alle speichern",myColors:"Meine Farben",resetColors:"Admin-Farben wiederherstellen",onlineWait:"Warte auf Online-Spieler…",resign:"🏳️ Aufgeben",rematch:"🔄 Nochmal spielen?",pause:"⏸️ Pause",score:"Punkte",lines:"Linien",level:"Level",best:"Rekord",loading:"Wird geladen…",blocked:"Dieses Spiel wurde vom Admin gesperrt",name:"Name",online2to8:"🌐 Online spielen · 2–8 Spieler",online2to4:"🌐 Blöcke Online · 2–4 Spieler"},
-  tr:{musicOn:"🎵 Müzik AÇIK",musicOff:"🎵 Müzik KAPALI",colors:"🎨 Renkler",soundAllOn:"🔊 Ses AÇIK",soundAllOff:"🔇 Ses KAPALI",adminColors:"Yönetici varsayılan renkleri",saveAdminColors:"Renkleri herkes için kaydet",myColors:"Renklerim",resetColors:"Yönetici renklerine dön",onlineWait:"Çevrimiçi oyuncu bekleniyor…",resign:"🏳️ Teslim ol",rematch:"🔄 Tekrar oynayalım?",pause:"⏸️ Duraklat",score:"Puan",lines:"Satır",level:"Seviye",best:"Rekor",loading:"Yükleniyor…",blocked:"Bu oyun yönetici tarafından kilitlendi",name:"Ad",online2to8:"🌐 Online Oyna · 2–8 kişi",online2to4:"🌐 Bloklar Online · 2–4 kişi"},
-  en:{musicOn:"🎵 Music ON",musicOff:"🎵 Music OFF",colors:"🎨 Colors",soundAllOn:"🔊 Sound ON",soundAllOff:"🔇 Sound OFF",adminColors:"Admin default colors",saveAdminColors:"Save colors for everyone",myColors:"My colors",resetColors:"Restore Admin colors",onlineWait:"Waiting for online player…",resign:"🏳️ Resign",rematch:"🔄 Play again?",pause:"⏸️ Pause",score:"Score",lines:"Lines",level:"Level",best:"Best",loading:"Loading…",blocked:"This game is blocked by Admin",name:"Name",online2to8:"🌐 Play Online · 2–8 players",online2to4:"🌐 Blocks Online · 2–4 players"},
-  it:{musicOn:"🎵 Musica ON",musicOff:"🎵 Musica OFF",colors:"🎨 Colori",soundAllOn:"🔊 Audio ON",soundAllOff:"🔇 Audio OFF",adminColors:"Colori predefiniti Admin",saveAdminColors:"Salva colori per tutti",myColors:"I miei colori",resetColors:"Ripristina colori Admin",onlineWait:"In attesa di un giocatore online…",resign:"🏳️ Arrenditi",rematch:"🔄 Giochiamo ancora?",pause:"⏸️ Pausa",score:"Punti",lines:"Linee",level:"Livello",best:"Record",loading:"Caricamento…",blocked:"Questo gioco è bloccato dall'Admin",name:"Nome",online2to8:"🌐 Gioca Online · 2–8 giocatori",online2to4:"🌐 Blocchi Online · 2–4 giocatori"},
-  hr:{musicOn:"🎵 Glazba UKLJ",musicOff:"🎵 Glazba ISKLJ",colors:"🎨 Boje",soundAllOn:"🔊 Zvuk UKLJ",soundAllOff:"🔇 Zvuk ISKLJ",adminColors:"Zadane Admin boje",saveAdminColors:"Spremi boje za sve",myColors:"Moje boje",resetColors:"Vrati Admin boje",onlineWait:"Čeka se online igrač…",resign:"🏳️ Predaj se",rematch:"🔄 Igraj ponovno?",pause:"⏸️ Pauza",score:"Bodovi",lines:"Linije",level:"Razina",best:"Rekord",loading:"Učitavanje…",blocked:"Admin je blokirao ovu igru",name:"Ime",online2to8:"🌐 Igraj Online · 2–8 igrača",online2to4:"🌐 Blokovi Online · 2–4 igrača"},
-  fr:{musicOn:"🎵 Musique ON",musicOff:"🎵 Musique OFF",colors:"🎨 Couleurs",soundAllOn:"🔊 Son ON",soundAllOff:"🔇 Son OFF",adminColors:"Couleurs par défaut Admin",saveAdminColors:"Enregistrer pour tous",myColors:"Mes couleurs",resetColors:"Restaurer les couleurs Admin",onlineWait:"En attente d’un joueur en ligne…",resign:"🏳️ Abandonner",rematch:"🔄 Rejouer ?",pause:"⏸️ Pause",score:"Score",lines:"Lignes",level:"Niveau",best:"Record",loading:"Chargement…",blocked:"Ce jeu est bloqué par l’Admin",name:"Nom",online2to8:"🌐 Jouer en ligne · 2–8 joueurs",online2to4:"🌐 Blocs Online · 2–4 joueurs"},
-  ar:{musicOn:"🎵 الموسيقى تعمل",musicOff:"🎵 الموسيقى متوقفة",colors:"🎨 الألوان",soundAllOn:"🔊 الصوت يعمل",soundAllOff:"🔇 الصوت متوقف",adminColors:"ألوان المشرف الافتراضية",saveAdminColors:"حفظ الألوان للجميع",myColors:"ألواني",resetColors:"استعادة ألوان المشرف",onlineWait:"بانتظار لاعب عبر الإنترنت…",resign:"🏳️ استسلام",rematch:"🔄 اللعب مجددًا؟",pause:"⏸️ إيقاف مؤقت",score:"النقاط",lines:"الخطوط",level:"المستوى",best:"الأفضل",loading:"جارٍ التحميل…",blocked:"هذه اللعبة محظورة من المشرف",name:"الاسم",online2to8:"🌐 لعب أونلاين · 2–8 لاعبين",online2to4:"🌐 الكتل أونلاين · 2–4 لاعبين"}
+  sq:{info:"ℹ️ INFO",close:"Mbylle",practice:"🤖 Stërvitje me kompjuter · pa pikë",noOnlineFound:"Nuk u gjet lojtar online.",practiceNote:"Kjo lojë është vetëm për stërvitje. Nuk jep pikë, medalje, fitore javore ose shpërblime.",musicOn:"🎵 Muzika ON",musicOff:"🎵 Muzika OFF",colors:"🎨 Ngjyrat",soundAllOn:"🔊 Tingulli ON",soundAllOff:"🔇 Tingulli OFF",adminColors:"Ngjyrat standarde të Adminit",saveAdminColors:"Ruaj ngjyrat për të gjithë",myColors:"Ngjyrat e mia",resetColors:"Kthe ngjyrat e Adminit",onlineWait:"Duke pritur lojtar online…",resign:"🏳️ Dorëzohu",rematch:"🔄 Luajmë përsëri?",pause:"⏸️ Pauzë",score:"Pikë",lines:"Rreshta",level:"Nivel",best:"Rekordi",loading:"Po ngarkohet…",blocked:"Kjo lojë është e bllokuar nga Admini",name:"Emri",online2to8:"🌐 Luaj Online · 2–8 veta",online2to4:"🌐 Blloqe Online · 2–4 veta"},
+  de:{info:"ℹ️ INFO",close:"Schließen",practice:"🤖 Training gegen Computer · ohne Punkte",noOnlineFound:"Kein Online-Spieler gefunden.",practiceNote:"Dieses Spiel ist nur Training. Es gibt keine Punkte, Medaillen, Wochensiege oder Belohnungen.",musicOn:"🎵 Musik AN",musicOff:"🎵 Musik AUS",colors:"🎨 Farben",soundAllOn:"🔊 Ton AN",soundAllOff:"🔇 Ton AUS",adminColors:"Standardfarben des Admins",saveAdminColors:"Farben für alle speichern",myColors:"Meine Farben",resetColors:"Admin-Farben wiederherstellen",onlineWait:"Warte auf Online-Spieler…",resign:"🏳️ Aufgeben",rematch:"🔄 Nochmal spielen?",pause:"⏸️ Pause",score:"Punkte",lines:"Linien",level:"Level",best:"Rekord",loading:"Wird geladen…",blocked:"Dieses Spiel wurde vom Admin gesperrt",name:"Name",online2to8:"🌐 Online spielen · 2–8 Spieler",online2to4:"🌐 Blöcke Online · 2–4 Spieler"},
+  tr:{info:"ℹ️ BİLGİ",close:"Kapat",practice:"🤖 Bilgisayara karşı antrenman · puansız",noOnlineFound:"Çevrimiçi oyuncu bulunamadı.",practiceNote:"Bu oyun sadece antrenmandır. Puan, madalya, haftalık galibiyet veya ödül vermez.",musicOn:"🎵 Müzik AÇIK",musicOff:"🎵 Müzik KAPALI",colors:"🎨 Renkler",soundAllOn:"🔊 Ses AÇIK",soundAllOff:"🔇 Ses KAPALI",adminColors:"Yönetici varsayılan renkleri",saveAdminColors:"Renkleri herkes için kaydet",myColors:"Renklerim",resetColors:"Yönetici renklerine dön",onlineWait:"Çevrimiçi oyuncu bekleniyor…",resign:"🏳️ Teslim ol",rematch:"🔄 Tekrar oynayalım?",pause:"⏸️ Duraklat",score:"Puan",lines:"Satır",level:"Seviye",best:"Rekor",loading:"Yükleniyor…",blocked:"Bu oyun yönetici tarafından kilitlendi",name:"Ad",online2to8:"🌐 Online Oyna · 2–8 kişi",online2to4:"🌐 Bloklar Online · 2–4 kişi"},
+  en:{info:"ℹ️ INFO",close:"Close",practice:"🤖 Practice vs computer · no points",noOnlineFound:"No online player was found.",practiceNote:"This game is practice only. It gives no points, medals, weekly wins or rewards.",musicOn:"🎵 Music ON",musicOff:"🎵 Music OFF",colors:"🎨 Colors",soundAllOn:"🔊 Sound ON",soundAllOff:"🔇 Sound OFF",adminColors:"Admin default colors",saveAdminColors:"Save colors for everyone",myColors:"My colors",resetColors:"Restore Admin colors",onlineWait:"Waiting for online player…",resign:"🏳️ Resign",rematch:"🔄 Play again?",pause:"⏸️ Pause",score:"Score",lines:"Lines",level:"Level",best:"Best",loading:"Loading…",blocked:"This game is blocked by Admin",name:"Name",online2to8:"🌐 Play Online · 2–8 players",online2to4:"🌐 Blocks Online · 2–4 players"},
+  it:{info:"ℹ️ INFO",close:"Chiudi",practice:"🤖 Allenamento contro computer · senza punti",noOnlineFound:"Nessun giocatore online trovato.",practiceNote:"Questa partita è solo allenamento. Non assegna punti, medaglie, vittorie settimanali o premi.",musicOn:"🎵 Musica ON",musicOff:"🎵 Musica OFF",colors:"🎨 Colori",soundAllOn:"🔊 Audio ON",soundAllOff:"🔇 Audio OFF",adminColors:"Colori predefiniti Admin",saveAdminColors:"Salva colori per tutti",myColors:"I miei colori",resetColors:"Ripristina colori Admin",onlineWait:"In attesa di un giocatore online…",resign:"🏳️ Arrenditi",rematch:"🔄 Giochiamo ancora?",pause:"⏸️ Pausa",score:"Punti",lines:"Linee",level:"Livello",best:"Record",loading:"Caricamento…",blocked:"Questo gioco è bloccato dall'Admin",name:"Nome",online2to8:"🌐 Gioca Online · 2–8 giocatori",online2to4:"🌐 Blocchi Online · 2–4 giocatori"},
+  hr:{info:"ℹ️ INFO",close:"Zatvori",practice:"🤖 Vježba protiv računala · bez bodova",noOnlineFound:"Nije pronađen online igrač.",practiceNote:"Ova igra služi samo za vježbu. Ne donosi bodove, medalje, tjedne pobjede ni nagrade.",musicOn:"🎵 Glazba UKLJ",musicOff:"🎵 Glazba ISKLJ",colors:"🎨 Boje",soundAllOn:"🔊 Zvuk UKLJ",soundAllOff:"🔇 Zvuk ISKLJ",adminColors:"Zadane Admin boje",saveAdminColors:"Spremi boje za sve",myColors:"Moje boje",resetColors:"Vrati Admin boje",onlineWait:"Čeka se online igrač…",resign:"🏳️ Predaj se",rematch:"🔄 Igraj ponovno?",pause:"⏸️ Pauza",score:"Bodovi",lines:"Linije",level:"Razina",best:"Rekord",loading:"Učitavanje…",blocked:"Admin je blokirao ovu igru",name:"Ime",online2to8:"🌐 Igraj Online · 2–8 igrača",online2to4:"🌐 Blokovi Online · 2–4 igrača"},
+  fr:{info:"ℹ️ INFO",close:"Fermer",practice:"🤖 Entraînement contre ordinateur · sans points",noOnlineFound:"Aucun joueur en ligne trouvé.",practiceNote:"Cette partie sert uniquement d’entraînement. Aucun point, médaille, victoire hebdomadaire ou récompense.",musicOn:"🎵 Musique ON",musicOff:"🎵 Musique OFF",colors:"🎨 Couleurs",soundAllOn:"🔊 Son ON",soundAllOff:"🔇 Son OFF",adminColors:"Couleurs par défaut Admin",saveAdminColors:"Enregistrer pour tous",myColors:"Mes couleurs",resetColors:"Restaurer les couleurs Admin",onlineWait:"En attente d’un joueur en ligne…",resign:"🏳️ Abandonner",rematch:"🔄 Rejouer ?",pause:"⏸️ Pause",score:"Score",lines:"Lignes",level:"Niveau",best:"Record",loading:"Chargement…",blocked:"Ce jeu est bloqué par l’Admin",name:"Nom",online2to8:"🌐 Jouer en ligne · 2–8 joueurs",online2to4:"🌐 Blocs Online · 2–4 joueurs"},
+  ar:{info:"ℹ️ معلومات",close:"إغلاق",practice:"🤖 تدريب ضد الكمبيوتر · بدون نقاط",noOnlineFound:"لم يتم العثور على لاعب أونلاين.",practiceNote:"هذه اللعبة للتدريب فقط. لا تمنح نقاطًا أو ميداليات أو انتصارات أسبوعية أو مكافآت.",musicOn:"🎵 الموسيقى تعمل",musicOff:"🎵 الموسيقى متوقفة",colors:"🎨 الألوان",soundAllOn:"🔊 الصوت يعمل",soundAllOff:"🔇 الصوت متوقف",adminColors:"ألوان المشرف الافتراضية",saveAdminColors:"حفظ الألوان للجميع",myColors:"ألواني",resetColors:"استعادة ألوان المشرف",onlineWait:"بانتظار لاعب عبر الإنترنت…",resign:"🏳️ استسلام",rematch:"🔄 اللعب مجددًا؟",pause:"⏸️ إيقاف مؤقت",score:"النقاط",lines:"الخطوط",level:"المستوى",best:"الأفضل",loading:"جارٍ التحميل…",blocked:"هذه اللعبة محظورة من المشرف",name:"الاسم",online2to8:"🌐 لعب أونلاين · 2–8 لاعبين",online2to4:"🌐 الكتل أونلاين · 2–4 لاعبين"}
 };
 function gx(k){return GX[lang()]?.[k]||GX.sq[k]||k;}
+
+const GAME_INFO={
+  sq:{chess:["Shah","Lëviz figurat sipas rregullave të shahut dhe bëj mat mbretin kundërshtar. Online numëron për fitoret javore. Kundër kompjuterit është vetëm stërvitje pa pikë."],morris:["Degërxhik","Vendos 9 gurët. Kur formon treshe, hiq një gur të kundërshtarit. Pastaj lëviz gurët në pikat e lidhura. Online numëron; kundër kompjuterit është stërvitje pa pikë."],timer:["Kral i Sekondave","App-i cakton një kohë. Shtyp STOP sa më afër kohës së kërkuar. Online luan me usera të tjerë. Kundër kompjuterit është vetëm stërvitje pa pikë."],tetris:["Blloqe","Rrotullo dhe lëviz blloqet për të plotësuar rreshta. Online fiton lojtari i fundit që mbetet. Loja solo është stërvitje dhe nuk regjistron pikë në renditje."],war:["Luftra","Zgjidh një nga dy armët dhe sulmo kundërshtarin. Online mund të luajnë deri 8 veta. Kundër kompjuterit është vetëm stërvitje pa pikë, pa diamanta dhe pa shpërblime."]},
+  de:{chess:["Schach","Ziehe die Figuren nach den Schachregeln und setze den gegnerischen König matt. Online zählt für Wochensiege. Gegen den Computer ist nur Training ohne Punkte."],morris:["Mühle","Setze 9 Steine. Bildest du eine Dreierreihe, entfernst du einen gegnerischen Stein. Danach bewegst du die Steine entlang der Linien. Online zählt; Computer ist Training ohne Punkte."],timer:["Sekundenkönig","Die App gibt eine Zielzeit vor. Drücke STOP möglichst nah an dieser Zeit. Online spielst du gegen andere User. Gegen den Computer ist nur Training ohne Punkte."],tetris:["Blöcke","Drehe und verschiebe die Blöcke, um Reihen zu füllen. Online gewinnt der letzte verbleibende Spieler. Solo ist Training und speichert keine Ranglistenpunkte."],war:["Krieg","Wähle eine von zwei Waffen und greife den Gegner an. Online können bis zu 8 Spieler teilnehmen. Gegen Computer ist nur Training: keine Punkte, Diamanten oder Belohnungen."]},
+  tr:{chess:["Satranç","Taşları satranç kurallarına göre oynat ve rakip şahı mat et. Online oyun haftalık galibiyetlere sayılır. Bilgisayara karşı oyun yalnızca puansız antrenmandır."],morris:["Dokuz Taş","9 taşını yerleştir. Üçlü oluşturunca rakibin bir taşını kaldır. Sonra taşları bağlı noktalarda hareket ettir. Online sayılır; bilgisayar oyunu puansız antrenmandır."],timer:["Saniye Kralı","Uygulama bir hedef süre verir. STOP'a hedefe mümkün olduğunca yakın bas. Online başka kullanıcılarla oynarsın. Bilgisayara karşı yerel oyun puansız antrenmandır."],tetris:["Bloklar","Satırları tamamlamak için blokları döndür ve taşı. Online son kalan oyuncu kazanır. Solo oyun antrenmandır ve sıralamaya puan kaydetmez."],war:["Savaş","İki silahtan birini seçip rakibe saldır. Online en fazla 8 kişi oynayabilir. Bilgisayara karşı sadece antrenmandır; puan, elmas veya ödül yoktur."]},
+  en:{chess:["Chess","Move the pieces by chess rules and checkmate the opponent king. Online games count toward weekly wins. Computer games are practice only with no points."],morris:["Nine Men's Morris","Place 9 stones. When you form a row of three, remove one opponent stone. Then move stones along connected points. Online counts; computer play is practice with no points."],timer:["King of Seconds","The app gives a target time. Press STOP as close to it as possible. Online is against other users. Computer play is practice only with no points."],tetris:["Blocks","Rotate and move blocks to complete rows. Online, the last remaining player wins. Solo play is practice and does not save ranking points."],war:["War","Choose one of two weapons and attack the opponent. Up to 8 players can play online. Computer play is practice only: no points, diamonds or rewards."]},
+  it:{chess:["Scacchi","Muovi i pezzi secondo le regole degli scacchi e dai scacco matto al re avversario. L'online conta per le vittorie settimanali. Contro il computer è solo allenamento senza punti."],morris:["Mulino","Posiziona 9 pedine. Quando crei una fila di tre, rimuovi una pedina avversaria. Poi muovi le pedine sui punti collegati. Online conta; contro il computer è allenamento senza punti."],timer:["Re dei secondi","L'app assegna un tempo obiettivo. Premi STOP il più vicino possibile. Online giochi con altri utenti. Contro il computer è solo allenamento senza punti."],tetris:["Blocchi","Ruota e sposta i blocchi per completare le righe. Online vince l'ultimo giocatore rimasto. La modalità solo è allenamento e non salva punti in classifica."],war:["Guerra","Scegli una delle due armi e attacca l'avversario. Online possono giocare fino a 8 persone. Contro il computer è solo allenamento: niente punti, diamanti o premi."]},
+  hr:{chess:["Šah","Pomiči figure po pravilima šaha i matiraj protivničkog kralja. Online se računa za tjedne pobjede. Protiv računala je samo vježba bez bodova."],morris:["Mlin","Postavi 9 kamenčića. Kad napraviš niz od tri, ukloni protivnički kamen. Zatim pomiči kamenje po povezanim točkama. Online se računa; računalo je vježba bez bodova."],timer:["Kralj sekundi","Aplikacija zada ciljno vrijeme. Pritisni STOP što bliže tom vremenu. Online igraš protiv drugih korisnika. Protiv računala je samo vježba bez bodova."],tetris:["Blokovi","Okreći i pomiči blokove kako bi popunio redove. Online pobjeđuje posljednji preostali igrač. Solo je vježba i ne sprema bodove ljestvice."],war:["Rat","Odaberi jedno od dva oružja i napadni protivnika. Online može igrati do 8 igrača. Protiv računala je samo vježba: bez bodova, dijamanata i nagrada."]},
+  fr:{chess:["Échecs","Déplace les pièces selon les règles et mets le roi adverse échec et mat. Les parties en ligne comptent pour les victoires hebdomadaires. Contre l'ordinateur, c'est un entraînement sans points."],morris:["Moulin","Place 9 pions. Quand tu formes une ligne de trois, retire un pion adverse. Ensuite, déplace les pions sur les points reliés. L'online compte; l'ordinateur est un entraînement sans points."],timer:["Roi des secondes","L'app donne un temps cible. Appuie sur STOP le plus près possible. En ligne, tu joues contre d'autres utilisateurs. Contre l'ordinateur, c'est un entraînement sans points."],tetris:["Blocs","Fais pivoter et déplace les blocs pour compléter des lignes. En ligne, le dernier joueur restant gagne. Le mode solo est un entraînement et n'enregistre aucun point de classement."],war:["Guerre","Choisis une des deux armes et attaque l'adversaire. Jusqu'à 8 joueurs peuvent jouer en ligne. Contre l'ordinateur, c'est uniquement un entraînement: aucun point, diamant ou récompense."]},
+  ar:{chess:["الشطرنج","حرّك القطع حسب قواعد الشطرنج وحاصر ملك الخصم. اللعب أونلاين يُحتسب ضمن انتصارات الأسبوع. اللعب ضد الكمبيوتر تدريب فقط بدون نقاط."],morris:["الطاحونة","ضع 9 أحجار. عند تكوين ثلاثة على خط واحد أزل حجرًا للخصم، ثم حرّك الأحجار بين النقاط المتصلة. الأونلاين يُحتسب؛ والكمبيوتر تدريب بدون نقاط."],timer:["ملك الثواني","يحدد التطبيق وقتًا مستهدفًا. اضغط إيقاف بأقرب وقت ممكن إليه. أونلاين تلعب ضد مستخدمين آخرين، وضد الكمبيوتر تدريب فقط بدون نقاط."],tetris:["الكتل","دوّر الكتل وحرّكها لإكمال الصفوف. أونلاين يفوز آخر لاعب يبقى. اللعب الفردي تدريب ولا يحفظ نقاطًا في الترتيب."],war:["الحرب","اختر واحدًا من سلاحين وهاجم الخصم. يمكن لما يصل إلى 8 لاعبين اللعب أونلاين. ضد الكمبيوتر تدريب فقط: بدون نقاط أو ألماس أو مكافآت."]}
+};
+function gameInfoData(){const d=GAME_INFO[lang()]?.[selectedType]||GAME_INFO.sq[selectedType]||GAME_INFO.sq.chess;return {title:d[0],body:d[1]};}
+function closeGameInfo(){document.getElementById("gameInfoOverlay")?.remove();}
+function openGameInfo(){
+  closeGameInfo();
+  const d=gameInfoData(),overlay=document.createElement("div");
+  overlay.id="gameInfoOverlay";overlay.className="game-info-overlay";
+  overlay.innerHTML='<section class="game-info-card"><button id="gameInfoClose" class="game-info-close" type="button">✕</button><h2>ℹ️ '+escapeHtml(d.title)+'</h2><p>'+escapeHtml(d.body)+'</p><div class="game-info-practice">'+escapeHtml(gx("practiceNote"))+'</div><button id="gameInfoCloseBottom" class="primary" type="button">'+escapeHtml(gx("close"))+'</button></section>';
+  document.body.appendChild(overlay);
+  document.getElementById("gameInfoClose")?.addEventListener("click",closeGameInfo);
+  document.getElementById("gameInfoCloseBottom")?.addEventListener("click",closeGameInfo);
+  overlay.addEventListener("click",e=>{if(e.target===overlay)closeGameInfo();});
+}
+function ensureGameInfoButton(){
+  if(!root||!root.firstElementChild||document.getElementById("gameInfoButton"))return;
+  const btn=document.createElement("button");btn.id="gameInfoButton";btn.className="game-info-fab";btn.type="button";btn.textContent=gx("info");btn.addEventListener("click",openGameInfo);root.firstElementChild.appendChild(btn);
+}
+function startPracticeForGame(game=selectedType){
+  practiceFallbackGame=null;
+  if(game==="chess"||game==="morris"){selectedType=game;startComputerGame();return;}
+  if(game==="timer"){selectedType=game;startTimerSoloGame();return;}
+  if(game==="tetris"){selectedType=game;startTetrisGame({practice:true});return;}
+  if(game==="war"){selectedType=game;startWarGame(true);return;}
+}
+
 
 const GAME_AUTO_TRANSLATE_CACHE_KEY="diamond-game-auto-translate-v1";
 let gameAutoTranslateTimer=null;
@@ -150,7 +187,7 @@ function scheduleAutoTranslateGameUI(){
   if(gameAutoTranslateTimer)clearTimeout(gameAutoTranslateTimer);
   gameAutoTranslateTimer=setTimeout(autoTranslateGameUI,60);
 }
-const gameTranslateObserver=new MutationObserver(()=>scheduleAutoTranslateGameUI());
+const gameTranslateObserver=new MutationObserver(()=>{scheduleAutoTranslateGameUI();queueMicrotask(ensureGameInfoButton);});
 if(root)gameTranslateObserver.observe(root,{subtree:true,childList:true,characterData:true});
 
 
@@ -870,12 +907,13 @@ function renderWarMultiRetry(){
           <div class="war-retry-icon">⏱️</div>
           <h2>${wtr("noPlayer")}</h2>
           <p>${wtr("noComputerSwitch")}</p>
-          <button id="warRetryOnline" class="primary" type="button">${wtr("retry")}</button>
+          <button id="warRetryOnline" class="primary" type="button">${wtr("retry")}</button><button id="warPracticeFallback" class="secondary" type="button">${gx("practice")}</button><small>${gx("practiceNote")}</small>
         </div>
       </section>
     </div>`;
   document.getElementById("warRetryBack").onclick=()=>renderLobby();
   document.getElementById("warRetryOnline").onclick=()=>startWarMultiSearch();
+  document.getElementById("warPracticeFallback")?.addEventListener("click",()=>startPracticeForGame("war"));
 }
 
 function renderWarMultiGame(){
@@ -1099,14 +1137,12 @@ async function startWarMultiSearch(){
   if(button) button.disabled=true;
 
   try{
-    await saveWarProfile();
-    const {data:econ}=await supabase.rpc("war_get_profile",{p_device:deviceId});
-    if(econ) warProfile=econ;
-    const name=warProfile?.display_name||localStorage.getItem(WAR_NAME_KEY)||"User";
-    const {data,error}=await supabase.rpc("war_multi_join",{
-      p_device:deviceId,
-      p_name:name
-    });
+    const name=(localStorage.getItem("pajaziti-global-user-name")||"User").trim().slice(0,20);
+    const {data,error}=await supabase.rpc("war_multi_join_global",{p_device:deviceId});
+    if(!error){
+      const {data:econ}=await supabase.rpc("war_get_profile",{p_device:deviceId});
+      warProfile=econ||{...(warProfile||{}),display_name:name,diamonds:Number(warProfile?.diamonds||200)};
+    }
     if(error) throw error;
 
     const roomId=data?.room_id;
@@ -1135,7 +1171,7 @@ async function startWarMultiSearch(){
           warMultiRoom=null;
           warMultiPlayers=[];
           warMultiSelectedTarget=null;
-          renderWarMultiRetry();
+          practiceFallbackGame="war";renderWarMultiRetry();
           return;
         }
 
@@ -1342,6 +1378,7 @@ function renderWarGame(){
           <span id="warAudioStatus" class="war-audio-status"></span>
         </div>
 
+        <div class="practice-banner">${gx("practiceNote")}</div>
         <div id="warBattleScene" class="war-battle-scene war-battle-scene-new">
           <div class="war-combatant war-combatant-enemy ${e.burned?"burned":""}">
             <div class="war-combatant-info">
@@ -1458,23 +1495,14 @@ function renderWarGame(){
 
 async function startWarGame(){
   const button=document.getElementById("warGame");
-  if(!supabase){ if(button) button.disabled=false; return; }
-  if(button) button.disabled=true;
-  try{
-    await saveWarProfile();
-    const {data:econ}=await supabase.rpc("war_get_profile",{p_device:deviceId});
-    if(econ) warProfile=econ;
-    warGameState=warInitialState();
-    renderWarGame();
-  }catch(error){
-    const info=document.getElementById("warNameInfo");
-    if(info){
-      info.textContent=error?.message||"Nuk u ruajt useri.";
-      info.classList.add("error");
-    }
-  }finally{
-    if(button) button.disabled=false;
-  }
+  if(button)button.disabled=true;
+  const name=(localStorage.getItem("pajaziti-global-user-name")||tr("you")).trim().slice(0,20);
+  warProfile={...(warProfile||{}),display_name:name,diamonds:Number(warProfile?.diamonds||200)};
+  warGameState=warInitialState();
+  warGameState.practice=true;
+  warGameState.message=gx("practiceNote");
+  renderWarGame();
+  if(button)button.disabled=false;
 }
 
 function warFinishIfNeeded(){
@@ -1482,27 +1510,13 @@ function warFinishIfNeeded(){
   if(!s) return false;
 
   if(s.enemy.hp<=0){
-    s.over=true;
-    s.turn="none";
-    const result=warRecordCompletedGame(true);
-    awardWarWeeklyPoint();
-    s.message="🏆 Fitove luftën! +1 pikë në renditjen javore.";
-    if(result.bonusAdded){
-      s.message+=" ❤️ Arrite "+result.games+" lojëra: fitove +1 zemër për 24 orë.";
-    }
-    recordWarComputerReward(s);
+    s.over=true;s.turn="none";
+    s.message=(lang()==="de"?"🏆 Training gewonnen.":lang()==="tr"?"🏆 Antrenmanı kazandın.":lang()==="en"?"🏆 Practice won.":lang()==="it"?"🏆 Allenamento vinto.":lang()==="hr"?"🏆 Vježba osvojena.":lang()==="fr"?"🏆 Entraînement gagné.":lang()==="ar"?"🏆 فزت في التدريب.":"🏆 Fitove stërvitjen.")+" "+gx("practiceNote");
     return true;
   }
-
   if(s.player.hp<=0){
-    s.over=true;
-    s.turn="none";
-    const result=warRecordCompletedGame(false);
-    s.message="💥 Kundërshtari fitoi.";
-    if(result.bonusAdded){
-      s.message+=" ❤️ Arrite "+result.games+" lojëra: fitove +1 zemër për 24 orë.";
-    }
-    recordWarComputerReward(s);
+    s.over=true;s.turn="none";
+    s.message=(lang()==="de"?"💥 Computer hat gewonnen.":lang()==="tr"?"💥 Bilgisayar kazandı.":lang()==="en"?"💥 Computer won.":lang()==="it"?"💥 Il computer ha vinto.":lang()==="hr"?"💥 Računalo je pobijedilo.":lang()==="fr"?"💥 L'ordinateur a gagné.":lang()==="ar"?"💥 فاز الكمبيوتر.":"💥 Kompjuteri fitoi.")+" "+gx("practiceNote");
     return true;
   }
 
@@ -2253,13 +2267,13 @@ function renderLobby(msg=""){
         ${(selectedType==="chess" || selectedType==="morris") ? `
           <div class="board-profile-box">
             <div class="game-help">👤 Emri: <strong>${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</strong></div>
-            <button id="boardQuickOnline" class="primary" type="button">🌐 ${selectedType==="chess"?"Shah":"Degërxhik"} Online · prit 15 sekonda</button>
+            <button id="boardQuickOnline" class="primary" type="button">🌐 ${selectedType==="chess"?tr("chess"):tr("morris")} Online · 15 s</button><button id="boardPracticeNow" class="secondary" type="button">${gx("practice")}</button>
           </div>
           <section id="boardLeaderboard" class="card board-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
           ${gamesAdmin?'<section class="card board-admin-panel"><h3>👑 Admin · Emrat e lojtarëve</h3><p class="muted">Vetëm Admini mund t’i ndryshojë. Pikët mbeten të njëjta.</p><div id="boardAdminProfiles">Po ngarkohen lojtarët…</div></section>':""}
         ` : selectedType==="timer" ? `
           <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
-          <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
+          <button id="timerSoloGame" class="primary" type="button">${gx("practice")}</button>
           <button id="timerQuickOnline" class="secondary" type="button">${gx("online2to8")}</button>
           <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
@@ -2271,8 +2285,8 @@ function renderLobby(msg=""){
             </div>
             <input id="warPlayerName" type="hidden" value="${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"")}">
             <div id="warNameInfo" class="game-help">Emri ndryshohet vetëm nga Admini.</div>
-            <div class="war-diamond-note">💎 +5 çdo orë · 🎮 +20 💎 çdo 5 lojëra kundër kompjuterit · 🎲 armë të reja 3 💎</div>
-            <button id="warGame" class="primary" type="button">🤖 Luaj me kompjuter</button>
+            <div class="war-diamond-note">💎 +5 çdo orë · 🎲 armë të reja 3 💎 · 🤖 ${gx("practiceNote")}</div>
+            <button id="warGame" class="primary" type="button">${gx("practice")}</button>
             <button id="warMultiBtn" class="secondary war-online-btn" type="button">🌐 Luaj Online (deri 8 veta)</button>
             <div id="warMultiCount" class="war-online-count">👥 Në pritje: 0 / 8</div>
             <div class="game-help">Online pret 10 sekonda. Nëse askush nuk hyn, del “Provo përsëri” — nuk kalon te kompjuteri.</div>
@@ -2281,7 +2295,7 @@ function renderLobby(msg=""){
           ${gamesAdmin?`<section class="war-admin-panel"><h3>👑 Admin · Luftra</h3><p class="muted">Jep diamanta çdo lojtari. Emri lidhet me pajisjen dhe mund të ndryshohet vetëm 2 herë.</p><div id="warAdminProfiles">Po ngarkohen lojtarët…</div></section>`:""}
         ` : selectedType==="tetris" ? `
           <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
-          <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
+          <button id="tetrisGame" class="primary" type="button">${gx("practice")}</button>
           <button id="tetrisQuickOnline" class="secondary" type="button">${gx("online2to4")}</button>
           <div class="game-help">Online pret deri 15 sekonda. Lojtari i fundit që mbetet në lojë fiton 🥇.</div>
           <div class="game-help">👆 Prek një herë ekranin = rrotullo · ✋ Mbaje të shtypur dhe tërhiqe = lëvize ku dëshiron</div>
@@ -2297,12 +2311,15 @@ function renderLobby(msg=""){
             <button id="joinGame" class="secondary" type="button">${tr("join")}</button>
           </div>
         `}
+        ${practiceFallbackGame===selectedType?`<div class="practice-fallback-box"><strong>${escapeHtml(gx("noOnlineFound"))}</strong><button id="onlinePracticeFallback" class="primary" type="button">${escapeHtml(gx("practice"))}</button><small>${escapeHtml(gx("practiceNote"))}</small></div>`:""}
         <div id="gameMessage" class="message">${msg}</div>
       </section>
       ${selectedType==="timer" ? `<section id="timerLeaderboard" class="card timer-leaderboard"><div class="muted">${tr("weekly")}…</div></section>` : ""}
     </div>`;
   if(selectedType==="timer") loadTimerLeaderboard();
   scheduleAutoTranslateGameUI();
+  document.getElementById("onlinePracticeFallback")?.addEventListener("click",()=>startPracticeForGame(selectedType));
+  ensureGameInfoButton();
   document.getElementById("gameMasterSound")?.addEventListener("click",()=>{setMasterSound(!masterSoundEnabled);renderLobby();});
   document.getElementById("gameMusicToggle")?.addEventListener("click",()=>{setGameMusic(!gameMusicEnabled);renderLobby();});
   ["gameColorLight","gameColorDark","gameColorPrimary","gameColorSecondary","gameColorArena"].forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{if(!gamesAdmin)saveUserGameTheme();}));
@@ -2323,6 +2340,7 @@ function renderLobby(msg=""){
   if(timerSoloButton) timerSoloButton.onclick=startTimerSoloGame;
   document.getElementById("timerQuickOnline")?.addEventListener("click",()=>startArcadeQuick("timer"));
   document.getElementById("boardQuickOnline")?.addEventListener("click",()=>startBoardQuickOnline(selectedType));
+  document.getElementById("boardPracticeNow")?.addEventListener("click",()=>startPracticeForGame(selectedType));
   if(boardGameSelected()){
     loadBoardProfileAndLeaderboard(selectedType);if(gamesAdmin)loadBoardAdminProfiles();
   }
@@ -2402,7 +2420,7 @@ async function startBoardQuickOnline(game){
     const out=await supabase.rpc("board_quick_join",{p_game:game,p_device:deviceId,p_name:profile.display_name});if(out.error)throw out.error;
     const roomId=out.data?.room_id;if(!roomId)throw new Error("ROOM_NOT_CREATED");quickChessDeadline=new Date(out.data.deadline).getTime();
     let fresh=await fetchRoomById(roomId);await openRoom(fresh);
-    const tick=async()=>{try{fresh=await fetchRoomById(roomId);room=fresh;if(fresh.status==="active"&&fresh.player2_device){clearQuickChess();await loadBoardRoomNames();renderRoom();return;}const left=Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000));const status=document.querySelector(".game-status");if(status)status.textContent=gx("onlineWait")+" "+left+" s";if(Date.now()>=quickChessDeadline){const again=await fetchRoomById(roomId).catch(()=>null);if(again?.status==="active"&&again.player2_device){room=again;clearQuickChess();await loadBoardRoomNames();renderRoom();return;}await supabase.rpc("board_quick_cancel",{p_room:roomId,p_device:deviceId});clearQuickChess();room=null;renderLobby("Nuk u gjet lojtar brenda 15 sekondave. Provo përsëri.");}}catch(error){console.warn("board quick online",error);}};
+    const tick=async()=>{try{fresh=await fetchRoomById(roomId);room=fresh;if(fresh.status==="active"&&fresh.player2_device){clearQuickChess();await loadBoardRoomNames();renderRoom();return;}const left=Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000));const status=document.querySelector(".game-status");if(status)status.textContent=gx("onlineWait")+" "+left+" s";if(Date.now()>=quickChessDeadline){const again=await fetchRoomById(roomId).catch(()=>null);if(again?.status==="active"&&again.player2_device){room=again;clearQuickChess();await loadBoardRoomNames();renderRoom();return;}await supabase.rpc("board_quick_cancel",{p_room:roomId,p_device:deviceId});clearQuickChess();room=null;practiceFallbackGame=game;renderLobby(gx("noOnlineFound"));}}catch(error){console.warn("board quick online",error);}};
     await tick();if(room?.status==="waiting")quickChessTimer=setInterval(tick,1000);
   }catch(error){const raw=String(error?.message||error);renderLobby(raw.includes("NAME_TAKEN")?"Ky emër ekziston. Zgjidh një tjetër.":raw.includes("NAME_LOCKED")?"Emri është i kyçur. Vetëm Admini mund ta ndryshojë.":"Nuk u hap loja online. Provo përsëri.");}
   finally{if(btn)btn.disabled=false;}
@@ -2479,7 +2497,7 @@ async function startArcadeQuick(game){
           clearArcadePolling();
           const g=arcadeMode;
           arcadeRoom=null;arcadePlayers=[];arcadeStarted=false;
-          renderLobby("Nuk u gjet lojtar tjetër brenda 15 sekondave. Provo përsëri.");
+          practiceFallbackGame=g;renderLobby(gx("noOnlineFound"));
           arcadeMode=g;
           return;
         }
@@ -2508,7 +2526,7 @@ async function startArcadeQuick(game){
     if(arcadeRoom?.room_id) arcadePollTimer=setInterval(tick,800);
   }catch(error){
     console.warn("arcade join",error);
-    renderLobby("Nuk u hap loja online. Provo përsëri.");
+    practiceFallbackGame=game;renderLobby(tr("error"));
   }
 }
 
@@ -2815,6 +2833,7 @@ function renderRoom(){
           </div>
           ${local ? "" : `<button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>`}
         </div>
+        ${local?`<div class="practice-banner">${gx("practiceNote")}</div>`:""}
         <div class="game-status">${waiting && ["chess","morris"].includes(room.game_type) && quickChessDeadline ? "🌐 Duke pritur lojtar online… "+Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000))+" s" : waiting?tr("waiting"):statusText()}</div>
         <div class="game-meta-grid">
           <div class="game-meta-box ${room.game_type==="morris"?"morris-player-white":""}">⚪ ${tr("white")}: ${local?"Ti":escapeHtml(boardRoomNames[room.player1_device]||"Lojtari 1")}</div>
@@ -2843,6 +2862,7 @@ function renderRoom(){
   if(room.game_type==="chess")renderChess(myColor());else renderMorris(myColor());
   scheduleComputerTurn();
   scheduleAutoTranslateGameUI();
+  ensureGameInfoButton();
 }
 
 function clearTimerVisibleClock(){if(timerVisibleClockTimer){clearInterval(timerVisibleClockTimer);timerVisibleClockTimer=null;}}
@@ -3574,7 +3594,7 @@ async function loadTetrisLeaderboard(targetId="tetrisLeaderboard"){
 }
 
 async function saveTetrisScore(){
-  if(!tetris || !tetris.gameOver) return;
+  if(!tetris || !tetris.gameOver || tetrisPractice) return;
 
   const name=(localStorage.getItem("pajaziti-global-user-name")||"").trim().slice(0,24);
   if(!name) return;
@@ -3753,6 +3773,7 @@ async function exitTetrisFullscreen(){
 function startTetrisGame(options={}){
   const online=options?.online===true;
   tetrisOnline=online;
+  tetrisPractice=!online || options?.practice===true;
   enterTetrisFullscreen();
   const playerName=(document.getElementById("tetrisPlayerName")?.value || localStorage.getItem(TETRIS_NAME_KEY) || "").trim().slice(0,24);
   if(!playerName){ exitTetrisFullscreen(); renderLobby(tr("needName")); return; }
@@ -3786,6 +3807,7 @@ function startTetrisGame(options={}){
           <button id="tetrisBack" class="secondary" type="button">${tr("backGames")}</button>
         </div>
 
+        ${tetrisPractice?`<div class="practice-banner">${gx("practiceNote")}</div>`:""}
         <div class="tetris-stats">
           <div><span>${gx("score")}</span><strong id="tetrisScore">0</strong></div>
           <div><span>${gx("lines")}</span><strong id="tetrisLines">0</strong></div>
