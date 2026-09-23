@@ -4246,3 +4246,10 @@ body:has(#appView:not(.hidden)){
 .game-global-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .game-theme-controls{display:grid;gap:9px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.72);color:#111827}
 .game-color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.game-color-grid label{display:grid;place-items:center;gap:3px;font-size:11px;font-weight:800}.game-color-grid input{width:100%;height:34px;border:0;background:transparent}
+
+.admin-message-banner{position:sticky;top:0;z-index:70;margin:0 10px 10px;padding:11px 13px;border:1px solid #67e8f9;border-radius:15px;background:linear-gradient(135deg,#083c61,#0b2742);color:#fff;display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;box-shadow:0 8px 22px rgba(0,0,0,.22)}
+.admin-message-banner span{font-weight:800;line-height:1.3}.admin-message-banner button{border:0;background:transparent;color:#fff;font-size:20px}
+.admin-message-card{display:grid;gap:9px}.admin-message-card textarea,.admin-message-card select{width:100%}
+.admin-message-history{display:grid;gap:7px;margin-top:8px;max-height:320px;overflow:auto}
+.admin-message-history-row{display:grid;gap:3px;padding:9px;border-radius:12px;background:rgba(255,255,255,.7);border:1px solid rgba(15,23,42,.08)}
+.admin-message-history-row small{color:#64748b}
