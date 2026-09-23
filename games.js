@@ -2243,7 +2243,7 @@ async function startArcadeQuick(game){
       }catch(error){console.warn("arcade poll",error);}
     };
     await tick();
-    arcadePollTimer=setInterval(tick,800);
+    if(arcadeRoom?.room_id) arcadePollTimer=setInterval(tick,800);
   }catch(error){
     console.warn("arcade join",error);
     renderLobby("Nuk u hap loja online. Provo përsëri.");
