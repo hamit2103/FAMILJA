@@ -172,7 +172,7 @@
 
       <button id="sectionBackBtn" class="secondary section-back-btn hidden" type="button">← Kthehu mbrapa</button>
 
-      <section id="diamondHomeHero" class="diamond-home-hero"><div class="diamond-brand">💎 <strong>DIAMOND</strong><small data-i18n="home.allInOne">Gjithçka në një vend</small></div><div class="diamond-status diamond-weather-only"><div>🌤️ <b id="diamondWeatherCity">📍 Vendndodhja</b><span id="diamondWeatherNow"></span><span id="diamondWeatherWeek">Parashikimi 7 ditë</span></div></div></section>
+      <section id="diamondHomeHero" class="diamond-home-hero"><div class="diamond-brand">💎 <strong>DIAMOND</strong><small data-i18n="home.allInOne">Gjithçka në një vend</small></div><div class="diamond-status diamond-clock-only"><div class="home-digital-clock"><strong id="homeDigitalTime">--:--:--</strong><span id="homeDigitalDate">--.--.----</span></div></div></section>
       <nav id="appTabs" class="app-tabs" aria-label="Menu">
         <button id="galleryTab" class="app-tab active" type="button"><span>📢 </span><span data-i18n="tabs.photos">Reklama</span></button>
         <button id="infoTab" class="app-tab info-tab-button" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span><span id="infoUnreadBadge" class="info-unread-badge hidden">0</span></button>
@@ -225,7 +225,7 @@
         </section>
 
         <section id="adminUsersCard" class="card admin-users-card hidden">
-          <h2>👥 Përdoruesit e DIAMOND</h2>
+          <h2>👥 Përdoruesit e DIAMOND · <span id="adminUserCount">0</span></h2><div id="adminOnlineUsers" class="admin-online-users"><strong>🟢 Online:</strong> <span id="adminOnlineUserNames">—</span></div>
           <p class="muted small">Admini mund ta ndryshojë emrin, ta bllokojë ose ta lejojë përsëri. Pikët e lojërave nuk ndryshojnë.</p>
           <div id="adminUsersList" class="admin-users-list"></div>
           <div id="adminUsersStatus" class="message"></div>
