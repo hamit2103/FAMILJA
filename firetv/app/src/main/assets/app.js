@@ -1110,6 +1110,8 @@ async function login() {
         type: "email"
       });
       if (verifyError) throw verifyError;
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session) await applySession(sessionData.session);
       showMessage(loginMessage, "");
     } else {
       const code = codeInput.value.trim();
