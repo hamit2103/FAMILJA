@@ -4262,3 +4262,7 @@ body:has(#appView:not(.hidden)){
 .game-info-card{position:relative;width:min(560px,96vw);max-height:86vh;overflow:auto;background:#fff;color:#111827;border-radius:20px;padding:22px;display:grid;gap:14px;box-shadow:0 24px 80px rgba(0,0,0,.42)}
 .game-info-card h2{margin:0}.game-info-card p{margin:0;line-height:1.55;font-size:16px}.game-info-close{position:absolute;right:10px;top:10px;border:0;background:#eef2f7;border-radius:999px;width:36px;height:36px;font-size:18px}
 .game-info-practice{padding:10px 12px;border-radius:12px;background:#fef3c7;color:#78350f;font-weight:800;line-height:1.4}
+
+/* DIAMOND 5.71: each game has its own music; user can toggle music/sounds */
+.game-audio-floating{position:sticky;bottom:64px;z-index:44;display:flex;justify-content:flex-end;gap:7px;margin:8px 12px;pointer-events:none}
+.game-audio-floating button{pointer-events:auto;min-height:38px;padding:8px 11px;border-radius:999px;font-size:12px;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.16)}
