@@ -243,6 +243,40 @@ function t(key, vars = {}) {
   return value;
 }
 
+async function loadDiamondWeather() {
+  const cityEl=document.getElementById("diamondWeatherCity");
+  const weekEl=document.getElementById("diamondWeatherWeek");
+  if(!cityEl||!weekEl) return;
+  const lang=currentLanguage || "sq";
+  const render=async(lat,lon,city)=>{
+    try{
+      const url="https://api.open-meteo.com/v1/forecast?latitude="+encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon)+"&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7";
+      const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error("weather");
+      const d=await r.json(); const daily=d.daily||{};
+      const days=(daily.time||[]).map((date,i)=>{
+        const dt=new Date(date+"T12:00:00");
+        const name=new Intl.DateTimeFormat(lang,{weekday:"short"}).format(dt);
+        const code=Number(daily.weather_code?.[i]??0);
+        const icon=code===0?"☀️":code<=3?"⛅":code<=48?"🌫️":code<=67?"🌧️":code<=77?"🌨️":code<=82?"🌦️":"⛈️";
+        return name+" "+icon+" "+Math.round(daily.temperature_2m_max?.[i])+"°/"+Math.round(daily.temperature_2m_min?.[i])+"°";
+      });
+      cityEl.textContent="📍 "+city;
+      weekEl.textContent=days.join(" · ");
+    }catch(_){ weekEl.textContent="Moti 7 ditë"; }
+  };
+  const fallback=()=>render(48.7758,9.1829,"Stuttgart");
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      let city="Vendndodhja ime";
+      try{
+        const r=await fetch("https://geocoding-api.open-meteo.com/v1/reverse?latitude="+pos.coords.latitude+"&longitude="+pos.coords.longitude+"&language="+lang+"&format=json");
+        if(r.ok){const j=await r.json(); city=j.results?.[0]?.name||city;}
+      }catch(_){}
+      render(pos.coords.latitude,pos.coords.longitude,city);
+    },fallback,{enableHighAccuracy:false,timeout:5000,maximumAge:1800000});
+  } else fallback();
+}
+
 function prayerLabel(key) {
   return t("prayer." + key);
 }
@@ -279,6 +313,7 @@ function applyLanguage(language = currentLanguage) {
   window.DiamondKI?.reloadLanguage?.();
   window.DiamondShareApp?.reloadLanguage?.();
   window.DiamondNews?.reloadLanguage?.();
+  loadDiamondWeather().catch(()=>{});
 
   if (typeof mode !== "undefined" && codeInput) {
     codeInput.placeholder = mode === "admin"
@@ -2852,6 +2887,8 @@ async function applySession(session) {
   if(isAdmin()) { await loadAdminStats(); refreshNewDeviceNotifyButton(); }
   startRealtime();
 }
+
+loadDiamondWeather().catch(()=>{});
 
 if (supabase) {
   const { data } = await supabase.auth.getSession();
