@@ -74,8 +74,8 @@
       <img class="logo" src="angel-icon.jpg" alt="" aria-hidden="true">
       <h1>DIAMOND</h1>
 
-      <div class="mode-switch" style="grid-template-columns:1fr">
-        <button id="familyMode" class="mode active" type="button" data-i18n="mode.family">Përdoruesi</button>
+      <div class="mode-switch" style="grid-template-columns:1fr 1fr">
+        <button id="familyMode" class="mode active" type="button" data-i18n="mode.family">Përdoruesi</button><button id="adminMode" class="mode" type="button">Admin</button>
       </div>
 
       <div id="familyDirectHint" class="small muted" data-i18n="login.userDirectHint">Përdoruesi hyn direkt pa kod.</div>
@@ -83,7 +83,7 @@
         <label for="codeInput" data-i18n="login.label">Kodi i hyrjes</label>
         <input id="codeInput" type="password" inputmode="text" autocomplete="current-password" placeholder="Shkruaj kodin" data-i18n-placeholder="login.placeholder">
       </div>
-      <button id="loginBtn" class="primary" type="button" onclick="document.getElementById('loginView').classList.add('hidden');document.getElementById('appView').classList.remove('hidden');document.getElementById('appTabs').classList.remove('hidden');">Hyr</button>
+      <button id="loginBtn" class="primary" type="button">Hyr</button>
 
       <div class="share-install-actions">
         <button id="installLoginBtn" class="secondary hidden" type="button" data-i18n="install.app">Instalo aplikacionin</button>
@@ -610,7 +610,15 @@
     window.DiamondCoreNav={open,home};
   })();
   </script>
-  <script type="module" src="app.js?v=87"></script>
+  <script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
+const fam=document.getElementById("familyMode"),adm=document.getElementById("adminMode"),wrap=document.getElementById("adminCodeWrap"),btn=document.getElementById("loginBtn"),msg=document.getElementById("loginMessage");let loginMode="family";
+function pick(m){loginMode=m;fam?.classList.toggle("active",m==="family");adm?.classList.toggle("active",m==="admin");wrap?.classList.toggle("hidden",m!=="admin");document.getElementById("familyDirectHint")?.classList.toggle("hidden",m==="admin")}
+fam?.addEventListener("click",()=>pick("family"));adm?.addEventListener("click",()=>pick("admin"));
+btn?.addEventListener("click",async e=>{e.preventDefault();e.stopImmediatePropagation();if(loginMode==="family"){document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");document.getElementById("adminPanel")?.classList.add("hidden");return}const code=(document.getElementById("codeInput")?.value||"").trim();if(!code){msg.textContent="Shkruaj kodin e hyrjes.";return}btn.disabled=true;msg.textContent="Duke kontrolluar kodin…";try{const s=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:"diamond-admin-auth"}});const {data,error}=await s.auth.signInWithPassword({email:"admin@familja.local",password:code});if(error||!data?.session){msg.textContent=error?.message||"Kodi nuk u pranua.";return}window.DiamondUnifiedAdmin=true;document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");["adminPanel","installStatsCard","storageCard","menuOrderAdmin"].forEach(id=>document.getElementById(id)?.classList.remove("hidden"));msg.textContent=""}catch(x){msg.textContent="Gabim në hyrje: "+(x?.message||"provo përsëri")}finally{btn.disabled=false}},true);
+</script>
+<script type="module" src="app.js?v=87"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=78"></script>
   <script type="module" src="tv.js?v=53"></script>
