@@ -1055,11 +1055,11 @@ function setMode(next) {
     familyDirectHint?.classList.add("hidden");
     adminCodeWrap?.classList.remove("hidden");
   } else {
-    document.querySelector(".mode-switch")?.classList.remove("hidden");
-    familyMode?.classList.remove("hidden");
-    adminMode?.classList.remove("hidden");
-    familyDirectHint?.classList.toggle("hidden", next === "admin");
-    adminCodeWrap?.classList.toggle("hidden", next !== "admin");
+    document.querySelector(".mode-switch")?.classList.add("hidden");
+    familyMode?.classList.add("hidden");
+    adminMode?.classList.add("hidden");
+    familyDirectHint?.classList.remove("hidden");
+    adminCodeWrap?.classList.remove("hidden");
   }
 }
 familyMode?.addEventListener("click", () => setMode("family"));
