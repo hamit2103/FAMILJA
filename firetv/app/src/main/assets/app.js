@@ -150,6 +150,8 @@ const I18N = {
   }
 };
 
+const HOME_QUOTES={sq:"Ne e bëjmë të pamundurën të mundur.",de:"Wir machen das Unmögliche möglich.",tr:"İmkânsızı mümkün kılıyoruz.",en:"We make the impossible possible.",it:"Rendiamo possibile l’impossibile.",hr:"Mi činimo nemoguće mogućim.",ar:"نحن نجعل المستحيل ممكناً.",fr:"Nous rendons l’impossible possible."};
+
 const EXTRA_I18N = {
   sq:{
     "tabs.clock":"Ora","tabs.sport":"Sport","tabs.games":"Lojëra","tabs.tv":"TV","tabs.radio":"Radio","tabs.chat":"Chat",
@@ -287,6 +289,7 @@ function applyLanguage(language = currentLanguage) {
   localStorage.setItem(LANGUAGE_KEY, language);
   document.documentElement.lang = language;
   document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+  const dq=document.getElementById("diamondQuote"); if(dq) dq.textContent="“"+(HOME_QUOTES[language]||HOME_QUOTES.sq)+"”";
 
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.dataset.i18n);
