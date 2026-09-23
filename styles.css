@@ -4146,3 +4146,11 @@ body:has(#appView:not(.hidden)){
 #sportView .card,#sportView .match-card,#infoView .card,#prayerView .card,#prayerView .prayer-card,#clockView .card,#galleryView .card{color:#111827!important}
 #sportView .card *,#sportView .match-card *,#infoView .card *,#prayerView .card *,#prayerView .prayer-card *,#clockView .card *,#galleryView .card *{color:#111827}
 #sportView .muted,#infoView .muted,#prayerView .muted,#clockView .muted{color:#475569!important}
+
+/* Keep section identity colors consistent with home menu */
+#sportView{--section-accent:#16c85a} #tvView{--section-accent:#ef3154} #radioView{--section-accent:#f3bd22}
+#gamesView{--section-accent:#a42de0} #prayerView{--section-accent:#19c94e} #clockView{--section-accent:#7551e8}
+#dietView{--section-accent:#20c86a} #kiView{--section-accent:#20aeea} #infoView{--section-accent:#ff861d}
+#newsView{--section-accent:#ef3154} #shareAppView{--section-accent:#23c7e8}
+#sportView h1,#sportView h2,#tvView h1,#tvView h2,#radioView h1,#radioView h2,#gamesView h1,#gamesView h2,#prayerView h1,#prayerView h2,#clockView h1,#clockView h2,#dietView h1,#dietView h2,#kiView h1,#kiView h2,#infoView h1,#infoView h2,#newsView h1,#newsView h2,#shareAppView h1,#shareAppView h2{border-left:6px solid var(--section-accent);padding-left:10px}
+.diamond-weather-only{grid-template-columns:1fr!important}
