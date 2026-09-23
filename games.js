@@ -26,9 +26,19 @@ const WAR_NAME_KEY = "pajaziti-war-name";
 const BOARD_NAME_KEY = "pajaziti-global-user-name";
 const ADMIN_EMAIL = "admin@familja.local";
 const GAME_ORDER_SETTING_KEY = "game_order";
+const GAME_THEME_SETTING_KEY = "game_theme_defaults";
+const GAME_SOUND_MASTER_KEY = "diamond-game-sound-master";
+const GAME_MUSIC_KEY = "diamond-game-music";
+const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
+let masterSoundEnabled=localStorage.getItem(GAME_SOUND_MASTER_KEY)!=="off";
+let gameMusicEnabled=localStorage.getItem(GAME_MUSIC_KEY)!=="off";
+let gameMusicTimer=null;
+let gameMusicGain=null;
+let adminGameTheme={light:"#f0d9b5",dark:"#b58863",primary:"#ffffff",secondary:"#111827",arena:"#111827"};
+let userGameTheme=null;
 
 let quickChessTimer=null;
 let quickChessDeadline=0;
@@ -69,6 +79,98 @@ const TXT = {
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
 function tr(k){ return TXT[lang()][k] || TXT.sq[k] || k; }
 
+const GX={
+  sq:{musicOn:"🎵 Muzika ON",musicOff:"🎵 Muzika OFF",colors:"🎨 Ngjyrat",soundAllOn:"🔊 Tingulli ON",soundAllOff:"🔇 Tingulli OFF",adminColors:"Ngjyrat standarde të Adminit",saveAdminColors:"Ruaj ngjyrat për të gjithë",myColors:"Ngjyrat e mia",resetColors:"Kthe ngjyrat e Adminit",onlineWait:"Duke pritur lojtar online…",resign:"🏳️ Dorëzohu",rematch:"🔄 Luajmë përsëri?",pause:"⏸️ Pauzë",score:"Pikë",lines:"Rreshta",level:"Nivel",best:"Rekordi",loading:"Po ngarkohet…",blocked:"Kjo lojë është e bllokuar nga Admini",name:"Emri",online2to8:"🌐 Luaj Online · 2–8 veta",online2to4:"🌐 Blloqe Online · 2–4 veta"},
+  de:{musicOn:"🎵 Musik AN",musicOff:"🎵 Musik AUS",colors:"🎨 Farben",soundAllOn:"🔊 Ton AN",soundAllOff:"🔇 Ton AUS",adminColors:"Standardfarben des Admins",saveAdminColors:"Farben für alle speichern",myColors:"Meine Farben",resetColors:"Admin-Farben wiederherstellen",onlineWait:"Warte auf Online-Spieler…",resign:"🏳️ Aufgeben",rematch:"🔄 Nochmal spielen?",pause:"⏸️ Pause",score:"Punkte",lines:"Linien",level:"Level",best:"Rekord",loading:"Wird geladen…",blocked:"Dieses Spiel wurde vom Admin gesperrt",name:"Name",online2to8:"🌐 Online spielen · 2–8 Spieler",online2to4:"🌐 Blöcke Online · 2–4 Spieler"},
+  tr:{musicOn:"🎵 Müzik AÇIK",musicOff:"🎵 Müzik KAPALI",colors:"🎨 Renkler",soundAllOn:"🔊 Ses AÇIK",soundAllOff:"🔇 Ses KAPALI",adminColors:"Yönetici varsayılan renkleri",saveAdminColors:"Renkleri herkes için kaydet",myColors:"Renklerim",resetColors:"Yönetici renklerine dön",onlineWait:"Çevrimiçi oyuncu bekleniyor…",resign:"🏳️ Teslim ol",rematch:"🔄 Tekrar oynayalım?",pause:"⏸️ Duraklat",score:"Puan",lines:"Satır",level:"Seviye",best:"Rekor",loading:"Yükleniyor…",blocked:"Bu oyun yönetici tarafından kilitlendi",name:"Ad",online2to8:"🌐 Online Oyna · 2–8 kişi",online2to4:"🌐 Bloklar Online · 2–4 kişi"},
+  en:{musicOn:"🎵 Music ON",musicOff:"🎵 Music OFF",colors:"🎨 Colors",soundAllOn:"🔊 Sound ON",soundAllOff:"🔇 Sound OFF",adminColors:"Admin default colors",saveAdminColors:"Save colors for everyone",myColors:"My colors",resetColors:"Restore Admin colors",onlineWait:"Waiting for online player…",resign:"🏳️ Resign",rematch:"🔄 Play again?",pause:"⏸️ Pause",score:"Score",lines:"Lines",level:"Level",best:"Best",loading:"Loading…",blocked:"This game is blocked by Admin",name:"Name",online2to8:"🌐 Play Online · 2–8 players",online2to4:"🌐 Blocks Online · 2–4 players"},
+  it:{musicOn:"🎵 Musica ON",musicOff:"🎵 Musica OFF",colors:"🎨 Colori",soundAllOn:"🔊 Audio ON",soundAllOff:"🔇 Audio OFF",adminColors:"Colori predefiniti Admin",saveAdminColors:"Salva colori per tutti",myColors:"I miei colori",resetColors:"Ripristina colori Admin",onlineWait:"In attesa di un giocatore online…",resign:"🏳️ Arrenditi",rematch:"🔄 Giochiamo ancora?",pause:"⏸️ Pausa",score:"Punti",lines:"Linee",level:"Livello",best:"Record",loading:"Caricamento…",blocked:"Questo gioco è bloccato dall'Admin",name:"Nome",online2to8:"🌐 Gioca Online · 2–8 giocatori",online2to4:"🌐 Blocchi Online · 2–4 giocatori"},
+  hr:{musicOn:"🎵 Glazba UKLJ",musicOff:"🎵 Glazba ISKLJ",colors:"🎨 Boje",soundAllOn:"🔊 Zvuk UKLJ",soundAllOff:"🔇 Zvuk ISKLJ",adminColors:"Zadane Admin boje",saveAdminColors:"Spremi boje za sve",myColors:"Moje boje",resetColors:"Vrati Admin boje",onlineWait:"Čeka se online igrač…",resign:"🏳️ Predaj se",rematch:"🔄 Igraj ponovno?",pause:"⏸️ Pauza",score:"Bodovi",lines:"Linije",level:"Razina",best:"Rekord",loading:"Učitavanje…",blocked:"Admin je blokirao ovu igru",name:"Ime",online2to8:"🌐 Igraj Online · 2–8 igrača",online2to4:"🌐 Blokovi Online · 2–4 igrača"},
+  fr:{musicOn:"🎵 Musique ON",musicOff:"🎵 Musique OFF",colors:"🎨 Couleurs",soundAllOn:"🔊 Son ON",soundAllOff:"🔇 Son OFF",adminColors:"Couleurs par défaut Admin",saveAdminColors:"Enregistrer pour tous",myColors:"Mes couleurs",resetColors:"Restaurer les couleurs Admin",onlineWait:"En attente d’un joueur en ligne…",resign:"🏳️ Abandonner",rematch:"🔄 Rejouer ?",pause:"⏸️ Pause",score:"Score",lines:"Lignes",level:"Niveau",best:"Record",loading:"Chargement…",blocked:"Ce jeu est bloqué par l’Admin",name:"Nom",online2to8:"🌐 Jouer en ligne · 2–8 joueurs",online2to4:"🌐 Blocs Online · 2–4 joueurs"},
+  ar:{musicOn:"🎵 الموسيقى تعمل",musicOff:"🎵 الموسيقى متوقفة",colors:"🎨 الألوان",soundAllOn:"🔊 الصوت يعمل",soundAllOff:"🔇 الصوت متوقف",adminColors:"ألوان المشرف الافتراضية",saveAdminColors:"حفظ الألوان للجميع",myColors:"ألواني",resetColors:"استعادة ألوان المشرف",onlineWait:"بانتظار لاعب عبر الإنترنت…",resign:"🏳️ استسلام",rematch:"🔄 اللعب مجددًا؟",pause:"⏸️ إيقاف مؤقت",score:"النقاط",lines:"الخطوط",level:"المستوى",best:"الأفضل",loading:"جارٍ التحميل…",blocked:"هذه اللعبة محظورة من المشرف",name:"الاسم",online2to8:"🌐 لعب أونلاين · 2–8 لاعبين",online2to4:"🌐 الكتل أونلاين · 2–4 لاعبين"}
+};
+function gx(k){return GX[lang()]?.[k]||GX.sq[k]||k;}
+
+
+
+function validGameColor(v){return typeof v==="string"&&/^#[0-9a-f]{6}$/i.test(v);}
+function normalizeGameTheme(v={}){
+  const out={...adminGameTheme};
+  for(const k of Object.keys(out))if(validGameColor(v?.[k]))out[k]=v[k];
+  return out;
+}
+function currentGameTheme(){
+  if(userGameTheme)return normalizeGameTheme(userGameTheme);
+  return normalizeGameTheme(adminGameTheme);
+}
+function applyGameTheme(){
+  const t=currentGameTheme(),r=document.documentElement;
+  r.style.setProperty("--game-light",t.light);r.style.setProperty("--game-dark",t.dark);
+  r.style.setProperty("--game-primary",t.primary);r.style.setProperty("--game-secondary",t.secondary);
+  r.style.setProperty("--game-arena",t.arena);
+}
+async function loadGameThemeDefaults(){
+  try{
+    const {data}=await supabase.from("app_settings").select("value").eq("key",GAME_THEME_SETTING_KEY).maybeSingle();
+    if(data?.value)adminGameTheme=normalizeGameTheme(data.value);
+  }catch(_){}
+  try{const raw=JSON.parse(localStorage.getItem(GAME_USER_THEME_KEY)||"null");if(raw)userGameTheme=normalizeGameTheme(raw);}catch(_){userGameTheme=null;}
+  applyGameTheme();
+}
+async function saveAdminGameTheme(){
+  if(!gamesAdmin)return;
+  const theme={light:document.getElementById("gameColorLight")?.value,dark:document.getElementById("gameColorDark")?.value,primary:document.getElementById("gameColorPrimary")?.value,secondary:document.getElementById("gameColorSecondary")?.value,arena:document.getElementById("gameColorArena")?.value};
+  const normalized=normalizeGameTheme(theme);
+  const {data:s}=await supabase.auth.getSession();const user=s?.session?.user;if(!user)return;
+  const {error}=await supabase.from("app_settings").upsert({key:GAME_THEME_SETTING_KEY,value:normalized,updated_at:new Date().toISOString(),updated_by:user.id},{onConflict:"key"});
+  if(!error){adminGameTheme=normalized;if(!userGameTheme)applyGameTheme();renderLobby();}
+}
+function saveUserGameTheme(){
+  const theme={light:document.getElementById("gameColorLight")?.value,dark:document.getElementById("gameColorDark")?.value,primary:document.getElementById("gameColorPrimary")?.value,secondary:document.getElementById("gameColorSecondary")?.value,arena:document.getElementById("gameColorArena")?.value};
+  userGameTheme=normalizeGameTheme(theme);localStorage.setItem(GAME_USER_THEME_KEY,JSON.stringify(userGameTheme));applyGameTheme();
+}
+function resetUserGameTheme(){userGameTheme=null;localStorage.removeItem(GAME_USER_THEME_KEY);applyGameTheme();renderLobby();}
+function gameThemeControls(){
+  const t=currentGameTheme();
+  return '<section class="game-theme-controls"><strong>'+gx(gamesAdmin?"adminColors":"myColors")+'</strong><div class="game-color-grid">'+
+    '<label>1<input id="gameColorLight" type="color" value="'+t.light+'"></label>'+
+    '<label>2<input id="gameColorDark" type="color" value="'+t.dark+'"></label>'+
+    '<label>3<input id="gameColorPrimary" type="color" value="'+t.primary+'"></label>'+
+    '<label>4<input id="gameColorSecondary" type="color" value="'+t.secondary+'"></label>'+
+    '<label>◼<input id="gameColorArena" type="color" value="'+t.arena+'"></label></div>'+
+    (gamesAdmin?'<button id="saveAdminGameTheme" class="secondary" type="button">'+gx("saveAdminColors")+'</button>':'<button id="resetUserGameTheme" class="secondary" type="button">'+gx("resetColors")+'</button>')+
+    '</section>';
+}
+function setMasterSound(enabled){
+  masterSoundEnabled=!!enabled;localStorage.setItem(GAME_SOUND_MASTER_KEY,masterSoundEnabled?"on":"off");
+  setTimerSound(masterSoundEnabled);setTetrisSound(masterSoundEnabled);warSoundEnabled=masterSoundEnabled;localStorage.setItem(WAR_SOUND_KEY,masterSoundEnabled?"on":"off");
+}
+function orientalNote(freq,start,dur,gain=.025){
+  if(!gameAudioContext||!gameMusicGain)return;
+  const o=gameAudioContext.createOscillator(),g=gameAudioContext.createGain();
+  o.type="sine";o.frequency.setValueAtTime(freq,start);g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(gain,start+.03);g.gain.exponentialRampToValueAtTime(.0001,start+dur);
+  o.connect(g);g.connect(gameMusicGain);o.start(start);o.stop(start+dur+.03);
+}
+async function playOrientalPhrase(){
+  if(!gameMusicEnabled)return;
+  const ctx=await ensureGameAudio();if(!ctx)return;
+  if(!gameMusicGain){gameMusicGain=ctx.createGain();gameMusicGain.gain.value=.75;gameMusicGain.connect(ctx.destination);}
+  const base=220,ratio=[1,1.125,1.2,1.5,1.6,1.5,1.2,1.125];
+  const now=ctx.currentTime+.03;ratio.forEach((r,i)=>orientalNote(base*r,now+i*.34,.30,.024));
+}
+function startGameMusic(){
+  if(!gameMusicEnabled)return;
+  playOrientalPhrase();
+  if(gameMusicTimer)clearInterval(gameMusicTimer);
+  gameMusicTimer=setInterval(playOrientalPhrase,3100);
+}
+function stopGameMusic(){if(gameMusicTimer){clearInterval(gameMusicTimer);gameMusicTimer=null;}if(gameMusicGain)gameMusicGain.gain.value=0;}
+function setGameMusic(enabled){gameMusicEnabled=!!enabled;localStorage.setItem(GAME_MUSIC_KEY,gameMusicEnabled?"on":"off");if(enabled){if(gameMusicGain)gameMusicGain.gain.value=.75;startGameMusic();}else stopGameMusic();}
+function genericGameTone(freq=420,dur=.06){
+  if(!masterSoundEnabled)return;
+  ensureGameAudio().then(ctx=>{if(!ctx)return;const o=ctx.createOscillator(),gn=ctx.createGain(),st=ctx.currentTime;o.frequency.value=freq;o.type="sine";gn.gain.setValueAtTime(.05,st);gn.gain.exponentialRampToValueAtTime(.0001,st+dur);o.connect(gn);gn.connect(ctx.destination);o.start(st);o.stop(st+dur+.02);});
+}
+
 const WAR_TXT={
   sq:{yourTurnCaps:"RADHA JOTE",opponent:"KUNDËRSHTARI",you:"TI",yourWeapons:"ARMËT E TUA",soundOn:"🔊 Zëri ON",soundOff:"🔇 Zëri OFF",changeWeapons:"🎲 Ndrysho armët",wins:"fitore",games:"lojëra",bonus:"bonus",chooseWeapon:"Zgjidh njërën nga 2 armët.",playAgain:"🔄 Luaj përsëri",weaponAttack:"Sulm",weaponBomb:"Bombë",weaponHeart:"Zemër",weaponHelicopter:"Helikopter",weaponAtom:"Atom",weaponProtect:"Mbrojtje",weaponAzrael:"Melaqja Asrail",weaponIce:"Akull",weaponDrone:"Droni",weaponFire:"Rreth i zjarrtë",twoAttacks:"2 sulme",shootAgain2:"−2 ❤️ · gjuan prapë",protect2:"mbron 2 herë",koNoDefense:"KO pa mbrojtje",nextAttack:"arma tjetër bëhet Sulm",shootAgain1:"−1 ❤️ · gjuan prapë",burnBlack:"−2 ❤️ · e bën të zi",finish:"FUND",warOnline:"Luftra Online",waitingPlayers:"Duke pritur lojtarët…",wait10:"Po presim deri në 10 sekonda që të hyjë së paku një lojtar tjetër.",noComputerNote:"Nëse askush nuk hyn, nuk luan kundër kompjuterit — del pulla “Provo përsëri”.",retry:"🔄 Provo përsëri",noPlayer:"Nuk u gjet lojtar tjetër.",noComputerSwitch:"Nuk kalon automatikisht te kompjuteri.",waitTurnCaps:"PRIT RADHËN",alive:"gjallë",players:"lojtarë",winner:"Fituesi",playOnlineAgain:"🌐 Përsëri luaj online",target:"Objektivi",tapTarget:"Prek lojtarin që dëshiron ta sulmosh.",waitYourTurn:"Prit deri sa të vijë radha jote.",eliminated:"Eliminuar",turn:"Radha",notEnough3:"Nuk ke 3 💎.",weaponsNotChanged:"Armët nuk u ndryshuan.",chooseTarget:"Zgjidh së pari cilin lojtar dëshiron ta godasësh."},
   de:{yourTurnCaps:"DU BIST DRAN",opponent:"GEGNER",you:"DU",yourWeapons:"DEINE WAFFEN",soundOn:"🔊 Ton AN",soundOff:"🔇 Ton AUS",changeWeapons:"🎲 Waffen wechseln",wins:"Siege",games:"Spiele",bonus:"Bonus",chooseWeapon:"Wähle eine deiner 2 Waffen.",playAgain:"🔄 Noch einmal spielen",weaponAttack:"Angriff",weaponBomb:"Bombe",weaponHeart:"Herz",weaponHelicopter:"Hubschrauber",weaponAtom:"Atom",weaponProtect:"Schutz",weaponAzrael:"Engel Azrael",weaponIce:"Eis",weaponDrone:"Drohne",weaponFire:"Feuerring",twoAttacks:"2 Angriffe",shootAgain2:"−2 ❤️ · nochmal schießen",protect2:"schützt 2-mal",koNoDefense:"KO ohne Schutz",nextAttack:"nächste Waffe wird Angriff",shootAgain1:"−1 ❤️ · nochmal schießen",burnBlack:"−2 ❤️ · verbrennt Gegner",finish:"ENDE",warOnline:"Krieg Online",waitingPlayers:"Warte auf Spieler…",wait10:"Wir warten bis zu 10 Sekunden auf mindestens einen weiteren Spieler.",noComputerNote:"Wenn niemand beitritt, spielst du nicht gegen den Computer — „Erneut versuchen“ erscheint.",retry:"🔄 Erneut versuchen",noPlayer:"Kein weiterer Spieler gefunden.",noComputerSwitch:"Es wird nicht automatisch auf den Computer gewechselt.",waitTurnCaps:"WARTE AUF DEINEN ZUG",alive:"am Leben",players:"Spieler",winner:"Gewinner",playOnlineAgain:"🌐 Erneut online spielen",target:"Ziel",tapTarget:"Tippe den Spieler an, den du angreifen willst.",waitYourTurn:"Warte, bis du an der Reihe bist.",eliminated:"Ausgeschieden",turn:"Zug",notEnough3:"Du hast keine 3 💎.",weaponsNotChanged:"Waffen wurden nicht geändert.",chooseTarget:"Wähle zuerst einen Spieler als Ziel."},
@@ -97,7 +199,7 @@ let warSoundEnabled=localStorage.getItem(WAR_SOUND_KEY)!=="off";
 let warVictoryShownKey="";
 
 async function ensureGameAudio(){
-  if(!timerSoundEnabled) return null;
+  if(!masterSoundEnabled && !gameMusicEnabled) return null;
   try{
     if(!gameAudioContext){
       const AudioCtx=window.AudioContext||window.webkitAudioContext;
@@ -112,7 +214,7 @@ async function ensureGameAudio(){
 }
 
 function soundTone(frequency,duration=0.12,delay=0,type="sine",gainValue=0.16){
-  if(!timerSoundEnabled) return;
+  if(!timerSoundEnabled || !masterSoundEnabled) return;
   ensureGameAudio().then(ctx=>{
     if(!ctx) return;
     const start=ctx.currentTime+delay;
@@ -150,7 +252,7 @@ function playTimerSound(kind){
 }
 
 function tetrisTone(frequency,duration=0.08,delay=0,type="square",gainValue=0.07){
-  if(!tetrisSoundEnabled) return;
+  if(!tetrisSoundEnabled || !masterSoundEnabled) return;
   ensureGameAudio().then(ctx=>{
     if(!ctx) return;
     const start=ctx.currentTime+delay;
@@ -241,7 +343,7 @@ function maybePlayTimerStateSound(st,started){
 }
 
 root?.addEventListener("pointerdown",(event)=>{
-  if(timerSoundEnabled) ensureGameAudio();
+  if(masterSoundEnabled||gameMusicEnabled) ensureGameAudio().then(()=>{if(gameMusicEnabled&&!gameMusicTimer)startGameMusic();});
   if(warSoundEnabled && event.target?.closest?.(".war-shell")){
     // Android/PWA: audio must be unlocked directly from a user gesture.
     try{
@@ -1544,7 +1646,7 @@ function playWarWebAudio(kind){
 }
 
 function playWarSound(kind){
-  if(!warSoundEnabled) return;
+  if(!warSoundEnabled || !masterSoundEnabled) return;
   try{
     const audio=new Audio(warWavUrl(kind));
     audio.preload="auto";
@@ -2038,6 +2140,11 @@ function renderLobby(msg=""){
       <section class="card games-lobby">
         <h2>🎮 ${tr("games")}</h2>
         <p class="muted">${tr("choose")}</p>
+        <div class="game-global-controls">
+          <button id="gameMasterSound" class="secondary" type="button">${masterSoundEnabled?gx("soundAllOn"):gx("soundAllOff")}</button>
+          <button id="gameMusicToggle" class="secondary" type="button">${gameMusicEnabled?gx("musicOn"):gx("musicOff")}</button>
+        </div>
+        ${gameThemeControls()}
         <div class="games-choice">
           ${renderGameChoices()}
         </div>
@@ -2090,7 +2197,7 @@ function renderLobby(msg=""){
         ` : selectedType==="timer" ? `
           <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
           <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
-          <button id="timerQuickOnline" class="secondary" type="button">🌐 Luaj Online · 2–8 veta</button>
+          <button id="timerQuickOnline" class="secondary" type="button">${gx("online2to8")}</button>
           <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
         ` : selectedType==="war" ? `
@@ -2112,7 +2219,7 @@ function renderLobby(msg=""){
         ` : selectedType==="tetris" ? `
           <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
-          <button id="tetrisQuickOnline" class="secondary" type="button">🌐 Blloqe Online · 2–4 veta</button>
+          <button id="tetrisQuickOnline" class="secondary" type="button">${gx("online2to4")}</button>
           <div class="game-help">Online pret deri 15 sekonda. Lojtari i fundit që mbetet në lojë fiton 🥇.</div>
           <div class="game-help">👆 Prek një herë ekranin = rrotullo · ✋ Mbaje të shtypur dhe tërhiqe = lëvize ku dëshiron</div>
           <section id="tetrisRecentWins" class="tetris-leaderboard-mini"><div class="muted">🥇 Po ngarkohen fituesit online…</div></section>
@@ -2132,6 +2239,11 @@ function renderLobby(msg=""){
       ${selectedType==="timer" ? `<section id="timerLeaderboard" class="card timer-leaderboard"><div class="muted">${tr("weekly")}…</div></section>` : ""}
     </div>`;
   if(selectedType==="timer") loadTimerLeaderboard();
+  document.getElementById("gameMasterSound")?.addEventListener("click",()=>{setMasterSound(!masterSoundEnabled);renderLobby();});
+  document.getElementById("gameMusicToggle")?.addEventListener("click",()=>{setGameMusic(!gameMusicEnabled);renderLobby();});
+  ["gameColorLight","gameColorDark","gameColorPrimary","gameColorSecondary","gameColorArena"].forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{if(!gamesAdmin)saveUserGameTheme();}));
+  document.getElementById("saveAdminGameTheme")?.addEventListener("click",saveAdminGameTheme);
+  document.getElementById("resetUserGameTheme")?.addEventListener("click",resetUserGameTheme);
   root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.game;if(activeGameBlock(id)&&!gamesAdmin){const m=document.getElementById("gameMessage");if(m)m.textContent="Kjo lojë është e bllokuar nga Admini "+gameBlockText(id)+".";return;}selectedType=id;renderLobby();});
   const warChoice=root.querySelector('[data-game="war"]'); if(warChoice) warChoice.addEventListener("click",()=>{selectedType="war";renderLobby();},{once:true});
   bindGameOrderAdmin();
@@ -2226,7 +2338,7 @@ async function startBoardQuickOnline(game){
     const out=await supabase.rpc("board_quick_join",{p_game:game,p_device:deviceId,p_name:profile.display_name});if(out.error)throw out.error;
     const roomId=out.data?.room_id;if(!roomId)throw new Error("ROOM_NOT_CREATED");quickChessDeadline=new Date(out.data.deadline).getTime();
     let fresh=await fetchRoomById(roomId);await openRoom(fresh);
-    const tick=async()=>{try{fresh=await fetchRoomById(roomId);room=fresh;if(fresh.status==="active"&&fresh.player2_device){clearQuickChess();await loadBoardRoomNames();renderRoom();return;}const left=Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000));const status=document.querySelector(".game-status");if(status)status.textContent="🌐 Duke pritur lojtar online… "+left+" s";if(Date.now()>=quickChessDeadline){const again=await fetchRoomById(roomId).catch(()=>null);if(again?.status==="active"&&again.player2_device){room=again;clearQuickChess();await loadBoardRoomNames();renderRoom();return;}await supabase.rpc("board_quick_cancel",{p_room:roomId,p_device:deviceId});clearQuickChess();room=null;renderLobby("Nuk u gjet lojtar brenda 15 sekondave. Provo përsëri.");}}catch(error){console.warn("board quick online",error);}};
+    const tick=async()=>{try{fresh=await fetchRoomById(roomId);room=fresh;if(fresh.status==="active"&&fresh.player2_device){clearQuickChess();await loadBoardRoomNames();renderRoom();return;}const left=Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000));const status=document.querySelector(".game-status");if(status)status.textContent=gx("onlineWait")+" "+left+" s";if(Date.now()>=quickChessDeadline){const again=await fetchRoomById(roomId).catch(()=>null);if(again?.status==="active"&&again.player2_device){room=again;clearQuickChess();await loadBoardRoomNames();renderRoom();return;}await supabase.rpc("board_quick_cancel",{p_room:roomId,p_device:deviceId});clearQuickChess();room=null;renderLobby("Nuk u gjet lojtar brenda 15 sekondave. Provo përsëri.");}}catch(error){console.warn("board quick online",error);}};
     await tick();if(room?.status==="waiting")quickChessTimer=setInterval(tick,1000);
   }catch(error){const raw=String(error?.message||error);renderLobby(raw.includes("NAME_TAKEN")?"Ky emër ekziston. Zgjidh një tjetër.":raw.includes("NAME_LOCKED")?"Emri është i kyçur. Vetëm Admini mund ta ndryshojë.":"Nuk u hap loja online. Provo përsëri.");}
   finally{if(btn)btn.disabled=false;}
@@ -2650,8 +2762,8 @@ function renderRoom(){
         <div class="game-help">${room.game_type==="chess"?tr("helpChess"):tr("helpMorris")}</div>
         <div class="game-actions">
           ${local ? `<button id="newComputerGame" class="primary" type="button">${tr("newGame")}</button>` : ""}
-          ${!local&&room.status==="active"&&room.player2_device?'<button id="boardResignBtn" class="secondary board-resign-btn" type="button">🏳️ Dorëzohu</button>':""}
-          ${!local&&room.status==="finished"?'<button id="boardRematchBtn" class="primary" type="button">🔄 Luajmë përsëri?</button>':""}
+          ${!local&&room.status==="active"&&room.player2_device?'<button id="boardResignBtn" class="secondary board-resign-btn" type="button">${gx("resign")}</button>':""}
+          ${!local&&room.status==="finished"?'<button id="boardRematchBtn" class="primary" type="button">${gx("rematch")}</button>':""}
           <button id="leaveGame" class="secondary" type="button">${tr("leave")}</button>
         </div>
       </section>
@@ -2965,7 +3077,7 @@ async function chessClick(r,c){
   if(!room.player2_device||room.state.winner)return;
   const color=myColor();if(room.state.turn!==color)return;
   const b=room.state.board;
-  if(!selected){if(b[r][c]&&b[r][c][0]===color){selected=[r,c];renderRoom();}return;}
+  if(!selected){if(b[r][c]&&b[r][c][0]===color){genericGameTone(330,.04);selected=[r,c];renderRoom();}return;}
   if(b[r][c]&&b[r][c][0]===color){selected=[r,c];renderRoom();return;}
   const moves=chessMoves(b,...selected);
   if(!moves.some(x=>x[0]===r&&x[1]===c)){selected=null;renderRoom();return;}
@@ -2973,7 +3085,7 @@ async function chessClick(r,c){
   let piece=nb[selected[0]][selected[1]],captured=nb[r][c];
   nb[selected[0]][selected[1]]=null;if(piece[1]==="p"&&(r===0||r===7))piece=piece[0]+"q";nb[r][c]=piece;
   const ns={...room.state,board:nb,turn:color==="w"?"b":"w"};if(captured&&captured[1]==="k")ns.winner=color;
-  selected=null;await saveState(ns,"active");if(ns.winner&&!room.local)await recordBoardWin(ns.winner,"win");if(!room.local)renderRoom();
+  genericGameTone(captured?220:520,captured?.[1]==="k"?.15:.06);selected=null;await saveState(ns,"active");if(ns.winner&&!room.local)await recordBoardWin(ns.winner,"win");if(!room.local)renderRoom();
 }
 
 function computerChessMove(){
@@ -3037,6 +3149,7 @@ function renderMorris(){
 
 async function morrisClick(pos){
   if(!room.player2_device||room.state.winner)return;
+  genericGameTone(390,.045);
   const color=myColor(),other=color==="w"?"b":"w",st=structuredClone(room.state);if(st.turn!==color)return;
   if(st.mustRemove){
     if(st.board[pos]!==other)return;if(formsMill(st.board,pos,other)&&!allInMill(st.board,other))return;
@@ -3609,10 +3722,10 @@ function startTetrisGame(options={}){
         </div>
 
         <div class="tetris-stats">
-          <div><span>Score</span><strong id="tetrisScore">0</strong></div>
-          <div><span>Lines</span><strong id="tetrisLines">0</strong></div>
-          <div><span>Level</span><strong id="tetrisLevel">1</strong></div>
-          <div><span>Best</span><strong id="tetrisHigh">${localStorage.getItem(TETRIS_HIGH_KEY)||0}</strong></div>
+          <div><span>${gx("score")}</span><strong id="tetrisScore">0</strong></div>
+          <div><span>${gx("lines")}</span><strong id="tetrisLines">0</strong></div>
+          <div><span>${gx("level")}</span><strong id="tetrisLevel">1</strong></div>
+          <div><span>${gx("best")}</span><strong id="tetrisHigh">${localStorage.getItem(TETRIS_HIGH_KEY)||0}</strong></div>
         </div>
 
         <div class="tetris-board-wrap">
@@ -3629,7 +3742,7 @@ function startTetrisGame(options={}){
         </div>
 
         <div class="tetris-actions">
-          <button id="tetrisPause" class="secondary" type="button">⏸️ Pauzë</button>
+          <button id="tetrisPause" class="secondary" type="button">${gx("pause")}</button>
           <button id="tetrisSound" class="secondary" type="button">${tetrisSoundEnabled?"🔊 Zëri ON":"🔇 Zëri OFF"}</button>
           <button id="tetrisNew" class="primary" type="button">🔄 ${tr("newGame")}</button>
         </div>
@@ -3682,12 +3795,12 @@ function startTetrisGame(options={}){
 async function activate(){
   startTetrisScoreRealtime();
   if(tabLabel)tabLabel.textContent=tr("games");
-  await Promise.all([loadGameOrder(),loadGameBlocks()]);
+  await Promise.all([loadGameOrder(),loadGameBlocks(),loadGameThemeDefaults()]);
   if(room)renderRoom();else renderLobby();
 }
 
 async function reloadSettings(){
-  await Promise.all([loadGameOrder(),loadGameBlocks()]);
+  await Promise.all([loadGameOrder(),loadGameBlocks(),loadGameThemeDefaults()]);
   if(!room) renderLobby();
 }
 
