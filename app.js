@@ -1173,10 +1173,17 @@ async function login() {
 
   try {
     if (mode === "family") {
-      const { data: tokenData, error: fnError } = await supabase.functions.invoke("family-login", {
-        body: {}
+      const response = await fetch(SUPABASE_URL + "/functions/v1/family-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY
+        },
+        body: "{}",
+        cache: "no-store"
       });
-      if (fnError) throw fnError;
+      const tokenData = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(tokenData?.error || ("Family login HTTP " + response.status));
       if (!tokenData?.token_hash) throw new Error("Family token missing");
 
       const { error: verifyError } = await supabase.auth.verifyOtp({
