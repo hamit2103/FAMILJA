@@ -963,7 +963,8 @@ radioTab?.addEventListener("click", () => setSection("radio"));
 dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
 shareAppTab?.addEventListener("click", () => setSection("shareapp"));
-newsTab?.addEventListener("click", () => setSection("news"));\ndocument.getElementById("sectionBackBtn")?.addEventListener("click", () => setSection("home"));
+newsTab?.addEventListener("click", () => setSection("news"));
+document.getElementById("sectionBackBtn")?.addEventListener("click", () => setSection("home"));
 
 function setMode(next) {
   if (ADMIN_ONLY) next = "admin";
