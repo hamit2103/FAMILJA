@@ -360,7 +360,7 @@ function applyLanguage(language = currentLanguage) {
   }
 
   if (currentUser) {
-    roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
+    roleLabel.textContent = isAdmin() ? t("role.admin") : (globalUserName() || t("role.family"));
     updateUploadPanel(mediaItems);
     renderPrayerTimes();
     updateNextPrayer();
@@ -377,6 +377,9 @@ const adminMode = $("adminMode");
 const codeInput = $("codeInput");
 const adminCodeWrap = $("adminCodeWrap");
 const familyDirectHint = $("familyDirectHint");
+const userNameWrap = $("userNameWrap");
+const userNameInput = $("userNameInput");
+const userNameNote = $("userNameNote");
 const loginBtn = $("loginBtn");
 const loginMessage = $("loginMessage");
 const adminPanel = $("adminPanel");
@@ -452,6 +455,9 @@ const shareDeviceCount = $("shareDeviceCount");
 const dailyActiveCount = $("dailyActiveCount");
 const newDeviceNotifyBtn = $("newDeviceNotifyBtn");
 const adminStatsStatus = $("adminStatsStatus");
+const adminUsersCard = $("adminUsersCard");
+const adminUsersList = $("adminUsersList");
+const adminUsersStatus = $("adminUsersStatus");
 const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
@@ -591,6 +597,7 @@ let publicEntryActive = false;
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
+let currentAppProfile = null;
 let activeSection = "gallery";
 let mediaItems = [];
 let prayerTimings = null;
@@ -1053,13 +1060,16 @@ function setMode(next) {
   if (ADMIN_ONLY) {
     document.querySelector(".mode-switch")?.classList.add("hidden");
     familyDirectHint?.classList.add("hidden");
+    userNameWrap?.classList.add("hidden");
     adminCodeWrap?.classList.remove("hidden");
   } else {
     document.querySelector(".mode-switch")?.classList.add("hidden");
     familyMode?.classList.add("hidden");
     adminMode?.classList.add("hidden");
     familyDirectHint?.classList.remove("hidden");
+    userNameWrap?.classList.remove("hidden");
     adminCodeWrap?.classList.remove("hidden");
+    refreshUserNameLoginUi();
   }
 }
 familyMode?.addEventListener("click", () => setMode("family"));
@@ -1083,7 +1093,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.64";
+    let versionName="5.65";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1165,6 +1175,105 @@ newDeviceNotifyBtn?.addEventListener("click",()=>{
   if(adminStatsStatus) showMessage(adminStatsStatus,"Ky njoftim funksionon në DIAMOND ADMIN Android.","error");
 });
 
+
+function globalUserName(){
+  return (currentAppProfile?.display_name || localStorage.getItem("pajaziti-global-user-name") || "").trim();
+}
+function validGlobalUserName(name){
+  const value=String(name||"").trim();
+  const compact=value.replace(/[^\p{L}\p{N}]/gu,"");
+  return value.length>=4 && value.length<=20 && compact.length>=4;
+}
+async function loadGlobalUserProfile(){
+  if(!supabase || !currentUser || isAdmin()) return null;
+  const {data,error}=await supabase.rpc("user_profile_get",{p_device:presenceDeviceId});
+  if(error) throw error;
+  currentAppProfile=data||null;
+  if(currentAppProfile?.display_name){
+    localStorage.setItem("pajaziti-global-user-name",currentAppProfile.display_name);
+    window.PajazitiGames?.refreshUserName?.();
+  }
+  return currentAppProfile;
+}
+async function claimGlobalUserProfile(){
+  const typed=(userNameInput?.value||"").trim();
+  const {data:existing,error:getError}=await supabase.rpc("user_profile_get",{p_device:presenceDeviceId});
+  if(getError) throw getError;
+  if(existing){
+    currentAppProfile=existing;
+    localStorage.setItem("pajaziti-global-user-name",existing.display_name);
+    return existing;
+  }
+  if(!validGlobalUserName(typed)) throw new Error("NAME_MIN_4");
+  const {data,error}=await supabase.rpc("user_profile_claim",{p_device:presenceDeviceId,p_name:typed});
+  if(error) throw error;
+  currentAppProfile=data;
+  localStorage.setItem("pajaziti-global-user-name",data.display_name);
+  return data;
+}
+function refreshUserNameLoginUi(){
+  if(ADMIN_ONLY) return;
+  const saved=globalUserName();
+  if(userNameInput){
+    userNameInput.value=saved;
+    userNameInput.readOnly=!!currentAppProfile;
+  }
+  if(userNameNote){
+    userNameNote.textContent=currentAppProfile
+      ? "Ky emër është i përhershëm. Vetëm Admini mund ta ndryshojë."
+      : "Kujdes: emri do të jetë përgjithmonë në këtë app dhe i vlefshëm për të gjitha lojërat.";
+  }
+}
+async function loadAdminUsers(){
+  if(!isAdmin()||!adminUsersList)return;
+  try{
+    const {data,error}=await supabase.rpc("user_profile_admin_list");
+    if(error) throw error;
+    const rows=(data||[]).map(p=>{
+      const seen=p.last_seen_at?new Date(p.last_seen_at).toLocaleString():"—";
+      return `<div class="admin-user-row">
+        <div class="admin-user-main">
+          <strong>${escapeHtml(p.display_name)}</strong>
+          <small>${p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv"} · ${escapeHtml(seen)}</small>
+        </div>
+        <input maxlength="20" value="${escapeHtml(p.display_name)}" data-user-name="${escapeHtml(p.device_id)}">
+        <button class="secondary" type="button" data-user-rename="${escapeHtml(p.device_id)}">Ndrysho emrin</button>
+        <button class="secondary" type="button" data-user-block="${escapeHtml(p.device_id)}" data-blocked="${p.is_blocked?"1":"0"}">${p.is_blocked?"Lejo":"Blloko"}</button>
+      </div>`;
+    }).join("");
+    adminUsersList.innerHTML=rows||'<div class="muted">Ende nuk ka përdorues.</div>';
+    adminUsersList.querySelectorAll("[data-user-rename]").forEach(btn=>{
+      btn.onclick=async()=>{
+        const dev=btn.dataset.userRename;
+        const input=adminUsersList.querySelector('[data-user-name="'+CSS.escape(dev)+'"]');
+        const name=(input?.value||"").trim();
+        if(!validGlobalUserName(name)){showMessage(adminUsersStatus,"Emri duhet të ketë së paku 4 shkronja ose numra.","error");return;}
+        btn.disabled=true;
+        const {error}=await supabase.rpc("user_profile_admin_rename",{p_device:dev,p_name:name});
+        btn.disabled=false;
+        if(error){showMessage(adminUsersStatus,error.message||"Gabim.","error");return;}
+        showMessage(adminUsersStatus,"Emri u ndryshua. Pikët mbetën të njëjta.","success");
+        await loadAdminUsers();
+      };
+    });
+    adminUsersList.querySelectorAll("[data-user-block]").forEach(btn=>{
+      btn.onclick=async()=>{
+        const dev=btn.dataset.userBlock;
+        const blocked=btn.dataset.blocked==="1";
+        btn.disabled=true;
+        const {error}=await supabase.rpc("user_profile_admin_block",{p_device:dev,p_blocked:!blocked});
+        btn.disabled=false;
+        if(error){showMessage(adminUsersStatus,error.message||"Gabim.","error");return;}
+        showMessage(adminUsersStatus,!blocked?"Përdoruesi u bllokua.":"Përdoruesi u lejua përsëri.","success");
+        await loadAdminUsers();
+      };
+    });
+  }catch(error){
+    console.warn("admin users",error);
+    showMessage(adminUsersStatus,"Lista e përdoruesve nuk u ngarkua.","error");
+  }
+}
+
 async function login() {
   if (!configured) return showMessage(loginMessage, t("error.supabaseNotLinked"), "error");
 
@@ -1211,6 +1320,8 @@ async function login() {
       }
 
       currentUser = sessionData.session.user;
+      const profile=await claimGlobalUserProfile();
+      if(profile?.is_blocked){await supabase.auth.signOut();currentUser=null;currentAppProfile=null;throw new Error("USER_BLOCKED");}
       await applySession(sessionData.session);
       showMessage(loginMessage, "");
       return;
@@ -2918,7 +3029,12 @@ async function applySession(session) {
 
   adminPanel.classList.toggle("hidden", !isAdmin());
   if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
-  roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
+  adminUsersCard?.classList.toggle("hidden", !isAdmin());
+  if(!isAdmin()){
+    await loadGlobalUserProfile().catch(()=>null);
+    if(currentAppProfile?.is_blocked){await supabase.auth.signOut();showMessage(loginMessage,"Ky përdorues është bllokuar nga Admini.","error");return;}
+  }
+  roleLabel.textContent = isAdmin() ? t("role.admin") : (globalUserName() || t("role.family"));
   uploadStatus.textContent = "";
   setSection("home");
   await loadMedia();
@@ -2935,7 +3051,7 @@ async function applySession(session) {
   startPrayerAlarmChecker();
   await registerInstall();
   await registerDailyActivity();
-  if(isAdmin()) { await loadAdminStats(); refreshNewDeviceNotifyButton(); }
+  if(isAdmin()) { await loadAdminStats(); await loadAdminUsers(); refreshNewDeviceNotifyButton(); }
   startRealtime();
 }
 
