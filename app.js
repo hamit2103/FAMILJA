@@ -1172,10 +1172,20 @@ async function login() {
 
   try {
     if (mode === "family") {
-      // Stable public User entry: no code and no fragile magic-link exchange.
+      // Public User mode works without authentication. Keep currentUser empty,
+      // open the app, and load only public sections.
+      currentUser = null;
       loginView.classList.add("hidden");
       appView.classList.remove("hidden");
+      adminPanel?.classList.add("hidden");
+      infoCompose?.classList.add("hidden");
+      menuOrderAdmin?.classList.add("hidden");
+      installStatsCard?.classList.add("hidden");
       setSection("home");
+      loadMedia().catch(console.warn);
+      loadInfo({ markRead: false }).catch(console.warn);
+      renderPrayerTimes();
+      updateNextPrayer();
       showMessage(loginMessage, "");
       return;
     }
@@ -2916,9 +2926,12 @@ if (supabase) {
     session = null;
   }
 
-  await applySession(session);
-
-  if (!session) {
+  if (session) {
+    await applySession(session);
+  } else {
+    // Do not let applySession(null) fight the direct public User entry.
+    loginView.classList.remove("hidden");
+    appView.classList.add("hidden");
     setMode(ADMIN_ONLY ? "admin" : "family");
   }
 
