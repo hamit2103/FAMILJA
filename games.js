@@ -91,6 +91,69 @@ const GX={
 };
 function gx(k){return GX[lang()]?.[k]||GX.sq[k]||k;}
 
+const GAME_AUTO_TRANSLATE_CACHE_KEY="diamond-game-auto-translate-v1";
+let gameAutoTranslateTimer=null;
+let gameAutoTranslateBusy=false;
+let gameAutoTranslateCache={};
+try{gameAutoTranslateCache=JSON.parse(localStorage.getItem(GAME_AUTO_TRANSLATE_CACHE_KEY)||"{}")||{};}catch(_){gameAutoTranslateCache={};}
+function likelyAlbanianGameUiText(value){
+  const t=String(value||"").trim();
+  if(t.length<3||t.length>600)return false;
+  return /[ëçËÇ]|\b(loj|lojtar|fit|kundër|radha|prit|emr|ngarko|bllok|arm|zemr|mbrojt|sulm|bomb|akull|dron|helikopter|rreth|kral|sekond|përsëri|zgjedh|dërgo|larg|shpërbl|pik|jav|vazhdo|pauz|rekord|rresht|ngjyr|muzik|tingull|zëri|shah|degër|blloqe|luftra|admini|kompjuter|fitoi|humb|gjuan|dogj|përfund|bardh|zi|dhom|kodi|kopjo|dil|gabim)\w*/i.test(t);
+}
+function skipAutoTranslateNode(node){
+  const el=node?.parentElement;
+  if(!el)return true;
+  return !!el.closest(".war-chat-list,.war-multi-name,.timer-face-name,.board-rank-row,.war-leaderboard,input,textarea,select,option,[data-no-game-translate]");
+}
+async function autoTranslateGameUI(){
+  if(!root||lang()==="sq"||gameAutoTranslateBusy)return;
+  const target=lang(),nodes=[],texts=[];
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  let n;
+  while((n=walker.nextNode())){
+    const raw=n.nodeValue?.trim()||"";
+    if(!raw||skipAutoTranslateNode(n)||!likelyAlbanianGameUiText(raw))continue;
+    const key=target+"|"+raw;
+    if(gameAutoTranslateCache[key]){
+      n.nodeValue=n.nodeValue.replace(raw,gameAutoTranslateCache[key]);
+    }else{
+      nodes.push([n,raw,key]);texts.push(raw);
+    }
+  }
+  const unique=[...new Set(texts)].slice(0,80);
+  if(!unique.length)return;
+  gameAutoTranslateBusy=true;
+  try{
+    const {data:{session}}=await supabase.auth.getSession();
+    if(!session?.access_token)return;
+    const response=await fetch(SUPABASE_URL+"/functions/v1/diamond-game-translate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.access_token},
+      body:JSON.stringify({target,texts:unique}),cache:"force-cache"
+    });
+    const result=await response.json();
+    if(!response.ok)return;
+    const map=result?.translations||{};
+    for(const [node,raw,key] of nodes){
+      const translated=map[raw];
+      if(translated&&translated!==raw){
+        gameAutoTranslateCache[key]=translated;
+        if(node.isConnected)node.nodeValue=node.nodeValue.replace(raw,translated);
+      }
+    }
+    try{localStorage.setItem(GAME_AUTO_TRANSLATE_CACHE_KEY,JSON.stringify(gameAutoTranslateCache));}catch(_){}
+  }catch(error){console.warn("game auto translate",error);}
+  finally{gameAutoTranslateBusy=false;}
+}
+function scheduleAutoTranslateGameUI(){
+  if(gameAutoTranslateTimer)clearTimeout(gameAutoTranslateTimer);
+  gameAutoTranslateTimer=setTimeout(autoTranslateGameUI,60);
+}
+const gameTranslateObserver=new MutationObserver(()=>scheduleAutoTranslateGameUI());
+if(root)gameTranslateObserver.observe(root,{subtree:true,childList:true,characterData:true});
+
+
 
 
 function validGameColor(v){return typeof v==="string"&&/^#[0-9a-f]{6}$/i.test(v);}
@@ -2239,6 +2302,7 @@ function renderLobby(msg=""){
       ${selectedType==="timer" ? `<section id="timerLeaderboard" class="card timer-leaderboard"><div class="muted">${tr("weekly")}…</div></section>` : ""}
     </div>`;
   if(selectedType==="timer") loadTimerLeaderboard();
+  scheduleAutoTranslateGameUI();
   document.getElementById("gameMasterSound")?.addEventListener("click",()=>{setMasterSound(!masterSoundEnabled);renderLobby();});
   document.getElementById("gameMusicToggle")?.addEventListener("click",()=>{setGameMusic(!gameMusicEnabled);renderLobby();});
   ["gameColorLight","gameColorDark","gameColorPrimary","gameColorSecondary","gameColorArena"].forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{if(!gamesAdmin)saveUserGameTheme();}));
@@ -2778,6 +2842,7 @@ function renderRoom(){
   if(!local&&room.status==="finished")startBoardRematchPolling();
   if(room.game_type==="chess")renderChess(myColor());else renderMorris(myColor());
   scheduleComputerTurn();
+  scheduleAutoTranslateGameUI();
 }
 
 function clearTimerVisibleClock(){if(timerVisibleClockTimer){clearInterval(timerVisibleClockTimer);timerVisibleClockTimer=null;}}
@@ -3810,5 +3875,5 @@ document.addEventListener("fullscreenchange",()=>{
   }
 });
 
-window.PajazitiGames={activate,reloadSettings,reloadLanguage:()=>{if(!room)renderLobby();else renderRoom();},refreshUserName:()=>{boardProfile=null;warProfile=null;if(!room)renderLobby();else renderRoom();}};
+window.PajazitiGames={activate,reloadSettings,reloadLanguage:()=>{if(!room)renderLobby();else renderRoom();scheduleAutoTranslateGameUI();},refreshUserName:()=>{boardProfile=null;warProfile=null;if(!room)renderLobby();else renderRoom();}};
 if(tabLabel)tabLabel.textContent=tr("games");
