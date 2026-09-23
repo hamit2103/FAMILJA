@@ -23,7 +23,7 @@ const WAR_WINS_KEY = "pajaziti-war-wins";
 const WAR_GAMES_KEY = "pajaziti-war-games";
 const WAR_BONUS_HEARTS_KEY = "pajaziti-war-bonus-hearts";
 const WAR_NAME_KEY = "pajaziti-war-name";
-const BOARD_NAME_KEY = "pajaziti-board-name";
+const BOARD_NAME_KEY = "pajaziti-global-user-name";
 const ADMIN_EMAIL = "admin@familja.local";
 const GAME_ORDER_SETTING_KEY = "game_order";
 const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war"];
@@ -260,8 +260,7 @@ function escapeHtml(value=""){
 }
 
 function timerName(){
-  const input=document.getElementById("timerPlayerName");
-  const name=(input?.value || localStorage.getItem(TIMER_NAME_KEY) || "").trim().slice(0,24);
+  const name=(localStorage.getItem("pajaziti-global-user-name") || "").trim().slice(0,24);
   if(name) localStorage.setItem(TIMER_NAME_KEY,name);
   return name;
 }
@@ -441,7 +440,7 @@ async function loadWarProfileAndLeaderboard(){
 
 async function saveWarProfile(){
   const input=document.getElementById("warPlayerName");
-  const name=(input?.value||localStorage.getItem(WAR_NAME_KEY)||"").trim().slice(0,20);
+  const name=(localStorage.getItem("pajaziti-global-user-name")||input?.value||"").trim().slice(0,20);
   if(name.length<2){
     throw new Error("Emri duhet të ketë së paku 2 shkronja.");
   }
@@ -1864,9 +1863,7 @@ function renderGameChoices(){
 }
 
 function boardGameSelected(){ return selectedType==="chess" || selectedType==="morris"; }
-function boardNameValue(){
-  return (document.getElementById("boardPlayerName")?.value || boardProfile?.display_name || localStorage.getItem(BOARD_NAME_KEY) || "").trim().slice(0,20);
-}
+function boardNameValue(){ return (localStorage.getItem("pajaziti-global-user-name") || boardProfile?.display_name || "").trim().slice(0,20); }
 async function loadBoardProfileAndLeaderboard(game=selectedType){
   if(game!=="chess" && game!=="morris") return;
   try{
@@ -1888,7 +1885,7 @@ async function loadBoardProfileAndLeaderboard(game=selectedType){
 async function ensureBoardProfile(){
   if(boardProfile?.display_name) return boardProfile;
   const name=boardNameValue();
-  if(name.length<2) throw new Error("Shkruaje emrin me së paku 2 shkronja.");
+  if(name.length<4) throw new Error("Emri i DIAMOND mungon.");
   const res=await supabase.rpc("board_set_profile",{p_device:deviceId,p_name:name});
   if(res.error){const raw=String(res.error.message||res.error);if(raw.includes("NAME_TAKEN"))throw new Error("Ky emër ekziston. Zgjidh një emër tjetër.");if(raw.includes("NAME_LOCKED"))throw new Error("Emri është i kyçur. Vetëm Admini mund ta ndryshojë.");throw res.error;}
   boardProfile=res.data;localStorage.setItem(BOARD_NAME_KEY,res.data.display_name);await loadBoardProfileAndLeaderboard(selectedType);return boardProfile;
@@ -2040,15 +2037,13 @@ function renderLobby(msg=""){
 
         ${(selectedType==="chess" || selectedType==="morris") ? `
           <div class="board-profile-box">
-            <label for="boardPlayerName"><strong>👤 Emri për lojërat online</strong></label>
-            <input id="boardPlayerName" type="text" maxlength="20" placeholder="Emri yt" value="${escapeHtml(boardProfile?.display_name||localStorage.getItem(BOARD_NAME_KEY)||"")}" ${boardProfile?"readonly":""}>
-            <div id="boardNameInfo" class="game-help">${boardProfile?"🔒 Emri është i përhershëm. Vetëm Admini mund ta ndryshojë; pikët mbeten.":"Shkruaje emrin një herë. Pastaj ruhet përgjithmonë."}</div>
+            <div class="game-help">👤 Emri: <strong>${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</strong></div>
             <button id="boardQuickOnline" class="primary" type="button">🌐 ${selectedType==="chess"?"Shah":"Degërxhik"} Online · prit 15 sekonda</button>
           </div>
           <section id="boardLeaderboard" class="card board-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
           ${gamesAdmin?'<section class="card board-admin-panel"><h3>👑 Admin · Emrat e lojtarëve</h3><p class="muted">Vetëm Admini mund t’i ndryshojë. Pikët mbeten të njëjta.</p><div id="boardAdminProfiles">Po ngarkohen lojtarët…</div></section>':""}
         ` : selectedType==="timer" ? `
-          <input id="timerPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TIMER_NAME_KEY)||"")}">
+          <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
           <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
           <button id="timerQuickOnline" class="secondary" type="button">🌐 Luaj Online · 2–8 veta</button>
           <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
@@ -2056,12 +2051,11 @@ function renderLobby(msg=""){
         ` : selectedType==="war" ? `
           <div class="war-user-setup">
             <div class="war-economy-head">
-              <label for="warPlayerName"><strong>👤 User</strong></label>
+              <strong>👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</strong>
               <strong class="war-diamonds">💎 <span id="warDiamonds">200</span></strong>
             </div>
-            <input id="warPlayerName" type="text" maxlength="20" placeholder="Emri i userit" value="${escapeHtml(localStorage.getItem(WAR_NAME_KEY)||"")}">
-            <button id="warRenameBtn" class="secondary war-rename-btn" type="button" hidden>✏️ Ndrysho emrin · 25 💎</button>
-            <div id="warNameInfo" class="game-help">Po ngarkohet profili…</div>
+            <input id="warPlayerName" type="hidden" value="${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"")}">
+            <div id="warNameInfo" class="game-help">Emri ndryshohet vetëm nga Admini.</div>
             <div class="war-diamond-note">💎 +5 çdo orë · 🎮 +20 💎 çdo 5 lojëra kundër kompjuterit · 🎲 armë të reja 3 💎</div>
             <button id="warGame" class="primary" type="button">🤖 Luaj me kompjuter</button>
             <button id="warMultiBtn" class="secondary war-online-btn" type="button">🌐 Luaj Online (deri 8 veta)</button>
@@ -2071,7 +2065,7 @@ function renderLobby(msg=""){
           <section id="warLeaderboard" class="war-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
           ${gamesAdmin?`<section class="war-admin-panel"><h3>👑 Admin · Luftra</h3><p class="muted">Jep diamanta çdo lojtari. Emri lidhet me pajisjen dhe mund të ndryshohet vetëm 2 herë.</p><div id="warAdminProfiles">Po ngarkohen lojtarët…</div></section>`:""}
         ` : selectedType==="tetris" ? `
-          <input id="tetrisPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TETRIS_NAME_KEY)||"")}">
+          <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
           <button id="tetrisQuickOnline" class="secondary" type="button">🌐 Blloqe Online · 2–4 veta</button>
           <div class="game-help">Online pret deri 15 sekonda. Lojtari i fundit që mbetet në lojë fiton 🥇.</div>
@@ -2098,21 +2092,12 @@ function renderLobby(msg=""){
   bindGameOrderAdmin();
   const computerButton=document.getElementById("computerGame");
   if(computerButton) computerButton.onclick=startComputerGame;
-  const timerName=document.getElementById("timerPlayerName");
-  if(timerName) timerName.addEventListener("input",()=>localStorage.setItem(TIMER_NAME_KEY,timerName.value.trim()));
   const timerSoloButton=document.getElementById("timerSoloGame");
   if(timerSoloButton) timerSoloButton.onclick=startTimerSoloGame;
   document.getElementById("timerQuickOnline")?.addEventListener("click",()=>startArcadeQuick("timer"));
   document.getElementById("boardQuickOnline")?.addEventListener("click",()=>startBoardQuickOnline(selectedType));
   if(boardGameSelected()){
-    const boardName=document.getElementById("boardPlayerName");
-    if(boardName&&!boardProfile)boardName.addEventListener("input",()=>localStorage.setItem(BOARD_NAME_KEY,boardName.value.trim().slice(0,20)));
     loadBoardProfileAndLeaderboard(selectedType);if(gamesAdmin)loadBoardAdminProfiles();
-  }
-
-  const tetrisNameInput=document.getElementById("tetrisPlayerName");
-  if(tetrisNameInput){
-    tetrisNameInput.addEventListener("input",()=>localStorage.setItem(TETRIS_NAME_KEY,tetrisNameInput.value.trim().slice(0,24)));
   }
 
   const tetrisButton=document.getElementById("tetrisGame");
@@ -2197,13 +2182,7 @@ async function startBoardQuickOnline(game){
 }
 function clearArcadePolling(){if(arcadePollTimer){clearInterval(arcadePollTimer);arcadePollTimer=null;}if(tetrisOnlineProgressTimer){clearInterval(tetrisOnlineProgressTimer);tetrisOnlineProgressTimer=null;}if(arcadeClockTimer){clearInterval(arcadeClockTimer);arcadeClockTimer=null;}}
 
-function arcadeName(game){
-  const key=game==="tetris"?TETRIS_NAME_KEY:TIMER_NAME_KEY;
-  const input=document.getElementById(game==="tetris"?"tetrisPlayerName":"timerPlayerName");
-  const name=(input?.value||localStorage.getItem(key)||"").trim().slice(0,24);
-  if(name) localStorage.setItem(key,name);
-  return name;
-}
+function arcadeName(){ return (localStorage.getItem("pajaziti-global-user-name")||"").trim().slice(0,24); }
 
 function arcadeHundredths(ms){
   const v=Math.max(0,Math.min(9990,Number(ms)||0));
@@ -3368,7 +3347,7 @@ async function loadTetrisLeaderboard(targetId="tetrisLeaderboard"){
 async function saveTetrisScore(){
   if(!tetris || !tetris.gameOver) return;
 
-  const name=(localStorage.getItem(TETRIS_NAME_KEY)||"").trim().slice(0,24);
+  const name=(localStorage.getItem("pajaziti-global-user-name")||"").trim().slice(0,24);
   if(!name) return;
 
   try{
@@ -3667,5 +3646,5 @@ document.addEventListener("fullscreenchange",()=>{
   }
 });
 
-window.PajazitiGames={activate,reloadSettings,reloadLanguage:()=>{if(!room)renderLobby();else renderRoom();}};
+window.PajazitiGames={activate,reloadSettings,reloadLanguage:()=>{if(!room)renderLobby();else renderRoom();},refreshUserName:()=>{boardProfile=null;warProfile=null;if(!room)renderLobby();else renderRoom();}};
 if(tabLabel)tabLabel.textContent=tr("games");
