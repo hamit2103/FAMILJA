@@ -1081,6 +1081,16 @@ function showMessage(el, text, kind = "") {
   el.className = "message" + (kind ? " " + kind : "");
 }
 
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[ch] || ch));
+}
+
 function isAdmin() {
   return currentUser?.email === ADMIN_EMAIL;
 }
@@ -1088,7 +1098,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.68";
+    let versionName="5.69";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1287,14 +1297,18 @@ async function registerDeviceInfo(){
   try{
     const {data:{session}}=await supabase.auth.getSession();
     const token=session?.access_token;if(!token)return;
-    let versionName="5.66";
+    let versionName="5.69";
     try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
-    await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
+    const registerResponse=await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",
       headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token},
       body:JSON.stringify({device_id:presenceDeviceId,user_agent:navigator.userAgent||"",app_version:versionName,notify_secret:diamondNotifySecret()}),
       cache:"no-store"
     });
+    if(!registerResponse.ok){
+      const detail=await registerResponse.text().catch(()=>"");
+      throw new Error("DEVICE_REGISTER_"+registerResponse.status+" "+detail);
+    }
     try{window.AndroidMessages?.configure?.(presenceDeviceId,diamondNotifySecret(),currentLanguage);}catch(_){}
   }catch(error){console.warn("device info",error);}
 }
