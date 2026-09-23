@@ -1083,7 +1083,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.61";
+    let versionName="5.62";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1172,22 +1172,46 @@ async function login() {
   showMessage(loginMessage, t("login.checking"));
 
   try {
-    if (mode === "family") {
-      publicEntryActive = true;
-      // Public User mode works without authentication. Keep currentUser empty,
-      // open the app, and load only public sections.
+    const { data: existingAuth } = await supabase.auth.getSession();
+    const existingEmail = existingAuth?.session?.user?.email || "";
+    if ((mode === "admin" && existingEmail && existingEmail !== ADMIN_EMAIL) ||
+        (mode === "family" && existingEmail === ADMIN_EMAIL)) {
+      await supabase.auth.signOut();
       currentUser = null;
-      loginView.classList.add("hidden");
-      appView.classList.remove("hidden");
-      adminPanel?.classList.add("hidden");
-      infoCompose?.classList.add("hidden");
-      menuOrderAdmin?.classList.add("hidden");
-      installStatsCard?.classList.add("hidden");
-      setSection("home");
-      loadMedia().catch(console.warn);
-      loadInfo({ markRead: false }).catch(console.warn);
-      renderPrayerTimes();
-      updateNextPrayer();
+    }
+
+    if (mode === "family") {
+      publicEntryActive = false;
+      const response = await fetch(SUPABASE_URL + "/functions/v1/family-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_ANON_KEY
+        },
+        body: "{}",
+        cache: "no-store"
+      });
+      const tokenData = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(tokenData?.error || ("Family login HTTP " + response.status));
+      if (!tokenData?.token_hash) throw new Error("Family token missing");
+
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: tokenData.token_hash,
+        type: "email"
+      });
+      if (verifyError) throw verifyError;
+
+      let sessionData = verifyData;
+      if (!sessionData?.session) {
+        const current = await supabase.auth.getSession();
+        sessionData = current.data;
+      }
+      if (!sessionData?.session || sessionData.session.user?.email !== FAMILY_EMAIL) {
+        throw new Error("Family session missing");
+      }
+
+      currentUser = sessionData.session.user;
+      await applySession(sessionData.session);
       showMessage(loginMessage, "");
       return;
     }
@@ -2862,17 +2886,6 @@ function startRealtime() {
 }
 
 async function applySession(session) {
-  if (!session && !ADMIN_ONLY && publicEntryActive) {
-    currentUser = null;
-    loginView.classList.add("hidden");
-    appView.classList.remove("hidden");
-    adminPanel?.classList.add("hidden");
-    infoCompose?.classList.add("hidden");
-    menuOrderAdmin?.classList.add("hidden");
-    installStatsCard?.classList.add("hidden");
-    return;
-  }
-
   currentUser = session?.user || null;
   const signedIn = !!currentUser;
 
@@ -2933,7 +2946,8 @@ if (supabase) {
   let session = data.session;
 
   const wrongSession =
-    (ADMIN_ONLY && session?.user?.email !== ADMIN_EMAIL);
+    (ADMIN_ONLY && session?.user?.email !== ADMIN_EMAIL) ||
+    (!ADMIN_ONLY && session?.user?.email === ADMIN_EMAIL);
 
   if (session && wrongSession) {
     await supabase.auth.signOut();
