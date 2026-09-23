@@ -106,6 +106,7 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new AppInfoBridge(this), "AndroidApp");
         webView.addJavascriptInterface(new GoalAlertBridge(this), "AndroidGoal");
         webView.addJavascriptInterface(new AdminAlertBridge(this), "AndroidAdmin");
+        webView.addJavascriptInterface(new MessageBridge(this), "AndroidMessages");
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(
