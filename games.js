@@ -29,6 +29,16 @@ const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
 
+let quickChessTimer=null;
+let quickChessDeadline=0;
+let arcadeRoom=null;
+let arcadePlayers=[];
+let arcadePollTimer=null;
+let arcadeMode=null;
+let arcadeStarted=false;
+let tetrisOnline=false;
+let tetrisOnlineProgressTimer=null;
+
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
   deviceId = globalThis.crypto?.randomUUID?.() || ("device_" + Date.now() + Math.random().toString(36).slice(2));
@@ -1948,6 +1958,8 @@ function renderLobby(msg=""){
         ${selectedType==="timer" ? `
           <input id="timerPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TIMER_NAME_KEY)||"")}">
           <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
+          <button id="timerQuickOnline" class="secondary" type="button">🌐 Luaj Online · 2–8 veta</button>
+          <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
         ` : selectedType==="war" ? `
           <div class="war-user-setup">
@@ -1969,11 +1981,15 @@ function renderLobby(msg=""){
         ` : selectedType==="tetris" ? `
           <input id="tetrisPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TETRIS_NAME_KEY)||"")}">
           <button id="tetrisGame" class="primary" type="button">🧱 ${tr("tetris")}</button>
+          <button id="tetrisQuickOnline" class="secondary" type="button">🌐 Blloqe Online · 2–4 veta</button>
+          <div class="game-help">Online pret deri 15 sekonda. Lojtari i fundit që mbetet në lojë fiton 🥇.</div>
           <div class="game-help">👆 Prek një herë ekranin = rrotullo · ✋ Mbaje të shtypur dhe tërhiqe = lëvize ku dëshiron</div>
+          <section id="tetrisRecentWins" class="tetris-leaderboard-mini"><div class="muted">🥇 Po ngarkohen fituesit online…</div></section>
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
         ${(selectedType==="tetris" || selectedType==="war") ? "" : `
+          ${selectedType==="chess" ? '<button id="chessQuickOnline" class="primary" type="button">🌐 Shah Online · prit deri 15 sekonda</button><div class="game-help">Nëse ka lojtar online, app-i ju lidh automatikisht.</div>' : ""}
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -1995,6 +2011,8 @@ function renderLobby(msg=""){
   if(timerName) timerName.addEventListener("input",()=>localStorage.setItem(TIMER_NAME_KEY,timerName.value.trim()));
   const timerSoloButton=document.getElementById("timerSoloGame");
   if(timerSoloButton) timerSoloButton.onclick=startTimerSoloGame;
+  document.getElementById("timerQuickOnline")?.addEventListener("click",()=>startArcadeQuick("timer"));
+  document.getElementById("chessQuickOnline")?.addEventListener("click",startChessQuickOnline);
 
   const tetrisNameInput=document.getElementById("tetrisPlayerName");
   if(tetrisNameInput){
@@ -2003,6 +2021,7 @@ function renderLobby(msg=""){
 
   const tetrisButton=document.getElementById("tetrisGame");
   if(tetrisButton) tetrisButton.onclick=startTetrisGame;
+  document.getElementById("tetrisQuickOnline")?.addEventListener("click",()=>startArcadeQuick("tetris"));
 
   const warNameInput=document.getElementById("warPlayerName");
   if(warNameInput){
@@ -2056,7 +2075,286 @@ function renderLobby(msg=""){
   const joinButton=document.getElementById("joinGame");
   if(joinButton) joinButton.onclick=joinRoom;
 
-  if(selectedType==="tetris") loadTetrisLeaderboard("tetrisLobbyLeaderboard");
+  if(selectedType==="tetris"){
+    loadTetrisLeaderboard("tetrisLobbyLeaderboard");
+    loadArcadeWins("tetris","tetrisRecentWins");
+  }
+}
+
+
+function clearQuickChess(){
+  if(quickChessTimer){clearInterval(quickChessTimer);quickChessTimer=null;}
+  quickChessDeadline=0;
+}
+
+async function startChessQuickOnline(){
+  clearQuickChess();
+  const btn=document.getElementById("chessQuickOnline");
+  if(btn) btn.disabled=true;
+  try{
+    const {data,error}=await supabase.rpc("chess_quick_join",{p_device:deviceId});
+    if(error) throw error;
+    const roomId=data?.room_id;
+    if(!roomId) throw new Error("ROOM_NOT_CREATED");
+    quickChessDeadline=new Date(data.deadline).getTime();
+    let fresh=await fetchRoomById(roomId);
+    await openRoom(fresh);
+
+    const tick=async()=>{
+      try{
+        fresh=await fetchRoomById(roomId);
+        room=fresh;
+        if(fresh.status==="active" && fresh.player2_device){
+          clearQuickChess();
+          renderRoom();
+          return;
+        }
+        const left=Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000));
+        const status=document.querySelector(".game-status");
+        if(status) status.textContent="🌐 Duke pritur lojtar online… "+left+" s";
+        if(Date.now()>=quickChessDeadline){
+          const again=await fetchRoomById(roomId).catch(()=>null);
+          if(again?.status==="active" && again.player2_device){
+            room=again; clearQuickChess(); renderRoom(); return;
+          }
+          await supabase.rpc("chess_quick_cancel",{p_room:roomId,p_device:deviceId});
+          clearQuickChess();
+          room=null;
+          renderLobby("Nuk u gjet lojtar brenda 15 sekondave. Provo përsëri.");
+        }
+      }catch(error){
+        console.warn("chess quick online",error);
+      }
+    };
+    await tick();
+    if(room?.status==="waiting") quickChessTimer=setInterval(tick,1000);
+  }catch(error){
+    console.warn("chess quick join",error);
+    renderLobby("Nuk u hap Shahu Online. Provo përsëri.");
+  }finally{
+    if(btn) btn.disabled=false;
+  }
+}
+
+function clearArcadePolling(){
+  if(arcadePollTimer){clearInterval(arcadePollTimer);arcadePollTimer=null;}
+  if(tetrisOnlineProgressTimer){clearInterval(tetrisOnlineProgressTimer);tetrisOnlineProgressTimer=null;}
+}
+
+function arcadeName(game){
+  const key=game==="tetris"?TETRIS_NAME_KEY:TIMER_NAME_KEY;
+  const input=document.getElementById(game==="tetris"?"tetrisPlayerName":"timerPlayerName");
+  const name=(input?.value||localStorage.getItem(key)||"").trim().slice(0,24);
+  if(name) localStorage.setItem(key,name);
+  return name;
+}
+
+function arcadeHundredths(ms){
+  const v=Math.max(0,Math.min(9990,Number(ms)||0));
+  const sec=Math.floor(v/1000);
+  const hs=Math.floor((v%1000)/10);
+  return String(sec).padStart(2,"0")+":"+String(hs).padStart(2,"0");
+}
+
+async function loadArcadePlayers(){
+  if(!arcadeRoom?.room_id) return [];
+  const {data,error}=await supabase.from("arcade_players")
+    .select("room_id,device_id,display_name,eliminated,score,lines,stop_ms,joined_at,last_seen_at")
+    .eq("room_id",arcadeRoom.room_id)
+    .order("joined_at",{ascending:true});
+  if(error) throw error;
+  arcadePlayers=data||[];
+  return arcadePlayers;
+}
+
+async function loadArcadeWins(game,targetId){
+  const el=document.getElementById(targetId);
+  if(!el) return;
+  try{
+    const {data,error}=await supabase.from("arcade_wins")
+      .select("winner_name,opponents,medal,won_at")
+      .eq("game_type",game)
+      .order("won_at",{ascending:false})
+      .limit(6);
+    if(error) throw error;
+    const rows=(data||[]).map(x=>{
+      const when=new Date(x.won_at).toLocaleString([], {day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+      return '<div class="tetris-rank-row"><span>'+escapeHtml(x.medal+" "+x.winner_name)+'</span><strong>'+escapeHtml(when+" · kundër "+(x.opponents||"—"))+'</strong></div>';
+    }).join("");
+    el.innerHTML='<h3>🥇 Fituesit Online</h3><div class="tetris-ranking">'+(rows||'<div class="muted">Ende nuk ka fitues online.</div>')+'</div>';
+  }catch(error){
+    console.warn("arcade wins",error);
+  }
+}
+
+async function leaveArcade(){
+  const id=arcadeRoom?.room_id;
+  clearArcadePolling();
+  if(id) await supabase.rpc("arcade_leave",{p_room:id,p_device:deviceId}).catch(()=>{});
+  arcadeRoom=null;arcadePlayers=[];arcadeMode=null;arcadeStarted=false;tetrisOnline=false;
+}
+
+async function startArcadeQuick(game){
+  const name=arcadeName(game);
+  if(!name){renderLobby(tr("needName"));return;}
+  clearArcadePolling();
+  arcadeMode=game;
+  arcadeStarted=false;
+  try{
+    const {data,error}=await supabase.rpc("arcade_join",{p_game:game,p_device:deviceId,p_name:name});
+    if(error) throw error;
+    arcadeRoom=data;
+    await loadArcadePlayers();
+    renderArcadeWaiting();
+    const tick=async()=>{
+      if(!arcadeRoom?.room_id)return;
+      try{
+        const {data:state,error:pollError}=await supabase.rpc("arcade_poll",{p_room:arcadeRoom.room_id,p_device:deviceId});
+        if(pollError) throw pollError;
+        arcadeRoom={...arcadeRoom,...state};
+        await loadArcadePlayers();
+        if(state.status==="cancelled"){
+          clearArcadePolling();
+          const g=arcadeMode;
+          arcadeRoom=null;arcadePlayers=[];arcadeStarted=false;
+          renderLobby("Nuk u gjet lojtar tjetër brenda 15 sekondave. Provo përsëri.");
+          arcadeMode=g;
+          return;
+        }
+        if(state.status==="finished"){
+          clearArcadePolling();
+          if(game==="timer") renderArcadeTimer();
+          else finishTetrisOnline();
+          return;
+        }
+        if(state.status==="active"){
+          if(game==="timer") renderArcadeTimer();
+          else if(!arcadeStarted){
+            arcadeStarted=true;
+            tetrisOnline=true;
+            startTetrisGame({online:true});
+            startTetrisOnlineHeartbeat();
+          }else{
+            updateTetrisOnlineStatus();
+          }
+        }else{
+          renderArcadeWaiting();
+        }
+      }catch(error){console.warn("arcade poll",error);}
+    };
+    await tick();
+    arcadePollTimer=setInterval(tick,800);
+  }catch(error){
+    console.warn("arcade join",error);
+    renderLobby("Nuk u hap loja online. Provo përsëri.");
+  }
+}
+
+function renderArcadeWaiting(){
+  if(!arcadeRoom)return;
+  const deadline=new Date(arcadeRoom.join_deadline).getTime();
+  const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));
+  const max=arcadeMode==="tetris"?4:8;
+  root.innerHTML='<div class="games-shell"><section class="card arcade-wait-card">'+
+    '<h2>🌐 '+(arcadeMode==="tetris"?"Blloqe Online":"Kral i Sekondave Online")+'</h2>'+
+    '<div class="arcade-countdown">'+left+'</div>'+
+    '<p>Po presim lojtarë… '+arcadePlayers.length+' / '+max+'</p>'+
+    '<div class="timer-player-list">'+arcadePlayers.map((p,i)=>'<div class="timer-player-row"><span><strong>'+(i+1)+'. '+escapeHtml(p.display_name)+'</strong></span><span>🟢</span></div>').join("")+'</div>'+
+    '<button id="arcadeLeave" class="secondary" type="button">← Kthehu te lojërat</button>'+
+    '</section></div>';
+  document.getElementById("arcadeLeave").onclick=async()=>{await leaveArcade();renderLobby();};
+}
+
+function renderArcadeTimer(){
+  if(!arcadeRoom)return;
+  const startedAt=arcadeRoom.started_at?new Date(arcadeRoom.started_at).getTime():0;
+  const target=arcadeHundredths(arcadeRoom.target_ms);
+  const winner=arcadePlayers.find(p=>p.device_id===arcadeRoom.winner_device);
+  const finished=arcadeRoom.status==="finished";
+  const beforeStart=startedAt && Date.now()<startedAt;
+  root.innerHTML='<div class="games-shell"><section class="card arcade-timer-card">'+
+    '<h2>👑 Kral i Sekondave Online</h2>'+
+    '<div class="arcade-target-label">NDAL TE</div>'+
+    '<div class="arcade-target">'+target+'</div>'+
+    (finished
+      ? '<div class="timer-crown">👑</div><div class="timer-big-message">Fituesi</div><div class="timer-winner-name">'+escapeHtml(winner?.display_name||"—")+'</div>'
+      : '<div class="game-help">'+(beforeStart?"Bëhu gati…":"I pari që shtyp STOP në ose pas kohës së treguar fiton.")+'</div><button id="arcadeTimerStop" class="timer-stop-button" type="button" '+(beforeStart?"disabled":"")+'>STOP</button><div id="arcadeTimerMsg" class="message"></div>')+
+    '<section><h3>👥 Lojtarët</h3><div class="timer-player-list">'+arcadePlayers.map((p,i)=>'<div class="timer-player-row"><span><strong>'+(i+1)+'. '+escapeHtml(p.display_name)+'</strong></span><span>'+(p.device_id===arcadeRoom.winner_device?"👑":"🟢")+'</span></div>').join("")+'</div></section>'+
+    '<button id="arcadeLeave" class="secondary" type="button">← Kthehu te lojërat</button>'+
+    '</section></div>';
+  document.getElementById("arcadeTimerStop")?.addEventListener("click",stopArcadeTimer);
+  document.getElementById("arcadeLeave").onclick=async()=>{await leaveArcade();renderLobby();};
+}
+
+async function stopArcadeTimer(){
+  const btn=document.getElementById("arcadeTimerStop");
+  if(btn)btn.disabled=true;
+  try{
+    const {data,error}=await supabase.rpc("arcade_timer_stop",{p_room:arcadeRoom.room_id,p_device:deviceId});
+    if(error)throw error;
+    if(data?.too_early){
+      const msg=document.getElementById("arcadeTimerMsg");
+      if(msg)msg.textContent="⏱️ Shumë herët. Prit deri te "+arcadeHundredths(data.target_ms)+".";
+      if(btn)btn.disabled=false;
+      return;
+    }
+    arcadeRoom={...arcadeRoom,...data,status:data?.status||arcadeRoom.status};
+    await loadArcadePlayers();
+    renderArcadeTimer();
+  }catch(error){
+    console.warn("arcade timer stop",error);
+    if(btn)btn.disabled=false;
+  }
+}
+
+async function reportTetrisOnline(eliminated=false){
+  if(!tetrisOnline||!arcadeRoom?.room_id||!tetris)return;
+  try{
+    const {data,error}=await supabase.rpc("arcade_tetris_progress",{
+      p_room:arcadeRoom.room_id,p_device:deviceId,
+      p_score:Number(tetris.score||0),p_lines:Number(tetris.lines||0),p_eliminated:!!eliminated
+    });
+    if(error)throw error;
+    if(data?.status==="finished"){
+      arcadeRoom={...arcadeRoom,...data};
+      await loadArcadePlayers();
+      finishTetrisOnline();
+    }
+  }catch(error){console.warn("tetris online progress",error);}
+}
+
+function startTetrisOnlineHeartbeat(){
+  if(tetrisOnlineProgressTimer)clearInterval(tetrisOnlineProgressTimer);
+  tetrisOnlineProgressTimer=setInterval(async()=>{
+    if(!tetrisOnline||!arcadeRoom?.room_id)return;
+    await reportTetrisOnline(false);
+    await loadArcadePlayers().catch(()=>{});
+    updateTetrisOnlineStatus();
+  },2500);
+}
+
+function updateTetrisOnlineStatus(){
+  const el=document.getElementById("tetrisOnlineStatus");
+  if(!el)return;
+  const alive=arcadePlayers.filter(p=>!p.eliminated);
+  el.innerHTML='<strong>🌐 Online · '+alive.length+' gjallë / '+arcadePlayers.length+'</strong>'+
+    '<div class="tetris-online-players">'+arcadePlayers.map(p=>'<span class="'+(p.eliminated?"out":"")+'">'+escapeHtml(p.display_name)+' '+(p.eliminated?"❌":"🟢")+'</span>').join("")+'</div>';
+}
+
+function finishTetrisOnline(){
+  if(!tetrisOnline)return;
+  clearArcadePolling();
+  const winner=arcadePlayers.find(p=>p.device_id===arcadeRoom?.winner_device);
+  if(tetris){
+    tetris.gameOver=true;
+    stopTetris();
+    const overlay=document.getElementById("tetrisOverlay");
+    if(overlay){
+      overlay.classList.remove("hidden");
+      overlay.innerHTML='<div><strong>🥇 '+escapeHtml(winner?.display_name||"Fituesi")+'</strong><br><span>Fitoi Blloqe Online</span></div>';
+    }
+  }
+  updateTetrisOnlineStatus();
 }
 
 function startTimerSoloGame(){
@@ -2252,7 +2550,7 @@ function renderRoom(){
           </div>
           ${local ? "" : `<button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>`}
         </div>
-        <div class="game-status">${waiting?tr("waiting"):statusText()}</div>
+        <div class="game-status">${waiting && room.game_type==="chess" && quickChessDeadline ? "🌐 Duke pritur lojtar online… "+Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000))+" s" : waiting?tr("waiting"):statusText()}</div>
         <div class="game-meta-grid">
           <div class="game-meta-box ${room.game_type==="morris"?"morris-player-white":""}">⚪ ${tr("white")}: ✓</div>
           <div class="game-meta-box ${room.game_type==="morris"?"morris-player-black":""}">⚫ ${tr("black")}: ${local ? "🤖 "+tr("computerName") : (room.player2_device===deviceId?"✓":room.player2_device?"●":"…")}</div>
@@ -2530,7 +2828,7 @@ async function loadTimerLeaderboardInto(id){
   }catch(error){ console.warn(error); }
 }
 
-const C_SYM={wp:"♙",wr:"♖",wn:"♘",wb:"♗",wq:"♕",wk:"♔",bp:"♟",br:"♜",bn:"♞",bb:"♝",bq:"♛",bk:"♚"};
+const C_SYM={wp:"♟",wr:"♜",wn:"♞",wb:"♝",wq:"♛",wk:"♚",bp:"♟",br:"♜",bn:"♞",bb:"♝",bq:"♛",bk:"♚"};
 
 function chessMoves(board,r,c){
   const p=board[r][c]; if(!p)return [];
@@ -2851,6 +3149,7 @@ function tetrisSpawn(){
     tetris.gameOver=true;
     stopTetris();
     setTimeout(saveTetrisScore,0);
+    if(tetrisOnline) setTimeout(()=>reportTetrisOnline(true),0);
   }
 }
 
@@ -3176,7 +3475,9 @@ async function exitTetrisFullscreen(){
   }catch(_){}
 }
 
-function startTetrisGame(){
+function startTetrisGame(options={}){
+  const online=options?.online===true;
+  tetrisOnline=online;
   enterTetrisFullscreen();
   const playerName=(document.getElementById("tetrisPlayerName")?.value || localStorage.getItem(TETRIS_NAME_KEY) || "").trim().slice(0,24);
   if(!playerName){ exitTetrisFullscreen(); renderLobby(tr("needName")); return; }
@@ -3186,6 +3487,7 @@ function startTetrisGame(){
   stopTetris();
   room=null;
   selected=null;
+  if(!online){arcadeStarted=false;}
 
   tetris={
     board:Array.from({length:TETRIS_ROWS},()=>Array(TETRIS_COLS).fill(null)),
@@ -3235,17 +3537,18 @@ function startTetrisGame(){
           <button id="tetrisNew" class="primary" type="button">🔄 ${tr("newGame")}</button>
         </div>
 
+        ${tetrisOnline?'<section id="tetrisOnlineStatus" class="card tetris-online-status"></section>':""}
         <section id="tetrisLeaderboard" class="tetris-leaderboard">
           <div class="muted">🏆 Po ngarkohet renditja…</div>
         </section>
       </section>
     </div>`;
 
-  document.getElementById("tetrisBack").onclick=async()=>{stopTetris();tetris=null;await exitTetrisFullscreen();renderLobby();};
+  document.getElementById("tetrisBack").onclick=async()=>{stopTetris();tetris=null;if(tetrisOnline)await leaveArcade();await exitTetrisFullscreen();renderLobby();};
   document.getElementById("tetrisPause").onclick=tetrisPause;
   const tetrisSoundBtn=document.getElementById("tetrisSound");
   if(tetrisSoundBtn) tetrisSoundBtn.onclick=()=>{ setTetrisSound(!tetrisSoundEnabled); tetrisSoundBtn.textContent=tetrisSoundEnabled?"🔊 Zëri ON":"🔇 Zëri OFF"; };
-  document.getElementById("tetrisNew").onclick=startTetrisGame;
+  document.getElementById("tetrisNew").onclick=()=>tetrisOnline?startTetrisGame({online:true}):startTetrisGame();
   root.querySelectorAll("[data-tetris]").forEach(btn=>{
     const action=btn.dataset.tetris;
     const run=()=>{
@@ -3273,6 +3576,7 @@ function startTetrisGame(){
 
   renderTetrisBoard();
   loadTetrisLeaderboard();
+  if(tetrisOnline) updateTetrisOnlineStatus();
   playTetrisSound("start");
   tetrisRestartTimer();
 }
