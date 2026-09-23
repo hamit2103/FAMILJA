@@ -244,42 +244,21 @@ function t(key, vars = {}) {
   return value;
 }
 
-async function loadDiamondWeather() {
-  const cityEl=document.getElementById("diamondWeatherCity");
-  const weekEl=document.getElementById("diamondWeatherWeek");
-  const nowEl=document.getElementById("diamondWeatherNow");
-  if(!cityEl||!weekEl) return;
-  const lang=currentLanguage || "sq";
-  const render=async(lat,lon,city)=>{
-    try{
-      const url="https://api.open-meteo.com/v1/forecast?latitude="+encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon)+"&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7";
-      const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error("weather");
-      const d=await r.json(); const daily=d.daily||{};
-      const days=(daily.time||[]).map((date,i)=>{
-        const dt=new Date(date+"T12:00:00");
-        const name=new Intl.DateTimeFormat(lang,{weekday:"short"}).format(dt);
-        const code=Number(daily.weather_code?.[i]??0);
-        const icon=code===0?"☀️":code<=3?"⛅":code<=48?"🌫️":code<=67?"🌧️":code<=77?"🌨️":code<=82?"🌦️":"⛈️";
-        return name+" "+icon+" "+Math.round(daily.temperature_2m_max?.[i])+"°/"+Math.round(daily.temperature_2m_min?.[i])+"°";
-      });
-      cityEl.textContent="📍 "+city;
-      if(nowEl) nowEl.textContent="Tani: "+Math.round(Number(d.current?.temperature_2m))+"°C";
-      weekEl.textContent=days.join(" · ");
-    }catch(_){ weekEl.textContent="Moti 7 ditë"; }
-  };
-  const fallback=()=>{cityEl.textContent="📍 Vendndodhja";if(nowEl)nowEl.textContent="Aktivizo vendndodhjen";weekEl.textContent="—";};
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(async pos=>{
-      let city="Vendndodhja ime";
-      try{
-        const r=await fetch("https://geocoding-api.open-meteo.com/v1/reverse?latitude="+pos.coords.latitude+"&longitude="+pos.coords.longitude+"&language="+lang+"&format=json");
-        if(r.ok){const j=await r.json(); city=j.results?.[0]?.name||city;}
-      }catch(_){}
-      render(pos.coords.latitude,pos.coords.longitude,city);
-    },fallback,{enableHighAccuracy:false,timeout:5000,maximumAge:1800000});
-  } else fallback();
+let homeClockTimer=null;
+function updateHomeDigitalClock(){
+  const timeEl=document.getElementById("homeDigitalTime");
+  const dateEl=document.getElementById("homeDigitalDate");
+  if(!timeEl||!dateEl)return;
+  const now=new Date();
+  timeEl.textContent=now.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
+  dateEl.textContent=now.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
 }
-
+function startHomeDigitalClock(){
+  updateHomeDigitalClock();
+  if(homeClockTimer)clearInterval(homeClockTimer);
+  homeClockTimer=setInterval(updateHomeDigitalClock,1000);
+}
+function loadDiamondWeather(){startHomeDigitalClock();return Promise.resolve();}
 
 const GLOBAL_UI_I18N={
  sq:{all:"Gjithçka në një vend",qt:"Kuran",qd:"114 sure · Arabisht · Shqip · Türkçe · Deutsch",qo:"Hap Kuranin →"},
@@ -458,6 +437,8 @@ const adminStatsStatus = $("adminStatsStatus");
 const adminUsersCard = $("adminUsersCard");
 const adminUsersList = $("adminUsersList");
 const adminUsersStatus = $("adminUsersStatus");
+const adminUserCount = $("adminUserCount");
+const adminOnlineUserNames = $("adminOnlineUserNames");
 const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
@@ -1093,7 +1074,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.65";
+    let versionName="5.66";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1224,17 +1205,34 @@ function refreshUserNameLoginUi(){
       : "Kujdes: emri do të jetë përgjithmonë në këtë app dhe i vlefshëm për të gjitha lojërat.";
   }
 }
+async function registerDeviceInfo(){
+  if(!supabase||!currentUser||isAdmin())return;
+  try{
+    const {data:{session}}=await supabase.auth.getSession();
+    const token=session?.access_token;if(!token)return;
+    let versionName="5.66";
+    try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
+    await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token},
+      body:JSON.stringify({device_id:presenceDeviceId,user_agent:navigator.userAgent||"",app_version:versionName}),
+      cache:"no-store"
+    });
+  }catch(error){console.warn("device info",error);}
+}
+
 async function loadAdminUsers(){
   if(!isAdmin()||!adminUsersList)return;
   try{
     const {data,error}=await supabase.rpc("user_profile_admin_list");
     if(error) throw error;
+    if(adminUserCount)adminUserCount.textContent=String((data||[]).length);
     const rows=(data||[]).map(p=>{
       const seen=p.last_seen_at?new Date(p.last_seen_at).toLocaleString():"—";
       return `<div class="admin-user-row">
         <div class="admin-user-main">
           <strong>${escapeHtml(p.display_name)}</strong>
-          <small>${p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv"} · ${escapeHtml(seen)}</small>
+          <small>${p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv"} · ${escapeHtml(seen)}</small><small>🌐 IP: ${escapeHtml(p.ip_address||"—")} · 📱 ID: ${escapeHtml(p.device_id)}</small>
         </div>
         <input maxlength="20" value="${escapeHtml(p.display_name)}" data-user-name="${escapeHtml(p.device_id)}">
         <button class="secondary" type="button" data-user-rename="${escapeHtml(p.device_id)}">Ndrysho emrin</button>
@@ -2934,8 +2932,14 @@ chatSendBtn?.addEventListener("click", async () => {
 
 function updateOnlineCount() {
   if (!onlineCount || !realtimeChannel) return;
-  const state = realtimeChannel.presenceState();
-  onlineCount.textContent = String(Object.keys(state).length);
+  const state=realtimeChannel.presenceState();
+  const entries=Object.values(state).flat();
+  const users=entries.filter(x=>x?.role!=="admin");
+  onlineCount.textContent=String(users.length);
+  if(isAdmin()&&adminOnlineUserNames){
+    const names=[...new Set(users.map(x=>x?.display_name).filter(Boolean))];
+    adminOnlineUserNames.textContent=names.length?names.join(", "):"—";
+  }
 }
 
 function startRealtime() {
@@ -2989,6 +2993,7 @@ function startRealtime() {
         await realtimeChannel.track({
           device_id: presenceDeviceId,
           role: isAdmin() ? "admin" : "family",
+          display_name: isAdmin() ? "Administrator" : globalUserName(),
           online_at: new Date().toISOString()
         });
         updateOnlineCount();
@@ -3051,6 +3056,7 @@ async function applySession(session) {
   startPrayerAlarmChecker();
   await registerInstall();
   await registerDailyActivity();
+  await registerDeviceInfo();
   if(isAdmin()) { await loadAdminStats(); await loadAdminUsers(); refreshNewDeviceNotifyButton(); }
   startRealtime();
 }
