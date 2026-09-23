@@ -1062,6 +1062,7 @@ function warInitialState(){
     over:false,
     gameCounted:false,
     serverRewardRecorded:false,
+    rerollUsedThisTurn:false,
     message:bonus>0
       ? "Ke "+bonus+" zemër bonus aktive për 24 orë."
       : "Zgjidh njërën nga 2 armët."
@@ -1196,7 +1197,7 @@ function renderWarGame(){
               ${warActionCard(p.special)}
               ${warActionCard(p.special2)}
             </div>
-            <button id="warReroll" class="war-reroll" type="button" ${s.over||s.turn!=="player"?"disabled":""}>${wtr("changeWeapons")}<br><small>3 💎</small></button>
+            <button id="warReroll" class="war-reroll" type="button" ${s.over||s.turn!=="player"||s.rerollUsedThisTurn?"disabled":""}>${wtr("changeWeapons")}<br><small>3 💎</small></button>
           </aside>
         </div>
 
@@ -1234,13 +1235,14 @@ function renderWarGame(){
   });
 
   document.getElementById("warReroll")?.addEventListener("click",async()=>{
-    if(s.over||s.turn!=="player") return;
+    if(s.over||s.turn!=="player"||s.rerollUsedThisTurn) return;
     const btn=document.getElementById("warReroll");
     if(btn) btn.disabled=true;
     try{
       const {data,error}=await supabase.rpc("war_spend_reroll",{p_device:deviceId});
       if(error) throw error;
       warProfile={...(warProfile||{}),diamonds:Number(data?.diamonds||0)};
+      s.rerollUsedThisTurn=true;
       [p.special,p.special2]=warRollPair();
       s.message="🎲 Armët u ndryshuan për 3 💎.";
       renderWarGame();
@@ -1735,6 +1737,7 @@ function warPlayerAction(action){
 
     if(result.extraTurn){
       warGameState.turn="player";
+      warGameState.rerollUsedThisTurn=false;
       renderWarGame();
       return;
     }
