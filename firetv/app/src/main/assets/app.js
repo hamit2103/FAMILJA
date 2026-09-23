@@ -31,6 +31,7 @@ const $ = (id) => document.getElementById(id);
 const LANGUAGE_KEY = "pajaziti-language";
 const I18N = {
   sq: {
+    "home.quote":"Ne e bëjmë të pamundurën të mundur.",
     "language.label":"Gjuha","app.subtitle":"","mode.family":"Përdoruesi","mode.admin":"Admin",
     "login.label":"Kodi i hyrjes","login.placeholder":"Shkruaj kodin","login.adminPlaceholder":"Kodi i administratorit","login.familyPlaceholder":"Kodi i familjes",
     "login.button":"Hyr","login.userButton":"Hyr si Përdorues","login.userDirectHint":"Përdoruesi hyn direkt pa kod.","install.app":"Instalo aplikacionin","install.short":"Instalo","share":"Ndaje APK-në","logout":"Dil","online":"Online:",
@@ -69,6 +70,7 @@ const I18N = {
     "install.chrome":"Në Chrome, hap menunë ⋮ dhe zgjidh “Install app” ose “Add to Home screen”."
   },
   de: {
+    "home.quote":"Wir machen das Unmögliche möglich.",
     "language.label":"Sprache","app.subtitle":"","mode.family":"Benutzer","mode.admin":"Admin",
     "login.label":"Zugangscode","login.placeholder":"Code eingeben","login.adminPlaceholder":"Administrator-Code","login.familyPlaceholder":"Familien-Code",
     "login.button":"Anmelden","login.userButton":"Als Benutzer anmelden","login.userDirectHint":"Benutzer meldet sich direkt ohne Code an.","install.app":"App installieren","install.short":"Installieren","share":"APK teilen","logout":"Abmelden","online":"Online:",
@@ -99,7 +101,8 @@ const I18N = {
     "upload.done":"{count} Medien wurden hochgeladen.","location.permission":"Erlaube den Standortzugriff für die Gebetszeiten.","location.notFound":"Standort nicht gefunden. Versuche es erneut.",
     "location.timeout":"Standortabfrage dauerte zu lange. Versuche es erneut.","location.loading":"Standort wird ermittelt…","prayer.loading":"Gebetszeiten werden geladen…","prayer.updated":"Gebetszeiten wurden aktualisiert.",
     "share.text":"Lade die Diamond-APK herunter und installiere sie auf Android.","share.copied":"Der APK-Link wurde kopiert. Du kannst ihn jetzt senden.",
-    "error.supabaseNotLinked":"Supabase ist noch nicht verbunden. Project URL und anon key werden benötigt.","error.infoNotReady":"Die Informationen sind noch nicht verfügbar.","error.publishFailed":"Veröffentlichen fehlgeschlagen: {error}",
+    "error.supabaseNotLinked":"Supabase ist noch nicht verbunden. Project URL und anon key werden benötigt.","error.infoNotReady":"Die Informationen sind noch nicht verfügbar.","error.publishFailed":"Veröffentlichen fehlgeschlagen: {
+    "home.quote":"We make the impossible possible.",error}",
     "error.locationUnsupported":"Dieses Telefon unterstützt keinen Standortzugriff.","error.prayerFetch":"Gebetszeiten konnten nicht geladen werden.","prayer.locationTap":"Tippe auf „Standort“ für genaue Gebetszeiten.",
     "error.futureTimes":"Keine zukünftigen Zeiten für {name} gefunden.","error.supabaseNotReady":"Supabase ist noch nicht bereit","error.runSql":"Die Datei supabase/setup.sql muss im SQL Editor ausgeführt werden.",
     "error.storageSql":"Der Speicherzähler benötigt das SQL-Update.","error.fileTooLarge":"{name} ist auch nach der Optimierung größer als 50 MB und wurde übersprungen.","upload.savedSpace":"Etwa {size} Speicher wurden gespart.",
@@ -107,6 +110,7 @@ const I18N = {
     "install.chrome":"Öffne in Chrome das Menü ⋮ und wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“."
   },
   tr: {
+    "home.quote":"İmkânsızı mümkün kılıyoruz.",
     "language.label":"Dil","app.subtitle":"","mode.family":"Kullanıcı","mode.admin":"Yönetici",
     "login.label":"Giriş kodu","login.placeholder":"Kodu gir","login.adminPlaceholder":"Yönetici kodu","login.familyPlaceholder":"Aile kodu",
     "login.button":"Giriş yap","login.userButton":"Kullanıcı olarak gir","login.userDirectHint":"Kullanıcı kod olmadan doğrudan giriş yapar.","install.app":"Uygulamayı yükle","install.short":"Yükle","share":"APK'yı paylaş","logout":"Çıkış","online":"Çevrimiçi:",
