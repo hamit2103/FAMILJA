@@ -2888,6 +2888,8 @@ async function applySession(session) {
   startRealtime();
 }
 
+loadDiamondWeather().catch(()=>{});
+
 if (supabase) {
   const { data } = await supabase.auth.getSession();
   let session = data.session;
