@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND ADMIN">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=80">
+  <link rel="stylesheet" href="styles.css?v=84">
   <title>DIAMOND ADMIN</title>
   <style>
     /* Inline menu-order hotfix */
@@ -75,10 +75,10 @@
       <h1>DIAMOND</h1>
 
       <div class="mode-switch" style="grid-template-columns:1fr">
-        <button id="familyMode" class="mode active" type="button" data-i18n="mode.family">Përdoruesi</button>
+        <button id="familyMode" class="mode active" type="button" data-i18n="mode.admin">Admin</button>
       </div>
 
-      <div id="familyDirectHint" class="small muted" data-i18n="login.userDirectHint">Përdoruesi hyn direkt pa kod.</div>
+      <div id="familyDirectHint" class="small muted hidden"></div>
       <div id="adminCodeWrap" class="hidden">
         <label for="codeInput" data-i18n="login.label">Kodi i hyrjes</label>
         <input id="codeInput" type="password" inputmode="text" autocomplete="current-password" placeholder="Shkruaj kodin" data-i18n-placeholder="login.placeholder">
@@ -98,7 +98,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.19</span>
+            <span id="appVersionLabel" class="app-version-label">v5.27</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -171,6 +171,8 @@
         <button id="radioTab" class="app-tab" type="button"><span>📻 </span><span id="radioTabLabel" data-i18n="tabs.radio">Radio</span></button>
         <button id="dietTab" class="app-tab" type="button"><span>🥗 </span><span id="dietTabLabel">Diet</span></button>
         <button id="kiTab" class="app-tab" type="button"><span>🤖 </span><span id="kiTabLabel">KI</span></button>
+        <button id="shareAppTab" class="app-tab" type="button"><span>🔗 </span><span id="shareAppTabLabel">Ndaje appin</span></button>
+        <button id="newsTab" class="app-tab" type="button"><span>📰 </span><span id="newsTabLabel">Lajme</span></button>
       </nav>
 
       <section id="menuOrderAdmin" class="menu-order-admin hidden">
@@ -187,19 +189,26 @@
         <section id="adminPanel" class="card">
           <h2 id="uploadTitle" data-i18n="upload.addPhoto">Shto reklamë</h2>
           <p id="uploadHint" class="muted small"></p>
-          <input id="mediaInput" type="file" accept="image/*" multiple>
+          <input id="mediaInput" type="file" accept="image/*,video/*" multiple>
           <button id="uploadBtn" class="primary" type="button" data-i18n="upload.button">Ngarko</button>
           <div id="uploadStatus" class="message"></div>
         </section>
 
         <section id="installStatsCard" class="card install-stats-card hidden">
-          <div class="install-stats-row">
-            <div>
-              <h2>📲 Instalime</h2>
-              <p class="muted small">Numri i pajisjeve që e kanë hapur versionin e ri të app-it.</p>
-            </div>
-            <strong id="installCount">0</strong>
+          <h2>📊 Statistikat e DIAMOND</h2>
+          <div class="admin-stats-grid">
+            <div class="admin-stat-box"><span>📲 Telefona me app</span><strong id="installCount">0</strong></div>
+            <div class="admin-stat-box"><span>🔗 Telefona që kanë ndarë linkun</span><strong id="shareDeviceCount">0</strong></div>
+            <div class="admin-stat-box"><span>🟢 Telefona aktivë sot</span><strong id="dailyActiveCount">0</strong></div>
           </div>
+          <div class="admin-notify-row">
+            <div>
+              <strong>🔔 Njoftim për telefon të ri</strong>
+              <p class="muted small">Lajmërohu edhe kur ADMIN-i është i mbyllur.</p>
+            </div>
+            <button id="newDeviceNotifyBtn" class="secondary" type="button">Aktivizo</button>
+          </div>
+          <div id="adminStatsStatus" class="message"></div>
         </section>
 
         <section id="storageCard" class="card storage-card hidden">
@@ -304,6 +313,41 @@
         <div id="kiRoot"></div>
       </section>
 
+      <section id="newsView" class="hidden">
+        <div id="newsRoot"></div>
+      </section>
+
+      <section id="shareAppView" class="hidden">
+        <section class="card share-app-card">
+          <div class="share-app-icon">🔗</div>
+          <h2 id="shareAppTitle">Ndaje linkun e DIAMOND</h2>
+
+          <section class="share-platform-card">
+            <h3 id="shareAndroidTitle">Android (APK)</h3>
+            <p id="shareAppDesc" class="muted">Ky link është gjithmonë i njëjtë dhe shkarkon automatikisht versionin më të ri të DIAMOND.</p>
+            <input id="shareAppLink" class="share-app-link" type="text" readonly value="https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-apk">
+            <div class="share-app-actions">
+              <button id="shareAppButton" class="primary" type="button">🔗 Ndaje</button>
+              <button id="copyShareAppButton" class="secondary" type="button">📋 Kopjo linkun</button>
+            </div>
+            <p id="shareAppHint" class="muted small">Mund ta dërgosh me WhatsApp, SMS, Messenger ose çdo aplikacion tjetër.</p>
+            <div id="shareAppStatus" class="message"></div>
+          </section>
+
+          <section class="share-platform-card ios-share-card">
+            <h3 id="shareIosTitle">🍎 iPhone / Safari</h3>
+            <p id="shareIosDesc" class="muted">Ky link e hap DIAMOND në web. Hape në Safari dhe pastaj përdor Share → Add to Home Screen.</p>
+            <input id="shareIosLink" class="share-app-link" type="text" readonly value="https://familja.vercel.app/">
+            <div class="share-app-actions">
+              <button id="shareIosButton" class="primary" type="button">🍎 Ndaje</button>
+              <button id="copyShareIosButton" class="secondary" type="button">📋 Kopjo linkun</button>
+            </div>
+            <button id="openShareIosButton" class="secondary share-ios-open" type="button">🌐 Hape në Safari</button>
+            <div id="shareIosStatus" class="message"></div>
+          </section>
+        </section>
+      </section>
+
       <section id="prayerView" class="hidden">
         <section class="card prayer-card">
           <div class="prayer-heading">
@@ -378,10 +422,42 @@
             <p id="wuduGuideCardDesc" class="muted small">Si merret abdesi dhe si bëhet gusli.</p>
             <strong id="wuduGuideCardOpen">Hap Abdesin & Guslin →</strong>
           </button>
+
+
+          <button id="prayerDuaCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head"><h2>🤲 <span id="prayerDuaCardTitle">Mëso dua</span></h2></div>
+            <p id="prayerDuaCardDesc" class="muted small">Duat dhe dhikret kryesore që lexohen gjatë namazit.</p>
+            <strong id="prayerDuaCardOpen">Hap duatë →</strong>
+          </button>
+
+          <button id="quranLearnCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head"><h2>🔤 <span id="quranLearnCardTitle">Mëso Kuranin</span></h2></div>
+            <p id="quranLearnCardDesc" class="muted small">Germat arabe, shqiptimi dhe dëgjimi me zë.</p>
+            <strong id="quranLearnCardOpen">Mëso germat →</strong>
+          </button>
+
+          <button id="tasbihCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head"><h2>📿 <span id="tasbihCardTitle">Tespih</span></h2></div>
+            <p id="tasbihCardDesc" class="muted small">Numërues që ruhet edhe pasi e mbyll app-in, deri sa ta bësh reset.</p>
+            <strong id="tasbihCardOpen">Hap tespihin →</strong>
+          </button>
+
+          <button id="ruqyaCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head">
+              <h2>🌿 <span id="ruqyaCardTitle">Shërim me Kuran</span></h2>
+            </div>
+            <p id="ruqyaCardDesc" class="muted small">Ruqje me Kuran dhe dua sipas traditës islame.</p>
+            <strong id="ruqyaCardOpen">Hap ruqjen →</strong>
+          </button>
         </section>
 
         <section id="quranPanel" class="card quran-panel hidden"></section>
         <section id="prayerHelpPanel" class="card quran-panel hidden"></section>
+        <section id="ruqyaPanel" class="card quran-panel hidden"></section>
+
+        <section id="prayerDuaPanel" class="card quran-panel hidden"></section>
+        <section id="quranLearnPanel" class="card quran-panel hidden"></section>
+        <section id="tasbihPanel" class="card quran-panel hidden"></section>
 
         <section id="prayerList" class="prayer-list"></section>
 
@@ -517,15 +593,19 @@
       await load();
     }
   </script>
-  <script type="module" src="app.js?v=79"></script>
+  <script type="module" src="app.js?v=82"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=77"></script>
   <script type="module" src="tv.js?v=52"></script>
   <script type="module" src="radio.js?v=55"></script>
   <script type="module" src="quran.js?v=2"></script>
   <script type="module" src="prayer-guide.js?v=1"></script>
+  <script type="module" src="prayer-extras.js?v=2"></script>
+  <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
+  <script type="module" src="share-app.js?v=1"></script>
+  <script type="module" src="news.js?v=1"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
