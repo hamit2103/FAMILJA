@@ -1088,7 +1088,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.67";
+    let versionName="5.68";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1273,7 +1273,7 @@ async function sendAdminMessage(){
       method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.access_token},
       body:JSON.stringify({text:textValue,target_device:adminMessageTarget?.value||null}),cache:"no-store"
     });
-    const j=await r.json();if(!r.ok)throw new Error(j?.error||"SEND_FAILED");
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(typeof j?.error==="string"?j.error:"Mesazhi nuk u dërgua.");
     if(adminMessageText)adminMessageText.value="";
     showMessage(adminMessageStatus,"✅ Mesazhi u dërgua dhe u përkthye.","success");
     await loadAdminMessageHistory();
@@ -1302,56 +1302,84 @@ async function registerDeviceInfo(){
 async function loadAdminUsers(){
   if(!isAdmin()||!adminUsersList)return;
   try{
-    const {data,error}=await supabase.rpc("user_profile_admin_list");
-    if(error) throw error;
-    if(adminUserCount)adminUserCount.textContent=String((data||[]).length);
+    const result=await supabase.rpc("user_profile_admin_list");
+    if(result.error) throw result.error;
+    const users=Array.isArray(result.data)?result.data:[];
+    if(adminUserCount)adminUserCount.textContent=String(users.length);
+
     if(adminMessageTarget){
-      const selected=adminMessageTarget.value;
-      adminMessageTarget.innerHTML='<option value="">🌐 Të gjithë userat</option>'+(data||[]).map(p=>'<option value="'+escapeHtml(p.device_id)+'">'+escapeHtml(p.display_name)+'</option>').join("");
-      if([...adminMessageTarget.options].some(o=>o.value===selected))adminMessageTarget.value=selected;
+      const previous=adminMessageTarget.value||"";
+      adminMessageTarget.innerHTML='<option value="">🌐 Të gjithë userat</option>';
+      for(const p of users){
+        const opt=document.createElement("option");
+        opt.value=p.device_id||"";
+        opt.textContent=p.display_name||p.device_id||"User";
+        adminMessageTarget.appendChild(opt);
+      }
+      if(Array.from(adminMessageTarget.options).some(o=>o.value===previous))adminMessageTarget.value=previous;
     }
-    const rows=(data||[]).map(p=>{
+
+    if(!users.length){
+      adminUsersList.innerHTML='<div class="muted">Ende nuk ka përdorues.</div>';
+      return;
+    }
+
+    adminUsersList.innerHTML="";
+    for(const p of users){
       const seen=p.last_seen_at?new Date(p.last_seen_at).toLocaleString():"—";
-      return `<div class="admin-user-row">
-        <div class="admin-user-main">
-          <strong>${escapeHtml(p.display_name)}</strong>
-          <small>${p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv"} · ${escapeHtml(seen)}</small><small>🌐 IP: ${escapeHtml(p.ip_address||"—")} · 📱 ID: ${escapeHtml(p.device_id)}</small>
-        </div>
-        <input maxlength="20" value="${escapeHtml(p.display_name)}" data-user-name="${escapeHtml(p.device_id)}">
-        <button class="secondary" type="button" data-user-rename="${escapeHtml(p.device_id)}">Ndrysho emrin</button>
-        <button class="secondary" type="button" data-user-block="${escapeHtml(p.device_id)}" data-blocked="${p.is_blocked?"1":"0"}">${p.is_blocked?"Lejo":"Blloko"}</button><button class="secondary" type="button" data-user-message="${escapeHtml(p.device_id)}">💬 Mesazh</button>
-      </div>`;
-    }).join("");
-    adminUsersList.innerHTML=rows||'<div class="muted">Ende nuk ka përdorues.</div>';
-    adminUsersList.querySelectorAll("[data-user-rename]").forEach(btn=>{
-      btn.onclick=async()=>{
-        const dev=btn.dataset.userRename;
-        const input=adminUsersList.querySelector('[data-user-name="'+CSS.escape(dev)+'"]');
-        const name=(input?.value||"").trim();
+      const row=document.createElement("div");
+      row.className="admin-user-row";
+
+      const main=document.createElement("div");
+      main.className="admin-user-main";
+      const strong=document.createElement("strong");
+      strong.textContent=p.display_name||"User";
+      const status=document.createElement("small");
+      status.textContent=(p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv")+" · "+seen;
+      const tech=document.createElement("small");
+      tech.textContent="🌐 IP: "+(p.ip_address||"—")+" · 📱 ID: "+(p.device_id||"—");
+      main.append(strong,status,tech);
+
+      const input=document.createElement("input");
+      input.maxLength=20;
+      input.value=p.display_name||"";
+      input.dataset.deviceId=p.device_id||"";
+
+      const rename=document.createElement("button");
+      rename.className="secondary";rename.type="button";rename.textContent="Ndrysho emrin";
+      rename.onclick=async()=>{
+        const name=input.value.trim();
         if(!validGlobalUserName(name)){showMessage(adminUsersStatus,"Emri duhet të ketë së paku 4 shkronja ose numra.","error");return;}
-        btn.disabled=true;
-        const {error}=await supabase.rpc("user_profile_admin_rename",{p_device:dev,p_name:name});
-        btn.disabled=false;
-        if(error){showMessage(adminUsersStatus,error.message||"Gabim.","error");return;}
+        rename.disabled=true;
+        const out=await supabase.rpc("user_profile_admin_rename",{p_device:p.device_id,p_name:name});
+        rename.disabled=false;
+        if(out.error){const raw=String(out.error.message||out.error);showMessage(adminUsersStatus,raw.includes("NAME_TAKEN")?"Ky emër përdoret nga një user tjetër.":raw,"error");return;}
         showMessage(adminUsersStatus,"Emri u ndryshua. Pikët mbetën të njëjta.","success");
         await loadAdminUsers();
       };
-    });
-    adminUsersList.querySelectorAll("[data-user-message]").forEach(btn=>{
-      btn.onclick=()=>{if(adminMessageTarget)adminMessageTarget.value=btn.dataset.userMessage;if(adminMessageText)adminMessageText.focus();adminMessageCard?.scrollIntoView({behavior:"smooth",block:"center"});};
-    });
-    adminUsersList.querySelectorAll("[data-user-block]").forEach(btn=>{
-      btn.onclick=async()=>{
-        const dev=btn.dataset.userBlock;
-        const blocked=btn.dataset.blocked==="1";
-        btn.disabled=true;
-        const {error}=await supabase.rpc("user_profile_admin_block",{p_device:dev,p_blocked:!blocked});
-        btn.disabled=false;
-        if(error){showMessage(adminUsersStatus,error.message||"Gabim.","error");return;}
-        showMessage(adminUsersStatus,!blocked?"Përdoruesi u bllokua.":"Përdoruesi u lejua përsëri.","success");
+
+      const block=document.createElement("button");
+      block.className="secondary";block.type="button";block.textContent=p.is_blocked?"Lejo":"Blloko";
+      block.onclick=async()=>{
+        block.disabled=true;
+        const out=await supabase.rpc("user_profile_admin_block",{p_device:p.device_id,p_blocked:!p.is_blocked});
+        block.disabled=false;
+        if(out.error){showMessage(adminUsersStatus,out.error.message||"Gabim.","error");return;}
+        showMessage(adminUsersStatus,p.is_blocked?"Përdoruesi u lejua përsëri.":"Përdoruesi u bllokua.","success");
         await loadAdminUsers();
       };
-    });
+
+      const message=document.createElement("button");
+      message.className="secondary";message.type="button";message.textContent="💬 Mesazh";
+      message.onclick=()=>{
+        if(adminMessageTarget)adminMessageTarget.value=p.device_id||"";
+        if(adminMessageText)adminMessageText.focus();
+        adminMessageCard?.scrollIntoView({behavior:"smooth",block:"center"});
+      };
+
+      row.append(main,input,rename,block,message);
+      adminUsersList.appendChild(row);
+    }
   }catch(error){
     console.warn("admin users",error);
     showMessage(adminUsersStatus,"Lista e përdoruesve nuk u ngarkua.","error");
