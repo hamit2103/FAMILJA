@@ -187,7 +187,7 @@ function scheduleAutoTranslateGameUI(){
   if(gameAutoTranslateTimer)clearTimeout(gameAutoTranslateTimer);
   gameAutoTranslateTimer=setTimeout(autoTranslateGameUI,60);
 }
-const gameTranslateObserver=new MutationObserver(()=>{scheduleAutoTranslateGameUI();queueMicrotask(ensureGameInfoButton);});
+const gameTranslateObserver=new MutationObserver(()=>{scheduleAutoTranslateGameUI();queueMicrotask(()=>{ensureGameInfoButton();ensureGameAudioControls();});});
 if(root)gameTranslateObserver.observe(root,{subtree:true,childList:true,characterData:true});
 
 
@@ -243,32 +243,81 @@ function gameThemeControls(){
 }
 function setMasterSound(enabled){
   masterSoundEnabled=!!enabled;localStorage.setItem(GAME_SOUND_MASTER_KEY,masterSoundEnabled?"on":"off");
-  setTimerSound(masterSoundEnabled);setTetrisSound(masterSoundEnabled);warSoundEnabled=masterSoundEnabled;localStorage.setItem(WAR_SOUND_KEY,masterSoundEnabled?"on":"off");
+  setTimerSound(masterSoundEnabled);setTetrisSound(masterSoundEnabled);warSoundEnabled=masterSoundEnabled;localStorage.setItem(WAR_SOUND_KEY,masterSoundEnabled?"on":"off");refreshGameAudioControls();
 }
-function orientalNote(freq,start,dur,gain=.025){
+const GAME_MUSIC_PROFILES={
+  chess:{base:196,ratios:[1,1.125,1.2,1.5,1.333,1.2,1.125,1],step:.40,dur:.34,wave:"triangle",gain:.020},
+  morris:{base:220,ratios:[1,1.2,1.333,1.5,1.6,1.5,1.333,1.2],step:.34,dur:.29,wave:"sine",gain:.022},
+  timer:{base:262,ratios:[1,1.125,1.5,1.125,1.6,1.5,1.2,1.125],step:.25,dur:.20,wave:"triangle",gain:.018},
+  tetris:{base:247,ratios:[1,1.25,1.5,2,1.5,1.25,1.125,1.5],step:.22,dur:.18,wave:"square",gain:.012},
+  war:{base:165,ratios:[1,1.125,1.333,1.5,1.333,1.2,1.125,1],step:.36,dur:.30,wave:"sawtooth",gain:.014}
+};
+let currentMusicGame="";
+function activeMusicGame(){
+  if(warMultiRoom?.id || warGameState) return "war";
+  if(tetris) return "tetris";
+  if(room?.game_type) return room.game_type;
+  if(arcadeMode) return arcadeMode;
+  return selectedType||"chess";
+}
+function gameMusicNote(freq,start,dur,gain=.02,wave="sine"){
   if(!gameAudioContext||!gameMusicGain)return;
-  const o=gameAudioContext.createOscillator(),g=gameAudioContext.createGain();
-  o.type="sine";o.frequency.setValueAtTime(freq,start);g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(gain,start+.03);g.gain.exponentialRampToValueAtTime(.0001,start+dur);
-  o.connect(g);g.connect(gameMusicGain);o.start(start);o.stop(start+dur+.03);
+  const o=gameAudioContext.createOscillator(),gn=gameAudioContext.createGain();
+  o.type=wave;o.frequency.setValueAtTime(freq,start);
+  gn.gain.setValueAtTime(.0001,start);gn.gain.exponentialRampToValueAtTime(Math.max(.001,gain),start+.025);gn.gain.exponentialRampToValueAtTime(.0001,start+dur);
+  o.connect(gn);gn.connect(gameMusicGain);o.start(start);o.stop(start+dur+.03);
 }
-async function playOrientalPhrase(){
+async function playGameMusicPhrase(game=activeMusicGame()){
   if(!gameMusicEnabled)return;
   const ctx=await ensureGameAudio();if(!ctx)return;
-  if(!gameMusicGain){gameMusicGain=ctx.createGain();gameMusicGain.gain.value=.75;gameMusicGain.connect(ctx.destination);}
-  const base=220,ratio=[1,1.125,1.2,1.5,1.6,1.5,1.2,1.125];
-  const now=ctx.currentTime+.03;ratio.forEach((r,i)=>orientalNote(base*r,now+i*.34,.30,.024));
+  if(!gameMusicGain){gameMusicGain=ctx.createGain();gameMusicGain.gain.value=.62;gameMusicGain.connect(ctx.destination);}
+  gameMusicGain.gain.value=.62;
+  const p=GAME_MUSIC_PROFILES[game]||GAME_MUSIC_PROFILES.chess,now=ctx.currentTime+.03;
+  p.ratios.forEach((r,i)=>gameMusicNote(p.base*r,now+i*p.step,p.dur,p.gain,p.wave));
 }
-function startGameMusic(){
+function startGameMusic(game=activeMusicGame()){
   if(!gameMusicEnabled)return;
-  playOrientalPhrase();
+  const p=GAME_MUSIC_PROFILES[game]||GAME_MUSIC_PROFILES.chess;
+  currentMusicGame=game;
+  if(gameMusicGain)gameMusicGain.gain.value=.62;
+  playGameMusicPhrase(game);
   if(gameMusicTimer)clearInterval(gameMusicTimer);
-  gameMusicTimer=setInterval(playOrientalPhrase,3100);
+  gameMusicTimer=setInterval(()=>playGameMusicPhrase(currentMusicGame||activeMusicGame()),Math.max(1800,Math.ceil((p.ratios.length*p.step+.25)*1000)));
 }
-function stopGameMusic(){if(gameMusicTimer){clearInterval(gameMusicTimer);gameMusicTimer=null;}if(gameMusicGain)gameMusicGain.gain.value=0;}
-function setGameMusic(enabled){gameMusicEnabled=!!enabled;localStorage.setItem(GAME_MUSIC_KEY,gameMusicEnabled?"on":"off");if(enabled){if(gameMusicGain)gameMusicGain.gain.value=.75;startGameMusic();}else stopGameMusic();}
-function genericGameTone(freq=420,dur=.06){
+function syncGameMusic(){const game=activeMusicGame();if(gameMusicEnabled&&(currentMusicGame!==game||!gameMusicTimer))startGameMusic(game);}
+function stopGameMusic(){if(gameMusicTimer){clearInterval(gameMusicTimer);gameMusicTimer=null;}currentMusicGame="";if(gameMusicGain)gameMusicGain.gain.value=0;}
+function setGameMusic(enabled){gameMusicEnabled=!!enabled;localStorage.setItem(GAME_MUSIC_KEY,gameMusicEnabled?"on":"off");if(enabled)startGameMusic(activeMusicGame());else stopGameMusic();refreshGameAudioControls();}
+function genericGameTone(freq=420,dur=.06,wave="sine",gain=.05){
   if(!masterSoundEnabled)return;
-  ensureGameAudio().then(ctx=>{if(!ctx)return;const o=ctx.createOscillator(),gn=ctx.createGain(),st=ctx.currentTime;o.frequency.value=freq;o.type="sine";gn.gain.setValueAtTime(.05,st);gn.gain.exponentialRampToValueAtTime(.0001,st+dur);o.connect(gn);gn.connect(ctx.destination);o.start(st);o.stop(st+dur+.02);});
+  ensureGameAudio().then(ctx=>{if(!ctx)return;const o=ctx.createOscillator(),gn=ctx.createGain(),st=ctx.currentTime;o.frequency.value=freq;o.type=wave;gn.gain.setValueAtTime(gain,st);gn.gain.exponentialRampToValueAtTime(.0001,st+dur);o.connect(gn);gn.connect(ctx.destination);o.start(st);o.stop(st+dur+.02);});
+}
+function gameMoveTone(game=activeMusicGame(),kind="move"){
+  if(!masterSoundEnabled)return;
+  const map={
+    chess:{select:[330,.045,"triangle"],move:[520,.065,"triangle"],capture:[220,.11,"sawtooth"]},
+    morris:{select:[370,.045,"sine"],move:[460,.065,"triangle"],place:[560,.07,"sine"],remove:[210,.11,"sawtooth"],mill:[700,.12,"triangle"]},
+    timer:{start:[660,.08,"triangle"],stop:[330,.08,"square"],move:[440,.05,"sine"]},
+    tetris:{move:[360,.035,"square"],drop:[180,.08,"sawtooth"],rotate:[520,.05,"square"]},
+    war:{select:[320,.04,"triangle"],attack:[180,.08,"sawtooth"],move:[240,.045,"sawtooth"]}
+  };
+  const t=map[game]?.[kind]||map[game]?.move||[420,.05,"sine"];genericGameTone(t[0],t[1],t[2],.045);
+}
+function refreshGameAudioControls(){
+  const s=document.getElementById("gameSoundFloating"),m=document.getElementById("gameMusicFloating");
+  if(s)s.textContent=masterSoundEnabled?gx("soundAllOn"):gx("soundAllOff");
+  if(m)m.textContent=gameMusicEnabled?gx("musicOn"):gx("musicOff");
+}
+function ensureGameAudioControls(){
+  if(!root||!root.firstElementChild)return;
+  let box=document.getElementById("gameAudioFloating");
+  if(!box){
+    box=document.createElement("div");box.id="gameAudioFloating";box.className="game-audio-floating";
+    box.innerHTML='<button id="gameSoundFloating" class="secondary" type="button"></button><button id="gameMusicFloating" class="secondary" type="button"></button>';
+    root.firstElementChild.appendChild(box);
+    document.getElementById("gameSoundFloating")?.addEventListener("click",()=>{setMasterSound(!masterSoundEnabled);refreshGameAudioControls();});
+    document.getElementById("gameMusicFloating")?.addEventListener("click",()=>setGameMusic(!gameMusicEnabled));
+  }
+  refreshGameAudioControls();syncGameMusic();
 }
 
 const WAR_TXT={
@@ -443,7 +492,7 @@ function maybePlayTimerStateSound(st,started){
 }
 
 root?.addEventListener("pointerdown",(event)=>{
-  if(masterSoundEnabled||gameMusicEnabled) ensureGameAudio().then(()=>{if(gameMusicEnabled&&!gameMusicTimer)startGameMusic();});
+  if(masterSoundEnabled||gameMusicEnabled) ensureGameAudio().then(()=>{if(gameMusicEnabled)syncGameMusic();});
   if(warSoundEnabled && event.target?.closest?.(".war-shell")){
     // Android/PWA: audio must be unlocked directly from a user gesture.
     try{
@@ -995,7 +1044,7 @@ function renderWarMultiGame(){
   }
 
   root.querySelectorAll("[data-war-target]").forEach(btn=>{
-    btn.onclick=()=>{if(!myTurn)return;warMultiSelectedTarget=btn.dataset.warTarget;renderWarMultiGame();};
+    btn.onclick=()=>{if(!myTurn)return;gameMoveTone("war","select");warMultiSelectedTarget=btn.dataset.warTarget;renderWarMultiGame();};
   });
   root.querySelectorAll("[data-war-action]").forEach(btn=>{
     btn.disabled=!myTurn;btn.onclick=()=>warMultiDoAction(btn.dataset.warAction);
@@ -1087,6 +1136,7 @@ async function warMultiDoAction(action){
   }
 
   root.querySelectorAll("[data-war-action]").forEach(b=>b.disabled=true);
+  gameMoveTone("war","attack");
   playWarSound(warSoundForAction(action));
 
   try{
@@ -1149,6 +1199,7 @@ async function startWarMultiSearch(){
     if(!roomId) throw new Error("ROOM_NOT_CREATED");
 
     await loadWarMultiState(roomId);
+    startGameMusic("war");
     await subscribeWarMultiRoom(roomId);
 
     clearWarMultiPolling();
@@ -1501,6 +1552,7 @@ async function startWarGame(){
   warGameState=warInitialState();
   warGameState.practice=true;
   warGameState.message=gx("practiceNote");
+  startGameMusic("war");
   renderWarGame();
   if(button)button.disabled=false;
 }
@@ -1919,6 +1971,7 @@ function warPlayerAction(action){
   const s=warGameState;
   if(!s||s.over||s.turn!=="player") return;
 
+  gameMoveTone("war","attack");
   s.turn="animating";
   root.querySelectorAll("[data-war-action]").forEach(btn=>btn.disabled=true);
 
@@ -2320,12 +2373,13 @@ function renderLobby(msg=""){
   scheduleAutoTranslateGameUI();
   document.getElementById("onlinePracticeFallback")?.addEventListener("click",()=>startPracticeForGame(selectedType));
   ensureGameInfoButton();
+  ensureGameAudioControls();
   document.getElementById("gameMasterSound")?.addEventListener("click",()=>{setMasterSound(!masterSoundEnabled);renderLobby();});
   document.getElementById("gameMusicToggle")?.addEventListener("click",()=>{setGameMusic(!gameMusicEnabled);renderLobby();});
   ["gameColorLight","gameColorDark","gameColorPrimary","gameColorSecondary","gameColorArena"].forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{if(!gamesAdmin)saveUserGameTheme();}));
   document.getElementById("saveAdminGameTheme")?.addEventListener("click",saveAdminGameTheme);
   document.getElementById("resetUserGameTheme")?.addEventListener("click",resetUserGameTheme);
-  root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.game;if(activeGameBlock(id)&&!gamesAdmin){const m=document.getElementById("gameMessage");if(m)m.textContent="Kjo lojë është e bllokuar nga Admini "+gameBlockText(id)+".";return;}selectedType=id;renderLobby();});
+  root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.game;if(activeGameBlock(id)&&!gamesAdmin){const m=document.getElementById("gameMessage");if(m)m.textContent="Kjo lojë është e bllokuar nga Admini "+gameBlockText(id)+".";return;}selectedType=id;startGameMusic(id);renderLobby();});
   const warChoice=root.querySelector('[data-game="war"]'); if(warChoice) warChoice.addEventListener("click",()=>{selectedType="war";renderLobby();},{once:true});
   bindGameOrderAdmin();
   document.getElementById("gameBlockSave")?.addEventListener("click",setAdminGameBlock);
@@ -2702,6 +2756,7 @@ function startComputerGame(){
     local:true
   };
   selected=null;
+  startGameMusic(selectedType);
   renderRoom();
 }
 
@@ -3025,6 +3080,7 @@ async function startTimerRound(){
   const button=document.getElementById("startTimerRound");
   if(button) button.disabled=true;
   await ensureGameAudio();
+  gameMoveTone("timer","start");
 
   if(room?.localTimer){
     const delay=1800+Math.floor(Math.random()*3200);
@@ -3064,6 +3120,7 @@ async function stopTimer(){
   const button=document.getElementById("timerStopButton");
   if(button) button.disabled=true;
   playTimerSound("stop");
+  gameMoveTone("timer","stop");
 
   if(room?.localTimer){
     const startAt=new Date(room.state.start_at).getTime();
@@ -3162,7 +3219,7 @@ async function chessClick(r,c){
   if(!room.player2_device||room.state.winner)return;
   const color=myColor();if(room.state.turn!==color)return;
   const b=room.state.board;
-  if(!selected){if(b[r][c]&&b[r][c][0]===color){genericGameTone(330,.04);selected=[r,c];renderRoom();}return;}
+  if(!selected){if(b[r][c]&&b[r][c][0]===color){gameMoveTone("chess","select");selected=[r,c];renderRoom();}return;}
   if(b[r][c]&&b[r][c][0]===color){selected=[r,c];renderRoom();return;}
   const moves=chessMoves(b,...selected);
   if(!moves.some(x=>x[0]===r&&x[1]===c)){selected=null;renderRoom();return;}
@@ -3170,7 +3227,7 @@ async function chessClick(r,c){
   let piece=nb[selected[0]][selected[1]],captured=nb[r][c];
   nb[selected[0]][selected[1]]=null;if(piece[1]==="p"&&(r===0||r===7))piece=piece[0]+"q";nb[r][c]=piece;
   const ns={...room.state,board:nb,turn:color==="w"?"b":"w"};if(captured&&captured[1]==="k")ns.winner=color;
-  genericGameTone(captured?220:520,captured?.[1]==="k"?.15:.06);selected=null;await saveState(ns,"active");if(ns.winner&&!room.local)await recordBoardWin(ns.winner,"win");if(!room.local)renderRoom();
+  gameMoveTone("chess",captured?"capture":"move");selected=null;await saveState(ns,"active");if(ns.winner&&!room.local)await recordBoardWin(ns.winner,"win");if(!room.local)renderRoom();
 }
 
 function computerChessMove(){
@@ -3209,6 +3266,7 @@ function computerChessMove(){
   if(captured && captured[1]==="k") st.winner="b";
   st.turn="w";
   room.state=st;
+  gameMoveTone("chess",captured?"capture":"move");
   renderRoom();
 }
 
@@ -3234,22 +3292,22 @@ function renderMorris(){
 
 async function morrisClick(pos){
   if(!room.player2_device||room.state.winner)return;
-  genericGameTone(390,.045);
+  gameMoveTone("morris","select");
   const color=myColor(),other=color==="w"?"b":"w",st=structuredClone(room.state);if(st.turn!==color)return;
   if(st.mustRemove){
     if(st.board[pos]!==other)return;if(formsMill(st.board,pos,other)&&!allInMill(st.board,other))return;
-    st.board[pos]=null;st.mustRemove=false;st.turn=other;if(st.placed[other]>=9&&countPieces(st.board,other)<3)st.winner=color;
+    st.board[pos]=null;gameMoveTone("morris","remove");st.mustRemove=false;st.turn=other;if(st.placed[other]>=9&&countPieces(st.board,other)<3)st.winner=color;
     selected=null;await saveState(st,"active");if(st.winner&&!room.local)await recordBoardWin(st.winner,"win");if(!room.local)renderRoom();return;
   }
   if(st.placed[color]<9){
-    if(st.board[pos])return;st.board[pos]=color;st.placed[color]++;if(formsMill(st.board,pos,color))st.mustRemove=true;else st.turn=other;
+    if(st.board[pos])return;st.board[pos]=color;st.placed[color]++;gameMoveTone("morris",formsMill(st.board,pos,color)?"mill":"place");if(formsMill(st.board,pos,color))st.mustRemove=true;else st.turn=other;
     await saveState(st,"active");if(!room.local)renderRoom();return;
   }
   if(selected===null){if(st.board[pos]===color){selected=pos;renderRoom();}return;}
   if(st.board[pos]===color){selected=pos;renderRoom();return;}
   if(st.board[pos]!==null){selected=null;renderRoom();return;}
   const flying=countPieces(st.board,color)===3;if(!flying&&!adjacent(selected,pos))return;
-  st.board[selected]=null;st.board[pos]=color;if(formsMill(st.board,pos,color))st.mustRemove=true;else st.turn=other;
+  st.board[selected]=null;st.board[pos]=color;gameMoveTone("morris",formsMill(st.board,pos,color)?"mill":"move");if(formsMill(st.board,pos,color))st.mustRemove=true;else st.turn=other;
   selected=null;await saveState(st,"active");if(!room.local)renderRoom();
 }
 
@@ -3279,7 +3337,7 @@ function computerMorrisMove(){
     const nonMill=targets.filter(i=>!formsMill(st.board,i,other));
     if(nonMill.length) targets=nonMill;
     const pos=targets[Math.floor(Math.random()*targets.length)];
-    if(pos!==undefined) st.board[pos]=null;
+    if(pos!==undefined){st.board[pos]=null;gameMoveTone("morris","remove");}
     st.mustRemove=false;
     st.turn=other;
     if(st.placed[other]>=9 && countPieces(st.board,other)<3) st.winner=color;
@@ -3293,6 +3351,7 @@ function computerMorrisMove(){
     if(pos===undefined) return;
     st.board[pos]=color;
     st.placed[color]++;
+    gameMoveTone("morris",formsMill(st.board,pos,color)?"mill":"place");
     if(formsMill(st.board,pos,color)){
       st.mustRemove=true;
       room.state=st;
@@ -3332,6 +3391,7 @@ function computerMorrisMove(){
   const pick=moves[0];
   st.board[pick.from]=null;
   st.board[pick.to]=color;
+  gameMoveTone("morris",formsMill(st.board,pick.to,color)?"mill":"move");
 
   if(formsMill(st.board,pick.to,color)){
     st.mustRemove=true;
@@ -3469,7 +3529,7 @@ function tetrisRestartTimer(){
 
 function tetrisMove(dx){
   if(!tetris || tetris.paused || tetris.gameOver) return;
-  if(!tetrisCollides(tetris.current,dx,0)) { tetris.current.x+=dx; playTetrisSound("move"); }
+  if(!tetrisCollides(tetris.current,dx,0)) { tetris.current.x+=dx; playTetrisSound("move"); gameMoveTone("tetris","move"); }
   renderTetrisBoard();
 }
 
@@ -3478,6 +3538,7 @@ function tetrisSoftDrop(){
   if(!tetrisCollides(tetris.current,0,1)){
     tetris.current.y++;
     tetris.score+=1;
+    gameMoveTone("tetris","move");
   }else{
     tetrisStep();
     return;
@@ -3494,6 +3555,7 @@ function tetrisHardDrop(){
   }
   tetris.score+=n*2;
   playTetrisSound("drop");
+  gameMoveTone("tetris","drop");
   tetrisMerge();
   tetrisClearLines();
   tetrisSpawn();
@@ -3508,6 +3570,7 @@ function tetrisTurn(){
       tetris.current.x+=kick;
       tetris.current.m=rotated;
       playTetrisSound("rotate");
+      gameMoveTone("tetris","rotate");
       break;
     }
   }
@@ -3795,6 +3858,7 @@ function startTetrisGame(options={}){
     gameOver:false
   };
   tetrisSpawn();
+  startGameMusic("tetris");
 
   root.innerHTML=`
     <div class="games-shell tetris-shell">
