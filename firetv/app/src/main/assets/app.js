@@ -2951,46 +2951,38 @@ window.DiamondNavigationBack = function(){
   return false;
 };
 
-/* DIAMOND Namaz mini-app navigation */
-(() => {
-  const grid = document.querySelector("#prayerView .prayer-tools-grid");
-  const back = document.getElementById("prayerMiniBack");
-  if (!grid || !back) return;
-  const cards = Array.from(grid.children);
-  const prayerTop = document.querySelector("#prayerView > .prayer-card");
-  const prayerListEl = document.getElementById("prayerList");
-  const prayerNote = document.querySelector("#prayerView > .prayer-note");
-  const detailPanels = ["quranPanel","prayerHelpPanel","ruqyaPanel","prayerDuaPanel","quranLearnPanel","tasbihPanel"]
-    .map(id => document.getElementById(id)).filter(Boolean);
 
-  const showMenu = () => {
-    cards.forEach(el => el.classList.remove("hidden"));
-    detailPanels.forEach(el => el.classList.add("hidden"));
+/* DIAMOND Namaz pages: overview keeps prayer times visible; tools open separately */
+(() => {
+  const view=document.getElementById("prayerView");
+  const grid=view?.querySelector(".prayer-tools-grid");
+  if(!view||!grid)return;
+  const cards=Array.from(grid.children);
+  const qibla=document.getElementById("qiblaToolCard");
+  const kerahat=document.getElementById("kerahatToolCard");
+  const panels=["quranPanel","prayerHelpPanel","ruqyaPanel","prayerDuaPanel","quranLearnPanel","tasbihPanel"].map(id=>document.getElementById(id)).filter(Boolean);
+  const prayerTop=view.querySelector(":scope > .prayer-card");
+  const list=document.getElementById("prayerList");
+  const note=view.querySelector(":scope > .prayer-note");
+  const back=document.getElementById("prayerMiniBack");
+  const showOverview=()=>{
     prayerTop?.classList.remove("hidden");
-    prayerListEl?.classList.add("hidden");
-    prayerNote?.classList.add("hidden");
-    back.classList.add("hidden");
+    list?.classList.remove("hidden");
+    note?.classList.remove("hidden");
+    grid.classList.remove("hidden");
+    cards.forEach(x=>x.classList.remove("hidden"));
+    panels.forEach(x=>x.classList.add("hidden"));
+    back?.classList.add("hidden");
     window.scrollTo({top:0,behavior:"smooth"});
   };
-  const openCard = (card) => {
-    cards.forEach(el => { if (el !== card) el.classList.add("hidden"); });
-    prayerTop?.classList.add("hidden");
-    prayerListEl?.classList.add("hidden");
-    prayerNote?.classList.add("hidden");
-    back.classList.remove("hidden");
+  const openTool=(tool)=>{
+    prayerTop?.classList.add("hidden"); list?.classList.add("hidden"); note?.classList.add("hidden");
+    grid.classList.remove("hidden"); cards.forEach(x=>x.classList.toggle("hidden",x!==tool));
+    panels.forEach(x=>x.classList.add("hidden")); back?.classList.remove("hidden");
     window.scrollTo({top:0,behavior:"smooth"});
   };
-  const bind = (id) => {
-    const el=document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("click", (ev) => {
-      if (ev.target.closest("button") && ev.target !== el) return;
-      openCard(el);
-    });
-  };
-  bind("qiblaToolCard");
-  bind("kerahatToolCard");
-  back.addEventListener("click", showMenu);
-  document.getElementById("prayerTab")?.addEventListener("click", () => setTimeout(showMenu,0));
-  showMenu();
+  [qibla,kerahat].forEach(tool=>tool?.addEventListener("click",e=>{if(!e.target.closest("button"))openTool(tool);}));
+  back?.addEventListener("click",showOverview);
+  document.getElementById("prayerTab")?.addEventListener("click",()=>setTimeout(showOverview,0));
+  showOverview();
 })();
