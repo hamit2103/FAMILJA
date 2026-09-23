@@ -4108,3 +4108,9 @@ body:has(#appView:not(.hidden)){
 .tasbih-program{display:grid;gap:10px;padding:14px;border-radius:18px;background:#f8fafc}
 @media(max-width:420px){.arabic-letter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* DIAMOND modern rotating Qibla compass */
+.qibla-compass{overflow:hidden;transition:box-shadow .22s ease,border-color .22s ease}
+.qibla-compass::before,.qibla-north,.qibla-kaaba{transform:rotate(var(--qibla-dial-rotation,0deg));transition:transform .10s linear}
+.qibla-compass.qibla-aligned{border-color:#22c55e!important;box-shadow:inset 0 0 0 3px #86efac,inset 0 0 34px rgba(34,197,94,.24),0 0 26px rgba(34,197,94,.46)!important}
+.qibla-compass.qibla-aligned::before,.qibla-compass.qibla-aligned .qibla-north{color:#16a34a!important}
