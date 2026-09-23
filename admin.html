@@ -94,6 +94,11 @@
     </section>
 
     <section id="appView" class="hidden">
+      <section id="adminMessageBanner" class="admin-message-banner hidden">
+        <strong>📣 DIAMOND</strong>
+        <span id="adminMessageBannerText"></span>
+        <button id="adminMessageBannerClose" type="button">✕</button>
+      </section>
       <header class="topbar">
         <div>
           <div class="app-title-row">
@@ -218,6 +223,17 @@
           <div id="adminUsersStatus" class="message"></div>
         </section>
 
+        <section id="adminMessageCard" class="card admin-message-card hidden">
+          <h2>📣 Mesazhe për Userat</h2>
+          <p class="muted small">Shkruaje mesazhin një herë. DIAMOND e përkthen për secilin user sipas gjuhës së app-it.</p>
+          <label for="adminMessageTarget">Dërgo te</label>
+          <select id="adminMessageTarget"><option value="">🌐 Të gjithë userat</option></select>
+          <label for="adminMessageText">Mesazhi</label>
+          <textarea id="adminMessageText" maxlength="1000" rows="4" placeholder="Shkruaj mesazhin..."></textarea>
+          <button id="adminMessageSend" class="primary" type="button">📨 Dërgo mesazhin</button>
+          <div id="adminMessageStatus" class="message"></div>
+          <div id="adminMessageHistory" class="admin-message-history"></div>
+        </section>
         <section id="storageCard" class="card storage-card hidden">
           <div class="storage-head">
             <div>
