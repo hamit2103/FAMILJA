@@ -601,13 +601,24 @@
     async function adminLoginFallback(){
       const code=(input?.value||"").trim(); if(!code){if(msg)msg.textContent="Shkruaj kodin e hyrjes.";return;}
       if(btn)btn.disabled=true; if(msg)msg.textContent="Duke kontrolluar kodin…";
-      try{const {data,error}=await client.auth.signInWithPassword({email:"admin@familja.local",password:code});if(error||!data?.session){if(msg)msg.textContent=error?.message||"Kodi nuk u pranua.";return;} document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("adminPanel")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");if(msg)msg.textContent="";}
+      try{const {data,error}=await client.auth.signInWithPassword({email:"admin@familja.local",password:code});if(error||!data?.session){if(msg)msg.textContent=error?.message||"Kodi nuk u pranua.";return;} document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("adminPanel")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");window.DiamondAdminSessionReady=true;if(msg)msg.textContent="";}
       catch(e){if(msg)msg.textContent="Gabim në hyrje: "+(e?.message||"provo përsëri");}finally{if(btn)btn.disabled=false;}
     }
     btn?.addEventListener("click",e=>{if(!document.getElementById("loginView")?.classList.contains("hidden")){e.preventDefault();e.stopImmediatePropagation();adminLoginFallback();}},true);
     input?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();adminLoginFallback();}},true);
   </script>
-  <script type="module" src="app.js?v=88"></script>
+  <script>
+  (()=>{
+    const pairs={galleryTab:"galleryView",infoTab:"infoView",prayerTab:"prayerView",clockTab:"clockView",sportTab:"sportView",gamesTab:"gamesView",tvTab:"tvView",radioTab:"radioView",dietTab:"dietView",kiTab:"kiView",shareAppTab:"shareAppView",newsTab:"newsView"};
+    const views=[...new Set(Object.values(pairs))];
+    const open=id=>{views.forEach(v=>document.getElementById(v)?.classList.toggle("hidden",v!==id));document.getElementById("appTabs")?.classList.add("hidden");document.getElementById("sectionBackBtn")?.classList.remove("hidden");const hooks={gamesView:"PajazitiGames",tvView:"PajazitiTV",radioView:"PajazitiRadio",dietView:"DiamondDiet",kiView:"DiamondKI",newsView:"DiamondNews",shareAppView:"DiamondShareApp"};try{window[hooks[id]]?.activate?.()}catch(_){}window.scrollTo(0,0)};
+    const home=()=>{views.forEach(v=>document.getElementById(v)?.classList.add("hidden"));document.getElementById("appTabs")?.classList.remove("hidden");document.getElementById("sectionBackBtn")?.classList.add("hidden")};
+    Object.entries(pairs).forEach(([tab,view])=>document.getElementById(tab)?.addEventListener("click",()=>open(view)));
+    document.getElementById("sectionBackBtn")?.addEventListener("click",home);
+    window.DiamondAdminCoreNav={open,home};
+  })();
+  </script>
+  <script type="module" src="app.js?v=89"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=78"></script>
   <script type="module" src="tv.js?v=53"></script>
