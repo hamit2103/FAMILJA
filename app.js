@@ -248,11 +248,12 @@ function t(key, vars = {}) {
 async function loadDiamondWeather() {
   const cityEl=document.getElementById("diamondWeatherCity");
   const weekEl=document.getElementById("diamondWeatherWeek");
+  const nowEl=document.getElementById("diamondWeatherNow");
   if(!cityEl||!weekEl) return;
   const lang=currentLanguage || "sq";
   const render=async(lat,lon,city)=>{
     try{
-      const url="https://api.open-meteo.com/v1/forecast?latitude="+encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon)+"&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7";
+      const url="https://api.open-meteo.com/v1/forecast?latitude="+encodeURIComponent(lat)+"&longitude="+encodeURIComponent(lon)+"&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7";
       const r=await fetch(url,{cache:"no-store"}); if(!r.ok) throw new Error("weather");
       const d=await r.json(); const daily=d.daily||{};
       const days=(daily.time||[]).map((date,i)=>{
@@ -263,10 +264,11 @@ async function loadDiamondWeather() {
         return name+" "+icon+" "+Math.round(daily.temperature_2m_max?.[i])+"°/"+Math.round(daily.temperature_2m_min?.[i])+"°";
       });
       cityEl.textContent="📍 "+city;
+      if(nowEl) nowEl.textContent="Tani: "+Math.round(Number(d.current?.temperature_2m))+"°C";
       weekEl.textContent=days.join(" · ");
     }catch(_){ weekEl.textContent="Moti 7 ditë"; }
   };
-  const fallback=()=>render(48.7758,9.1829,"Stuttgart");
+  const fallback=()=>{cityEl.textContent="📍 Vendndodhja";if(nowEl)nowEl.textContent="Aktivizo vendndodhjen";weekEl.textContent="—";};
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(async pos=>{
       let city="Vendndodhja ime";
@@ -279,6 +281,18 @@ async function loadDiamondWeather() {
   } else fallback();
 }
 
+
+const GLOBAL_UI_I18N={
+ sq:{all:"Gjithçka në një vend",qt:"Kuran",qd:"114 sure · Arabisht · Shqip · Türkçe · Deutsch",qo:"Hap Kuranin →"},
+ de:{all:"Alles an einem Ort",qt:"Koran",qd:"114 Suren · Arabisch · Albanisch · Türkisch · Deutsch",qo:"Koran öffnen →"},
+ tr:{all:"Her şey tek yerde",qt:"Kuran",qd:"114 sure · Arapça · Arnavutça · Türkçe · Almanca",qo:"Kuran'ı aç →"},
+ en:{all:"Everything in one place",qt:"Quran",qd:"114 surahs · Arabic · Albanian · Turkish · German",qo:"Open Quran →"},
+ it:{all:"Tutto in un unico posto",qt:"Corano",qd:"114 sure · Arabo · Albanese · Turco · Tedesco",qo:"Apri il Corano →"},
+ hr:{all:"Sve na jednom mjestu",qt:"Kur'an",qd:"114 sura · Arapski · Albanski · Turski · Njemački",qo:"Otvori Kur'an →"},
+ fr:{all:"Tout en un seul endroit",qt:"Coran",qd:"114 sourates · Arabe · Albanais · Turc · Allemand",qo:"Ouvrir le Coran →"},
+ ar:{all:"كل شيء في مكان واحد",qt:"القرآن",qd:"114 سورة · العربية · الألبانية · التركية · الألمانية",qo:"افتح القرآن ←"}
+};
+
 function prayerLabel(key) {
   return t("prayer." + key);
 }
@@ -290,6 +304,11 @@ function applyLanguage(language = currentLanguage) {
   document.documentElement.lang = language;
   document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
   const dq=document.getElementById("diamondQuote"); if(dq) dq.textContent="“"+(HOME_QUOTES[language]||HOME_QUOTES.sq)+"”";
+  const gu=GLOBAL_UI_I18N[language]||GLOBAL_UI_I18N.sq;
+  const all=document.querySelector("#diamondHomeHero .diamond-brand small"); if(all) all.textContent=gu.all;
+  const qt=document.querySelector("#quranOpenCard h2 span"); if(qt) qt.textContent=gu.qt;
+  const qd=document.querySelector("#quranOpenCard p"); if(qd) qd.textContent=gu.qd;
+  const qo=document.querySelector("#quranOpenCard strong"); if(qo) qo.textContent=gu.qo;
 
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.dataset.i18n);
@@ -2888,9 +2907,11 @@ async function applySession(session) {
   await loadMedia();
   await loadSharedMenuOrder();
   await loadHiddenTabs();
-  const savedCoords = savedPrayerCoords();
+  let savedCoords = savedPrayerCoords();
   if (savedCoords) {
-    fetchPrayerTimes(savedCoords).catch((error) => console.warn("Prayer preload failed", error));
+    fetchPrayerTimes(savedCoords).then(()=>{ updateQibla(savedCoords); enableQiblaCompass().catch(()=>{}); }).catch((error) => console.warn("Prayer preload failed", error));
+  } else {
+    getPhoneLocation().then(coords=>{ savedCoords=coords; return fetchPrayerTimes(coords).then(()=>{updateQibla(coords);enableQiblaCompass().catch(()=>{});}); }).catch(()=>{});
   }
   if (chatName) chatName.value = chatSavedName();
   loadChatProfile().catch(console.warn);
