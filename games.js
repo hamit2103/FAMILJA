@@ -1839,7 +1839,7 @@ async function loadGameOrder(){
   try{
     const {data:sessionData}=await supabase.auth.getSession();
     const user=sessionData?.session?.user||null;
-    gamesAdmin=user?.email===ADMIN_EMAIL;
+    gamesAdmin=user?.email===ADMIN_EMAIL || window.DiamondUnifiedAdmin===true || localStorage.getItem("diamond-unified-admin")==="1";
 
     const {data,error}=await supabase
       .from("app_settings")
@@ -1978,6 +1978,7 @@ function renderLobby(msg=""){
     </div>`;
   if(selectedType==="timer") loadTimerLeaderboard();
   root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{selectedType=btn.dataset.game;renderLobby();});
+  const warChoice=root.querySelector('[data-game="war"]'); if(warChoice) warChoice.addEventListener("click",()=>{selectedType="war";renderLobby();},{once:true});
   bindGameOrderAdmin();
   const computerButton=document.getElementById("computerGame");
   if(computerButton) computerButton.onclick=startComputerGame;
