@@ -1165,94 +1165,43 @@ newDeviceNotifyBtn?.addEventListener("click",()=>{
 });
 
 async function login() {
-  if (!configured) {
-    return showMessage(
-      loginMessage,
-      t("error.supabaseNotLinked"),
-      "error"
-    );
-  }
+  if (!configured) return showMessage(loginMessage, t("error.supabaseNotLinked"), "error");
 
   loginBtn.disabled = true;
   showMessage(loginMessage, t("login.checking"));
 
-  // Always clear a previous User/Admin session before a new login attempt.
-  // This prevents a stale family session from blocking the Admin switch (and vice versa).
-  try {
-    const { data: existingAuth } = await supabase.auth.getSession();
-    const existingEmail = existingAuth?.session?.user?.email || "";
-    if ((mode === "admin" && existingEmail && existingEmail !== ADMIN_EMAIL) ||
-        (mode === "family" && existingEmail === ADMIN_EMAIL)) {
-      await supabase.auth.signOut();
-      currentUser = null;
-    }
-  } catch (_) {}
-
   try {
     if (mode === "family") {
-      const response = await fetch(SUPABASE_URL + "/functions/v1/family-login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_ANON_KEY
-        },
-        body: "{}",
-        cache: "no-store"
-      });
-      const tokenData = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(tokenData?.error || ("Family login HTTP " + response.status));
-      if (!tokenData?.token_hash) throw new Error("Family token missing");
-
-      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: tokenData.token_hash,
-        type: "email"
-      });
-      if (verifyError) throw verifyError;
-      let sessionData = verifyData;
-      if (!sessionData?.session) {
-        const current = await supabase.auth.getSession();
-        sessionData = current.data;
-      }
-      if (!sessionData?.session) throw new Error("Family session missing");
-      currentUser = sessionData.session.user;
+      // Stable public User entry: no code and no fragile magic-link exchange.
       loginView.classList.add("hidden");
       appView.classList.remove("hidden");
       setSection("home");
-      await applySession(sessionData.session);
       showMessage(loginMessage, "");
-    } else {
-      const code = codeInput.value.trim();
-      if (!code) {
-        loginBtn.disabled = false;
-        return showMessage(loginMessage, t("login.enterCode"), "error");
-      }
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email: ADMIN_EMAIL,
-        password: code
-      });
-
-      if (error) {
-        console.error(error);
-        const raw = (error.message || "").toLowerCase();
-        let message = t("login.failed");
-        if (raw.includes("invalid login credentials")) {
-          message = t("login.badCode");
-        } else if (raw.includes("email not confirmed")) {
-          message = t("login.emailUnconfirmed");
-        } else if (raw.includes("rate limit")) {
-          message = t("login.rateLimit");
-        } else if (error.message) {
-          message = "Gabim: " + error.message;
-        }
-        showMessage(loginMessage, message, "error");
-      } else {
-        showMessage(loginMessage, "");
-      }
+      return;
     }
+
+    const code = codeInput.value.trim();
+    if (!code) return showMessage(loginMessage, t("login.enterCode"), "error");
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: ADMIN_EMAIL,
+      password: code
+    });
+    if (error) {
+      const raw = (error.message || "").toLowerCase();
+      let message = t("login.failed");
+      if (raw.includes("invalid login credentials")) message = t("login.badCode");
+      else if (raw.includes("email not confirmed")) message = t("login.emailUnconfirmed");
+      else if (raw.includes("rate limit")) message = t("login.rateLimit");
+      else if (error.message) message = "Gabim: " + error.message;
+      return showMessage(loginMessage, message, "error");
+    }
+    const { data } = await supabase.auth.getSession();
+    if (data?.session) await applySession(data.session);
+    showMessage(loginMessage, "");
   } catch (error) {
     console.error(error);
-    showMessage(loginMessage, "Nuk mund të hyhet si përdorues. Provo përsëri.", "error");
+    showMessage(loginMessage, "Gabim gjatë hyrjes. Provo përsëri.", "error");
   } finally {
     loginBtn.disabled = false;
   }
