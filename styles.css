@@ -4219,3 +4219,11 @@ body:has(#appView:not(.hidden)){
 .admin-user-row{display:grid;grid-template-columns:minmax(150px,1fr) minmax(130px,1fr) auto auto;gap:8px;align-items:center;padding:10px;border:1px solid rgba(15,23,42,.08);border-radius:14px;background:rgba(255,255,255,.72)}
 .admin-user-main{display:grid;gap:3px}.admin-user-main small{color:#64748b}
 @media(max-width:760px){.admin-user-row{grid-template-columns:1fr}.admin-user-row button{width:100%}}
+
+/* DIAMOND 5.66 */
+.diamond-clock-only{grid-template-columns:1fr!important}
+.home-digital-clock{width:100%;min-height:74px!important;display:flex!important;flex-direction:column;align-items:center!important;justify-content:center!important;gap:2px!important;text-align:center}
+.home-digital-clock strong{font-size:34px;line-height:1;font-weight:950;letter-spacing:2px;font-variant-numeric:tabular-nums;color:#fff}
+.home-digital-clock span{grid-column:auto!important;font-size:13px!important;color:#d7efff!important;font-weight:800}
+.admin-online-users{padding:9px 11px;border-radius:12px;background:#dcfce7;color:#14532d}
+.admin-user-main small{word-break:break-all}
