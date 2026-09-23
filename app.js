@@ -2821,7 +2821,7 @@ async function applySession(session) {
   if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
   roleLabel.textContent = isAdmin() ? t("role.admin") : t("role.family");
   uploadStatus.textContent = "";
-  setSection("gallery");
+  setSection("home");
   await loadMedia();
   await loadSharedMenuOrder();
   await loadHiddenTabs();
@@ -2943,8 +2943,8 @@ window.DiamondNavigationBack = function(){
       return true;
     }
     if(window.DiamondPrayerGuide?.back?.()) return true;
-    if(activeSection && activeSection!=="gallery"){
-      setSection("gallery");
+    if(activeSection && activeSection!=="home"){
+      setSection("home");
       return true;
     }
     if(appView && !appView.classList.contains("hidden")){
