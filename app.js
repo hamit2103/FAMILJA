@@ -2950,3 +2950,47 @@ window.DiamondNavigationBack = function(){
   } catch(_) {}
   return false;
 };
+
+/* DIAMOND Namaz mini-app navigation */
+(() => {
+  const grid = document.querySelector("#prayerView .prayer-tools-grid");
+  const back = document.getElementById("prayerMiniBack");
+  if (!grid || !back) return;
+  const cards = Array.from(grid.children);
+  const prayerTop = document.querySelector("#prayerView > .prayer-card");
+  const prayerListEl = document.getElementById("prayerList");
+  const prayerNote = document.querySelector("#prayerView > .prayer-note");
+  const detailPanels = ["quranPanel","prayerHelpPanel","ruqyaPanel","prayerDuaPanel","quranLearnPanel","tasbihPanel"]
+    .map(id => document.getElementById(id)).filter(Boolean);
+
+  const showMenu = () => {
+    cards.forEach(el => el.classList.remove("hidden"));
+    detailPanels.forEach(el => el.classList.add("hidden"));
+    prayerTop?.classList.remove("hidden");
+    prayerListEl?.classList.add("hidden");
+    prayerNote?.classList.add("hidden");
+    back.classList.add("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+  const openCard = (card) => {
+    cards.forEach(el => { if (el !== card) el.classList.add("hidden"); });
+    prayerTop?.classList.add("hidden");
+    prayerListEl?.classList.add("hidden");
+    prayerNote?.classList.add("hidden");
+    back.classList.remove("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+  const bind = (id) => {
+    const el=document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("click", (ev) => {
+      if (ev.target.closest("button") && ev.target !== el) return;
+      openCard(el);
+    });
+  };
+  bind("qiblaToolCard");
+  bind("kerahatToolCard");
+  back.addEventListener("click", showMenu);
+  document.getElementById("prayerTab")?.addEventListener("click", () => setTimeout(showMenu,0));
+  showMenu();
+})();
