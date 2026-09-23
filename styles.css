@@ -4114,3 +4114,7 @@ body:has(#appView:not(.hidden)){
 .qibla-compass::before,.qibla-north,.qibla-kaaba{transform:rotate(var(--qibla-dial-rotation,0deg));transition:transform .10s linear}
 .qibla-compass.qibla-aligned{border-color:#22c55e!important;box-shadow:inset 0 0 0 3px #86efac,inset 0 0 34px rgba(34,197,94,.24),0 0 26px rgba(34,197,94,.46)!important}
 .qibla-compass.qibla-aligned::before,.qibla-compass.qibla-aligned .qibla-north{color:#16a34a!important}
+
+/* Full-page app navigation */
+.section-back-btn{position:sticky;top:10px;z-index:40;margin:0 0 14px 0;border-radius:16px;font-weight:800;padding:11px 16px}
+#appTabs.hidden{display:none!important}
