@@ -96,7 +96,7 @@ jobs:
           name: DIAMOND-ADMIN
           path: DIAMOND-ADMIN.apk
           if-no-files-found: error
-      - name: Upload Diamond 5.58 to update server
+      - name: Upload Diamond 5.59 to update server
         continue-on-error: true
         env:
           OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
@@ -104,11 +104,11 @@ jobs:
           curl --max-time 180 --fail --show-error --silent \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-android.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.58.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.59.apk"
           curl --max-time 180 --fail --show-error --silent \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @pajaziti-fresh.apk \
-            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.58-fresh.apk"
+            "https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/angel-apk-upload?name=Diamond-5.59-fresh.apk"
           curl --max-time 180 --fail --show-error --silent \
             -H "Authorization: Bearer $OIDC_TOKEN" \
             --data-binary @DIAMOND-ADMIN.apk \
