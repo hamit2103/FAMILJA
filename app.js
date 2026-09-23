@@ -2896,6 +2896,7 @@ if ("serviceWorker" in navigator) {
 
 window.DiamondNavigationBack = function(){
   try {
+    if (window.DiamondPrayerExtras?.back?.()) return true;
     if (window.DiamondQuran?.back?.()) return true;
     const quranPanel=document.getElementById("quranPanel");
     if(quranPanel && !quranPanel.classList.contains("hidden")){

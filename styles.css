@@ -4085,3 +4085,26 @@ body:has(#appView:not(.hidden)){
   color:#7c2d12;
 }
 
+/* PRAYER EXTRAS v5.26 */
+.prayer-extra-head{display:flex;justify-content:space-between;gap:10px;margin-bottom:14px}
+.dua-learn-list{display:grid;gap:12px}
+.dua-learn-item{padding:16px;border-radius:18px;background:#fff;border:1px solid #e5e7eb;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+.dua-learn-item h3{margin:0 0 10px}
+.dua-ar{direction:rtl;text-align:right;font-size:25px;line-height:1.9;font-family:"Noto Naskh Arabic","Segoe UI",serif;margin:10px 0;color:#111827}
+.dua-audio{margin-top:10px;min-height:44px}
+.arabic-letter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.arabic-letter-card{border:1px solid #dbeafe;border-radius:18px;background:linear-gradient(145deg,#fff,#edf7ff);padding:12px 8px;min-height:128px;display:grid;place-items:center;gap:4px;box-shadow:0 6px 16px rgba(37,99,235,.08)}
+.arabic-letter{font-size:46px;line-height:1.1;font-family:"Noto Naskh Arabic","Segoe UI",serif}
+.arabic-letter-card small{color:#64748b;text-align:center}
+.tasbih-shell{display:grid;gap:14px;text-align:center}
+.tasbih-shell label{margin:0;text-align:left}
+.tasbih-shell select,.tasbih-shell input{width:100%;min-height:48px;border:1px solid #d1d5db;border-radius:14px;padding:0 12px;background:#fff;font:inherit}
+.tasbih-count{font-size:clamp(70px,22vw,130px);font-weight:950;line-height:1;color:#5b21b6;font-variant-numeric:tabular-nums;text-shadow:0 8px 22px rgba(91,33,182,.16)}
+.tasbih-target{font-size:20px;font-weight:850}
+.tasbih-reached{padding:12px;border-radius:14px;background:#dcfce7;color:#166534;font-weight:900}
+.tasbih-plus{width:min(100%,320px);min-height:110px;margin:0 auto;border:0;border-radius:32px;background:linear-gradient(145deg,#7c3aed,#5b21b6);color:#fff;font-size:42px;font-weight:950;box-shadow:0 14px 28px rgba(91,33,182,.28)}
+.tasbih-small-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.danger-soft{background:#fee2e2!important;color:#991b1b!important}
+.tasbih-program{display:grid;gap:10px;padding:14px;border-radius:18px;background:#f8fafc}
+@media(max-width:420px){.arabic-letter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+

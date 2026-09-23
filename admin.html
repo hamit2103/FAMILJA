@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND ADMIN">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=82">
+  <link rel="stylesheet" href="styles.css?v=83">
   <title>DIAMOND ADMIN</title>
   <style>
     /* Inline menu-order hotfix */
@@ -98,7 +98,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.25</span>
+            <span id="appVersionLabel" class="app-version-label">v5.26</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -423,6 +423,25 @@
             <strong id="wuduGuideCardOpen">Hap Abdesin & Guslin →</strong>
           </button>
 
+
+          <button id="prayerDuaCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head"><h2>🤲 <span id="prayerDuaCardTitle">Mëso dua</span></h2></div>
+            <p id="prayerDuaCardDesc" class="muted small">Duat dhe dhikret kryesore që lexohen gjatë namazit.</p>
+            <strong id="prayerDuaCardOpen">Hap duatë →</strong>
+          </button>
+
+          <button id="quranLearnCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head"><h2>🔤 <span id="quranLearnCardTitle">Mëso Kuranin</span></h2></div>
+            <p id="quranLearnCardDesc" class="muted small">Germat arabe, shqiptimi dhe dëgjimi me zë.</p>
+            <strong id="quranLearnCardOpen">Mëso germat →</strong>
+          </button>
+
+          <button id="tasbihCard" class="card prayer-tool-card quran-open-card" type="button">
+            <div class="prayer-tool-head"><h2>📿 <span id="tasbihCardTitle">Tespih</span></h2></div>
+            <p id="tasbihCardDesc" class="muted small">Numërues që ruhet edhe pasi e mbyll app-in, deri sa ta bësh reset.</p>
+            <strong id="tasbihCardOpen">Hap tespihin →</strong>
+          </button>
+
           <button id="ruqyaCard" class="card prayer-tool-card quran-open-card" type="button">
             <div class="prayer-tool-head">
               <h2>🌿 <span id="ruqyaCardTitle">Shërim me Kuran</span></h2>
@@ -435,6 +454,10 @@
         <section id="quranPanel" class="card quran-panel hidden"></section>
         <section id="prayerHelpPanel" class="card quran-panel hidden"></section>
         <section id="ruqyaPanel" class="card quran-panel hidden"></section>
+
+        <section id="prayerDuaPanel" class="card quran-panel hidden"></section>
+        <section id="quranLearnPanel" class="card quran-panel hidden"></section>
+        <section id="tasbihPanel" class="card quran-panel hidden"></section>
 
         <section id="prayerList" class="prayer-list"></section>
 
@@ -570,13 +593,14 @@
       await load();
     }
   </script>
-  <script type="module" src="app.js?v=80"></script>
+  <script type="module" src="app.js?v=81"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=77"></script>
   <script type="module" src="tv.js?v=52"></script>
   <script type="module" src="radio.js?v=55"></script>
   <script type="module" src="quran.js?v=2"></script>
   <script type="module" src="prayer-guide.js?v=1"></script>
+  <script type="module" src="prayer-extras.js?v=1"></script>
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
