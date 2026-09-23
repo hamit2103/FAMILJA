@@ -1021,7 +1021,7 @@ document.getElementById("sectionBackBtn")?.addEventListener("click", () => setSe
 
 function setMode(next) {
   if (ADMIN_ONLY) next = "admin";
-  else next = "family";
+  else if (next !== "admin") next = "family";
   mode = next;
 
   familyMode?.classList.toggle("active", next === "family");
@@ -1038,15 +1038,13 @@ function setMode(next) {
   } else {
     document.querySelector(".mode-switch")?.classList.remove("hidden");
     familyMode?.classList.remove("hidden");
-    adminMode?.classList.add("hidden");
-    familyDirectHint?.classList.remove("hidden");
-    adminCodeWrap?.classList.add("hidden");
+    adminMode?.classList.remove("hidden");
+    familyDirectHint?.classList.toggle("hidden", next === "admin");
+    adminCodeWrap?.classList.toggle("hidden", next !== "admin");
   }
 }
 familyMode?.addEventListener("click", () => setMode("family"));
-adminMode?.addEventListener("click", () => {
-  if (ADMIN_ONLY) setMode("admin");
-});
+adminMode?.addEventListener("click", () => setMode("admin"));
 
 function showMessage(el, text, kind = "") {
   el.textContent = text;
@@ -1218,12 +1216,13 @@ codeInput.addEventListener("keydown", (e) => {
 });
 
 logoutBtn.addEventListener("click", async () => {
-  if (!supabase) return;
-  await supabase.auth.signOut();
-  if (!ADMIN_ONLY) {
-    setMode("family");
-    await login();
-  }
+  if (supabase) await supabase.auth.signOut();
+  currentUser = null;
+  setSection("home");
+  appView?.classList.add("hidden");
+  loginView?.classList.remove("hidden");
+  setMode("family");
+  if (onlineCount) onlineCount.textContent = "0";
 });
 
 refreshBtn.addEventListener("click", loadMedia);
@@ -2909,8 +2908,7 @@ if (supabase) {
   let session = data.session;
 
   const wrongSession =
-    (ADMIN_ONLY && session?.user?.email !== ADMIN_EMAIL) ||
-    (!ADMIN_ONLY && session?.user?.email === ADMIN_EMAIL);
+    (ADMIN_ONLY && session?.user?.email !== ADMIN_EMAIL);
 
   if (session && wrongSession) {
     await supabase.auth.signOut();
