@@ -101,8 +101,7 @@ const I18N = {
     "upload.done":"{count} Medien wurden hochgeladen.","location.permission":"Erlaube den Standortzugriff für die Gebetszeiten.","location.notFound":"Standort nicht gefunden. Versuche es erneut.",
     "location.timeout":"Standortabfrage dauerte zu lange. Versuche es erneut.","location.loading":"Standort wird ermittelt…","prayer.loading":"Gebetszeiten werden geladen…","prayer.updated":"Gebetszeiten wurden aktualisiert.",
     "share.text":"Lade die Diamond-APK herunter und installiere sie auf Android.","share.copied":"Der APK-Link wurde kopiert. Du kannst ihn jetzt senden.",
-    "error.supabaseNotLinked":"Supabase ist noch nicht verbunden. Project URL und anon key werden benötigt.","error.infoNotReady":"Die Informationen sind noch nicht verfügbar.","error.publishFailed":"Veröffentlichen fehlgeschlagen: {
-    "home.quote":"We make the impossible possible.",error}",
+    "error.supabaseNotLinked":"Supabase ist noch nicht verbunden. Project URL und anon key werden benötigt.","error.infoNotReady":"Die Informationen sind noch nicht verfügbar.","error.publishFailed":"Veröffentlichen fehlgeschlagen: {error}",
     "error.locationUnsupported":"Dieses Telefon unterstützt keinen Standortzugriff.","error.prayerFetch":"Gebetszeiten konnten nicht geladen werden.","prayer.locationTap":"Tippe auf „Standort“ für genaue Gebetszeiten.",
     "error.futureTimes":"Keine zukünftigen Zeiten für {name} gefunden.","error.supabaseNotReady":"Supabase ist noch nicht bereit","error.runSql":"Die Datei supabase/setup.sql muss im SQL Editor ausgeführt werden.",
     "error.storageSql":"Der Speicherzähler benötigt das SQL-Update.","error.fileTooLarge":"{name} ist auch nach der Optimierung größer als 50 MB und wurde übersprungen.","upload.savedSpace":"Etwa {size} Speicher wurden gespart.",
@@ -588,6 +587,7 @@ themeResetBtn?.addEventListener("click", () => {
 });
 
 let mode = ADMIN_ONLY ? "admin" : "family";
+let publicEntryActive = false;
 let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
@@ -1066,6 +1066,7 @@ familyMode?.addEventListener("click", () => setMode("family"));
 adminMode?.addEventListener("click", () => setMode("admin"));
 const adminDirectLoginBtn = document.getElementById("adminDirectLoginBtn");
 adminDirectLoginBtn?.addEventListener("click", async () => {
+  publicEntryActive = false;
   mode = "admin";
   await login();
 });
@@ -1082,7 +1083,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.20";
+    let versionName="5.61";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1172,6 +1173,7 @@ async function login() {
 
   try {
     if (mode === "family") {
+      publicEntryActive = true;
       // Public User mode works without authentication. Keep currentUser empty,
       // open the app, and load only public sections.
       currentUser = null;
@@ -1225,6 +1227,7 @@ codeInput.addEventListener("keydown", (e) => {
 });
 
 logoutBtn.addEventListener("click", async () => {
+  publicEntryActive = false;
   if (supabase) await supabase.auth.signOut();
   currentUser = null;
   setSection("home");
@@ -2859,6 +2862,17 @@ function startRealtime() {
 }
 
 async function applySession(session) {
+  if (!session && !ADMIN_ONLY && publicEntryActive) {
+    currentUser = null;
+    loginView.classList.add("hidden");
+    appView.classList.remove("hidden");
+    adminPanel?.classList.add("hidden");
+    infoCompose?.classList.add("hidden");
+    menuOrderAdmin?.classList.add("hidden");
+    installStatsCard?.classList.add("hidden");
+    return;
+  }
+
   currentUser = session?.user || null;
   const signedIn = !!currentUser;
 
