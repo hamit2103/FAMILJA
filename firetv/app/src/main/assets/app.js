@@ -895,6 +895,9 @@ addClockWidgetBtn?.addEventListener("click",()=>{
 
 function setSection(next) {
   activeSection = next;
+  const sectionBackBtn = document.getElementById("sectionBackBtn");
+  const appTabsNav = document.getElementById("appTabs");
+  const isHome = next === "home";
   const showGallery = next === "gallery";
   const showInfo = next === "info";
   const showPrayer = next === "prayer";
@@ -932,7 +935,7 @@ function setSection(next) {
   dietView?.classList.toggle("hidden", !showDiet);
   kiView?.classList.toggle("hidden", !showKI);
   shareAppView?.classList.toggle("hidden", !showShareApp);
-  newsView?.classList.toggle("hidden", !showNews);
+  newsView?.classList.toggle("hidden", !showNews);\n\n  appTabsNav?.classList.toggle("hidden", !isHome);\n  sectionBackBtn?.classList.toggle("hidden", isHome);
 
   if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
@@ -957,7 +960,7 @@ radioTab?.addEventListener("click", () => setSection("radio"));
 dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
 shareAppTab?.addEventListener("click", () => setSection("shareapp"));
-newsTab?.addEventListener("click", () => setSection("news"));
+newsTab?.addEventListener("click", () => setSection("news"));\ndocument.getElementById("sectionBackBtn")?.addEventListener("click", () => setSection("home"));
 
 function setMode(next) {
   if (ADMIN_ONLY) next = "admin";
