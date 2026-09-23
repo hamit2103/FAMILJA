@@ -593,7 +593,21 @@
       await load();
     }
   </script>
-  <script type="module" src="app.js?v=87"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
+    const btn=document.getElementById("loginBtn"), input=document.getElementById("codeInput"), msg=document.getElementById("loginMessage");
+    const client=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:"diamond-admin-auth"}});
+    async function adminLoginFallback(){
+      const code=(input?.value||"").trim(); if(!code){if(msg)msg.textContent="Shkruaj kodin e hyrjes.";return;}
+      if(btn)btn.disabled=true; if(msg)msg.textContent="Duke kontrolluar kodin…";
+      try{const {data,error}=await client.auth.signInWithPassword({email:"admin@familja.local",password:code});if(error||!data?.session){if(msg)msg.textContent=error?.message||"Kodi nuk u pranua.";return;} document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("adminPanel")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");if(msg)msg.textContent="";}
+      catch(e){if(msg)msg.textContent="Gabim në hyrje: "+(e?.message||"provo përsëri");}finally{if(btn)btn.disabled=false;}
+    }
+    btn?.addEventListener("click",e=>{if(!document.getElementById("loginView")?.classList.contains("hidden")){e.preventDefault();e.stopImmediatePropagation();adminLoginFallback();}},true);
+    input?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();adminLoginFallback();}},true);
+  </script>
+  <script type="module" src="app.js?v=88"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=78"></script>
   <script type="module" src="tv.js?v=53"></script>
