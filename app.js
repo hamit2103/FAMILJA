@@ -3037,6 +3037,15 @@ async function applySession(session) {
   adminUsersCard?.classList.toggle("hidden", !isAdmin());
   if(!isAdmin()){
     await loadGlobalUserProfile().catch(()=>null);
+    if(!currentAppProfile){
+      await supabase.auth.signOut();
+      currentUser=null;
+      loginView.classList.remove("hidden");
+      appView.classList.add("hidden");
+      setMode("family");
+      showMessage(loginMessage,"Shkruaj një emër me së paku 4 shkronja ose numra për të hyrë.","error");
+      return;
+    }
     if(currentAppProfile?.is_blocked){await supabase.auth.signOut();showMessage(loginMessage,"Ky përdorues është bllokuar nga Admini.","error");return;}
   }
   roleLabel.textContent = isAdmin() ? t("role.admin") : (globalUserName() || t("role.family"));
