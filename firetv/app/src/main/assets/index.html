@@ -52,7 +52,10 @@
     }
     .war-message{color:#0f172a!important}
     .war-character,.war-soldier,.war-rifle{display:none!important}
-  </style>
+  
+/* Readability hotfix */
+#sportView,.sport-shell,.sport-card,.league-card,.match-card,.team-row{color:#111827!important} #sportView input,#sportView select,#sportView button{color:#111827} #clockView,.clock-widget-card,.clock-zone{color:#fff!important} .clock-widget-card .muted{color:#e5e7eb!important}
+</style>
 </head>
 <body>
   <main class="shell">
@@ -608,6 +611,7 @@
     document.getElementById("sectionBackBtn")?.addEventListener("click",home);
     document.getElementById("adminPanel")?.classList.add("hidden");
     window.DiamondCoreNav={open,home};
+    window.DiamondNavigationBack=()=>{if(document.getElementById("appTabs")?.classList.contains("hidden")){home();return true;}return false;};
   })();
   </script>
   <script type="module">
@@ -616,7 +620,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
 const fam=document.getElementById("familyMode"),adm=document.getElementById("adminMode"),wrap=document.getElementById("adminCodeWrap"),btn=document.getElementById("loginBtn"),msg=document.getElementById("loginMessage");let loginMode="family";
 function pick(m){loginMode=m;fam?.classList.toggle("active",m==="family");adm?.classList.toggle("active",m==="admin");wrap?.classList.toggle("hidden",m!=="admin");document.getElementById("familyDirectHint")?.classList.toggle("hidden",m==="admin")}
 fam?.addEventListener("click",()=>pick("family"));adm?.addEventListener("click",()=>pick("admin"));
-btn?.addEventListener("click",async e=>{e.preventDefault();e.stopImmediatePropagation();if(loginMode==="family"){document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");document.getElementById("adminPanel")?.classList.add("hidden");return}const code=(document.getElementById("codeInput")?.value||"").trim();if(!code){msg.textContent="Shkruaj kodin e hyrjes.";return}btn.disabled=true;msg.textContent="Duke kontrolluar kodin…";try{const s=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:"diamond-admin-auth"}});const {data,error}=await s.auth.signInWithPassword({email:"admin@familja.local",password:code});if(error||!data?.session){msg.textContent=error?.message||"Kodi nuk u pranua.";return}window.DiamondUnifiedAdmin=true;document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");["adminPanel","installStatsCard","storageCard","menuOrderAdmin"].forEach(id=>document.getElementById(id)?.classList.remove("hidden"));msg.textContent=""}catch(x){msg.textContent="Gabim në hyrje: "+(x?.message||"provo përsëri")}finally{btn.disabled=false}},true);
+btn?.addEventListener("click",async e=>{e.preventDefault();e.stopImmediatePropagation();if(loginMode==="family"){document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");document.getElementById("adminPanel")?.classList.add("hidden");return}const code=(document.getElementById("codeInput")?.value||"").trim();if(!code){msg.textContent="Shkruaj kodin e hyrjes.";return}btn.disabled=true;msg.textContent="Duke kontrolluar kodin…";try{const s=createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:"diamond-admin-auth"}});const {data,error}=await s.auth.signInWithPassword({email:"admin@familja.local",password:code});if(error||!data?.session){msg.textContent=error?.message||"Kodi nuk u pranua.";return}window.DiamondUnifiedAdmin=true;localStorage.setItem("diamond-unified-admin","1");document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");["adminPanel","installStatsCard","storageCard","menuOrderAdmin","infoCompose"].forEach(id=>document.getElementById(id)?.classList.remove("hidden"));window.dispatchEvent(new CustomEvent("diamond-admin-ready"));msg.textContent=""}catch(x){msg.textContent="Gabim në hyrje: "+(x?.message||"provo përsëri")}finally{btn.disabled=false}},true);
 </script>
 <script type="module" src="app.js?v=87"></script>
   <script type="module" src="sports.js?v=9"></script>
