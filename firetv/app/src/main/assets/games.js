@@ -1269,6 +1269,7 @@ function renderWarGame(){
 
 async function startWarGame(){
   const button=document.getElementById("warGame");
+  if(!supabase){ if(button) button.disabled=false; return; }
   if(button) button.disabled=true;
   try{
     await saveWarProfile();
