@@ -1416,17 +1416,52 @@ function normalizeAngleDelta(value) {
   return delta;
 }
 
+let qiblaWasAligned = false;
+let qiblaLastBeepAt = 0;
+
+function qiblaBeep() {
+  const now = Date.now();
+  if (now - qiblaLastBeepAt < 1800) return;
+  qiblaLastBeepAt = now;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const tone = (when) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 920;
+      gain.gain.setValueAtTime(0.0001, when);
+      gain.gain.exponentialRampToValueAtTime(0.22, when + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, when + 0.13);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(when); osc.stop(when + 0.15);
+    };
+    tone(ctx.currentTime);
+    tone(ctx.currentTime + 0.22);
+    setTimeout(() => ctx.close().catch(()=>{}), 650);
+  } catch (_) {}
+}
+
 function renderQiblaArrow() {
   if (!Number.isFinite(qiblaBearing) || !qiblaArrow) return;
   const rotation = Number.isFinite(qiblaHeading)
     ? normalizeAngleDelta(qiblaBearing - qiblaHeading)
     : qiblaBearing;
 
-  qiblaArrow.style.transform = "translate(-50%, -50%) rotate(" + rotation.toFixed(1) + "deg)";
+  const compass = qiblaArrow.closest(".qibla-compass");
+  // The marker stays fixed; the compass dial itself turns with the phone.
+  qiblaArrow.style.transform = "translate(-50%, -50%) rotate(-90deg)";
+  if (compass) compass.style.setProperty("--qibla-dial-rotation", (-rotation).toFixed(1) + "deg");
 
   const aligned = Number.isFinite(qiblaHeading) && Math.abs(rotation) <= 5;
   qiblaArrow.classList.toggle("qibla-correct", aligned);
   qiblaArrow.classList.toggle("qibla-wrong", !aligned);
+  compass?.classList.toggle("qibla-aligned", aligned);
+
+  if (aligned && !qiblaWasAligned) qiblaBeep();
+  qiblaWasAligned = aligned;
 
   if (qiblaDirection) {
     const base = t("prayer.qiblaFromNorth", { degrees: Math.round(qiblaBearing) });
