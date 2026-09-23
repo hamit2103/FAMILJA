@@ -6,7 +6,13 @@ tr:{duaTitle:"Dua öğren",duaDesc:"Namazda okunan temel dua ve zikirler",learnT
 de:{duaTitle:"Duas lernen",duaDesc:"Wichtige Bittgebete und Dhikr im Gebet",learnTitle:"Koran lernen",learnDesc:"Arabische Buchstaben mit Aussprache",tasbihTitle:"Tasbih",tasbihDesc:"Zähler bleibt nach Schließen der App gespeichert",openDua:"Duas öffnen →",openLearn:"Buchstaben lernen →",openTasbih:"Tasbih öffnen →",close:"Schließen",back:"← Gebet",listen:"Anhören",arabic:"Arabisch",pron:"Aussprache",meaning:"Bedeutung",target:"Ziel",count:"Zähler",set:"Speichern",reset:"Zurücksetzen",minus:"−1",plus:"+1",reached:"Ziel erreicht!",manual:"Aktuellen Zähler setzen",phrase:"Dhikr",teacher:"Hinweis: Die Audio-Aussprache ist eine Lernhilfe. Für korrektes Tajwid zusätzlich mit einer Lehrperson lernen."},
 en:{duaTitle:"Learn duas",duaDesc:"Core supplications and dhikr used in prayer",learnTitle:"Learn Quran",learnDesc:"Arabic letters with spoken pronunciation",tasbihTitle:"Tasbih",tasbihDesc:"Counter stays saved after closing the app",openDua:"Open duas →",openLearn:"Learn letters →",openTasbih:"Open tasbih →",close:"Close",back:"← Prayer",listen:"Listen",arabic:"Arabic",pron:"Pronunciation",meaning:"Meaning",target:"Target",count:"Count",set:"Save",reset:"Reset",minus:"−1",plus:"+1",reached:"Target reached!",manual:"Set current count",phrase:"Dhikr",teacher:"Note: audio pronunciation is a learning aid. For accurate tajwid also learn with a teacher."}
 };
-function lang(){const l=localStorage.getItem(LANG_KEY)||"sq";return TXT[l]?l:"en"}
+let ACTIVE_LANG=localStorage.getItem(LANG_KEY)||"sq";
+function lang(){
+  const select=document.getElementById("languageSelectApp")||document.getElementById("languageSelectLogin");
+  const selected=select?.value;
+  const l=(selected&&TXT[selected])?selected:ACTIVE_LANG;
+  return TXT[l]?l:"en";
+}
 function t(){return TXT[lang()]||TXT.en}
 function esc(v=""){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
@@ -30,12 +36,20 @@ const LETTERS=[
 ];
 
 function speakArabic(text){
+  if(!text)return;
   try{
+    if(window.AndroidTTS?.isAvailable?.()){
+      window.AndroidTTS.speakArabic(String(text));
+      return;
+    }
+  }catch(_){}
+  try{
+    if(!("speechSynthesis" in window)||typeof SpeechSynthesisUtterance==="undefined")return;
     speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang="ar-SA";u.rate=.65;u.pitch=1;
-    const vs=speechSynthesis.getVoices();
-    const v=vs.find(x=>/^ar/i.test(x.lang));
+    const u=new SpeechSynthesisUtterance(String(text));
+    u.lang="ar-SA";u.rate=.60;u.pitch=1;
+    const voices=speechSynthesis.getVoices?.()||[];
+    const v=voices.find(x=>/^ar[-_]/i.test(x.lang))||voices.find(x=>/^ar/i.test(x.lang));
     if(v)u.voice=v;
     speechSynthesis.speak(u);
   }catch(_){}
@@ -78,6 +92,19 @@ function back(){const ids=["prayerDuaPanel","quranLearnPanel","tasbihPanel"];for
 document.getElementById("prayerDuaCard")?.addEventListener("click",openDuas);
 document.getElementById("quranLearnCard")?.addEventListener("click",openLearn);
 document.getElementById("tasbihCard")?.addEventListener("click",openTasbih);
-window.addEventListener("storage",e=>{if(e.key===LANG_KEY)updateCards()});
-updateCards();
-window.DiamondPrayerExtras={back,close:closeAll,reloadLanguage:updateCards};
+function reloadLanguage(next){
+  if(next&&TXT[next]) ACTIVE_LANG=next;
+  else {
+    const stored=localStorage.getItem(LANG_KEY);
+    if(stored&&TXT[stored]) ACTIVE_LANG=stored;
+  }
+  updateCards();
+  const ids=["prayerDuaPanel","quranLearnPanel","tasbihPanel"];
+  const open=ids.find(id=>{const p=document.getElementById(id);return p&&!p.classList.contains("hidden")});
+  if(open==="prayerDuaPanel") openDuas();
+  else if(open==="quranLearnPanel") openLearn();
+  else if(open==="tasbihPanel") openTasbih();
+}
+window.addEventListener("storage",e=>{if(e.key===LANG_KEY)reloadLanguage(e.newValue)});
+reloadLanguage((document.getElementById("languageSelectApp")||document.getElementById("languageSelectLogin"))?.value||localStorage.getItem(LANG_KEY)||"sq");
+window.DiamondPrayerExtras={back,close:closeAll,reloadLanguage};
