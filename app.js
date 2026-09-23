@@ -303,6 +303,7 @@ function applyLanguage(language = currentLanguage) {
   try { window.AndroidClock?.setLanguage?.(language); } catch (_) {}
   window.PajazitiSports?.reloadLanguage?.();
   window.PajazitiGames?.reloadLanguage?.();
+  try{window.AndroidMessages?.updateLanguage?.(language);}catch(_){}
   window.PajazitiTV?.reloadLanguage?.();
   window.PajazitiRadio?.reloadLanguage?.();
   window.DiamondQuran?.reloadLanguage?.();
@@ -439,6 +440,15 @@ const adminUsersList = $("adminUsersList");
 const adminUsersStatus = $("adminUsersStatus");
 const adminUserCount = $("adminUserCount");
 const adminOnlineUserNames = $("adminOnlineUserNames");
+const adminMessageCard = $("adminMessageCard");
+const adminMessageTarget = $("adminMessageTarget");
+const adminMessageText = $("adminMessageText");
+const adminMessageSend = $("adminMessageSend");
+const adminMessageStatus = $("adminMessageStatus");
+const adminMessageHistory = $("adminMessageHistory");
+const adminMessageBanner = $("adminMessageBanner");
+const adminMessageBannerText = $("adminMessageBannerText");
+const adminMessageBannerClose = $("adminMessageBannerClose");
 const storageCard = $("storageCard");
 const storageUsed = $("storageUsed");
 const storagePercent = $("storagePercent");
@@ -580,6 +590,9 @@ let installPrompt = null;
 let currentUser = null;
 let currentAppProfile = null;
 let activeSection = "gallery";
+let adminMessagePollTimer = null;
+const ADMIN_MESSAGE_LAST_KEY="diamond-admin-message-last";
+const NOTIFY_SECRET_KEY="diamond-notify-secret";
 let mediaItems = [];
 let prayerTimings = null;
 let prayerTimingsDate = "";
@@ -1074,7 +1087,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.66";
+    let versionName="5.67";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1205,6 +1218,69 @@ function refreshUserNameLoginUi(){
       : "Kujdes: emri do të jetë përgjithmonë në këtë app dhe i vlefshëm për të gjitha lojërat.";
   }
 }
+function diamondNotifySecret(){
+  let s=localStorage.getItem(NOTIFY_SECRET_KEY)||"";
+  if(s.length<16){
+    const bytes=new Uint8Array(24);crypto.getRandomValues(bytes);
+    s=Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
+    localStorage.setItem(NOTIFY_SECRET_KEY,s);
+  }
+  return s;
+}
+function showAdminMessageBanner(text){
+  if(!adminMessageBanner||!adminMessageBannerText||!text)return;
+  adminMessageBannerText.textContent=text;
+  adminMessageBanner.classList.remove("hidden");
+}
+adminMessageBannerClose?.addEventListener("click",()=>adminMessageBanner?.classList.add("hidden"));
+
+async function pollAdminMessages(){
+  if(!supabase||!currentUser||isAdmin()||!currentAppProfile)return;
+  try{
+    const after=Number(localStorage.getItem(ADMIN_MESSAGE_LAST_KEY)||0);
+    const {data,error}=await supabase.rpc("user_messages_for_device",{p_device:presenceDeviceId,p_after_id:after});
+    if(error)throw error;
+    let max=after;
+    for(const m of (data||[])){
+      max=Math.max(max,Number(m.id||0));
+      const tx=m.translations||{};
+      const text=tx[currentLanguage]||tx.sq||m.source_text||"";
+      if(text)showAdminMessageBanner(text);
+    }
+    if(max>after)localStorage.setItem(ADMIN_MESSAGE_LAST_KEY,String(max));
+  }catch(error){console.warn("admin message poll",error);}
+}
+function startAdminMessagePolling(){
+  if(adminMessagePollTimer)clearInterval(adminMessagePollTimer);
+  pollAdminMessages();
+  adminMessagePollTimer=setInterval(pollAdminMessages,30000);
+}
+async function loadAdminMessageHistory(){
+  if(!isAdmin()||!adminMessageHistory)return;
+  const {data,error}=await supabase.rpc("admin_message_list",{p_limit:30});
+  if(error)return;
+  adminMessageHistory.innerHTML=(data||[]).map(m=>'<div class="admin-message-history-row"><strong>'+escapeHtml(m.target_name||"Të gjithë")+'</strong><span>'+escapeHtml(m.source_text)+'</span><small>'+new Date(m.created_at).toLocaleString()+'</small></div>').join("")||'<div class="muted">Ende nuk ka mesazhe.</div>';
+}
+async function sendAdminMessage(){
+  if(!isAdmin()||!adminMessageSend)return;
+  const textValue=(adminMessageText?.value||"").trim();
+  if(!textValue){showMessage(adminMessageStatus,"Shkruaj mesazhin.","error");return;}
+  adminMessageSend.disabled=true;showMessage(adminMessageStatus,"Po përkthehet dhe po dërgohet…");
+  try{
+    const {data:{session}}=await supabase.auth.getSession();
+    const r=await fetch(SUPABASE_URL+"/functions/v1/diamond-admin-message-send",{
+      method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+session.access_token},
+      body:JSON.stringify({text:textValue,target_device:adminMessageTarget?.value||null}),cache:"no-store"
+    });
+    const j=await r.json();if(!r.ok)throw new Error(j?.error||"SEND_FAILED");
+    if(adminMessageText)adminMessageText.value="";
+    showMessage(adminMessageStatus,"✅ Mesazhi u dërgua dhe u përkthye.","success");
+    await loadAdminMessageHistory();
+  }catch(error){showMessage(adminMessageStatus,"❌ "+(error?.message||"Gabim"),"error");}
+  finally{adminMessageSend.disabled=false;}
+}
+adminMessageSend?.addEventListener("click",sendAdminMessage);
+
 async function registerDeviceInfo(){
   if(!supabase||!currentUser||isAdmin())return;
   try{
@@ -1215,9 +1291,10 @@ async function registerDeviceInfo(){
     await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",
       headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token},
-      body:JSON.stringify({device_id:presenceDeviceId,user_agent:navigator.userAgent||"",app_version:versionName}),
+      body:JSON.stringify({device_id:presenceDeviceId,user_agent:navigator.userAgent||"",app_version:versionName,notify_secret:diamondNotifySecret()}),
       cache:"no-store"
     });
+    try{window.AndroidMessages?.configure?.(presenceDeviceId,diamondNotifySecret(),currentLanguage);}catch(_){}
   }catch(error){console.warn("device info",error);}
 }
 
@@ -1227,6 +1304,11 @@ async function loadAdminUsers(){
     const {data,error}=await supabase.rpc("user_profile_admin_list");
     if(error) throw error;
     if(adminUserCount)adminUserCount.textContent=String((data||[]).length);
+    if(adminMessageTarget){
+      const selected=adminMessageTarget.value;
+      adminMessageTarget.innerHTML='<option value="">🌐 Të gjithë userat</option>'+(data||[]).map(p=>'<option value="'+escapeHtml(p.device_id)+'">'+escapeHtml(p.display_name)+'</option>').join("");
+      if([...adminMessageTarget.options].some(o=>o.value===selected))adminMessageTarget.value=selected;
+    }
     const rows=(data||[]).map(p=>{
       const seen=p.last_seen_at?new Date(p.last_seen_at).toLocaleString():"—";
       return `<div class="admin-user-row">
@@ -1236,7 +1318,7 @@ async function loadAdminUsers(){
         </div>
         <input maxlength="20" value="${escapeHtml(p.display_name)}" data-user-name="${escapeHtml(p.device_id)}">
         <button class="secondary" type="button" data-user-rename="${escapeHtml(p.device_id)}">Ndrysho emrin</button>
-        <button class="secondary" type="button" data-user-block="${escapeHtml(p.device_id)}" data-blocked="${p.is_blocked?"1":"0"}">${p.is_blocked?"Lejo":"Blloko"}</button>
+        <button class="secondary" type="button" data-user-block="${escapeHtml(p.device_id)}" data-blocked="${p.is_blocked?"1":"0"}">${p.is_blocked?"Lejo":"Blloko"}</button><button class="secondary" type="button" data-user-message="${escapeHtml(p.device_id)}">💬 Mesazh</button>
       </div>`;
     }).join("");
     adminUsersList.innerHTML=rows||'<div class="muted">Ende nuk ka përdorues.</div>';
@@ -1253,6 +1335,9 @@ async function loadAdminUsers(){
         showMessage(adminUsersStatus,"Emri u ndryshua. Pikët mbetën të njëjta.","success");
         await loadAdminUsers();
       };
+    });
+    adminUsersList.querySelectorAll("[data-user-message]").forEach(btn=>{
+      btn.onclick=()=>{if(adminMessageTarget)adminMessageTarget.value=btn.dataset.userMessage;if(adminMessageText)adminMessageText.focus();adminMessageCard?.scrollIntoView({behavior:"smooth",block:"center"});};
     });
     adminUsersList.querySelectorAll("[data-user-block]").forEach(btn=>{
       btn.onclick=async()=>{
@@ -1715,7 +1800,21 @@ function onDeviceOrientation(event) {
 }
 
 let qiblaNativeTimer = null;
+let qiblaAutoStopTimer = null;
 
+function stopQiblaCompass(){
+  if(qiblaNativeTimer){clearInterval(qiblaNativeTimer);qiblaNativeTimer=null;}
+  if(qiblaAutoStopTimer){clearTimeout(qiblaAutoStopTimer);qiblaAutoStopTimer=null;}
+  try{window.AndroidCompass?.stop?.();}catch(_){}
+  window.removeEventListener("deviceorientationabsolute",onDeviceOrientation,true);
+  window.removeEventListener("deviceorientation",onDeviceOrientation,true);
+  qiblaCompassListening=false;
+  if(qiblaCompassBtn)qiblaCompassBtn.textContent=currentLanguage==="de"?"Kompass starten":currentLanguage==="tr"?"Pusulayı başlat":currentLanguage==="en"?"Start compass":"Lësho busullën";
+}
+function scheduleQiblaAutoStop(){
+  if(qiblaAutoStopTimer)clearTimeout(qiblaAutoStopTimer);
+  qiblaAutoStopTimer=setTimeout(stopQiblaCompass,3*60*1000);
+}
 async function enableQiblaCompass() {
   try {
     const coords = savedPrayerCoords();
@@ -1735,6 +1834,8 @@ async function enableQiblaCompass() {
       }, 120);
       qiblaCompassListening = true;
       updateQibla(coords);
+      if(qiblaCompassBtn)qiblaCompassBtn.textContent=currentLanguage==="de"?"Kompass stoppen":currentLanguage==="tr"?"Pusulayı durdur":currentLanguage==="en"?"Stop compass":"Ndale busullën";
+      scheduleQiblaAutoStop();
       return;
     }
 
@@ -1749,13 +1850,15 @@ async function enableQiblaCompass() {
       qiblaCompassListening = true;
     }
     updateQibla(coords);
+    if(qiblaCompassBtn)qiblaCompassBtn.textContent=currentLanguage==="de"?"Kompass stoppen":currentLanguage==="tr"?"Pusulayı durdur":currentLanguage==="en"?"Stop compass":"Ndale busullën";
+    scheduleQiblaAutoStop();
   } catch (error) {
     console.warn("Qibla compass", error);
     if (qiblaStatus) qiblaStatus.textContent = t("prayer.qiblaNoSensor");
   }
 }
 
-qiblaCompassBtn?.addEventListener("click", enableQiblaCompass);
+qiblaCompassBtn?.addEventListener("click",()=>qiblaCompassListening?stopQiblaCompass():enableQiblaCompass());
 
 function savedPrayerCoords() {
   try {
@@ -3035,6 +3138,7 @@ async function applySession(session) {
   adminPanel.classList.toggle("hidden", !isAdmin());
   if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
   adminUsersCard?.classList.toggle("hidden", !isAdmin());
+  adminMessageCard?.classList.toggle("hidden", !isAdmin());
   if(!isAdmin()){
     await loadGlobalUserProfile().catch(()=>null);
     if(!currentAppProfile){
@@ -3056,9 +3160,9 @@ async function applySession(session) {
   await loadHiddenTabs();
   let savedCoords = savedPrayerCoords();
   if (savedCoords) {
-    fetchPrayerTimes(savedCoords).then(()=>{ updateQibla(savedCoords); enableQiblaCompass().catch(()=>{}); }).catch((error) => console.warn("Prayer preload failed", error));
+    fetchPrayerTimes(savedCoords).then(()=>{ updateQibla(savedCoords); }).catch((error) => console.warn("Prayer preload failed", error));
   } else {
-    getPhoneLocation().then(coords=>{ savedCoords=coords; return fetchPrayerTimes(coords).then(()=>{updateQibla(coords);enableQiblaCompass().catch(()=>{});}); }).catch(()=>{});
+    getPhoneLocation().then(coords=>{ savedCoords=coords; return fetchPrayerTimes(coords).then(()=>{updateQibla(coords);}); }).catch(()=>{});
   }
   if (chatName) chatName.value = chatSavedName();
   loadChatProfile().catch(console.warn);
@@ -3066,7 +3170,8 @@ async function applySession(session) {
   await registerInstall();
   await registerDailyActivity();
   await registerDeviceInfo();
-  if(isAdmin()) { await loadAdminStats(); await loadAdminUsers(); refreshNewDeviceNotifyButton(); }
+  if(isAdmin()) { await loadAdminStats(); await loadAdminUsers(); await loadAdminMessageHistory(); refreshNewDeviceNotifyButton(); }
+  else startAdminMessagePolling();
   startRealtime();
 }
 
