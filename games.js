@@ -23,6 +23,7 @@ const WAR_WINS_KEY = "pajaziti-war-wins";
 const WAR_GAMES_KEY = "pajaziti-war-games";
 const WAR_BONUS_HEARTS_KEY = "pajaziti-war-bonus-hearts";
 const WAR_NAME_KEY = "pajaziti-war-name";
+const BOARD_NAME_KEY = "pajaziti-board-name";
 const ADMIN_EMAIL = "admin@familja.local";
 const GAME_ORDER_SETTING_KEY = "game_order";
 const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war"];
@@ -38,6 +39,14 @@ let arcadeMode=null;
 let arcadeStarted=false;
 let tetrisOnline=false;
 let tetrisOnlineProgressTimer=null;
+let boardProfile=null;
+let boardLeaderboardRows=[];
+let boardChampion=null;
+let boardRoomNames={};
+let boardRematchTimer=null;
+let boardRematchRequested=false;
+let arcadeClockTimer=null;
+let timerVisibleClockTimer=null;
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -1854,6 +1863,80 @@ function renderGameChoices(){
   ).join("");
 }
 
+function boardGameSelected(){ return selectedType==="chess" || selectedType==="morris"; }
+function boardNameValue(){
+  return (document.getElementById("boardPlayerName")?.value || boardProfile?.display_name || localStorage.getItem(BOARD_NAME_KEY) || "").trim().slice(0,20);
+}
+async function loadBoardProfileAndLeaderboard(game=selectedType){
+  if(game!=="chess" && game!=="morris") return;
+  try{
+    const profileRes=await supabase.rpc("board_get_profile",{p_device:deviceId});
+    if(profileRes.error) throw profileRes.error;
+    boardProfile=profileRes.data||null;
+    if(boardProfile?.display_name) localStorage.setItem(BOARD_NAME_KEY,boardProfile.display_name);
+    const input=document.getElementById("boardPlayerName");
+    const info=document.getElementById("boardNameInfo");
+    if(input){input.value=boardProfile?.display_name||localStorage.getItem(BOARD_NAME_KEY)||"";input.readOnly=!!boardProfile;input.classList.toggle("board-name-locked",!!boardProfile);}
+    if(info) info.textContent=boardProfile ? "🔒 Emri është i përhershëm. Vetëm Admini mund ta ndryshojë; pikët mbeten." : "Shkruaje emrin një herë. Pastaj ruhet përgjithmonë.";
+    const pair=await Promise.all([supabase.rpc("board_weekly_leaderboard",{p_game:game}),supabase.rpc("board_weekly_champion",{p_game:game})]);
+    if(pair[0].error) throw pair[0].error;
+    if(pair[1].error) throw pair[1].error;
+    boardLeaderboardRows=pair[0].data||[];boardChampion=pair[1].data||null;
+    renderBoardLeaderboard(game);
+  }catch(error){console.warn("board profile/leaderboard",error);}
+}
+async function ensureBoardProfile(){
+  if(boardProfile?.display_name) return boardProfile;
+  const name=boardNameValue();
+  if(name.length<2) throw new Error("Shkruaje emrin me së paku 2 shkronja.");
+  const res=await supabase.rpc("board_set_profile",{p_device:deviceId,p_name:name});
+  if(res.error){const raw=String(res.error.message||res.error);if(raw.includes("NAME_TAKEN"))throw new Error("Ky emër ekziston. Zgjidh një emër tjetër.");if(raw.includes("NAME_LOCKED"))throw new Error("Emri është i kyçur. Vetëm Admini mund ta ndryshojë.");throw res.error;}
+  boardProfile=res.data;localStorage.setItem(BOARD_NAME_KEY,res.data.display_name);await loadBoardProfileAndLeaderboard(selectedType);return boardProfile;
+}
+function renderBoardLeaderboard(game){
+  const el=document.getElementById("boardLeaderboard");if(!el)return;
+  const rows=(boardLeaderboardRows||[]).map((r,i)=>"<div class=\"board-rank-row\"><span>"+(i===0?"🏆":(i+1)+".")+" "+escapeHtml(r.display_name)+"</span><strong>"+r.wins+" fitore</strong></div>").join("");
+  const champion=boardChampion?.display_name ? "<div class=\"board-champion-line\">"+(boardChampion.completed?"👑 Fituesi i javës së kaluar":"⭐ Kryesuesi i kësaj jave")+": <strong>"+escapeHtml(boardChampion.display_name)+"</strong> · "+Number(boardChampion.wins||0)+" fitore</div>" : "";
+  el.innerHTML="<h3>🏆 "+(game==="chess"?"Shah":"Degërxhik")+" · Java</h3>"+champion+"<div class=\"board-ranking\">"+(rows||"<div class=\"muted\">Ende nuk ka fitore këtë javë.</div>")+"</div>";
+}
+async function loadBoardRoomNames(){
+  boardRoomNames={};if(!room||room.local||!["chess","morris"].includes(room.game_type))return;
+  const devices=[room.player1_device,room.player2_device].filter(Boolean);if(!devices.length)return;
+  const res=await supabase.from("board_profiles").select("device_id,display_name").in("device_id",devices);
+  for(const p of (res.data||[])) boardRoomNames[p.device_id]=p.display_name;
+}
+async function loadBoardAdminProfiles(){
+  const box=document.getElementById("boardAdminProfiles");if(!gamesAdmin||!box)return;
+  const res=await supabase.rpc("board_admin_list_profiles");
+  if(res.error){box.innerHTML="<div class=\"muted\">Nuk u ngarkuan lojtarët.</div>";return;}
+  box.innerHTML=(res.data||[]).map(p=>"<div class=\"board-admin-row\"><div><strong>"+escapeHtml(p.display_name)+"</strong><small>♟️ "+p.chess_wins+" · 🟣 "+p.morris_wins+"</small></div><input maxlength=\"20\" value=\""+escapeHtml(p.display_name)+"\" data-board-admin-name=\""+escapeHtml(p.device_id)+"\"><button class=\"secondary\" type=\"button\" data-board-admin-save=\""+escapeHtml(p.device_id)+"\">Ruaj emrin</button></div>").join("")||"<div class=\"muted\">Nuk ka lojtarë.</div>";
+  box.querySelectorAll("[data-board-admin-save]").forEach(btn=>{btn.onclick=async()=>{const dev=btn.dataset.boardAdminSave;const input=box.querySelector('[data-board-admin-name="'+CSS.escape(dev)+'"]');const name=(input?.value||"").trim().slice(0,20);btn.disabled=true;const out=await supabase.rpc("board_admin_rename",{p_device:dev,p_name:name});btn.disabled=false;if(out.error){alert("Emri nuk u ndryshua: "+(out.error.message||"gabim"));return;}await loadBoardAdminProfiles();await loadBoardProfileAndLeaderboard(selectedType);};});
+}
+function clearBoardRematchTimer(){if(boardRematchTimer){clearInterval(boardRematchTimer);boardRematchTimer=null;}}
+async function recordBoardWin(color,reason="win"){
+  if(!room||room.local||!room.player2_device||!["chess","morris"].includes(room.game_type))return;
+  const winnerDevice=color==="w"?room.player1_device:room.player2_device;
+  const out=await supabase.rpc("board_finish_game",{p_room:room.id,p_winner_device:winnerDevice,p_reason:reason});if(out.error)console.warn("board finish",out.error);
+  room=await fetchRoomById(room.id).catch(()=>room);await loadBoardProfileAndLeaderboard(room.game_type).catch(()=>{});
+}
+async function resignBoardGame(){
+  if(!room||room.local||room.status!=="active")return;
+  if(!confirm("A dëshiron të dorëzohesh? Kundërshtari merr fitoren."))return;
+  const out=await supabase.rpc("board_resign",{p_room:room.id,p_device:deviceId});if(out.error){alert("Nuk u bë dorëzimi.");return;}
+  room=await fetchRoomById(room.id);renderRoom();
+}
+async function requestBoardRematch(){
+  if(!room||room.local||room.status!=="finished")return;const btn=document.getElementById("boardRematchBtn");if(btn)btn.disabled=true;
+  const out=await supabase.rpc("board_request_rematch",{p_room:room.id,p_device:deviceId});if(out.error){if(btn)btn.disabled=false;return;}
+  boardRematchRequested=true;
+  if(out.data?.new_room_id){const next=await fetchRoomById(out.data.new_room_id);boardRematchRequested=false;clearBoardRematchTimer();await openRoom(next);return;}
+  if(btn){btn.textContent="⏳ Duke pritur kundërshtarin…";btn.disabled=true;}startBoardRematchPolling();
+}
+function startBoardRematchPolling(){
+  if(!room||room.local||room.status!=="finished")return;clearBoardRematchTimer();const oldRoomId=room.id;
+  const poll=async()=>{if(!room||room.id!==oldRoomId)return clearBoardRematchTimer();try{const out=await supabase.rpc("board_rematch_status",{p_room:oldRoomId,p_device:deviceId});if(out.error)return;boardRematchRequested=!!out.data?.requested;const btn=document.getElementById("boardRematchBtn");if(btn&&boardRematchRequested){btn.textContent="⏳ Duke pritur kundërshtarin…";btn.disabled=true;}if(out.data?.new_room_id){clearBoardRematchTimer();const next=await fetchRoomById(out.data.new_room_id);boardRematchRequested=false;await openRoom(next);}}catch(_){}};
+  poll();boardRematchTimer=setInterval(poll,1800);
+}
 async function loadGameOrder(){
   try{
     const {data:sessionData}=await supabase.auth.getSession();
@@ -1955,7 +2038,16 @@ function renderLobby(msg=""){
           </section>
         `:""}
 
-        ${selectedType==="timer" ? `
+        ${(selectedType==="chess" || selectedType==="morris") ? `
+          <div class="board-profile-box">
+            <label for="boardPlayerName"><strong>👤 Emri për lojërat online</strong></label>
+            <input id="boardPlayerName" type="text" maxlength="20" placeholder="Emri yt" value="${escapeHtml(boardProfile?.display_name||localStorage.getItem(BOARD_NAME_KEY)||"")}" ${boardProfile?"readonly":""}>
+            <div id="boardNameInfo" class="game-help">${boardProfile?"🔒 Emri është i përhershëm. Vetëm Admini mund ta ndryshojë; pikët mbeten.":"Shkruaje emrin një herë. Pastaj ruhet përgjithmonë."}</div>
+            <button id="boardQuickOnline" class="primary" type="button">🌐 ${selectedType==="chess"?"Shah":"Degërxhik"} Online · prit 15 sekonda</button>
+          </div>
+          <section id="boardLeaderboard" class="card board-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
+          ${gamesAdmin?'<section class="card board-admin-panel"><h3>👑 Admin · Emrat e lojtarëve</h3><p class="muted">Vetëm Admini mund t’i ndryshojë. Pikët mbeten të njëjta.</p><div id="boardAdminProfiles">Po ngarkohen lojtarët…</div></section>':""}
+        ` : selectedType==="timer" ? `
           <input id="timerPlayerName" type="text" maxlength="24" placeholder="${tr("playerName")}" value="${escapeHtml(localStorage.getItem(TIMER_NAME_KEY)||"")}">
           <button id="timerSoloGame" class="primary" type="button">${tr("soloTimer")}</button>
           <button id="timerQuickOnline" class="secondary" type="button">🌐 Luaj Online · 2–8 veta</button>
@@ -1989,7 +2081,6 @@ function renderLobby(msg=""){
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
         ${(selectedType==="tetris" || selectedType==="war") ? "" : `
-          ${selectedType==="chess" ? '<button id="chessQuickOnline" class="primary" type="button">🌐 Shah Online · prit deri 15 sekonda</button><div class="game-help">Nëse ka lojtar online, app-i ju lidh automatikisht.</div>' : ""}
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -2012,7 +2103,12 @@ function renderLobby(msg=""){
   const timerSoloButton=document.getElementById("timerSoloGame");
   if(timerSoloButton) timerSoloButton.onclick=startTimerSoloGame;
   document.getElementById("timerQuickOnline")?.addEventListener("click",()=>startArcadeQuick("timer"));
-  document.getElementById("chessQuickOnline")?.addEventListener("click",startChessQuickOnline);
+  document.getElementById("boardQuickOnline")?.addEventListener("click",()=>startBoardQuickOnline(selectedType));
+  if(boardGameSelected()){
+    const boardName=document.getElementById("boardPlayerName");
+    if(boardName&&!boardProfile)boardName.addEventListener("input",()=>localStorage.setItem(BOARD_NAME_KEY,boardName.value.trim().slice(0,20)));
+    loadBoardProfileAndLeaderboard(selectedType);if(gamesAdmin)loadBoardAdminProfiles();
+  }
 
   const tetrisNameInput=document.getElementById("tetrisPlayerName");
   if(tetrisNameInput){
@@ -2087,59 +2183,19 @@ function clearQuickChess(){
   quickChessDeadline=0;
 }
 
-async function startChessQuickOnline(){
-  clearQuickChess();
-  const btn=document.getElementById("chessQuickOnline");
-  if(btn) btn.disabled=true;
+async function startBoardQuickOnline(game){
+  clearQuickChess();clearBoardRematchTimer();const btn=document.getElementById("boardQuickOnline");if(btn)btn.disabled=true;
   try{
-    const {data,error}=await supabase.rpc("chess_quick_join",{p_device:deviceId});
-    if(error) throw error;
-    const roomId=data?.room_id;
-    if(!roomId) throw new Error("ROOM_NOT_CREATED");
-    quickChessDeadline=new Date(data.deadline).getTime();
-    let fresh=await fetchRoomById(roomId);
-    await openRoom(fresh);
-
-    const tick=async()=>{
-      try{
-        fresh=await fetchRoomById(roomId);
-        room=fresh;
-        if(fresh.status==="active" && fresh.player2_device){
-          clearQuickChess();
-          renderRoom();
-          return;
-        }
-        const left=Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000));
-        const status=document.querySelector(".game-status");
-        if(status) status.textContent="🌐 Duke pritur lojtar online… "+left+" s";
-        if(Date.now()>=quickChessDeadline){
-          const again=await fetchRoomById(roomId).catch(()=>null);
-          if(again?.status==="active" && again.player2_device){
-            room=again; clearQuickChess(); renderRoom(); return;
-          }
-          await supabase.rpc("chess_quick_cancel",{p_room:roomId,p_device:deviceId});
-          clearQuickChess();
-          room=null;
-          renderLobby("Nuk u gjet lojtar brenda 15 sekondave. Provo përsëri.");
-        }
-      }catch(error){
-        console.warn("chess quick online",error);
-      }
-    };
-    await tick();
-    if(room?.status==="waiting") quickChessTimer=setInterval(tick,1000);
-  }catch(error){
-    console.warn("chess quick join",error);
-    renderLobby("Nuk u hap Shahu Online. Provo përsëri.");
-  }finally{
-    if(btn) btn.disabled=false;
-  }
+    const profile=await ensureBoardProfile();
+    const out=await supabase.rpc("board_quick_join",{p_game:game,p_device:deviceId,p_name:profile.display_name});if(out.error)throw out.error;
+    const roomId=out.data?.room_id;if(!roomId)throw new Error("ROOM_NOT_CREATED");quickChessDeadline=new Date(out.data.deadline).getTime();
+    let fresh=await fetchRoomById(roomId);await openRoom(fresh);
+    const tick=async()=>{try{fresh=await fetchRoomById(roomId);room=fresh;if(fresh.status==="active"&&fresh.player2_device){clearQuickChess();await loadBoardRoomNames();renderRoom();return;}const left=Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000));const status=document.querySelector(".game-status");if(status)status.textContent="🌐 Duke pritur lojtar online… "+left+" s";if(Date.now()>=quickChessDeadline){const again=await fetchRoomById(roomId).catch(()=>null);if(again?.status==="active"&&again.player2_device){room=again;clearQuickChess();await loadBoardRoomNames();renderRoom();return;}await supabase.rpc("board_quick_cancel",{p_room:roomId,p_device:deviceId});clearQuickChess();room=null;renderLobby("Nuk u gjet lojtar brenda 15 sekondave. Provo përsëri.");}}catch(error){console.warn("board quick online",error);}};
+    await tick();if(room?.status==="waiting")quickChessTimer=setInterval(tick,1000);
+  }catch(error){const raw=String(error?.message||error);renderLobby(raw.includes("NAME_TAKEN")?"Ky emër ekziston. Zgjidh një tjetër.":raw.includes("NAME_LOCKED")?"Emri është i kyçur. Vetëm Admini mund ta ndryshojë.":"Nuk u hap loja online. Provo përsëri.");}
+  finally{if(btn)btn.disabled=false;}
 }
-
-function clearArcadePolling(){
-  if(arcadePollTimer){clearInterval(arcadePollTimer);arcadePollTimer=null;}
-  if(tetrisOnlineProgressTimer){clearInterval(tetrisOnlineProgressTimer);tetrisOnlineProgressTimer=null;}
-}
+function clearArcadePolling(){if(arcadePollTimer){clearInterval(arcadePollTimer);arcadePollTimer=null;}if(tetrisOnlineProgressTimer){clearInterval(tetrisOnlineProgressTimer);tetrisOnlineProgressTimer=null;}if(arcadeClockTimer){clearInterval(arcadeClockTimer);arcadeClockTimer=null;}}
 
 function arcadeName(game){
   const key=game==="tetris"?TETRIS_NAME_KEY:TIMER_NAME_KEY;
@@ -2265,8 +2321,9 @@ function renderArcadeWaiting(){
   document.getElementById("arcadeLeave").onclick=async()=>{await leaveArcade();renderLobby();};
 }
 
+function startArcadeVisibleClock(){if(arcadeClockTimer){clearInterval(arcadeClockTimer);arcadeClockTimer=null;}const tick=()=>{const el=document.getElementById("arcadeRunningClock");if(!el||!arcadeRoom?.started_at)return;const start=new Date(arcadeRoom.started_at).getTime();el.textContent=arcadeHundredths(Math.max(0,Date.now()-start));};tick();arcadeClockTimer=setInterval(tick,20);}
 function renderArcadeTimer(){
-  if(!arcadeRoom)return;
+  if(!arcadeRoom)return;if(arcadeClockTimer){clearInterval(arcadeClockTimer);arcadeClockTimer=null;}
   const startedAt=arcadeRoom.started_at?new Date(arcadeRoom.started_at).getTime():0;
   const target=arcadeHundredths(arcadeRoom.target_ms);
   const winner=arcadePlayers.find(p=>p.device_id===arcadeRoom.winner_device);
@@ -2275,7 +2332,7 @@ function renderArcadeTimer(){
   root.innerHTML='<div class="games-shell"><section class="card arcade-timer-card">'+
     '<h2>👑 Kral i Sekondave Online</h2>'+
     '<div class="arcade-target-label">NDAL TE</div>'+
-    '<div class="arcade-target">'+target+'</div>'+
+    '<div class="arcade-target">'+target+'</div>'+(!finished?'<div id="arcadeRunningClock" class="arcade-running-clock">00:00</div>':'')+
     (finished
       ? '<div class="timer-crown">👑</div><div class="timer-big-message">Fituesi</div><div class="timer-winner-name">'+escapeHtml(winner?.display_name||"—")+'</div>'
       : '<div class="game-help">'+(beforeStart?"Bëhu gati…":"I pari që shtyp STOP në ose pas kohës së treguar fiton.")+'</div><button id="arcadeTimerStop" class="timer-stop-button" type="button" '+(beforeStart?"disabled":"")+'>STOP</button><div id="arcadeTimerMsg" class="message"></div>')+
@@ -2284,6 +2341,7 @@ function renderArcadeTimer(){
     '</section></div>';
   document.getElementById("arcadeTimerStop")?.addEventListener("click",stopArcadeTimer);
   document.getElementById("arcadeLeave").onclick=async()=>{await leaveArcade();renderLobby();};
+  if(!finished&&!beforeStart)startArcadeVisibleClock();
 }
 
 async function stopArcadeTimer(){
@@ -2491,11 +2549,11 @@ async function joinRoom(){
 }
 
 async function openRoom(r){
-  room=r; selected=null;
-  if(room.game_type==="timer") lastTimerSoundKey="";
-  if(room.game_type==="timer") await loadTimerPlayers();
-  subscribeRoom();
-  renderRoom();
+  room=r;selected=null;boardRematchRequested=false;clearBoardRematchTimer();
+  if(room.game_type==="timer")lastTimerSoundKey="";
+  if(room.game_type==="timer")await loadTimerPlayers();
+  if(["chess","morris"].includes(room.game_type)){await loadBoardRoomNames();await loadBoardProfileAndLeaderboard(room.game_type).catch(()=>{});}
+  subscribeRoom();renderRoom();
 }
 
 function subscribeRoom(){
@@ -2503,8 +2561,9 @@ function subscribeRoom(){
   if(channel)supabase.removeChannel(channel);
   channel=supabase.channel("game-"+room.id)
     .on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},async payload=>{
-      room=payload.new; selected=null;
-      if(room.game_type==="timer") await loadTimerPlayers();
+      room=payload.new;selected=null;
+      if(room.game_type==="timer")await loadTimerPlayers();
+      if(["chess","morris"].includes(room.game_type))await loadBoardRoomNames();
       renderRoom();
     })
     .on("postgres_changes",{event:"*",schema:"public",table:"timer_players",filter:"room_id=eq."+room.id},async ()=>{
@@ -2530,7 +2589,7 @@ async function saveState(state,status=room.status){
 
 function statusText(){
   const s=room.state||{};
-  if(s.winner){ const name=s.winner==="w"?tr("white"):tr("black"); return `${tr("gameOver")} · ${tr("winner")}: ${name}`; }
+  if(s.winner){const winnerDevice=s.winner==="w"?room.player1_device:room.player2_device;const name=boardRoomNames[winnerDevice]||(s.winner==="w"?tr("white"):tr("black"));return `${tr("gameOver")} · ${tr("winner")}: ${name}`;}
   if(room.local && s.turn==="b") return tr("computerThinking");
   return s.turn===myColor()?tr("yourTurn"):tr("opponentTurn");
 }
@@ -2550,10 +2609,10 @@ function renderRoom(){
           </div>
           ${local ? "" : `<button id="copyRoom" class="secondary" type="button">${tr("copy")}</button>`}
         </div>
-        <div class="game-status">${waiting && room.game_type==="chess" && quickChessDeadline ? "🌐 Duke pritur lojtar online… "+Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000))+" s" : waiting?tr("waiting"):statusText()}</div>
+        <div class="game-status">${waiting && ["chess","morris"].includes(room.game_type) && quickChessDeadline ? "🌐 Duke pritur lojtar online… "+Math.max(0,Math.ceil((quickChessDeadline-Date.now())/1000))+" s" : waiting?tr("waiting"):statusText()}</div>
         <div class="game-meta-grid">
-          <div class="game-meta-box ${room.game_type==="morris"?"morris-player-white":""}">⚪ ${tr("white")}: ✓</div>
-          <div class="game-meta-box ${room.game_type==="morris"?"morris-player-black":""}">⚫ ${tr("black")}: ${local ? "🤖 "+tr("computerName") : (room.player2_device===deviceId?"✓":room.player2_device?"●":"…")}</div>
+          <div class="game-meta-box ${room.game_type==="morris"?"morris-player-white":""}">⚪ ${tr("white")}: ${local?"Ti":escapeHtml(boardRoomNames[room.player1_device]||"Lojtari 1")}</div>
+          <div class="game-meta-box ${room.game_type==="morris"?"morris-player-black":""}">⚫ ${tr("black")}: ${local ? "🤖 "+tr("computerName") : (room.player2_device?escapeHtml(boardRoomNames[room.player2_device]||"Lojtari 2"):"…")}</div>
         </div>
       </section>
       <section class="card ${room.game_type==="morris"?"morris-board-card":""}">
@@ -2561,6 +2620,8 @@ function renderRoom(){
         <div class="game-help">${room.game_type==="chess"?tr("helpChess"):tr("helpMorris")}</div>
         <div class="game-actions">
           ${local ? `<button id="newComputerGame" class="primary" type="button">${tr("newGame")}</button>` : ""}
+          ${!local&&room.status==="active"&&room.player2_device?'<button id="boardResignBtn" class="secondary board-resign-btn" type="button">🏳️ Dorëzohu</button>':""}
+          ${!local&&room.status==="finished"?'<button id="boardRematchBtn" class="primary" type="button">🔄 Luajmë përsëri?</button>':""}
           <button id="leaveGame" class="secondary" type="button">${tr("leave")}</button>
         </div>
       </section>
@@ -2568,15 +2629,18 @@ function renderRoom(){
   const copyButton=document.getElementById("copyRoom");
   if(copyButton) copyButton.onclick=async()=>{await navigator.clipboard.writeText(room.code);copyButton.textContent=tr("copied");};
   const newButton=document.getElementById("newComputerGame");
-  if(newButton) newButton.onclick=startComputerGame;
-  document.getElementById("leaveGame").onclick=()=>{if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}if(channel)supabase.removeChannel(channel);channel=null;renderLobby();};
+  if(newButton)newButton.onclick=startComputerGame;
+  document.getElementById("boardResignBtn")?.addEventListener("click",resignBoardGame);
+  document.getElementById("boardRematchBtn")?.addEventListener("click",requestBoardRematch);
+  document.getElementById("leaveGame").onclick=()=>{clearBoardRematchTimer();if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}if(channel)supabase.removeChannel(channel);channel=null;renderLobby();};
+  if(!local&&room.status==="finished")startBoardRematchPolling();
   if(room.game_type==="chess")renderChess(myColor());else renderMorris(myColor());
   scheduleComputerTurn();
 }
 
-function clearTimerPhaseTimeout(){
-  if(timerPhaseTimeout){ clearTimeout(timerPhaseTimeout); timerPhaseTimeout=null; }
-}
+function clearTimerVisibleClock(){if(timerVisibleClockTimer){clearInterval(timerVisibleClockTimer);timerVisibleClockTimer=null;}}
+function updateTimerVisibleClock(){const el=document.getElementById("timerVisibleClock");if(!el||!room?.state?.start_at)return;const start=new Date(room.state.start_at).getTime();el.textContent=timerMs(Math.max(0,Date.now()-start));}
+function clearTimerPhaseTimeout(){if(timerPhaseTimeout){clearTimeout(timerPhaseTimeout);timerPhaseTimeout=null;}clearTimerVisibleClock();}
 
 function scheduleTimerPhaseRender(){
   clearTimerPhaseTimeout();
@@ -2642,8 +2706,8 @@ function renderTimerRoom(){
     `;
   }else if(phase==="countdown"){
     center=`
-      <div class="secret-clock">🔒 ---.--- s</div>
-      <div class="timer-big-message">${waitingForStart ? tr("ready") : (me?.eliminated ? tr("youEliminated") : me?.stop_ms!=null ? tr("stopped") : tr("hiddenTime"))}</div>
+      <div id="timerVisibleClock" class="visible-seconds-clock">${started?timerMs(Math.max(0,Date.now()-startAt)):"0.000 s"}</div>
+      <div class="timer-big-message">${waitingForStart ? tr("ready") : (me?.eliminated ? tr("youEliminated") : me?.stop_ms!=null ? tr("stopped") : "Sekondat po ecin")}</div>
       ${canStop ? `<button id="timerStopButton" class="timer-stop-button" type="button">${tr("stop")}</button>` : ""}
     `;
   }else if(phase==="results"){
@@ -2724,7 +2788,8 @@ function renderTimerRoom(){
   const leave=document.getElementById("leaveGame");
   if(leave) leave.onclick=()=>{ clearTimerPhaseTimeout(); if(channel)supabase.removeChannel(channel); channel=null; room=null; renderLobby(); };
 
-  if(waitingForStart) scheduleTimerPhaseRender();
+  if(waitingForStart)scheduleTimerPhaseRender();
+  if(phase==="countdown"&&started){updateTimerVisibleClock();timerVisibleClockTimer=setInterval(updateTimerVisibleClock,20);}
   maybePlayTimerStateSound(st,started);
   if(!localTimer) loadTimerLeaderboardInto("timerRoomLeaderboard");
 }
@@ -2862,6 +2927,7 @@ function renderChess(color){
     if(p){const span=document.createElement("span");span.className="chess-piece "+(p[0]==="w"?"white":"black");span.textContent=C_SYM[p];sq.appendChild(span);}
     sq.onclick=()=>chessClick(r,c);board.appendChild(sq);
   }
+  if(boardChampion?.display_name){const mark=document.createElement("div");mark.className="board-champion-watermark";mark.textContent="👑 "+boardChampion.display_name;board.appendChild(mark);}
   wrap.innerHTML="";wrap.appendChild(board);
 }
 
@@ -2877,7 +2943,7 @@ async function chessClick(r,c){
   let piece=nb[selected[0]][selected[1]],captured=nb[r][c];
   nb[selected[0]][selected[1]]=null;if(piece[1]==="p"&&(r===0||r===7))piece=piece[0]+"q";nb[r][c]=piece;
   const ns={...room.state,board:nb,turn:color==="w"?"b":"w"};if(captured&&captured[1]==="k")ns.winner=color;
-  selected=null;await saveState(ns,"active");if(!room.local)renderRoom();
+  selected=null;await saveState(ns,"active");if(ns.winner&&!room.local)await recordBoardWin(ns.winner,"win");if(!room.local)renderRoom();
 }
 
 function computerChessMove(){
@@ -2935,6 +3001,7 @@ function renderMorris(){
     const btn=document.createElement("button");btn.className="morris-point";if(st.board[i])btn.classList.add(st.board[i]==="w"?"white":"black");if(selected===i)btn.classList.add("selected");
     btn.style.left=(M_POS[i][0]*100)+"%";btn.style.top=(M_POS[i][1]*100)+"%";btn.onclick=()=>morrisClick(i);board.appendChild(btn);
   }
+  if(boardChampion?.display_name){const mark=document.createElement("div");mark.className="board-champion-watermark morris-champion-watermark";mark.textContent="👑 "+boardChampion.display_name;board.appendChild(mark);}
   wrap.innerHTML="";wrap.appendChild(board);
 }
 
@@ -2944,7 +3011,7 @@ async function morrisClick(pos){
   if(st.mustRemove){
     if(st.board[pos]!==other)return;if(formsMill(st.board,pos,other)&&!allInMill(st.board,other))return;
     st.board[pos]=null;st.mustRemove=false;st.turn=other;if(st.placed[other]>=9&&countPieces(st.board,other)<3)st.winner=color;
-    selected=null;await saveState(st,"active");if(!room.local)renderRoom();return;
+    selected=null;await saveState(st,"active");if(st.winner&&!room.local)await recordBoardWin(st.winner,"win");if(!room.local)renderRoom();return;
   }
   if(st.placed[color]<9){
     if(st.board[pos])return;st.board[pos]=color;st.placed[color]++;if(formsMill(st.board,pos,color))st.mustRemove=true;else st.turn=other;
