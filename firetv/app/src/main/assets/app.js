@@ -937,7 +937,8 @@ function setSection(next) {
   shareAppView?.classList.toggle("hidden", !showShareApp);
   newsView?.classList.toggle("hidden", !showNews);
 
-  appTabsNav?.classList.toggle("hidden", !isHome);\n  sectionBackBtn?.classList.toggle("hidden", isHome);
+  appTabsNav?.classList.toggle("hidden", !isHome);
+  sectionBackBtn?.classList.toggle("hidden", isHome);
 
   if (showInfo) loadInfo({ markRead: true });
   if (showPrayer) loadPrayerTimes(false);
