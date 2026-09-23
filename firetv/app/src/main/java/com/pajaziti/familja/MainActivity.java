@@ -250,6 +250,7 @@ public class MainActivity extends Activity {
         if (p.endsWith(".webmanifest")) return "application/manifest+json";
         if (p.endsWith(".svg")) return "image/svg+xml";
         if (p.endsWith(".m3u")) return "audio/x-mpegurl";
+        if (p.endsWith(".mp4")) return "video/mp4";
         return "application/octet-stream";
     }
 
