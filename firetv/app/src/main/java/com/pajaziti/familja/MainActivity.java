@@ -63,6 +63,7 @@ public class MainActivity extends Activity {
     private String activeUpdateFileName = null;
     private boolean waitingForInstallPermission = false;
     private long lastUpdateCheckAt = 0L;
+    private ArabicTtsBridge arabicTtsBridge;
 
     private final BroadcastReceiver updateDownloadReceiver = new BroadcastReceiver() {
         @Override
@@ -98,6 +99,8 @@ public class MainActivity extends Activity {
         settings.setGeolocationEnabled(true);
 
         webView.addJavascriptInterface(new PrayerBridge(this), "AndroidPrayer");
+        arabicTtsBridge = new ArabicTtsBridge(this);
+        webView.addJavascriptInterface(arabicTtsBridge, "AndroidTTS");
         webView.addJavascriptInterface(new CompassBridge(this), "AndroidCompass");
         webView.addJavascriptInterface(new ClockWidgetBridge(this), "AndroidClock");
         webView.addJavascriptInterface(new AppInfoBridge(this), "AndroidApp");
@@ -776,6 +779,10 @@ public class MainActivity extends Activity {
         }
         if (customView != null) {
             hideFullscreenVideo();
+        }
+        if (arabicTtsBridge != null) {
+            arabicTtsBridge.shutdown();
+            arabicTtsBridge = null;
         }
         if (webView != null) {
             webView.destroy();
