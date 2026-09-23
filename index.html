@@ -77,16 +77,18 @@
       <img class="logo" src="angel-icon.jpg" alt="" aria-hidden="true">
       <h1>DIAMOND</h1>
 
-      <div class="mode-switch" style="grid-template-columns:1fr 1fr">
-        <button id="familyMode" class="mode active" type="button" data-i18n="mode.family">Përdoruesi</button><button id="adminMode" class="mode" type="button">Admin</button>
-      </div>
-
       <div id="familyDirectHint" class="small muted" data-i18n="login.userDirectHint">Përdoruesi hyn direkt pa kod.</div>
-      <div id="adminCodeWrap" class="hidden">
-        <label for="codeInput" data-i18n="login.label">Kodi i hyrjes</label>
+      <button id="loginBtn" class="primary" type="button">Hyr si Përdorues</button>
+
+      <div id="adminCodeWrap">
+        <label for="codeInput" data-i18n="login.label">Kodi i Adminit</label>
         <input id="codeInput" type="password" inputmode="text" autocomplete="current-password" placeholder="Shkruaj kodin" data-i18n-placeholder="login.placeholder">
       </div>
-      <button id="loginBtn" class="primary" type="button">Hyr</button>
+      <button id="adminDirectLoginBtn" class="secondary" type="button" style="width:100%;margin-top:10px">Hyr si Admin</button>
+
+      <div class="mode-switch hidden" style="grid-template-columns:1fr 1fr">
+        <button id="familyMode" class="mode active" type="button">Përdoruesi</button><button id="adminMode" class="mode" type="button">Admin</button>
+      </div>
 
       <div class="share-install-actions">
         <button id="installLoginBtn" class="secondary hidden" type="button" data-i18n="install.app">Instalo aplikacionin</button>
@@ -101,7 +103,7 @@
         <div>
           <div class="app-title-row" style="display:block">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.53</span>
+            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.56</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
