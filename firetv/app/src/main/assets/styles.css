@@ -4141,3 +4141,8 @@ body:has(#appView:not(.hidden)){
 .diamond-status>div{min-height:74px;padding:11px 12px!important;border-radius:20px!important}
 .diamond-quote{margin:14px 10px 8px!important;padding:18px 10px!important;border-radius:20px!important;font-size:16px!important}
 @media(max-width:380px){#appTabs.app-tabs{gap:8px!important;padding:0 7px!important}#appTabs .app-tab{height:80px!important;min-height:80px!important;grid-template-columns:46px minmax(0,1fr) 10px!important;padding:8px!important}#appTabs .app-tab .diamond-icon{width:44px!important;height:44px!important;font-size:23px!important}#appTabs .diamond-copy b{font-size:14px!important}#appTabs .diamond-copy small{font-size:9px!important}}
+
+/* Readability inside feature pages: light cards always use dark text */
+#sportView .card,#sportView .match-card,#infoView .card,#prayerView .card,#prayerView .prayer-card,#clockView .card,#galleryView .card{color:#111827!important}
+#sportView .card *,#sportView .match-card *,#infoView .card *,#prayerView .card *,#prayerView .prayer-card *,#clockView .card *,#galleryView .card *{color:#111827}
+#sportView .muted,#infoView .muted,#prayerView .muted,#clockView .muted{color:#475569!important}
