@@ -4125,3 +4125,19 @@ body:has(#appView:not(.hidden)){
 #appTabs.app-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0 2px;background:transparent!important}.app-tab{min-height:112px!important;border:1px solid #37cfff!important;border-radius:24px!important;background:linear-gradient(135deg,#073c62,#02233d)!important;color:white!important;box-shadow:inset 0 0 20px #0c6a9b33,0 4px 14px #0005!important;padding:14px!important;display:grid!important;grid-template-columns:70px 1fr 18px;align-items:center;text-align:left;gap:12px}.app-tab .diamond-icon{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;font-size:34px;background:linear-gradient(145deg,#13cfff,#1263e8);box-shadow:inset 0 1px 5px #fff9,0 0 16px #1ac8ff66}.app-tab:nth-child(3n+1) .diamond-icon{background:linear-gradient(145deg,#ff5b78,#e90036)}.app-tab:nth-child(3n+2) .diamond-icon{background:linear-gradient(145deg,#52e777,#00a83b)}.app-tab:nth-child(3n) .diamond-icon{background:linear-gradient(145deg,#c653ff,#681de2)}.diamond-copy{display:flex;flex-direction:column;gap:6px}.diamond-copy b{font-size:20px}.diamond-copy small{font-size:12px;color:#c6d7e8;line-height:1.25}.app-tab i{font-size:36px;font-style:normal;color:#9bc0d8}.diamond-quote{margin:18px 2px 10px;padding:22px 12px;text-align:center;border:1px solid #1f6288;border-radius:22px;background:#02172acc;font-size:18px;font-weight:800}.section-back-btn{background:#063d63!important;color:#fff!important;border:1px solid #35cfff!important}
 #appTabs.hidden+.diamond-quote,.diamond-home-hero:has(~ #appTabs.hidden){display:none!important}
 @media(max-width:520px){.app-tab{min-height:98px!important;grid-template-columns:58px 1fr 14px;padding:10px!important}.app-tab .diamond-icon{width:54px;height:54px;font-size:28px}.diamond-copy b{font-size:17px}.diamond-copy small{font-size:10px}.diamond-brand strong{font-size:27px}.diamond-status>div{padding:12px}.diamond-status{gap:8px}}
+
+/* DIAMOND compact menu - match approved reference */
+#appTabs.app-tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;padding:0 10px!important}
+#appTabs .app-tab{min-height:86px!important;height:86px!important;border-radius:20px!important;padding:9px 11px!important;grid-template-columns:52px minmax(0,1fr) 12px!important;gap:9px!important}
+#appTabs .app-tab .diamond-icon{width:50px!important;height:50px!important;border-radius:15px!important;font-size:26px!important}
+#appTabs .diamond-copy{gap:3px!important;min-width:0}
+#appTabs .diamond-copy b{font-size:16px!important;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#appTabs .diamond-copy small{font-size:10px!important;line-height:1.15!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#appTabs .app-tab i{font-size:28px!important;line-height:1}
+.diamond-home-hero{padding:5px 10px 14px!important}
+.diamond-brand{font-size:30px!important}
+.diamond-brand strong{font-size:28px!important}
+.diamond-status{gap:10px!important;margin-top:14px!important}
+.diamond-status>div{min-height:74px;padding:11px 12px!important;border-radius:20px!important}
+.diamond-quote{margin:14px 10px 8px!important;padding:18px 10px!important;border-radius:20px!important;font-size:16px!important}
+@media(max-width:380px){#appTabs.app-tabs{gap:8px!important;padding:0 7px!important}#appTabs .app-tab{height:80px!important;min-height:80px!important;grid-template-columns:46px minmax(0,1fr) 10px!important;padding:8px!important}#appTabs .app-tab .diamond-icon{width:44px!important;height:44px!important;font-size:23px!important}#appTabs .diamond-copy b{font-size:14px!important}#appTabs .diamond-copy small{font-size:9px!important}}
