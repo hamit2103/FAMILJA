@@ -313,6 +313,17 @@ function applyLanguage(language = currentLanguage) {
   window.DiamondPrayerExtras?.reloadLanguage?.(language);
   window.DiamondRuqya?.reloadLanguage?.();
   window.DiamondDiet?.reloadLanguage?.();
+  const simple={
+    sq:{diet:"Diet",ki:"KI",share:"Ndaje appin",news:"Lajme",back:"← Kthehu mbrapa",admin:"Admin",login:"Hyr"},
+    de:{diet:"Ernährung",ki:"KI",share:"App teilen",news:"Nachrichten",back:"← Zurück",admin:"Admin",login:"Anmelden"},
+    tr:{diet:"Diyet",ki:"YZ",share:"Uygulamayı paylaş",news:"Haberler",back:"← Geri",admin:"Yönetici",login:"Giriş"},
+    en:{diet:"Diet",ki:"AI",share:"Share app",news:"News",back:"← Back",admin:"Admin",login:"Sign in"},
+    it:{diet:"Dieta",ki:"IA",share:"Condividi app",news:"Notizie",back:"← Indietro",admin:"Admin",login:"Accedi"},
+    hr:{diet:"Prehrana",ki:"AI",share:"Podijeli aplikaciju",news:"Vijesti",back:"← Natrag",admin:"Admin",login:"Prijava"},
+    fr:{diet:"Régime",ki:"IA",share:"Partager l’app",news:"Actualités",back:"← Retour",admin:"Admin",login:"Connexion"},
+    ar:{diet:"النظام الغذائي",ki:"الذكاء الاصطناعي",share:"مشاركة التطبيق",news:"الأخبار",back:"← رجوع",admin:"المشرف",login:"دخول"}
+  }[language]||{};
+  [["dietTabLabel","diet"],["kiTabLabel","ki"],["shareAppTabLabel","share"],["newsTabLabel","news"],["sectionBackBtn","back"],["adminMode","admin"],["loginBtn","login"]].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&simple[k])el.textContent=simple[k];});
   window.DiamondKI?.reloadLanguage?.();
   window.DiamondShareApp?.reloadLanguage?.();
   window.DiamondNews?.reloadLanguage?.();
