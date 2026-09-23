@@ -597,7 +597,20 @@
       await load();
     }
   </script>
-  <script type="module" src="app.js?v=85"></script>
+  <script>
+  /* Core navigation fallback: works even if remote modules fail to load. */
+  (()=>{
+    const pairs={galleryTab:"galleryView",infoTab:"infoView",prayerTab:"prayerView",clockTab:"clockView",sportTab:"sportView",gamesTab:"gamesView",tvTab:"tvView",radioTab:"radioView",dietTab:"dietView",kiTab:"kiView",shareAppTab:"shareAppView",newsTab:"newsView"};
+    const views=[...new Set(Object.values(pairs))];
+    const home=()=>{views.forEach(id=>document.getElementById(id)?.classList.add("hidden"));document.getElementById("appTabs")?.classList.remove("hidden");document.getElementById("sectionBackBtn")?.classList.add("hidden");document.getElementById("diamondHomeHero")?.classList.remove("hidden");document.getElementById("diamondQuote")?.classList.remove("hidden");};
+    const open=(id)=>{views.forEach(v=>document.getElementById(v)?.classList.toggle("hidden",v!==id));document.getElementById("appTabs")?.classList.add("hidden");document.getElementById("sectionBackBtn")?.classList.remove("hidden");document.getElementById("diamondHomeHero")?.classList.add("hidden");document.getElementById("diamondQuote")?.classList.add("hidden");window.scrollTo(0,0);};
+    Object.entries(pairs).forEach(([tab,view])=>document.getElementById(tab)?.addEventListener("click",()=>open(view)));
+    document.getElementById("sectionBackBtn")?.addEventListener("click",home);
+    document.getElementById("adminPanel")?.classList.add("hidden");
+    window.DiamondCoreNav={open,home};
+  })();
+  </script>
+  <script type="module" src="app.js?v=86"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=77"></script>
   <script type="module" src="tv.js?v=52"></script>
