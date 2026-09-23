@@ -47,6 +47,7 @@ let boardRematchTimer=null;
 let boardRematchRequested=false;
 let arcadeClockTimer=null;
 let timerVisibleClockTimer=null;
+let gameBlocks={};
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -1858,7 +1859,7 @@ function gameChoiceLabel(id){
 
 function renderGameChoices(){
   return gameOrder.map((id)=>
-    `<button class="game-choice ${selectedType===id?"active":""}" data-game="${id}">${gameChoiceLabel(id)}</button>`
+    `<button class="game-choice ${selectedType===id?"active":""}" data-game="${id}" ${activeGameBlock(id)&&!gamesAdmin?"disabled":""}>${gameChoiceLabel(id)}${activeGameBlock(id)?`<small class="game-block-note">🔒 ${gameBlockText(id)}</small>`:""}</button>`
   ).join("");
 }
 
@@ -1934,6 +1935,34 @@ function startBoardRematchPolling(){
   const poll=async()=>{if(!room||room.id!==oldRoomId)return clearBoardRematchTimer();try{const out=await supabase.rpc("board_rematch_status",{p_room:oldRoomId,p_device:deviceId});if(out.error)return;boardRematchRequested=!!out.data?.requested;const btn=document.getElementById("boardRematchBtn");if(btn&&boardRematchRequested){btn.textContent="⏳ Duke pritur kundërshtarin…";btn.disabled=true;}if(out.data?.new_room_id){clearBoardRematchTimer();const next=await fetchRoomById(out.data.new_room_id);boardRematchRequested=false;await openRoom(next);}}catch(_){}};
   poll();boardRematchTimer=setInterval(poll,1800);
 }
+async function loadGameBlocks(){
+  try{
+    const {data,error}=await supabase.rpc("game_blocks_list");
+    if(error)throw error;
+    gameBlocks={};
+    for(const row of (data||[]))gameBlocks[row.game_id]=row;
+  }catch(error){console.warn("game blocks",error);}
+}
+function activeGameBlock(id){
+  const b=gameBlocks[id];
+  return !!(b?.is_blocked && b?.blocked_until && new Date(b.blocked_until).getTime()>Date.now());
+}
+function gameBlockText(id){
+  const b=gameBlocks[id];
+  if(!activeGameBlock(id))return "";
+  return "deri "+new Date(b.blocked_until).toLocaleString();
+}
+async function setAdminGameBlock(){
+  const game=document.getElementById("gameBlockSelect")?.value;
+  const untilValue=document.getElementById("gameBlockUntil")?.value;
+  const msg=document.getElementById("gameBlockStatus");
+  if(!game||!untilValue){if(msg)msg.textContent="Zgjidh lojën dhe kohën.";return;}
+  const until=new Date(untilValue);
+  const {error}=await supabase.rpc("game_block_set",{p_game:game,p_until:until.toISOString()});
+  if(error){if(msg)msg.textContent="Gabim: "+(error.message||error);return;}
+  await loadGameBlocks();renderLobby();
+}
+
 async function loadGameOrder(){
   try{
     const {data:sessionData}=await supabase.auth.getSession();
@@ -2032,6 +2061,22 @@ function renderLobby(msg=""){
             </div>
             <button id="gameOrderSave" class="primary" type="button">Ruaj renditjen</button>
             <div id="gameOrderStatus" class="message"></div>
+            <div class="game-block-admin">
+              <strong>🔒 Blloko një lojë për një kohë</strong>
+              <select id="gameBlockSelect">
+                <option value="chess">Shah</option>
+                <option value="morris">Degërxhik</option>
+                <option value="timer">Kral i Sekondave</option>
+                <option value="tetris">Blloqe</option>
+                <option value="war">Luftra</option>
+              </select>
+              <input id="gameBlockUntil" type="datetime-local">
+              <div class="game-block-actions">
+                <button id="gameBlockSave" class="secondary" type="button">Blloko deri atëherë</button>
+                <button id="gameBlockClear" class="secondary" type="button">Hape lojën</button>
+              </div>
+              <div id="gameBlockStatus" class="message"></div>
+            </div>
           </section>
         `:""}
 
@@ -2087,9 +2132,15 @@ function renderLobby(msg=""){
       ${selectedType==="timer" ? `<section id="timerLeaderboard" class="card timer-leaderboard"><div class="muted">${tr("weekly")}…</div></section>` : ""}
     </div>`;
   if(selectedType==="timer") loadTimerLeaderboard();
-  root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{selectedType=btn.dataset.game;renderLobby();});
+  root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.game;if(activeGameBlock(id)&&!gamesAdmin){const m=document.getElementById("gameMessage");if(m)m.textContent="Kjo lojë është e bllokuar nga Admini "+gameBlockText(id)+".";return;}selectedType=id;renderLobby();});
   const warChoice=root.querySelector('[data-game="war"]'); if(warChoice) warChoice.addEventListener("click",()=>{selectedType="war";renderLobby();},{once:true});
   bindGameOrderAdmin();
+  document.getElementById("gameBlockSave")?.addEventListener("click",setAdminGameBlock);
+  document.getElementById("gameBlockClear")?.addEventListener("click",async()=>{
+    const game=document.getElementById("gameBlockSelect")?.value;if(!game)return;
+    await supabase.rpc("game_block_set",{p_game:game,p_until:null});
+    await loadGameBlocks();renderLobby();
+  });
   const computerButton=document.getElementById("computerGame");
   if(computerButton) computerButton.onclick=startComputerGame;
   const timerSoloButton=document.getElementById("timerSoloGame");
@@ -3631,12 +3682,12 @@ function startTetrisGame(options={}){
 async function activate(){
   startTetrisScoreRealtime();
   if(tabLabel)tabLabel.textContent=tr("games");
-  await loadGameOrder();
+  await Promise.all([loadGameOrder(),loadGameBlocks()]);
   if(room)renderRoom();else renderLobby();
 }
 
 async function reloadSettings(){
-  await loadGameOrder();
+  await Promise.all([loadGameOrder(),loadGameBlocks()]);
   if(!room) renderLobby();
 }
 
