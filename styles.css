@@ -4233,3 +4233,16 @@ body:has(#appView:not(.hidden)){
 .game-block-admin{display:grid;gap:8px;margin-top:14px;padding:12px;border-radius:16px;background:rgba(255,255,255,.72);color:#111827}
 .game-block-admin select,.game-block-admin input{width:100%}
 .game-block-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* DIAMOND 5.67 game audio, music and colors */
+:root{--game-light:#f0d9b5;--game-dark:#b58863;--game-primary:#ffffff;--game-secondary:#111827;--game-arena:#111827}
+.chess-square.light{background:var(--game-light)!important}.chess-square.dark{background:var(--game-dark)!important}
+.chess-piece.white{color:var(--game-primary)!important;-webkit-text-fill-color:var(--game-primary)!important}
+.chess-piece.black{color:var(--game-secondary)!important;-webkit-text-fill-color:var(--game-secondary)!important}
+.morris-board,.morris-point{background:var(--game-light)!important}.morris-point.white{background:var(--game-primary)!important}.morris-point.black{background:var(--game-secondary)!important}
+.tetris-board{background:var(--game-arena)!important}.tetris-cell{background:color-mix(in srgb,var(--game-arena) 82%,black)!important}
+.war-arena{background:linear-gradient(180deg,var(--game-arena),color-mix(in srgb,var(--game-arena) 74%,#1f2937) 48%,#0f172a)!important}
+.timer-room-card,.arcade-timer-card{border-color:var(--game-dark)!important}
+.game-global-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.game-theme-controls{display:grid;gap:9px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.72);color:#111827}
+.game-color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.game-color-grid label{display:grid;place-items:center;gap:3px;font-size:11px;font-weight:800}.game-color-grid input{width:100%;height:34px;border:0;background:transparent}
