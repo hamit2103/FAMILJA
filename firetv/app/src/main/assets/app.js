@@ -1064,6 +1064,11 @@ function setMode(next) {
 }
 familyMode?.addEventListener("click", () => setMode("family"));
 adminMode?.addEventListener("click", () => setMode("admin"));
+const adminDirectLoginBtn = document.getElementById("adminDirectLoginBtn");
+adminDirectLoginBtn?.addEventListener("click", async () => {
+  mode = "admin";
+  await login();
+});
 
 function showMessage(el, text, kind = "") {
   el.textContent = text;
@@ -1248,7 +1253,10 @@ async function login() {
     loginBtn.disabled = false;
   }
 }
-loginBtn.addEventListener("click", login);
+loginBtn.addEventListener("click", async () => {
+  mode = "family";
+  await login();
+});
 codeInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && mode === "admin") login();
 });
