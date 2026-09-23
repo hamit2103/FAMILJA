@@ -83,7 +83,7 @@
         <label for="codeInput" data-i18n="login.label">Kodi i hyrjes</label>
         <input id="codeInput" type="password" inputmode="text" autocomplete="current-password" placeholder="Shkruaj kodin" data-i18n-placeholder="login.placeholder">
       </div>
-      <button id="loginBtn" class="primary" type="button">Hyr</button>
+      <button id="loginBtn" class="primary" type="button" onclick="document.getElementById('loginView').classList.add('hidden');document.getElementById('appView').classList.remove('hidden');document.getElementById('appTabs').classList.remove('hidden');">Hyr</button>
 
       <div class="share-install-actions">
         <button id="installLoginBtn" class="secondary hidden" type="button" data-i18n="install.app">Instalo aplikacionin</button>
