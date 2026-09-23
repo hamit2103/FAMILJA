@@ -1111,7 +1111,12 @@ async function login() {
       });
       if (verifyError) throw verifyError;
       const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData?.session) await applySession(sessionData.session);
+      if (!sessionData?.session) throw new Error("Family session missing");
+      currentUser = sessionData.session.user;
+      loginView.classList.add("hidden");
+      appView.classList.remove("hidden");
+      setSection("home");
+      await applySession(sessionData.session);
       showMessage(loginMessage, "");
     } else {
       const code = codeInput.value.trim();
