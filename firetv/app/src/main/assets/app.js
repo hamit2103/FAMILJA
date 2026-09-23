@@ -1171,6 +1171,18 @@ async function login() {
   loginBtn.disabled = true;
   showMessage(loginMessage, t("login.checking"));
 
+  // Always clear a previous User/Admin session before a new login attempt.
+  // This prevents a stale family session from blocking the Admin switch (and vice versa).
+  try {
+    const { data: existingAuth } = await supabase.auth.getSession();
+    const existingEmail = existingAuth?.session?.user?.email || "";
+    if ((mode === "admin" && existingEmail && existingEmail !== ADMIN_EMAIL) ||
+        (mode === "family" && existingEmail === ADMIN_EMAIL)) {
+      await supabase.auth.signOut();
+      currentUser = null;
+    }
+  } catch (_) {}
+
   try {
     if (mode === "family") {
       const response = await fetch(SUPABASE_URL + "/functions/v1/family-login", {
