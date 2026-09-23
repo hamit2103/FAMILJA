@@ -4154,3 +4154,29 @@ body:has(#appView:not(.hidden)){
 #newsView{--section-accent:#ef3154} #shareAppView{--section-accent:#23c7e8}
 #sportView h1,#sportView h2,#tvView h1,#tvView h2,#radioView h1,#radioView h2,#gamesView h1,#gamesView h2,#prayerView h1,#prayerView h2,#clockView h1,#clockView h2,#dietView h1,#dietView h2,#kiView h1,#kiView h2,#infoView h1,#infoView h2,#newsView h1,#newsView h2,#shareAppView h1,#shareAppView h2{border-left:6px solid var(--section-accent);padding-left:10px}
 .diamond-weather-only{grid-template-columns:1fr!important}
+
+
+/* DIAMOND 5.63 online games */
+.chess-piece.white{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  -webkit-text-stroke:1.6px #0f172a!important;
+  text-shadow:0 0 1px #0f172a,0 1px 2px #0f172a,0 0 4px rgba(255,255,255,.9)!important;
+  font-weight:900!important;
+}
+.arcade-wait-card,.arcade-timer-card{display:grid;gap:14px;text-align:center}
+.arcade-countdown{
+  width:96px;height:96px;margin:4px auto;border-radius:50%;
+  display:grid;place-items:center;font-size:42px;font-weight:950;
+  background:#111827;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.18)
+}
+.arcade-target-label{font-weight:900;letter-spacing:.12em;color:#475569}
+.arcade-target{
+  margin:0 auto;padding:16px 26px;border-radius:20px;
+  background:#0f172a;color:#fff;font-size:clamp(44px,14vw,78px);
+  font-weight:950;letter-spacing:.04em;font-variant-numeric:tabular-nums
+}
+.tetris-online-status{display:grid;gap:8px;padding:10px 12px}
+.tetris-online-players{display:flex;gap:7px;flex-wrap:wrap}
+.tetris-online-players span{padding:5px 8px;border-radius:999px;background:#dcfce7;font-size:12px;font-weight:800}
+.tetris-online-players span.out{background:#fee2e2;opacity:.7;text-decoration:line-through}
