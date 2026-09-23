@@ -1203,12 +1203,16 @@ async function login() {
       if (!response.ok) throw new Error(tokenData?.error || ("Family login HTTP " + response.status));
       if (!tokenData?.token_hash) throw new Error("Family token missing");
 
-      const { error: verifyError } = await supabase.auth.verifyOtp({
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
         token_hash: tokenData.token_hash,
         type: "email"
       });
       if (verifyError) throw verifyError;
-      const { data: sessionData } = await supabase.auth.getSession();
+      let sessionData = verifyData;
+      if (!sessionData?.session) {
+        const current = await supabase.auth.getSession();
+        sessionData = current.data;
+      }
       if (!sessionData?.session) throw new Error("Family session missing");
       currentUser = sessionData.session.user;
       loginView.classList.add("hidden");
