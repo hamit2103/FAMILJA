@@ -5098,3 +5098,22 @@ button.war-weapon-icon:disabled{
   .sport-team-score{font-size:1.3rem!important}
 }
 /* END SPORT CALENDAR + EVENTS 5.97 */
+
+/* DIET PROFILE + DAILY JOURNAL 5.98 */
+.diet-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.diet-field-grid label,.diet-meal-grid label{display:grid;gap:6px;font-weight:800}
+.diet-field-grid input,.diet-field-grid select,
+.diet-diary-card input,.diet-meal-grid textarea{
+  width:100%;box-sizing:border-box;border:1px solid rgba(100,116,139,.28);
+  border-radius:14px;padding:12px;background:rgba(255,255,255,.92);
+  color:var(--theme-text,#111827);font:inherit
+}
+.diet-diary-card{display:grid;gap:12px}
+.diet-diary-card h3{margin:0}
+.diet-meal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.diet-summary{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:720px){
+  .diet-field-grid,.diet-meal-grid{grid-template-columns:1fr}
+  .diet-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+/* END DIET PROFILE + DAILY JOURNAL 5.98 */
