@@ -4901,3 +4901,50 @@ button.war-weapon-icon:disabled{
 #healthAccessToggleBtn{
   margin-top:10px;
 }
+
+
+/* ADMIN update release control */
+.admin-update-release-card{
+  margin:0!important;
+  border:1px solid rgba(99,102,241,.28);
+  background:linear-gradient(135deg,#eef2ff,#f8fafc)!important;
+  color:#111827!important;
+}
+.admin-update-release-card h2{margin:0 0 6px}
+.update-release-modes{
+  display:grid;
+  gap:8px;
+  margin:12px 0;
+}
+.update-release-modes label,
+.update-release-user-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid #dbe3ef;
+  border-radius:12px;
+  background:#fff;
+  font-weight:800;
+}
+.update-release-modes input,
+.update-release-user-row input{
+  width:20px;
+  height:20px;
+  accent-color:#4f46e5;
+}
+.update-release-users{
+  display:grid;
+  gap:8px;
+  margin:10px 0 12px;
+}
+.update-release-users-list{
+  display:grid;
+  gap:7px;
+  max-height:320px;
+  overflow:auto;
+}
+.update-release-user-row span{
+  min-width:0;
+  overflow-wrap:anywhere;
+}

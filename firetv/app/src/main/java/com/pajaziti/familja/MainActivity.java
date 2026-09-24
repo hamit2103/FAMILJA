@@ -298,8 +298,18 @@ public class MainActivity extends Activity {
         new Thread(() -> {
             HttpURLConnection connection = null;
             try {
+                String hardwareId = "";
+                try {
+                    hardwareId = android.provider.Settings.Secure.getString(
+                        getContentResolver(),
+                        android.provider.Settings.Secure.ANDROID_ID
+                    );
+                    if (hardwareId == null) hardwareId = "";
+                } catch (Exception ignored) {}
+
                 URL url = new URL(
                     UPDATE_INFO_URL + "?package=" + Uri.encode(getPackageName()) +
+                    "&hardware=" + Uri.encode(hardwareId) +
                     "&t=" + System.currentTimeMillis()
                 );
                 connection = (HttpURLConnection) url.openConnection();
