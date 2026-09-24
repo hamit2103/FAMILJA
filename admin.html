@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND ADMIN">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=93">
+  <link rel="stylesheet" href="styles.css?v=94">
   <title>DIAMOND ADMIN</title>
   <style>
     /* Inline menu-order hotfix */
@@ -212,6 +212,18 @@
           <button class="admin-hub-shortcut" type="button" data-admin-open="radio"><span>📻</span>Radio Admin</button>
           <button class="admin-hub-shortcut" type="button" data-admin-open="home"><span>🏠</span>Menuja</button>
         </section>
+
+        <section id="adminHealthAccessCard" class="card admin-health-access-card">
+          <h2>🩺 Shëndeti privat</h2>
+          <p class="muted small">Vetëm këtu në ADMIN zgjedh cilit user i shfaqet folderi Shëndeti.</p>
+          <label for="healthAccessUserSelect">Zgjidh userin</label>
+          <select id="healthAccessUserSelect" class="health-access-select">
+            <option value="">— Zgjidh userin —</option>
+          </select>
+          <button id="healthAccessToggleBtn" class="primary" type="button" disabled>🩺 Lejo Shëndetin</button>
+          <div id="healthAccessStatus" class="message"></div>
+        </section>
+
         <div id="adminHubStack" class="admin-hub-stack"></div>
       </section>
 
@@ -759,7 +771,7 @@
     window.DiamondAdminCoreNav={open,home};
   })();
   </script>
-  <script type="module" src="app.js?v=107"></script>
+  <script type="module" src="app.js?v=108"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=53"></script>
@@ -770,7 +782,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=107"></script>
+  <script type="module" src="share-app.js?v=108"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";

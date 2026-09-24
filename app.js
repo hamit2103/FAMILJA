@@ -1216,6 +1216,8 @@ function setupAdminHub(){
   if(tab) tab.classList.remove("hidden");
   if(!hub) return;
 
+  document.getElementById("adminHealthAccessCard")?.classList.remove("hidden");
+
   const adminNodes=[
     document.getElementById("menuOrderAdmin"),
     document.getElementById("adminPanel"),
@@ -1527,6 +1529,62 @@ async function registerDeviceInfo(){
   }catch(error){console.warn("device info",error);}
 }
 
+function renderAdminHealthAccessControl(users=[]){
+  if(!ADMIN_ONLY || !isAdmin()) return;
+  const select=document.getElementById("healthAccessUserSelect");
+  const button=document.getElementById("healthAccessToggleBtn");
+  const status=document.getElementById("healthAccessStatus");
+  if(!select||!button) return;
+
+  const previous=select.value||"";
+  select.innerHTML='<option value="">— Zgjidh userin —</option>';
+  for(const p of users){
+    const opt=document.createElement("option");
+    opt.value=p.device_id||"";
+    opt.textContent=(p.display_name||"User")+(p.health_access?" · 🩺 ON":" · 🩺 OFF");
+    opt.dataset.allowed=p.health_access?"1":"0";
+    select.appendChild(opt);
+  }
+  if([...select.options].some(o=>o.value===previous)) select.value=previous;
+
+  const sync=()=>{
+    const opt=select.options[select.selectedIndex];
+    const chosen=!!select.value;
+    const allowed=opt?.dataset?.allowed==="1";
+    button.disabled=!chosen;
+    button.textContent=!chosen
+      ? "🩺 Lejo Shëndetin"
+      : allowed
+        ? "🩺 Hiq Shëndetin nga ky user"
+        : "🩺 Lejo Shëndetin për këtë user";
+  };
+  select.onchange=sync;
+  button.onclick=async()=>{
+    if(!select.value) return;
+    const opt=select.options[select.selectedIndex];
+    const allowed=opt?.dataset?.allowed==="1";
+    button.disabled=true;
+    if(status){status.textContent="Po ruhet...";status.className="message";}
+    const out=await supabase.rpc("health_access_admin_set",{
+      p_device:select.value,
+      p_allowed:!allowed
+    });
+    if(out.error){
+      if(status){status.textContent=out.error.message||"Gabim.";status.className="message error";}
+      sync();
+      return;
+    }
+    if(status){
+      status.textContent=allowed
+        ? "Shëndeti u hoq për këtë user."
+        : "Shëndeti u aktivizua vetëm për këtë user.";
+      status.className="message success";
+    }
+    await loadAdminUsers();
+  };
+  sync();
+}
+
 async function loadAdminUsers(){
   if(!isAdmin()||!adminUsersList)return;
   try{
@@ -1534,6 +1592,7 @@ async function loadAdminUsers(){
     if(result.error) throw result.error;
     const users=Array.isArray(result.data)?result.data:[];
     if(adminUserCount)adminUserCount.textContent=String(users.length);
+    renderAdminHealthAccessControl(users);
 
     if(adminMessageTarget){
       const previous=adminMessageTarget.value||"";
