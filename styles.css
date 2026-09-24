@@ -4948,3 +4948,32 @@ button.war-weapon-icon:disabled{
   min-width:0;
   overflow-wrap:anywhere;
 }
+
+
+/* DIAMOND 5.83 readability fix: prayer and world clocks */
+#prayerView .prayer-item{
+  color:#111827!important;
+}
+#prayerView .prayer-name{
+  color:#111827!important;
+  opacity:1!important;
+}
+#prayerView .prayer-time{
+  color:#111827!important;
+  opacity:1!important;
+  font-weight:950!important;
+  text-shadow:none!important;
+}
+#clockView .clock-zone{
+  color:#fff!important;
+}
+#clockView .clock-zone span{
+  color:#f8fafc!important;
+  opacity:1!important;
+}
+#clockView .clock-zone strong{
+  color:#fff!important;
+  opacity:1!important;
+  font-weight:950!important;
+  text-shadow:0 2px 8px rgba(0,0,0,.45)!important;
+}
