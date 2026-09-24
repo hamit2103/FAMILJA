@@ -23,8 +23,18 @@ const DTX={
  fr:{height:"Taille (cm)",auto:"Automatique",manual:"Manuel",bmiMode:"Mode IMC",kcalMode:"Mode kcal",bmiFormula:"IMC = poids ÷ (taille × taille)",bmiUnder:"Insuffisance pondérale",bmiNormal:"Poids normal",bmiOver:"Surpoids",bmiOb1:"Obésité grade 1",bmiOb2:"Obésité grade 2",bmiOb3:"Obésité grade 3",autoKcalNote:"Estimation automatique selon le poids actuel, le poids cible et la date cible. Indicative seulement, pas un avis médical.",needAutoKcal:"Pour les kcal automatiques, il faut le poids actuel, le poids cible et la date cible.",days:"jours",dailyChange:"ajustement quotidien"},
  ar:{height:"الطول (سم)",auto:"تلقائي",manual:"يدوي",bmiMode:"وضع BMI",kcalMode:"وضع السعرات",bmiFormula:"BMI = الوزن ÷ (الطول × الطول)",bmiUnder:"نقص وزن",bmiNormal:"وزن طبيعي",bmiOver:"زيادة وزن",bmiOb1:"سمنة درجة 1",bmiOb2:"سمنة درجة 2",bmiOb3:"سمنة درجة 3",autoKcalNote:"تقدير تلقائي حسب الوزن الحالي والوزن المستهدف والتاريخ المستهدف. إرشادي فقط وليس توصية طبية.",needAutoKcal:"للسعرات التلقائية يلزم الوزن الحالي والوزن المستهدف والتاريخ.",days:"أيام",dailyChange:"تعديل يومي"}
 };
+const DTX2={
+ sq:{walkBurn:"Të djegura nga ecja",walkEstimate:"Ecja e vlerësuar",foodEstimate:"Vlerësim automatik",notRecognizedShort:"Nuk u njoh për kcal"},
+ de:{walkBurn:"Durch Gehen verbrannt",walkEstimate:"Geschätztes Gehen",foodEstimate:"Automatische Schätzung",notRecognizedShort:"Für kcal nicht erkannt"},
+ tr:{walkBurn:"Yürüyüşte yakılan",walkEstimate:"Tahmini yürüyüş",foodEstimate:"Otomatik tahmin",notRecognizedShort:"kcal için tanınmadı"},
+ en:{walkBurn:"Burned by walking",walkEstimate:"Estimated walking",foodEstimate:"Automatic estimate",notRecognizedShort:"Not recognized for kcal"},
+ it:{walkBurn:"Bruciate camminando",walkEstimate:"Camminata stimata",foodEstimate:"Stima automatica",notRecognizedShort:"Non riconosciuto per kcal"},
+ hr:{walkBurn:"Potrošeno hodanjem",walkEstimate:"Procijenjeno hodanje",foodEstimate:"Automatska procjena",notRecognizedShort:"Nije prepoznato za kcal"},
+ fr:{walkBurn:"Brûlées en marchant",walkEstimate:"Marche estimée",foodEstimate:"Estimation automatique",notRecognizedShort:"Non reconnu pour les kcal"},
+ ar:{walkBurn:"المحروقة بالمشي",walkEstimate:"تقدير المشي",foodEstimate:"تقدير تلقائي",notRecognizedShort:"غير معروف للسعرات"}
+};
 function dl(){const l=localStorage.getItem(DIET_LANG_KEY)||"sq";return DT[l]?l:"en";}
-function dt(k){return DT[dl()]?.[k]??DTX[dl()]?.[k]??DT.en[k]??DTX.en[k]??k;}
+function dt(k){return DT[dl()]?.[k]??DTX[dl()]?.[k]??DTX2[dl()]?.[k]??DT.en[k]??DTX.en[k]??DTX2.en[k]??k;}
 function dateKey(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");}
 function read(key,fb){try{return JSON.parse(localStorage.getItem(key)||"")||fb}catch{return fb}}
 function write(key,v){localStorage.setItem(key,JSON.stringify(v))}
@@ -128,13 +138,44 @@ function parseFood(text){
  amount=count?Number(count[2].replace(",",".")):food.serv;
  return {label:raw,kcal:Math.round(amount*food.k)};
 }
+function parseMealText(text){
+ const raw=String(text||"").trim();
+ if(!raw)return [];
+ const parts=raw.split(/\n|;|\+|,\s+|\s+(?:dhe|und|and|ve|et)\s+/i).map(x=>x.trim()).filter(Boolean);
+ const parsed=parts.map(parseFood).filter(Boolean);
+ if(parsed.length)return parsed;
+ const one=parseFood(raw);
+ return one?[one]:[];
+}
+function mealTextKcal(text){return parseMealText(text).reduce((sum,x)=>sum+Number(x.kcal||0),0);}
+function diaryFoodKcal(day){
+ return ["breakfast","lunch","dinner","extra"].reduce((sum,k)=>sum+mealTextKcal(day?.[k]||""),0);
+}
+function parseWalking(text,weight,heightCm){
+ const raw=String(text||"").toLocaleLowerCase().trim(),w=Number(weight);
+ if(!raw||!w)return {km:0,steps:0,kcal:0};
+ let km=0,steps=0;
+ const kmMatch=raw.match(/(\d+(?:[.,]\d+)?)\s*(?:km|kilomet(?:er|re|ri|ra)?)/i);
+ if(kmMatch)km=Number(kmMatch[1].replace(",","."));
+ const stepMatch=raw.match(/([\d\s.,]+)\s*(?:hapa|steps?|schritte|ad[ıi]m|passi|koraka|pas|خطو(?:ة|ات))/i);
+ if(stepMatch){
+   const digits=stepMatch[1].replace(/[^0-9]/g,"");
+   steps=Number(digits||0);
+ }
+ if(!km&&steps){
+   const stepLengthM=Number(heightCm)>0?Math.max(.45,Math.min(.9,Number(heightCm)/100*.415)):.7;
+   km=steps*stepLengthM/1000;
+ }
+ const kcal=km>0?Math.max(0,Math.round(.5*w*km)):0;
+ return {km:Math.round(km*100)/100,steps,kcal};
+}
 function render(){
  const root=document.getElementById("dietRoot");if(!root)return;
- const p=profile(),items=todayLogs(),day=dayJournal(),used=items.reduce((sum,x)=>sum+Number(x.kcal||0),0);
+ const p=profile(),items=todayLogs(),day=dayJournal(),explicitUsed=items.reduce((sum,x)=>sum+Number(x.kcal||0),0),mealUsed=diaryFoodKcal(day),used=explicitUsed+mealUsed;
  const autoBmi=calcBmi(p.weight,p.height),displayBmi=p.bmiMode==="auto"?(autoBmi??""):p.bmi;
  const plan=autoKcalPlan(p.weight,p.targetWeight,p.targetDate,p.goalDirection);
- const target=p.kcalMode==="auto"?plan.target:Number(p.target||0);
- const remain=target?target-used:0,pct=target?Math.min(100,Math.round(used/target*100)):0,started=p.startedAt||nowLocalInput();
+ const target=p.kcalMode==="auto"?plan.target:Number(p.target||0),walk=parseWalking(day.walking,p.weight,p.height);
+ const remain=target?target-used+walk.kcal:0,netUsed=Math.max(0,used-walk.kcal),pct=target?Math.min(100,Math.round(netUsed/target*100)):0,started=p.startedAt||nowLocalInput();
  root.innerHTML=`
  <section class="card local-private-head"><h2>🥗 ${esc(dt("title"))}</h2><span>🔒 ${esc(dt("private"))}</span><p class="muted small">${esc(dt("privateText"))}</p></section>
  <section class="card diet-profile diet-goal-card">
@@ -154,27 +195,47 @@ function render(){
    <button id="dietSave" class="primary" type="button">${esc(dt("save"))}</button><div id="dietStatus" class="message"></div>
  </section>
  <section class="diet-summary">
-   <div class="card diet-metric"><small>${esc(dt("target"))}</small><strong>${target||"—"}</strong><span>${esc(dt("kcal"))}</span></div>
-   <div class="card diet-metric"><small>${esc(dt("eaten"))}</small><strong>${used}</strong><span>${esc(dt("kcal"))}</span></div>
-   <div class="card diet-metric"><small>${esc(dt("remaining"))}</small><strong>${target?remain:"—"}</strong><span>${esc(dt("kcal"))}</span></div>
+   <div class="card diet-metric"><small>${esc(dt("target"))}</small><strong id="dietSummaryTarget">${target||"—"}</strong><span>${esc(dt("kcal"))}</span></div>
+   <div class="card diet-metric"><small>${esc(dt("eaten"))}</small><strong id="dietSummaryEaten">${used}</strong><span>${esc(dt("kcal"))}</span></div>
+   <div class="card diet-metric"><small>${esc(dt("walkBurn"))}</small><strong id="dietSummaryWalk">${walk.kcal}</strong><span>${esc(dt("kcal"))}</span></div>
+   <div class="card diet-metric"><small>${esc(dt("remaining"))}</small><strong id="dietSummaryRemaining">${target?remain:"—"}</strong><span>${esc(dt("kcal"))}</span></div>
    <div class="card diet-metric"><small>${esc(dt("bmi"))}</small><strong id="dietSummaryBmi">${displayBmi!==""?esc(displayBmi):"—"}</strong><span id="dietSummaryBmiCat">${displayBmi!==""?esc(bmiCategory(displayBmi)):"BMI"}</span></div>
    <div class="card diet-metric"><small>${esc(dt("goalWeight"))}</small><strong>${p.targetWeight||"—"}</strong><span>kg</span></div>
  </section>
- <div class="diet-progress"><div style="width:${pct}%"></div></div>
+ <div class="diet-progress"><div id="dietProgressBar" style="width:${pct}%"></div></div>
  <section class="card diet-diary-card">
-   <h3>🚶 ${esc(dt("walking"))}</h3><input id="dietWalking" type="text" value="${esc(day.walking||"")}" placeholder="${esc(dt("walkingPh"))}">
+   <h3>🚶 ${esc(dt("walking"))}</h3><input id="dietWalking" type="text" value="${esc(day.walking||"")}" placeholder="${esc(dt("walkingPh"))}"><small id="dietWalkingKcal" class="diet-live-kcal">${day.walking?(esc(dt("walkEstimate"))+": ≈ "+walk.kcal+" "+esc(dt("kcal"))):""}</small>
    <h3>🍽️ ${esc(dt("meals"))}</h3>
    <div class="diet-meal-grid">
-     <label><span>🌅 ${esc(dt("breakfast"))}</span><textarea id="dietBreakfast" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.breakfast||"")}</textarea></label>
-     <label><span>☀️ ${esc(dt("lunch"))}</span><textarea id="dietLunch" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.lunch||"")}</textarea></label>
-     <label><span>🌙 ${esc(dt("dinner"))}</span><textarea id="dietDinner" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.dinner||"")}</textarea></label>
-     <label><span>🍎 ${esc(dt("extra"))}</span><textarea id="dietExtra" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.extra||"")}</textarea></label>
+     <label><span>🌅 ${esc(dt("breakfast"))}</span><textarea id="dietBreakfast" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.breakfast||"")}</textarea><small id="dietBreakfastKcal" class="diet-live-kcal">${day.breakfast?(mealTextKcal(day.breakfast)?"≈ "+mealTextKcal(day.breakfast)+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
+     <label><span>☀️ ${esc(dt("lunch"))}</span><textarea id="dietLunch" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.lunch||"")}</textarea><small id="dietLunchKcal" class="diet-live-kcal">${day.lunch?(mealTextKcal(day.lunch)?"≈ "+mealTextKcal(day.lunch)+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
+     <label><span>🌙 ${esc(dt("dinner"))}</span><textarea id="dietDinner" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.dinner||"")}</textarea><small id="dietDinnerKcal" class="diet-live-kcal">${day.dinner?(mealTextKcal(day.dinner)?"≈ "+mealTextKcal(day.dinner)+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
+     <label><span>🍎 ${esc(dt("extra"))}</span><textarea id="dietExtra" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.extra||"")}</textarea><small id="dietExtraKcal" class="diet-live-kcal">${day.extra?(mealTextKcal(day.extra)?"≈ "+mealTextKcal(day.extra)+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
    </div>
    <button id="dietSaveDay" class="primary" type="button">${esc(dt("saveDay"))}</button><div id="dietDayStatus" class="message"></div>
  </section>
  <section class="card diet-add-card"><h3>➕ ${esc(dt("food"))}</h3><textarea id="dietFood" rows="2" placeholder="${esc(dt("placeholder"))}"></textarea><button id="dietAdd" class="primary" type="button">${esc(dt("add"))}</button><div id="dietFoodStatus" class="message"></div></section>
  <section class="card"><h3>📅 ${esc(dt("today"))}</h3><div id="dietList" class="diet-list">${items.length?items.map((x,i)=>`<div class="diet-row"><div><strong>${esc(x.label)}</strong><small>${new Date(x.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</small></div><b>${x.kcal} ${esc(dt("kcal"))}</b><button type="button" data-diet-del="${i}">×</button></div>`).join(""):`<p class="muted">${esc(dt("empty"))}</p>`}</div></section>`;
 
+ const liveNutrition=()=>{
+   const fields={breakfast:"dietBreakfast",lunch:"dietLunch",dinner:"dietDinner",extra:"dietExtra"};
+   let mealTotal=0;
+   Object.entries(fields).forEach(([key,id])=>{
+     const el=document.getElementById(id),txt=el?.value||"",kcal=mealTextKcal(txt),note=document.getElementById(id+"Kcal");
+     mealTotal+=kcal;
+     if(note)note.textContent=txt?(kcal?"≈ "+kcal+" "+dt("kcal"):dt("notRecognizedShort")):"";
+   });
+   const walkNow=parseWalking(document.getElementById("dietWalking")?.value||"",numValue("dietWeight"),numValue("dietHeight"));
+   const walkNote=document.getElementById("dietWalkingKcal");
+   if(walkNote)walkNote.textContent=(document.getElementById("dietWalking")?.value||"").trim()?(dt("walkEstimate")+": ≈ "+walkNow.kcal+" "+dt("kcal")):"";
+   const totalFood=explicitUsed+mealTotal,targetNow=numValue("dietKcalTarget"),remainingNow=targetNow?targetNow-totalFood+walkNow.kcal:0,netNow=Math.max(0,totalFood-walkNow.kcal);
+   const targetEl=document.getElementById("dietSummaryTarget"),eatenEl=document.getElementById("dietSummaryEaten"),walkEl=document.getElementById("dietSummaryWalk"),remainEl=document.getElementById("dietSummaryRemaining"),bar=document.getElementById("dietProgressBar");
+   if(targetEl)targetEl.textContent=targetNow||"—";
+   if(eatenEl)eatenEl.textContent=String(totalFood);
+   if(walkEl)walkEl.textContent=String(walkNow.kcal);
+   if(remainEl)remainEl.textContent=targetNow?String(remainingNow):"—";
+   if(bar)bar.style.width=(targetNow?Math.min(100,Math.round(netNow/targetNow*100)):0)+"%";
+ };
  const liveCalc=()=>{
    const w=numValue("dietWeight"),h=numValue("dietHeight"),tw=numValue("dietTargetWeight"),date=document.getElementById("dietTargetDate")?.value||"",direction=document.getElementById("dietGoalDirection")?.value||"lose";
    const bmiMode=document.getElementById("dietBmiMode")?.value||"auto",bmiInput=document.getElementById("dietBmi"),bmiNote=document.getElementById("dietBmiCategory");
@@ -182,16 +243,19 @@ function render(){
    const kcalMode=document.getElementById("dietKcalMode")?.value||"auto",kcalInput=document.getElementById("dietKcalTarget"),kcalNote=document.getElementById("dietKcalCalcNote"),planNow=autoKcalPlan(w,tw,date,direction);
    if(kcalInput){kcalInput.readOnly=kcalMode==="auto";if(kcalMode==="auto")kcalInput.value=planNow.target||"";}
    if(kcalNote)kcalNote.textContent=kcalMode==="auto"?(planNow.target?(dt("autoKcalNote")+" · "+planNow.days+" "+dt("days")+" · "+(direction==="gain"?"+":"-")+planNow.adjustment+" "+dt("kcal")+" "+dt("dailyChange")):dt("needAutoKcal")):"";
+   liveNutrition();
  };
  ["dietWeight","dietHeight","dietTargetWeight","dietTargetDate","dietGoalDirection","dietBmiMode","dietKcalMode"].forEach(id=>document.getElementById(id)?.addEventListener("input",liveCalc));
  ["dietGoalDirection","dietBmiMode","dietKcalMode"].forEach(id=>document.getElementById(id)?.addEventListener("change",liveCalc));
+ ["dietWalking","dietBreakfast","dietLunch","dietDinner","dietExtra","dietKcalTarget"].forEach(id=>document.getElementById(id)?.addEventListener("input",liveNutrition));
+ liveNutrition();
 
  document.getElementById("dietSave")?.addEventListener("click",()=>{
    liveCalc();
    const saved={name:document.getElementById("dietName")?.value.trim()||"",weight:numValue("dietWeight"),height:numValue("dietHeight"),bmiMode:document.getElementById("dietBmiMode")?.value||"auto",bmi:document.getElementById("dietBmi")?.value||"",kcalMode:document.getElementById("dietKcalMode")?.value||"auto",target:numValue("dietKcalTarget"),goalDirection:document.getElementById("dietGoalDirection")?.value||"lose",targetWeight:numValue("dietTargetWeight"),targetDate:document.getElementById("dietTargetDate")?.value||"",startedAt:document.getElementById("dietStartedAt")?.value||""};
    write(DIET_PROFILE_KEY,saved);const status=document.getElementById("dietStatus");if(status)status.textContent=dt("saved");setTimeout(render,250);
  });
- document.getElementById("dietSaveDay")?.addEventListener("click",()=>{saveDayJournal({walking:document.getElementById("dietWalking")?.value.trim()||"",breakfast:document.getElementById("dietBreakfast")?.value.trim()||"",lunch:document.getElementById("dietLunch")?.value.trim()||"",dinner:document.getElementById("dietDinner")?.value.trim()||"",extra:document.getElementById("dietExtra")?.value.trim()||""});const status=document.getElementById("dietDayStatus");if(status)status.textContent=dt("daySaved");});
+ document.getElementById("dietSaveDay")?.addEventListener("click",()=>{liveNutrition();saveDayJournal({walking:document.getElementById("dietWalking")?.value.trim()||"",breakfast:document.getElementById("dietBreakfast")?.value.trim()||"",lunch:document.getElementById("dietLunch")?.value.trim()||"",dinner:document.getElementById("dietDinner")?.value.trim()||"",extra:document.getElementById("dietExtra")?.value.trim()||""});const status=document.getElementById("dietDayStatus");if(status)status.textContent=dt("daySaved");});
  document.getElementById("dietAdd")?.addEventListener("click",()=>{const status=document.getElementById("dietFoodStatus"),input=document.getElementById("dietFood"),parsed=parseFood(input?.value||"");if(!parsed){if(status)status.textContent=dt("notFound");return;}const arr=todayLogs();arr.push({...parsed,time:new Date().toISOString()});saveToday(arr);if(input)input.value="";render();});
  root.querySelectorAll("[data-diet-del]").forEach(btn=>btn.addEventListener("click",()=>{const arr=todayLogs();arr.splice(Number(btn.dataset.dietDel),1);saveToday(arr);render();}));
 }
