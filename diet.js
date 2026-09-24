@@ -69,7 +69,82 @@ const FOODS=[
  {p:["lëng","saft","juice","meyve suyu"],k:45,kind:"ml",serv:250},
  {p:["ayran"],k:35,kind:"ml",serv:250},
  {p:["kafe","kaffee","coffee","kahve"],k:3,kind:"unit",serv:1},
- {p:["ujë","wasser","water","su"],k:0,kind:"ml",serv:250}
+ {p:["ujë","wasser","water","su"],k:0,kind:"ml",serv:250},
+ {p:["hanuta"],k:119,kind:"unit",serv:1},
+ {p:["nutella"],k:539,kind:"g",serv:15},
+ {p:["kinder bueno"],k:122,kind:"unit",serv:1},
+ {p:["kinder riegel","kinder chocolate"],k:118,kind:"unit",serv:1},
+ {p:["kinder country"],k:132,kind:"unit",serv:1},
+ {p:["duplo"],k:100,kind:"unit",serv:1},
+ {p:["milka"],k:530,kind:"g",serv:25},
+ {p:["snickers"],k:245,kind:"unit",serv:1},
+ {p:["mars"],k:230,kind:"unit",serv:1},
+ {p:["twix"],k:250,kind:"unit",serv:1},
+ {p:["bounty"],k:278,kind:"unit",serv:1},
+ {p:["kitkat","kit kat"],k:210,kind:"unit",serv:1},
+ {p:["oreo"],k:53,kind:"unit",serv:1},
+ {p:["pringles"],k:536,kind:"g",serv:30},
+ {p:["chips","patatina"],k:530,kind:"g",serv:30},
+ {p:["croissant","kroasan"],k:230,kind:"unit",serv:1},
+ {p:["brötchen","semmel","roll"],k:150,kind:"unit",serv:1},
+ {p:["toast"],k:265,kind:"g",serv:30},
+ {p:["cornflakes","corn flakes"],k:357,kind:"g",serv:40},
+ {p:["muesli","müsli"],k:380,kind:"g",serv:50},
+ {p:["haferflocken","oats","yulaf"],k:370,kind:"g",serv:50},
+ {p:["honig","honey","bal"],k:304,kind:"g",serv:20},
+ {p:["marmelade","reçel","jam"],k:250,kind:"g",serv:20},
+ {p:["butter","gjalp","tereyağı"],k:717,kind:"g",serv:10},
+ {p:["margarine","margarin"],k:720,kind:"g",serv:10},
+ {p:["olive oil","olivenöl","vaj ulliri","zeytinyağı"],k:884,kind:"g",serv:10},
+ {p:["mayonnaise","mayo","majonez"],k:680,kind:"g",serv:15},
+ {p:["ketchup"],k:112,kind:"g",serv:20},
+ {p:["hamburger","burger"],k:500,kind:"unit",serv:1},
+ {p:["cheeseburger"],k:550,kind:"unit",serv:1},
+ {p:["big mac"],k:590,kind:"unit",serv:1},
+ {p:["whopper"],k:670,kind:"unit",serv:1},
+ {p:["chicken nuggets","nuggets"],k:45,kind:"unit",serv:1},
+ {p:["lahmacun"],k:550,kind:"unit",serv:1},
+ {p:["pide"],k:700,kind:"unit",serv:1},
+ {p:["dürüm","durum"],k:700,kind:"unit",serv:1},
+ {p:["currywurst"],k:500,kind:"unit",serv:1},
+ {p:["bratwurst"],k:320,kind:"unit",serv:1},
+ {p:["schnitzel"],k:450,kind:"unit",serv:1},
+ {p:["lasagne","lasagna"],k:150,kind:"g",serv:350},
+ {p:["spaghetti bolognese","bolognese"],k:160,kind:"g",serv:350},
+ {p:["carbonara"],k:220,kind:"g",serv:350},
+ {p:["risotto"],k:150,kind:"g",serv:300},
+ {p:["fasule","bohnen","beans","fasulye"],k:127,kind:"g",serv:200},
+ {p:["thjerrëza","linsen","lentils","mercimek"],k:116,kind:"g",serv:200},
+ {p:["qofte","köfte","meatballs"],k:250,kind:"g",serv:150},
+ {p:["sucuk"],k:450,kind:"g",serv:50},
+ {p:["salami"],k:410,kind:"g",serv:50},
+ {p:["schinken","ham","proshut"],k:145,kind:"g",serv:50},
+ {p:["mozzarella"],k:280,kind:"g",serv:100},
+ {p:["feta"],k:265,kind:"g",serv:100},
+ {p:["quark"],k:70,kind:"g",serv:200},
+ {p:["skyr"],k:65,kind:"g",serv:200},
+ {p:["protein pudding","high protein pudding"],k:80,kind:"g",serv:200},
+ {p:["ice cream","eis","akullore","dondurma"],k:200,kind:"g",serv:100},
+ {p:["cake","kuchen","torte","tortë","pasta tatlı"],k:350,kind:"g",serv:100},
+ {p:["baklava"],k:430,kind:"g",serv:80},
+ {p:["donut"],k:300,kind:"unit",serv:1},
+ {p:["muffin"],k:380,kind:"unit",serv:1},
+ {p:["waffle","waffel"],k:300,kind:"unit",serv:1},
+ {p:["pear","birne","dardhë","armut"],k:100,kind:"unit",serv:1},
+ {p:["orange","portokall","orange","portakal"],k:62,kind:"unit",serv:1},
+ {p:["mandarin","mandarine"],k:47,kind:"unit",serv:1},
+ {p:["grapes","trauben","rrush","üzüm"],k:69,kind:"g",serv:100},
+ {p:["strawberry","erdbeer","luleshtrydhe","çilek"],k:32,kind:"g",serv:100},
+ {p:["watermelon","wassermelone","shalqi","karpuz"],k:30,kind:"g",serv:200},
+ {p:["avocado"],k:160,kind:"g",serv:100},
+ {p:["tomato","tomate","domate","domates"],k:18,kind:"g",serv:100},
+ {p:["cucumber","gurke","kastravec","salatalık"],k:15,kind:"g",serv:100},
+ {p:["red bull"],k:45,kind:"ml",serv:250},
+ {p:["fanta"],k:40,kind:"ml",serv:330},
+ {p:["sprite"],k:39,kind:"ml",serv:330},
+ {p:["energy drink","monster"],k:45,kind:"ml",serv:500},
+ {p:["latte macchiato","cafe latte","caffè latte"],k:65,kind:"ml",serv:250},
+ {p:["cappuccino"],k:50,kind:"ml",serv:200}
 ];
 
 function profile(){
@@ -169,6 +244,20 @@ function parseWalking(text,weight,heightCm){
  const kcal=km>0?Math.max(0,Math.round(.5*w*km)):0;
  return {km:Math.round(km*100)/100,steps,kcal};
 }
+const FOOD_API="https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-food";
+const onlineFoodCache=new Map();
+async function lookupFoodOnline(text){
+ const q=String(text||"").trim();
+ if(q.length<2)return null;
+ const key=q.toLocaleLowerCase();
+ if(onlineFoodCache.has(key))return onlineFoodCache.get(key);
+ try{
+   const r=await fetch(FOOD_API+"?q="+encodeURIComponent(q),{cache:"no-store"});
+   const d=await r.json();
+   const out=d?.ok&&Number(d?.kcal)>0?{label:q,kcal:Math.round(Number(d.kcal)),source:d.source||"online",product:d.product||q}:null;
+   onlineFoodCache.set(key,out); return out;
+ }catch(_){onlineFoodCache.set(key,null);return null;}
+}
 function render(){
  const root=document.getElementById("dietRoot");if(!root)return;
  const p=profile(),items=todayLogs(),day=dayJournal(),explicitUsed=items.reduce((sum,x)=>sum+Number(x.kcal||0),0),mealUsed=diaryFoodKcal(day),used=explicitUsed+mealUsed;
@@ -217,14 +306,29 @@ function render(){
  <section class="card diet-add-card"><h3>➕ ${esc(dt("food"))}</h3><textarea id="dietFood" rows="2" placeholder="${esc(dt("placeholder"))}"></textarea><button id="dietAdd" class="primary" type="button">${esc(dt("add"))}</button><div id="dietFoodStatus" class="message"></div></section>
  <section class="card"><h3>📅 ${esc(dt("today"))}</h3><div id="dietList" class="diet-list">${items.length?items.map((x,i)=>`<div class="diet-row"><div><strong>${esc(x.label)}</strong><small>${new Date(x.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</small></div><b>${x.kcal} ${esc(dt("kcal"))}</b><button type="button" data-diet-del="${i}">×</button></div>`).join(""):`<p class="muted">${esc(dt("empty"))}</p>`}</div></section>`;
 
+ let onlineTimer=null,onlineSeq=0;
  const liveNutrition=()=>{
    const fields={breakfast:"dietBreakfast",lunch:"dietLunch",dinner:"dietDinner",extra:"dietExtra"};
    let mealTotal=0;
+   const unresolved=[];
    Object.entries(fields).forEach(([key,id])=>{
      const el=document.getElementById(id),txt=el?.value||"",kcal=mealTextKcal(txt),note=document.getElementById(id+"Kcal");
-     mealTotal+=kcal;
-     if(note)note.textContent=txt?(kcal?"≈ "+kcal+" "+dt("kcal"):dt("notRecognizedShort")):"";
+     const cached=onlineFoodCache.get(String(txt).trim().toLocaleLowerCase()),onlineKcal=Number(cached?.kcal||0),finalKcal=kcal||onlineKcal;
+     mealTotal+=finalKcal;
+     if(note)note.textContent=txt?(finalKcal?"≈ "+finalKcal+" "+dt("kcal")+(onlineKcal&&!kcal?" · online":""):dt("notRecognizedShort")):"";
+     if(txt.trim()&&!kcal&&!cached)unresolved.push({id,txt:txt.trim()});
    });
+   if(unresolved.length){
+     clearTimeout(onlineTimer); const seq=++onlineSeq;
+     onlineTimer=setTimeout(async()=>{
+       let changed=false;
+       for(const x of unresolved){
+         const found=await lookupFoodOnline(x.txt);
+         if(found)changed=true;
+       }
+       if(changed&&seq===onlineSeq)liveNutrition();
+     },650);
+   }
    const walkNow=parseWalking(document.getElementById("dietWalking")?.value||"",numValue("dietWeight"),numValue("dietHeight"));
    const walkNote=document.getElementById("dietWalkingKcal");
    if(walkNote)walkNote.textContent=(document.getElementById("dietWalking")?.value||"").trim()?(dt("walkEstimate")+": ≈ "+walkNow.kcal+" "+dt("kcal")):"";
@@ -256,7 +360,7 @@ function render(){
    write(DIET_PROFILE_KEY,saved);const status=document.getElementById("dietStatus");if(status)status.textContent=dt("saved");setTimeout(render,250);
  });
  document.getElementById("dietSaveDay")?.addEventListener("click",()=>{liveNutrition();saveDayJournal({walking:document.getElementById("dietWalking")?.value.trim()||"",breakfast:document.getElementById("dietBreakfast")?.value.trim()||"",lunch:document.getElementById("dietLunch")?.value.trim()||"",dinner:document.getElementById("dietDinner")?.value.trim()||"",extra:document.getElementById("dietExtra")?.value.trim()||""});const status=document.getElementById("dietDayStatus");if(status)status.textContent=dt("daySaved");});
- document.getElementById("dietAdd")?.addEventListener("click",()=>{const status=document.getElementById("dietFoodStatus"),input=document.getElementById("dietFood"),parsed=parseFood(input?.value||"");if(!parsed){if(status)status.textContent=dt("notFound");return;}const arr=todayLogs();arr.push({...parsed,time:new Date().toISOString()});saveToday(arr);if(input)input.value="";render();});
+ document.getElementById("dietAdd")?.addEventListener("click",async()=>{const status=document.getElementById("dietFoodStatus"),input=document.getElementById("dietFood"),raw=input?.value||"";let parsed=parseFood(raw);if(!parsed)parsed=await lookupFoodOnline(raw);if(!parsed){if(status)status.textContent=dt("notFound");return;}const arr=todayLogs();arr.push({...parsed,time:new Date().toISOString()});saveToday(arr);if(input)input.value="";render();});
  root.querySelectorAll("[data-diet-del]").forEach(btn=>btn.addEventListener("click",()=>{const arr=todayLogs();arr.splice(Number(btn.dataset.dietDel),1);saveToday(arr);render();}));
 }
 function reloadLanguage(){const tab=document.getElementById("dietTabLabel");if(tab)tab.textContent=dt("tab");render();}
