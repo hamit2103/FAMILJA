@@ -5045,3 +5045,56 @@ button.war-weapon-icon:disabled{
   .sport-history-days{grid-template-columns:1fr 1fr;max-height:44vh}
 }
 /* END SPORT REQUEST 5.96 */
+
+/* SPORT CALENDAR + EVENTS 5.97 */
+.sport-match-vertical{
+  background:#fff!important;
+  border:2px solid rgba(15,23,42,.10)!important;
+}
+.sport-team-line{
+  grid-template-columns:42px minmax(0,1fr) auto!important;
+  gap:12px!important;
+  padding:4px 0;
+}
+.sport-team-line img,.sport-ball{
+  width:40px!important;height:40px!important;flex-basis:40px!important;
+}
+.sport-team-name-wrap strong{
+  font-size:1.06rem!important;
+  font-weight:950!important;
+  color:#0f172a!important;
+}
+.sport-team-score{
+  font-size:1.45rem!important;
+  font-weight:1000!important;
+  color:#020617!important;
+}
+.sport-team-flag{font-size:1.2rem!important}
+.sport-details-btn{
+  width:100%;min-height:38px;border:0;border-radius:12px;
+  background:#eef2ff;color:#3730a3;font-weight:850;
+}
+.sport-match-details{
+  display:grid;gap:7px;padding:10px;border-radius:14px;background:#f8fafc;
+  border:1px solid rgba(148,163,184,.24)
+}
+.sport-event-row{
+  display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:start;
+  padding:7px 8px;border-radius:10px;background:#fff
+}
+.sport-event-main{display:grid;gap:3px;min-width:0}
+.sport-event-main strong{color:#0f172a}
+.sport-assist{font-size:.82rem;color:#475569}
+.sport-event-minute{font-weight:900;color:#334155}
+.sport-event-icon{font-size:1.05rem}
+.sport-calendar-card{display:grid;gap:12px}
+.sport-calendar-label{font-weight:900;color:#0f172a}
+.sport-calendar-input{
+  width:100%;min-height:52px;border:2px solid rgba(124,58,237,.28);
+  border-radius:14px;padding:0 14px;background:#fff;color:#0f172a;font-weight:850;font-size:1rem
+}
+@media(max-width:620px){
+  .sport-team-name-wrap strong{font-size:1rem!important}
+  .sport-team-score{font-size:1.3rem!important}
+}
+/* END SPORT CALENDAR + EVENTS 5.97 */
