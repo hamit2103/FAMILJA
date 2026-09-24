@@ -4886,3 +4886,18 @@ body.diamond-home-fit .diamond-quote{
   body.diamond-home-fit .diamond-status>div{min-height:48px!important}
   body.diamond-home-fit .home-digital-clock strong{font-size:24px!important}
 }
+
+
+/* DIAMOND 5.85 - reliable Home ad rendering */
+.home-clock-ad-carousel{
+  background:transparent!important;
+}
+.home-clock-ad-carousel img{
+  opacity:0;
+  transition:opacity .18s ease;
+  object-fit:contain!important;
+  background:transparent!important;
+}
+.home-clock-ad-carousel img.loaded{
+  opacity:1;
+}
