@@ -4997,3 +4997,23 @@ button.war-weapon-icon:disabled{
 .private-chat-message-body{white-space:pre-wrap;overflow-wrap:anywhere}
 #privateChatText{width:100%;resize:vertical;min-height:82px;border:1px solid #d1d5db;border-radius:14px;padding:12px;background:#fff;font:inherit}
 #privateChatSendBtn{width:100%;margin-top:8px}
+
+
+/* DIAMOND 5.88 — close button for private chat */
+.private-chat-actions{display:flex;align-items:center;gap:8px}
+.private-chat-actions .secondary{min-width:52px}
+.private-chat-close{
+  width:52px;
+  height:52px;
+  border:0;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  background:#fee2e2;
+  color:#991b1b;
+  font-size:23px;
+  font-weight:950;
+  line-height:1;
+  box-shadow:0 5px 14px rgba(153,27,27,.12);
+}
+.private-chat-close:active{transform:scale(.96)}

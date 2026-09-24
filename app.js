@@ -486,6 +486,7 @@ const privateChatText = $("privateChatText");
 const privateChatSendBtn = $("privateChatSendBtn");
 const privateChatStatus = $("privateChatStatus");
 const privateChatRefreshBtn = $("privateChatRefreshBtn");
+const privateChatCloseBtn = $("privateChatCloseBtn");
 const addClockWidgetBtn = $("addClockWidgetBtn");
 const clockWidgetStatus = $("clockWidgetStatus");
 let clockPreviewTimer = null;
@@ -1331,7 +1332,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.87";
+    let versionName="5.88";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1697,6 +1698,7 @@ function startPrivateChatPolling(){
 }
 privateChatSendBtn?.addEventListener("click",sendPrivateChatMessage);
 privateChatRefreshBtn?.addEventListener("click",()=>loadPrivateChat());
+privateChatCloseBtn?.addEventListener("click",()=>setSection(isAdmin() ? "adminhub" : "home"));
 privateChatAdminUser?.addEventListener("change",()=>loadPrivateChat());
 privateChatText?.addEventListener("keydown",(event)=>{
   if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();sendPrivateChatMessage();}
@@ -1708,7 +1710,7 @@ async function registerDeviceInfo(){
   try{
     const {data:{session}}=await supabase.auth.getSession();
     const token=session?.access_token;if(!token)return;
-    let versionName="5.87";
+    let versionName="5.88";
     try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
     const registerResponse=await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",
