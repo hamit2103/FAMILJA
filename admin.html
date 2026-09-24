@@ -178,6 +178,7 @@
         <button id="kiTab" class="app-tab" type="button"><span>🤖 </span><span id="kiTabLabel">KI</span></button>
         <button id="shareAppTab" class="app-tab" type="button"><span>🔗 </span><span id="shareAppTabLabel">Ndaje appin</span></button>
         <button id="newsTab" class="app-tab" type="button"><span>📰 </span><span id="newsTabLabel">Lajme</span></button>
+        <button id="adminHubTab" class="app-tab admin-hub-tab" type="button"><span>👑 </span><span>ADMIN</span></button>
       </nav>
 
       <section id="menuOrderAdmin" class="menu-order-admin hidden">
@@ -188,6 +189,22 @@
         <div id="menuOrderList" class="menu-order-list"></div>
         <button id="menuOrderSave" class="primary" type="button" data-i18n="menu.save">Ruaj renditjen</button>
         <div id="menuOrderStatus" class="message"></div>
+      </section>
+
+      <section id="adminHubView" class="hidden admin-hub-view">
+        <section class="admin-hub-hero">
+          <h2>👑 ADMIN</h2>
+          <p>Paneli privat i administratorit. Këtu janë kontrollimet dhe ndryshimet që shihen vetëm në DIAMOND ADMIN.</p>
+        </section>
+        <section class="admin-hub-grid">
+          <button class="admin-hub-shortcut" type="button" data-admin-open="gallery"><span>📢</span>Reklama</button>
+          <button class="admin-hub-shortcut" type="button" data-admin-open="info"><span>ℹ️</span>Informacion</button>
+          <button class="admin-hub-shortcut" type="button" data-admin-open="games"><span>🎮</span>Lojëra Admin</button>
+          <button class="admin-hub-shortcut" type="button" data-admin-open="tv"><span>📺</span>TV Admin</button>
+          <button class="admin-hub-shortcut" type="button" data-admin-open="radio"><span>📻</span>Radio Admin</button>
+          <button class="admin-hub-shortcut" type="button" data-admin-open="home"><span>🏠</span>Menuja</button>
+        </section>
+        <div id="adminHubStack" class="admin-hub-stack"></div>
       </section>
 
       <section id="galleryView">
