@@ -496,6 +496,9 @@ languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.va
 languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
 
 const PERSONAL_THEME_KEY = "pajaziti_personal_theme_v2";
+const MENU_THEME_SETTING_KEY = "menu_theme_defaults";
+const MENU_THEME_MODE_KEY = "pajaziti_menu_theme_mode";
+let adminMenuTheme = null;
 const DEFAULT_PERSONAL_THEME = {
   bg: "#91d7df",
   card: "#d6d3c2",
@@ -522,6 +525,48 @@ function readPersonalTheme() {
   } catch {
     return { ...DEFAULT_PERSONAL_THEME };
   }
+}
+
+function currentAdminMenuTheme(){
+  return normalizePersonalTheme(adminMenuTheme || DEFAULT_PERSONAL_THEME);
+}
+
+async function loadAdminMenuTheme(){
+  if(!supabase) return currentAdminMenuTheme();
+  const {data,error}=await supabase.from("app_settings")
+    .select("value")
+    .eq("key",MENU_THEME_SETTING_KEY)
+    .maybeSingle();
+  if(!error && data?.value){
+    adminMenuTheme=normalizePersonalTheme(data.value);
+  }
+  const autoMode=localStorage.getItem(MENU_THEME_MODE_KEY)==="admin" || !localStorage.getItem(PERSONAL_THEME_KEY);
+  if(!ADMIN_ONLY && autoMode){
+    applyPersonalTheme(currentAdminMenuTheme(),false);
+  }else if(ADMIN_ONLY && isAdmin()){
+    applyPersonalTheme(currentAdminMenuTheme(),false);
+  }
+  return currentAdminMenuTheme();
+}
+
+async function saveAdminMenuTheme(){
+  if(!isAdmin()) return;
+  const theme=themeFromInputs();
+  const {error}=await supabase.from("app_settings").upsert({
+    key:MENU_THEME_SETTING_KEY,
+    value:theme,
+    updated_at:new Date().toISOString(),
+    updated_by:currentUser.id
+  },{onConflict:"key"});
+  if(error) throw error;
+  adminMenuTheme=theme;
+  applyPersonalTheme(theme,false);
+}
+
+function useAdminMenuTheme(){
+  localStorage.setItem(MENU_THEME_MODE_KEY,"admin");
+  localStorage.removeItem(PERSONAL_THEME_KEY);
+  applyPersonalTheme(currentAdminMenuTheme(),false);
 }
 
 function syncThemeInputs(theme) {
@@ -575,13 +620,38 @@ themeCloseBtn?.addEventListener("click", () => {
 [themeBgColor, themeCardColor, themeButtonColor, themeAccentColor, themeTextColor]
   .filter(Boolean)
   .forEach((input) => {
-    input.addEventListener("input", () => applyPersonalTheme(themeFromInputs()));
-    input.addEventListener("change", () => applyPersonalTheme(themeFromInputs()));
+    input.addEventListener("input", () => {
+      if(ADMIN_ONLY && isAdmin()) applyPersonalTheme(themeFromInputs(),false);
+      else {
+        localStorage.setItem(MENU_THEME_MODE_KEY,"personal");
+        applyPersonalTheme(themeFromInputs());
+      }
+    });
+    input.addEventListener("change", () => {
+      if(ADMIN_ONLY && isAdmin()) applyPersonalTheme(themeFromInputs(),false);
+      else {
+        localStorage.setItem(MENU_THEME_MODE_KEY,"personal");
+        applyPersonalTheme(themeFromInputs());
+      }
+    });
   });
 
 themeResetBtn?.addEventListener("click", () => {
-  localStorage.removeItem(PERSONAL_THEME_KEY);
-  applyPersonalTheme(DEFAULT_PERSONAL_THEME, false);
+  useAdminMenuTheme();
+});
+
+document.getElementById("themeAdminSaveBtn")?.addEventListener("click",async()=>{
+  const btn=document.getElementById("themeAdminSaveBtn");
+  if(!isAdmin()) return;
+  if(btn) btn.disabled=true;
+  try{
+    await saveAdminMenuTheme();
+    if(btn) btn.textContent="✅ U ruajt për të gjithë";
+  }catch(error){
+    if(btn) btn.textContent="❌ Nuk u ruajt";
+  }finally{
+    setTimeout(()=>{if(btn){btn.disabled=false;btn.textContent="👑 Ruaj si ngjyrat automatike";}},1400);
+  }
 });
 
 let mode = ADMIN_ONLY ? "admin" : "family";
@@ -647,10 +717,13 @@ applyLanguage(currentLanguage);
 setMode(mode);
 
 const PRESENCE_DEVICE_KEY = "pajaziti-presence-device";
+let stableHardwareId="";
+try{stableHardwareId=String(window.AndroidApp?.getStableDeviceId?.()||"").trim();}catch(_){}
 let presenceDeviceId = localStorage.getItem(PRESENCE_DEVICE_KEY);
 if (!presenceDeviceId) {
-  presenceDeviceId =
-    (globalThis.crypto?.randomUUID?.() || ("device_" + Math.random().toString(36).slice(2) + Date.now()));
+  presenceDeviceId = stableHardwareId
+    ? "android_"+stableHardwareId
+    : (globalThis.crypto?.randomUUID?.() || ("device_" + Math.random().toString(36).slice(2) + Date.now()));
   localStorage.setItem(PRESENCE_DEVICE_KEY, presenceDeviceId);
 }
 
@@ -927,6 +1000,40 @@ async function saveSharedMenuOrder(){
 
 menuOrderSave?.addEventListener("click",saveSharedMenuOrder);
 
+let clockAdUrls=[];
+let clockAdIndex=0;
+let clockAdTimer=null;
+
+async function refreshClockAds(){
+  const img=document.getElementById("clockAdImage");
+  const wrap=document.getElementById("clockAdCarousel");
+  if(!img||!wrap||ADMIN_ONLY) return;
+  const photos=(mediaItems||[]).filter(item=>(item?.type||"").startsWith("image/"));
+  if(!photos.length){
+    wrap.classList.add("hidden");
+    img.removeAttribute("src");
+    clockAdUrls=[];
+    if(clockAdTimer){clearInterval(clockAdTimer);clockAdTimer=null;}
+    return;
+  }
+  const urls=[];
+  for(const item of photos){
+    try{urls.push(await signedUrl(item.storage_path));}catch(_){}
+  }
+  clockAdUrls=urls;
+  clockAdIndex=0;
+  if(!urls.length){wrap.classList.add("hidden");return;}
+  wrap.classList.remove("hidden");
+  img.src=urls[0];
+  if(clockAdTimer){clearInterval(clockAdTimer);clockAdTimer=null;}
+  if(urls.length>1){
+    clockAdTimer=setInterval(()=>{
+      clockAdIndex=(clockAdIndex+1)%clockAdUrls.length;
+      if(img.isConnected) img.src=clockAdUrls[clockAdIndex];
+    },8000);
+  }
+}
+
 function updateClockPreview(){
   document.querySelectorAll("[data-clock-zone]").forEach((el)=>{
     try{
@@ -1137,7 +1244,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.81";
+    let versionName="5.82";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1230,9 +1337,13 @@ function validGlobalUserName(name){
 }
 async function loadGlobalUserProfile(){
   if(!supabase || !currentUser || isAdmin()) return null;
-  const {data,error}=await supabase.rpc("user_profile_get",{p_device:presenceDeviceId});
+  const {data,error}=await supabase.rpc("user_profile_get_v2",{p_device:presenceDeviceId,p_hardware:stableHardwareId||null});
   if(error) throw error;
   currentAppProfile=data||null;
+  if(currentAppProfile?.device_id && currentAppProfile.device_id!==presenceDeviceId){
+    presenceDeviceId=currentAppProfile.device_id;
+    localStorage.setItem(PRESENCE_DEVICE_KEY,presenceDeviceId);
+  }
   if(currentAppProfile?.display_name){
     localStorage.setItem("pajaziti-global-user-name",currentAppProfile.display_name);
     window.PajazitiGames?.refreshUserName?.();
@@ -1241,17 +1352,25 @@ async function loadGlobalUserProfile(){
 }
 async function claimGlobalUserProfile(){
   const typed=(userNameInput?.value||"").trim();
-  const {data:existing,error:getError}=await supabase.rpc("user_profile_get",{p_device:presenceDeviceId});
+  const {data:existing,error:getError}=await supabase.rpc("user_profile_get_v2",{p_device:presenceDeviceId,p_hardware:stableHardwareId||null});
   if(getError) throw getError;
   if(existing){
     currentAppProfile=existing;
+    if(existing.device_id && existing.device_id!==presenceDeviceId){
+      presenceDeviceId=existing.device_id;
+      localStorage.setItem(PRESENCE_DEVICE_KEY,presenceDeviceId);
+    }
     localStorage.setItem("pajaziti-global-user-name",existing.display_name);
     return existing;
   }
   if(!validGlobalUserName(typed)) throw new Error("NAME_MIN_4");
-  const {data,error}=await supabase.rpc("user_profile_claim",{p_device:presenceDeviceId,p_name:typed});
+  const {data,error}=await supabase.rpc("user_profile_claim_v2",{p_device:presenceDeviceId,p_hardware:stableHardwareId||null,p_name:typed});
   if(error) throw error;
   currentAppProfile=data;
+  if(data?.device_id && data.device_id!==presenceDeviceId){
+    presenceDeviceId=data.device_id;
+    localStorage.setItem(PRESENCE_DEVICE_KEY,presenceDeviceId);
+  }
   localStorage.setItem("pajaziti-global-user-name",data.display_name);
   return data;
 }
@@ -1513,7 +1632,8 @@ async function login() {
     showMessage(loginMessage, "");
   } catch (error) {
     console.error(error);
-    showMessage(loginMessage, "Gabim gjatë hyrjes. Provo përsëri.", "error");
+    const raw=String(error?.message||error||"");
+    showMessage(loginMessage, raw.includes("USER_BLOCKED") ? "Ky telefon është bllokuar nga Admini." : "Gabim gjatë hyrjes. Provo përsëri.", "error");
   } finally {
     loginBtn.disabled = false;
   }
@@ -2611,14 +2731,14 @@ async function loadMedia() {
       const actions = document.createElement("div");
       actions.className = "media-actions";
 
-      const download = document.createElement("a");
-      download.href = url;
-      download.target = "_blank";
-      download.rel = "noopener";
-      download.textContent = t("download");
-      actions.appendChild(download);
-
       if (isAdmin()) {
+        const download = document.createElement("a");
+        download.href = url;
+        download.target = "_blank";
+        download.rel = "noopener";
+        download.textContent = t("download");
+        actions.appendChild(download);
+
         const del = document.createElement("button");
         del.type = "button";
         del.className = "danger";
@@ -2634,6 +2754,7 @@ async function loadMedia() {
       console.error("Media load failed", e);
     }
   }
+  refreshClockAds().catch(()=>{});
 }
 
 
@@ -3183,7 +3304,23 @@ function startRealtime() {
       () => {
         loadSharedMenuOrder();
         loadHiddenTabs();
+        loadAdminMenuTheme();
         window.PajazitiGames?.reloadSettings?.();
+      }
+    )
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "user_profiles" },
+      async (payload) => {
+        if(isAdmin()) return;
+        const row=payload?.new||{};
+        if(row.device_id===presenceDeviceId && row.is_blocked){
+          await supabase.auth.signOut();
+          currentUser=null;
+          appView?.classList.add("hidden");
+          loginView?.classList.remove("hidden");
+          showMessage(loginMessage,"Ky telefon është bllokuar nga Admini.","error");
+        }
       }
     )
     .subscribe(async (status) => {
@@ -3254,6 +3391,7 @@ async function applySession(session) {
   await loadMedia();
   await loadSharedMenuOrder();
   await loadHiddenTabs();
+  await loadAdminMenuTheme();
   let savedCoords = savedPrayerCoords();
   if (savedCoords) {
     fetchPrayerTimes(savedCoords).then(()=>{ updateQibla(savedCoords); }).catch((error) => console.warn("Prayer preload failed", error));
