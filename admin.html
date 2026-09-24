@@ -750,7 +750,7 @@
   </script>
   <script>
   (()=>{
-    const pairs={galleryTab:"galleryView",infoTab:"infoView",prayerTab:"prayerView",clockTab:"clockView",sportTab:"sportView",gamesTab:"gamesView",tvTab:"tvView",radioTab:"radioView",dietTab:"dietView",kiTab:"kiView",shareAppTab:"shareAppView",newsTab:"newsView",healthTab:"healthView"};
+    const pairs={galleryTab:"galleryView",infoTab:"infoView",prayerTab:"prayerView",clockTab:"clockView",sportTab:"sportView",gamesTab:"gamesView",tvTab:"tvView",radioTab:"radioView",dietTab:"dietView",kiTab:"kiView",shareAppTab:"shareAppView",newsTab:"newsView"};
     const views=[...new Set(Object.values(pairs))];
     const open=id=>{views.forEach(v=>document.getElementById(v)?.classList.toggle("hidden",v!==id));document.getElementById("appTabs")?.classList.add("hidden");document.getElementById("sectionBackBtn")?.classList.remove("hidden");const hooks={gamesView:"PajazitiGames",tvView:"PajazitiTV",radioView:"PajazitiRadio",dietView:"DiamondDiet",kiView:"DiamondKI",newsView:"DiamondNews",shareAppView:"DiamondShareApp"};try{window[hooks[id]]?.activate?.()}catch(_){}window.scrollTo(0,0)};
     const home=()=>{views.forEach(v=>document.getElementById(v)?.classList.add("hidden"));document.getElementById("appTabs")?.classList.remove("hidden");document.getElementById("sectionBackBtn")?.classList.add("hidden")};
