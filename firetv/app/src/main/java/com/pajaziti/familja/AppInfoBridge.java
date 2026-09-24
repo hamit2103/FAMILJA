@@ -31,6 +31,31 @@ public class AppInfoBridge {
     }
 
     @JavascriptInterface
+    public long getVersionCode() {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                return activity.getPackageManager()
+                    .getPackageInfo(activity.getPackageName(), 0)
+                    .getLongVersionCode();
+            }
+            return activity.getPackageManager()
+                .getPackageInfo(activity.getPackageName(), 0)
+                .versionCode;
+        } catch (Exception ignored) {
+            return 0L;
+        }
+    }
+
+    @JavascriptInterface
+    public String getPackageName() {
+        try {
+            return activity.getPackageName();
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    @JavascriptInterface
     public String getVersionName() {
         try {
             return activity.getPackageManager()
