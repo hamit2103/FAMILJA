@@ -1149,19 +1149,78 @@ async function subscribeWarMultiRoom(roomId){
     .subscribe();
 }
 
+async function ensureWarOnlineReady(){
+  let session=null;
+  try{
+    const current=await supabase.auth.getSession();
+    session=current?.data?.session||null;
+  }catch(_){}
+
+  if(!session && !GAMES_ADMIN_ONLY){
+    const response=await fetch(SUPABASE_URL+"/functions/v1/family-login",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY},
+      body:"{}",
+      cache:"no-store"
+    });
+    const tokenData=await response.json().catch(()=>({}));
+    if(!response.ok || !tokenData?.token_hash) throw new Error("AUTH_REQUIRED");
+    const verified=await supabase.auth.verifyOtp({token_hash:tokenData.token_hash,type:"email"});
+    if(verified.error) throw verified.error;
+    session=verified.data?.session||null;
+    if(!session){
+      const refreshed=await supabase.auth.getSession();
+      session=refreshed?.data?.session||null;
+    }
+  }
+
+  if(!session) throw new Error("AUTH_REQUIRED");
+
+  let profile=null;
+  const got=await supabase.rpc("user_profile_get",{p_device:deviceId});
+  if(got.error) throw got.error;
+  profile=got.data||null;
+
+  if(!profile){
+    let name=(localStorage.getItem(BOARD_NAME_KEY)||warProfile?.display_name||"").trim().slice(0,20);
+    if(name.length<4){
+      const suffix=String(deviceId||"").replace(/[^a-z0-9]/gi,"").slice(-6);
+      name=("Player"+(suffix||"000001")).slice(0,20);
+    }
+
+    let claimed=await supabase.rpc("user_profile_claim",{p_device:deviceId,p_name:name});
+    if(claimed.error && String(claimed.error?.message||claimed.error).includes("NAME_TAKEN")){
+      const suffix=String(deviceId||"").replace(/[^a-z0-9]/gi,"").slice(-5);
+      const fallback=(name.slice(0,Math.max(4,14-suffix.length))+"-"+suffix).slice(0,20);
+      claimed=await supabase.rpc("user_profile_claim",{p_device:deviceId,p_name:fallback});
+    }
+    if(claimed.error) throw claimed.error;
+    profile=claimed.data||null;
+  }
+
+  if(profile?.is_blocked) throw new Error("USER_BLOCKED");
+  if(profile?.display_name) localStorage.setItem(BOARD_NAME_KEY,profile.display_name);
+
+  const warSetup=await supabase.rpc("war_set_profile",{p_device:deviceId,p_name:profile?.display_name||localStorage.getItem(BOARD_NAME_KEY)||"Player"});
+  if(warSetup.error) throw warSetup.error;
+
+  return profile;
+}
+
 async function startWarMultiSearch(){
   const button=document.getElementById("warMultiBtn")||document.getElementById("warRetryOnline")||document.getElementById("warMultiAgain");
   const info=document.getElementById("warNameInfo");
   if(button) button.disabled=true;
 
   try{
-    const name=(localStorage.getItem("pajaziti-global-user-name")||"User").trim().slice(0,20);
+    const profile=await ensureWarOnlineReady();
+    const name=(profile?.display_name||localStorage.getItem(BOARD_NAME_KEY)||"Player").trim().slice(0,20);
     const {data,error}=await supabase.rpc("war_multi_join_global",{p_device:deviceId});
-    if(!error){
-      const {data:econ}=await supabase.rpc("war_get_profile",{p_device:deviceId});
-      warProfile=econ||{...(warProfile||{}),display_name:name,diamonds:Number(warProfile?.diamonds||200)};
-    }
     if(error) throw error;
+
+    const {data:econ,error:econError}=await supabase.rpc("war_get_profile",{p_device:deviceId});
+    if(!econError && econ) warProfile=econ;
+    else warProfile={...(warProfile||{}),display_name:name,diamonds:Number(warProfile?.diamonds||200)};
 
     const roomId=data?.room_id;
     if(!roomId) throw new Error("ROOM_NOT_CREATED");
@@ -1212,7 +1271,13 @@ async function startWarMultiSearch(){
     }
   }catch(error){
     console.warn("war multi join",error);
-    if(info) info.textContent="Nuk u hap loja online. Provo përsëri.";
+    const raw=String(error?.message||error||"");
+    const message=raw.includes("USER_BLOCKED")
+      ?"Llogaria është e bllokuar nga Admini."
+      : raw.includes("AUTH_REQUIRED")
+        ?"Lidhja e përdoruesit u rifreskua. Provo edhe një herë."
+        :"Nuk u hap loja online. Provo përsëri.";
+    if(info) info.textContent=message;
     else renderWarMultiRetry();
     if(button) button.disabled=false;
   }
@@ -1371,6 +1436,31 @@ function warActionCard(action){
   return `<button data-war-action="${item.key}" type="button"><span class="war-action-icon" aria-hidden="true">${item.icon}</span><strong>${wtr(item.labelKey)}</strong><small>${item.smallKey?wtr(item.smallKey):item.small}</small></button>`;
 }
 
+function warPracticePlayerCard(fighter,{isPlayer=false,isTurn=false}={}){
+  const label=isPlayer?fighter.name:wtr("opponent");
+  const status=[
+    fighter.protect>0?"🛡️×"+fighter.protect:"",
+    fighter.frozen?"🧊":"",
+    fighter.burned?"🔥":"",
+    isTurn?"🎯 "+wtr("turn"):""
+  ].filter(Boolean).join(" ");
+  const power=warSpecial(fighter.special||"attack")?.icon||"⚔️";
+  return `
+    <div class="war-room-player-wrap ${isPlayer?"me":""}">
+      <div class="war-multi-player war-practice-player ${isPlayer?"me":""} ${isTurn?"turn":""} ${fighter.hp<=0?"eliminated":""} ${fighter.burned?"burned":""}">
+        <span class="war-multi-name">${isPlayer?"🇦🇱 ":"🤖 "}${escapeHtml(label)} ${isPlayer?"("+wtr("you")+")":""}</span>
+        <span class="war-multi-hearts">${warHearts(fighter.hp,fighter.maxHp)}</span>
+        <span class="war-multi-status">${status}</span>
+        <span class="war-multi-flag-badge" aria-hidden="true">${isPlayer?"🇦🇱":"🤖"}</span>
+        <span class="war-multi-soldier ${isPlayer?"mine":"enemy"} war-shooter ${isPlayer?"war-shooter-player":"war-shooter-enemy"}" aria-hidden="true">
+          <img src="./war-soldier.svg" alt="">
+          <i class="war-multi-muzzle"></i>
+        </span>
+        <span class="war-multi-power-badge" aria-hidden="true">${power}</span>
+      </div>
+    </div>`;
+}
+
 function renderWarGame(){
   if(!warGameState) warGameState=warInitialState();
   const s=warGameState;
@@ -1379,15 +1469,11 @@ function renderWarGame(){
   const games=warGames();
   const wins=warWins();
   const activeBonus=warBonusHeartCount();
-
-  const soldierMarkup=()=>`
-    <span class="war-soldier-figure" aria-hidden="true">
-      <img class="war-soldier-art" src="./war-soldier.svg" alt="">
-    </span>`;
+  const alive=(p.hp>0?1:0)+(e.hp>0?1:0);
 
   root.innerHTML=`
     <div class="war-shell">
-      <section class="war-arena war-arena-new">
+      <section class="war-arena war-multi-arena war-practice-arena">
         <div class="war-topbar">
           <button id="warBack" class="war-exit" type="button">← ${tr("backGames")}</button>
           <strong>⚔️ ${tr("war")}</strong>
@@ -1396,65 +1482,49 @@ function renderWarGame(){
           <span id="warAudioStatus" class="war-audio-status"></span>
         </div>
 
-        <div class="practice-banner">${gx("practiceNote")}</div>
-        <div class="war-practice-badge" aria-hidden="true"><strong>LUFTRA</strong><span>BATTLE</span></div>\n        <div id="warBattleScene" class="war-battle-scene war-battle-scene-new">
-          <div class="war-combatant war-combatant-enemy ${e.burned?"burned":""}">
-            <div class="war-combatant-info">
-              <span class="war-side-label">${wtr("opponent")}</span>
-              <strong class="war-combatant-name">🤖 ${escapeHtml(e.name)}</strong>
-              <div class="war-hearts war-compact-hearts" aria-label="${e.hp} zemra">${warHearts(e.hp,e.maxHp)}</div>
-              <div class="war-status-icons war-status-compact">
-                ${e.protect>0?`<span>🛡️×${e.protect}</span>`:""}
-                ${e.frozen?"<span>🧊</span>":""}
-                ${e.burned?"<span>🔥</span>":""}
-              </div>
+        <div class="war-multi-summary war-practice-summary">
+          <strong>🤖 ${gx("practice")}</strong>
+          <span>🏆 ${wins} · 🎮 ${games}</span>
+          <span>💎 ${Number(warProfile?.diamonds||0)}</span>
+        </div>
+
+        <div id="warBattleScene" class="war-shared-room war-online-shared-room war-practice-shared-room">
+          <div class="war-room-wall"><span>LUFTRA · BATTLE ROYALE</span></div>
+          <div class="war-room-floor"></div>
+          <div class="war-online-stage war-practice-stage">
+            <div class="war-online-opponents">
+              ${warPracticePlayerCard(e,{isPlayer:false,isTurn:s.turn==="enemy"})}
             </div>
-            <div class="war-shooter war-shooter-enemy">
-              ${soldierMarkup()}
+            <div class="war-online-core" aria-hidden="true">
+              <span class="war-online-crown">👑</span>
+              <strong>LUFTRA</strong>
+              <span>BATTLE ROYALE</span>
+              <small>👥 ${alive}/2</small>
+            </div>
+            <div class="war-online-me">
+              ${warPracticePlayerCard(p,{isPlayer:true,isTurn:s.turn==="player"})}
             </div>
           </div>
-
-          <div class="war-shot-lane">
+          <div class="war-shot-lane" aria-hidden="true">
             <span id="warProjectile" class="war-projectile">•</span>
             <span id="warExplosion" class="war-explosion">💥</span>
           </div>
-
-          <div class="war-combatant war-combatant-player ${p.burned?"burned":""}">
-            <div class="war-combatant-info">
-              <span class="war-side-label">${wtr("you")}</span>
-              <strong class="war-combatant-name">🇦🇱 ${escapeHtml(p.name)}</strong>
-              <div class="war-hearts war-compact-hearts" aria-label="${p.hp} zemra">${warHearts(p.hp,p.maxHp)}</div>
-              <div class="war-status-icons war-status-compact">
-                ${p.protect>0?`<span>🛡️×${p.protect}</span>`:""}
-                ${p.frozen?"<span>🧊</span>":""}
-                ${p.burned?"<span>🔥</span>":""}
-              </div>
-            </div>
-            <div class="war-shooter war-shooter-player">
-              ${soldierMarkup()}
-            </div>
-          </div>
-
-          <aside class="war-weapons-panel">
-            <div class="war-weapons-title">${wtr("yourWeapons")}</div>
-            <div class="war-actions war-side-actions">
-              ${warActionCard(p.special)}
-              ${warActionCard(p.special2)}
-            </div>
-            <button id="warReroll" class="war-reroll" type="button" ${s.over||s.turn!=="player"||s.rerollUsedThisTurn?"disabled":""}>${wtr("changeWeapons")}<br><small>3 💎</small></button>
-          </aside>
         </div>
 
-        <div class="war-battle-info">
+        <div class="war-battle-info war-practice-info">
           <div class="war-progress war-progress-inline">
-            <strong>🏆 ${wins} ${wtr("wins")}</strong>
-            <small>🎮 ${games} ${wtr("games")} · ❤️ ${wtr("bonus")}: ${activeBonus} · 💎 ${Number(warProfile?.diamonds||0)}</small>
+            <strong>❤️ ${wtr("bonus")}: ${activeBonus}</strong>
+            <small>🤖 ${gx("practiceNote")}</small>
           </div>
-          <div class="war-vs">VS</div>
           <p id="warMessage" class="war-message">${escapeHtml(s.message)}</p>
         </div>
 
-        ${s.over?`<button id="warRestart" class="primary war-restart" type="button">${wtr("playAgain")}</button>`:""}
+        ${s.over?`<button id="warRestart" class="primary war-restart" type="button">${wtr("playAgain")}</button>`:`
+          <div class="war-practice-controls">
+            <div class="war-actions">${warActionCard(p.special)}${warActionCard(p.special2)}</div>
+            <button id="warReroll" class="secondary war-reroll" type="button" ${s.turn!=="player"||s.rerollUsedThisTurn?"disabled":""}>${wtr("changeWeapons")} · 3 💎</button>
+          </div>
+        `}
       </section>
     </div>`;
 
