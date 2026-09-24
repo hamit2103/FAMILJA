@@ -5017,3 +5017,7 @@ button.war-weapon-icon:disabled{
   box-shadow:0 5px 14px rgba(153,27,27,.12);
 }
 .private-chat-close:active{transform:scale(.96)}
+
+
+/* DIAMOND 5.91 — manual update button */
+.manual-update-wrap{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px}.manual-update-btn{border:1px solid rgba(34,211,238,.9);border-radius:999px;padding:7px 11px;background:rgba(5,44,73,.88);color:#fff;font-size:12px;font-weight:900;box-shadow:0 4px 12px rgba(2,132,199,.18)}.manual-update-btn:disabled{opacity:.62}.manual-update-status{font-size:10px;font-weight:800;color:#d7efff;max-width:190px;line-height:1.2}
