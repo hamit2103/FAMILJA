@@ -1789,97 +1789,6 @@ async function registerDeviceInfo(){
   }catch(error){console.warn("device info",error);}
 }
 
-const UPDATE_RELEASE_POLICY_KEY="update_release_policy";
-
-async function loadUpdateReleasePolicy(users=[]){
-  if(!ADMIN_ONLY || !isAdmin()) return;
-  const card=document.getElementById("adminUpdateReleaseCard");
-  const list=document.getElementById("updateReleaseUsersList");
-  const wrap=document.getElementById("updateReleaseUsersWrap");
-  const status=document.getElementById("updateReleaseStatus");
-  if(!card||!list||!wrap) return;
-
-  let policy={mode:"admin_only",devices:[]};
-  try{
-    const {data,error}=await supabase.from("app_settings")
-      .select("value").eq("key",UPDATE_RELEASE_POLICY_KEY).maybeSingle();
-    if(error) throw error;
-    if(data?.value && typeof data.value==="object") policy={...policy,...data.value};
-  }catch(error){
-    console.warn("update release policy load",error);
-    if(status){status.textContent="Kontrolli i update-it nuk u ngarkua.";status.className="message error";}
-  }
-
-  const mode=["admin_only","selected","all"].includes(policy.mode)?policy.mode:"admin_only";
-  const selected=new Set(Array.isArray(policy.devices)?policy.devices.map(String):[]);
-  document.querySelectorAll('input[name="updateReleaseMode"]').forEach(radio=>{
-    radio.checked=radio.value===mode;
-  });
-
-  list.innerHTML="";
-  for(const p of users){
-    const label=document.createElement("label");
-    label.className="update-release-user-row";
-    const cb=document.createElement("input");
-    cb.type="checkbox";
-    cb.value=p.device_id||"";
-    cb.checked=selected.has(String(p.device_id||""));
-    const text=document.createElement("span");
-    text.textContent=(p.display_name||"User")+" · "+(p.device_id||"");
-    label.append(cb,text);
-    list.appendChild(label);
-  }
-
-  const refresh=()=>{
-    const current=document.querySelector('input[name="updateReleaseMode"]:checked')?.value||"admin_only";
-    wrap.classList.toggle("hidden",current!=="selected");
-  };
-  document.querySelectorAll('input[name="updateReleaseMode"]').forEach(radio=>{
-    radio.onchange=refresh;
-  });
-  refresh();
-}
-
-async function saveUpdateReleasePolicy(){
-  if(!ADMIN_ONLY || !isAdmin()) return;
-  const btn=document.getElementById("updateReleaseSaveBtn");
-  const status=document.getElementById("updateReleaseStatus");
-  const mode=document.querySelector('input[name="updateReleaseMode"]:checked')?.value||"admin_only";
-  const devices=[...document.querySelectorAll("#updateReleaseUsersList input[type=checkbox]:checked")]
-    .map(el=>el.value).filter(Boolean);
-
-  if(mode==="selected" && devices.length===0){
-    if(status){status.textContent="Zgjidh së paku një user.";status.className="message error";}
-    return;
-  }
-
-  if(btn) btn.disabled=true;
-  if(status){status.textContent="Po ruhet...";status.className="message";}
-  try{
-    const {error}=await supabase.from("app_settings").upsert({
-      key:UPDATE_RELEASE_POLICY_KEY,
-      value:{mode,devices},
-      updated_at:new Date().toISOString(),
-      updated_by:currentUser.id
-    },{onConflict:"key"});
-    if(error) throw error;
-    if(status){
-      status.textContent=
-        mode==="admin_only" ? "✅ Update-et i dalin vetëm Adminit." :
-        mode==="all" ? "✅ Update-i më i fundit u lejohet të gjithë userave." :
-        "✅ Update-i më i fundit u lejohet vetëm userave të zgjedhur.";
-      status.className="message success";
-    }
-  }catch(error){
-    console.warn("update release policy save",error);
-    if(status){status.textContent="Nuk u ruajt kontrolli i update-it.";status.className="message error";}
-  }finally{
-    if(btn) btn.disabled=false;
-  }
-}
-
-document.getElementById("updateReleaseSaveBtn")?.addEventListener("click",saveUpdateReleasePolicy);
-
 async function renderAdminModuleAccessControl(users=[]){
   if(!ADMIN_ONLY || !isAdmin()) return;
   const select=document.getElementById("moduleAccessUserSelect");
@@ -1978,7 +1887,6 @@ async function loadAdminUsers(){
     const users=Array.isArray(result.data)?result.data:[];
     if(adminUserCount)adminUserCount.textContent=String(users.length);
     await renderAdminModuleAccessControl(users);
-    await loadUpdateReleasePolicy(users);
 
     if(adminMessageTarget){
       const previous=adminMessageTarget.value||"";
