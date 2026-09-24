@@ -1,4 +1,4 @@
-const CACHE = "diamond-v117";
+const CACHE = "diamond-v118";
 const SHELL = ["./", "./index.html", "./admin.html", "./admin-manifest.webmanifest", "./styles.css?v=98", "./app.js?v=113", "./app-config.js", "./manifest.webmanifest", "./angel-icon.jpg", "./sports.js?v=8", "./games.js?v=94", "./tv.js?v=55", "./radio.js?v=54", "./quran.js?v=1", "./prayer-extras.js?v=2", "./news.js?v=3"];
 
 self.addEventListener("install", (event) => {
