@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND ADMIN">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=96">
+  <link rel="stylesheet" href="styles.css?v=97">
   <title>DIAMOND ADMIN</title>
   <style>
     /* Inline menu-order hotfix */
@@ -107,7 +107,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.85</span>
+            <span id="appVersionLabel" class="app-version-label">v5.86</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -185,6 +185,7 @@
         <button id="kiTab" class="app-tab" type="button"><span>🤖 </span><span id="kiTabLabel">KI</span></button>
         <button id="shareAppTab" class="app-tab" type="button"><span>🔗 </span><span id="shareAppTabLabel">Ndaje appin</span></button>
         <button id="healthTab" class="app-tab health-tab hidden" type="button"><span>🩺 </span><span id="healthTabLabel">Shëndeti</span></button>
+        <button id="privateChatTab" class="app-tab private-chat-tab" type="button"><span>✉️ </span><span>Admin</span><span id="privateChatBadge" class="private-chat-badge hidden">0</span></button>
         <button id="newsTab" class="app-tab" type="button"><span>📰 </span><span id="newsTabLabel">Lajme</span></button>
         <button id="adminHubTab" class="app-tab admin-hub-tab" type="button"><span>👑 </span><span>ADMIN</span></button>
       </nav>
@@ -210,26 +211,8 @@
           <button class="admin-hub-shortcut" type="button" data-admin-open="games"><span>🎮</span>Lojëra Admin</button>
           <button class="admin-hub-shortcut" type="button" data-admin-open="tv"><span>📺</span>TV Admin</button>
           <button class="admin-hub-shortcut" type="button" data-admin-open="radio"><span>📻</span>Radio Admin</button>
+          <button class="admin-hub-shortcut" type="button" data-admin-open="privatechat"><span>✉️</span>Mesazhe private</button>
           <button class="admin-hub-shortcut" type="button" data-admin-open="home"><span>🏠</span>Menuja</button>
-        </section>
-
-        <section id="adminUpdateReleaseCard" class="card admin-update-release-card">
-          <h2>🔄 Kontrolli i Update-ve</h2>
-          <p class="muted small">Versionet e reja ndërtohen normalisht, por userave u dalin vetëm kur ti i lejon këtu. ADMIN-i e merr gjithmonë update-in.</p>
-
-          <div class="update-release-modes">
-            <label><input type="radio" name="updateReleaseMode" value="admin_only" checked> 🔒 Vetëm Admini</label>
-            <label><input type="radio" name="updateReleaseMode" value="selected"> 👥 Admini + userat e zgjedhur</label>
-            <label><input type="radio" name="updateReleaseMode" value="all"> 🌐 Admini + të gjithë userat</label>
-          </div>
-
-          <div id="updateReleaseUsersWrap" class="update-release-users hidden">
-            <strong>Zgjidh userat që duhet ta marrin update-in:</strong>
-            <div id="updateReleaseUsersList" class="update-release-users-list"></div>
-          </div>
-
-          <button id="updateReleaseSaveBtn" class="primary" type="button">💾 Ruaj kontrollin e update-it</button>
-          <div id="updateReleaseStatus" class="message"></div>
         </section>
 
         <section id="adminHealthAccessCard" class="card admin-health-access-card">
@@ -392,6 +375,32 @@
 
       <section id="kiView" class="hidden">
         <div id="kiRoot"></div>
+      </section>
+
+      <section id="privateChatView" class="hidden">
+        <section class="card private-chat-card">
+          <div class="private-chat-head">
+            <div>
+              <h2>✉️ Mesazh privat me Adminin</h2>
+              <p id="privateChatNote" class="muted small">Këtë bisedë e shihni vetëm ti dhe Admini.</p>
+            </div>
+          </div>
+
+          <div id="privateChatAdminPickerWrap" class="hidden">
+            <label for="privateChatAdminPicker">Zgjidh userin</label>
+            <select id="privateChatAdminPicker">
+              <option value="">— Zgjidh userin —</option>
+            </select>
+          </div>
+
+          <div id="privateChatThread" class="private-chat-thread"></div>
+
+          <div class="private-chat-compose">
+            <textarea id="privateChatText" maxlength="1000" rows="3" placeholder="Shkruaj mesazhin..."></textarea>
+            <button id="privateChatSend" class="primary" type="button">Dërgo</button>
+          </div>
+          <div id="privateChatStatus" class="message"></div>
+        </section>
       </section>
 
       <section id="newsView" class="hidden">
@@ -800,7 +809,7 @@
     window.DiamondAdminCoreNav={open,home};
   })();
   </script>
-  <script type="module" src="app.js?v=111"></script>
+  <script type="module" src="app.js?v=112"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=55"></script>
@@ -811,7 +820,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=111"></script>
+  <script type="module" src="share-app.js?v=112"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
