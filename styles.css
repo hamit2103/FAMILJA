@@ -4977,3 +4977,106 @@ button.war-weapon-icon:disabled{
   font-weight:950!important;
   text-shadow:0 2px 8px rgba(0,0,0,.45)!important;
 }
+
+
+/* DIAMOND 5.86 private user-admin chat */
+.private-chat-tab{
+  min-height:72px!important;
+}
+.private-chat-badge{
+  margin-left:auto;
+  min-width:22px;
+  height:22px;
+  border-radius:999px;
+  display:grid;
+  place-items:center;
+  padding:0 6px;
+  background:#ef4444;
+  color:#fff;
+  font-size:12px;
+  font-weight:950;
+}
+.private-chat-card{
+  display:grid;
+  gap:12px;
+}
+.private-chat-head h2{
+  margin:0 0 4px;
+}
+#privateChatAdminPickerWrap{
+  display:grid;
+  gap:6px;
+}
+#privateChatAdminPicker{
+  width:100%;
+  min-height:46px;
+  border-radius:12px;
+  border:1px solid #cbd5e1;
+  padding:10px 12px;
+  background:#fff;
+  color:#111827;
+  font-weight:800;
+}
+.private-chat-thread{
+  min-height:260px;
+  max-height:58vh;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  padding:10px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+}
+.private-chat-message{
+  display:flex;
+  flex-direction:column;
+  max-width:86%;
+}
+.private-chat-message.mine{
+  align-self:flex-end;
+  align-items:flex-end;
+}
+.private-chat-message.theirs{
+  align-self:flex-start;
+  align-items:flex-start;
+}
+.private-chat-bubble{
+  padding:10px 12px;
+  border-radius:14px;
+  background:#e2e8f0;
+  color:#111827;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.private-chat-message.mine .private-chat-bubble{
+  background:#4f46e5;
+  color:#fff;
+}
+.private-chat-message small{
+  margin-top:3px;
+  color:#64748b;
+}
+.private-chat-compose{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  align-items:end;
+}
+.private-chat-compose textarea{
+  width:100%;
+  min-height:84px;
+  resize:vertical;
+}
+.private-chat-compose button{
+  min-height:46px;
+}
+.private-chat-empty{
+  text-align:center;
+  padding:28px 8px;
+}
+@media(max-width:560px){
+  .private-chat-compose{grid-template-columns:1fr}
+  .private-chat-message{max-width:92%}
+}
