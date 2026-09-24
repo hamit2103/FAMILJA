@@ -375,6 +375,11 @@ public class MainActivity extends Activity {
         dialog.show();
     }
 
+    public void installUpdateFromUrl(String apkUrl) {
+        if (apkUrl == null || apkUrl.trim().isEmpty()) return;
+        runOnUiThread(() -> requestInstallPermissionAndDownload(apkUrl.trim()));
+    }
+
     private void requestInstallPermissionAndDownload(String apkUrl) {
         pendingApkUrl = apkUrl;
 
