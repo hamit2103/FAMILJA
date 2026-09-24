@@ -187,7 +187,7 @@ public class MainActivity extends Activity {
                 filePathCallback = filePathCallbackParam;
 
                 try {
-                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                     intent.addCategory(Intent.CATEGORY_OPENABLE);
                     intent.setType("*/*");
                     intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*","video/*"});
