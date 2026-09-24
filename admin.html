@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND ADMIN">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=99">
+  <link rel="stylesheet" href="styles.css?v=100">
   <title>DIAMOND ADMIN</title>
   <style>
     /* Inline menu-order hotfix */
@@ -107,7 +107,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.91</span>
+            <span id="appVersionLabel" class="app-version-label">v5.92</span>
             <div class="manual-update-wrap">
               <button id="manualUpdateBtn" class="manual-update-btn" type="button">🔄 Kontrollo update</button>
               <span id="manualUpdateStatus" class="manual-update-status"></span>
@@ -188,7 +188,7 @@
         <button id="dietTab" class="app-tab" type="button"><span>🥗 </span><span id="dietTabLabel">Diet</span></button>
         <button id="kiTab" class="app-tab" type="button"><span>🤖 </span><span id="kiTabLabel">KI</span></button>
         <button id="shareAppTab" class="app-tab" type="button"><span>🔗 </span><span id="shareAppTabLabel">Ndaje appin</span></button>
-        <button id="healthTab" class="app-tab health-tab hidden" type="button"><span>🩺 </span><span id="healthTabLabel">Shëndeti</span></button>
+        <button id="healthTab" class="app-tab health-tab hidden" type="button"><span>🔒 </span><span id="healthTabLabel">Privat</span></button>
         <button id="newsTab" class="app-tab" type="button"><span>📰 </span><span id="newsTabLabel">Lajme</span></button>
         <button id="adminHubTab" class="app-tab admin-hub-tab" type="button"><span>👑 </span><span>ADMIN</span></button>
       </nav>
@@ -267,15 +267,16 @@
           <div id="updateReleaseStatus" class="message"></div>
         </section>
 
-        <section id="adminHealthAccessCard" class="card admin-health-access-card">
-          <h2>🩺 Shëndeti privat</h2>
-          <p class="muted small">Vetëm këtu në ADMIN zgjedh cilit user i shfaqet folderi Shëndeti.</p>
-          <label for="healthAccessUserSelect">Zgjidh userin</label>
-          <select id="healthAccessUserSelect" class="health-access-select">
+        <section id="adminModuleAccessCard" class="card admin-health-access-card">
+          <h2>⚙️ Modulet për secilin User</h2>
+          <p class="muted small">Useri i ri merr modulet standarde që ke lejuar për të gjithë. Këtu mund t’ia heqësh ose t’ia kthesh çdo modul vetëm një useri. Moduli 🔒 Privat nuk u del userave pa lejen tënde.</p>
+          <label for="moduleAccessUserSelect">Zgjidh userin</label>
+          <select id="moduleAccessUserSelect" class="health-access-select">
             <option value="">— Zgjidh userin —</option>
           </select>
-          <button id="healthAccessToggleBtn" class="primary" type="button" disabled>🩺 Lejo Shëndetin</button>
-          <div id="healthAccessStatus" class="message"></div>
+          <div id="moduleAccessList" class="module-access-list"></div>
+          <button id="moduleAccessResetBtn" class="secondary" type="button" disabled>↩️ Ktheji modulet standarde</button>
+          <div id="moduleAccessStatus" class="message"></div>
         </section>
 
         <div id="adminHubStack" class="admin-hub-stack"></div>
@@ -835,7 +836,7 @@
     window.DiamondAdminCoreNav={open,home};
   })();
   </script>
-  <script type="module" src="app.js?v=114"></script>
+  <script type="module" src="app.js?v=115"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=55"></script>
@@ -846,7 +847,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=114"></script>
+  <script type="module" src="share-app.js?v=115"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
