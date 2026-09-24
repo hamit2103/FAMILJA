@@ -4977,3 +4977,23 @@ button.war-weapon-icon:disabled{
   font-weight:950!important;
   text-shadow:0 2px 8px rgba(0,0,0,.45)!important;
 }
+
+
+/* DIAMOND 5.86 — private User ↔ Admin chat */
+.private-chat-mini-wrap{display:flex;justify-content:flex-end;margin:-6px 2px 14px}
+.private-chat-mini{position:relative;display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:8px 13px;border:0;border-radius:999px;background:linear-gradient(135deg,#6d46e8,#8b37e8);color:#fff;font-weight:850;box-shadow:0 8px 18px rgba(109,70,232,.24)}
+.private-chat-unread{min-width:21px;height:21px;padding:0 6px;border-radius:999px;display:grid;place-items:center;background:#ef4444;color:#fff;font-size:11px;font-weight:900}
+.private-chat-unread.hidden{display:none!important}
+.private-chat-card{margin-bottom:16px}
+.private-chat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.private-chat-head h2{margin:0 0 4px}
+.private-chat-head p{margin:0}
+.private-chat-admin-picker{display:grid;gap:6px;margin:12px 0}
+.private-chat-admin-picker select{width:100%}
+.private-chat-list{min-height:230px;max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:8px;margin:14px 0;padding:10px;border-radius:16px;background:rgba(241,245,249,.82)}
+.private-chat-message{align-self:flex-start;max-width:86%;padding:9px 11px;border-radius:14px 14px 14px 4px;background:#fff;color:#111827;box-shadow:0 3px 10px rgba(15,23,42,.07)}
+.private-chat-message.mine{align-self:flex-end;border-radius:14px 14px 4px 14px;background:#6d46e8;color:#fff}
+.private-chat-message-head{display:flex;gap:8px;justify-content:space-between;margin-bottom:3px;font-size:11px;opacity:.78}
+.private-chat-message-body{white-space:pre-wrap;overflow-wrap:anywhere}
+#privateChatText{width:100%;resize:vertical;min-height:82px;border:1px solid #d1d5db;border-radius:14px;padding:12px;background:#fff;font:inherit}
+#privateChatSendBtn{width:100%;margin-top:8px}
