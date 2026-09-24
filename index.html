@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=88">
+  <link rel="stylesheet" href="styles.css?v=89">
   <title>DIAMOND</title>
   <style>
     /* Inline menu-order hotfix */
@@ -113,7 +113,7 @@
         <div>
           <div class="app-title-row" style="display:block">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.81</span>
+            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.82</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -172,7 +172,7 @@
           </label>
         </div>
 
-        <button id="themeResetBtn" class="secondary theme-reset-btn" type="button" data-i18n="theme.reset">Kthe ngjyrat fillestare</button>
+        <button id="themeResetBtn" class="secondary theme-reset-btn" type="button">Automatik / Sipas Adminit</button>
       </section>
 
       <button id="sectionBackBtn" class="secondary section-back-btn hidden" type="button">← Kthehu mbrapa</button>
@@ -320,6 +320,9 @@
             <div class="clock-zone"><span>🇺🇸 <span data-i18n="clock.newyork">New York</span></span><strong data-clock-zone="America/New_York">--:--</strong></div>
           </div>
           <div class="clock-brand">DIAMOND</div>
+          <div id="clockAdCarousel" class="clock-ad-carousel hidden">
+            <img id="clockAdImage" alt="Reklama">
+          </div>
           <button id="addClockWidgetBtn" class="primary clock-widget-add" type="button">📌 <span data-i18n="clock.add">Shto orën në ekran</span></button>
           <div id="clockWidgetStatus" class="message" data-i18n="clock.androidHint">Në Android, shtype butonin për ta vendosur widgetin në Home Screen.</div>
         </section>
@@ -645,9 +648,9 @@
   })();
   </script>
 
-<script type="module" src="app.js?v=101"></script>
+<script type="module" src="app.js?v=102"></script>
   <script type="module" src="sports.js?v=9"></script>
-  <script type="module" src="games.js?v=93"></script>
+  <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=53"></script>
   <script type="module" src="radio.js?v=56"></script>
   <script type="module" src="quran.js?v=2"></script>
@@ -656,7 +659,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=101"></script>
+  <script type="module" src="share-app.js?v=102"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
