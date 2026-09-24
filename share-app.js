@@ -1,9 +1,9 @@
 const SHARE_APP_LANG_KEY="pajaziti-language";
-const SHARE_BASE_URL="https://familja.vercel.app";
-const SHARE_APP_URL=SHARE_BASE_URL+"/android";
-const SHARE_FIRE_URL=SHARE_BASE_URL+"/firestick";
-const SHARE_IOS_URL=SHARE_BASE_URL+"/iphone";
-const SHARE_SMART_URL=SHARE_BASE_URL+"/download";
+const SHARE_BASE_URL="https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1";
+const SHARE_APP_URL=SHARE_BASE_URL+"/diamond-android";
+const SHARE_FIRE_URL=SHARE_BASE_URL+"/diamond-firestick";
+const SHARE_IOS_URL=SHARE_BASE_URL+"/diamond-iphone";
+const SHARE_SMART_URL=SHARE_BASE_URL+"/diamond-download";
 
 const SA={
 sq:{tab:"Ndaje appin",title:"Ndaje DIAMOND",desc:"Link permanent për Android. Gjithmonë hap versionin më të ri.",share:"Ndaje",copy:"Kopjo linkun",open:"Hape",copied:"Linku u kopjua.",hint:"Ky link nuk ndryshon pas update-ve.",android:"📱 Android",fire:"📺 Fire TV Stick",fireDesc:"Link permanent për Downloader / Fire TV Stick. Gjithmonë merr versionin më të ri.",ios:"🍎 iPhone / Safari",iosDesc:"Link permanent për iPhone. Hape në Safari dhe përdor Share → Add to Home Screen.",smart:"🔗 Link universal",smartDesc:"Një link i vetëm që e dallon pajisjen: Android, Fire TV ose iPhone.",iosCopied:"Linku për iPhone u kopjua.",fireCopied:"Linku për Fire TV u kopjua.",smartCopied:"Linku universal u kopjua."},
