@@ -30,6 +30,7 @@ const GAME_THEME_SETTING_KEY = "game_theme_defaults";
 const GAME_SOUND_MASTER_KEY = "diamond-game-sound-master";
 const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
+const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
 const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
@@ -39,6 +40,7 @@ let gameMusicTimer=null;
 let gameMusicGain=null;
 let adminGameTheme={light:"#f0d9b5",dark:"#b58863",primary:"#ffffff",secondary:"#111827",arena:"#111827"};
 let userGameTheme=null;
+let boardAiLevel=localStorage.getItem(BOARD_AI_LEVEL_KEY)||"medium";
 
 let quickChessTimer=null;
 let quickChessDeadline=0;
@@ -265,6 +267,12 @@ function startGameMusic(){
   gameMusicTimer=setInterval(playOrientalPhrase,3100);
 }
 function stopGameMusic(){if(gameMusicTimer){clearInterval(gameMusicTimer);gameMusicTimer=null;}if(gameMusicGain)gameMusicGain.gain.value=0;}
+function stopGameAudioForExit(){
+  stopGameMusic();
+  try{
+    if(gameAudioContext && gameAudioContext.state==="running") gameAudioContext.suspend().catch(()=>{});
+  }catch(_){}
+}
 function setGameMusic(enabled){gameMusicEnabled=!!enabled;localStorage.setItem(GAME_MUSIC_KEY,gameMusicEnabled?"on":"off");if(enabled){if(gameMusicGain)gameMusicGain.gain.value=.75;startGameMusic();}else stopGameMusic();}
 function genericGameTone(freq=420,dur=.06){
   if(!masterSoundEnabled)return;
@@ -2362,6 +2370,14 @@ function renderLobby(msg=""){
         ${(selectedType==="chess" || selectedType==="morris") ? `
           <div class="board-profile-box">
             <div class="game-help">👤 Emri: <strong>${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</strong></div>
+            <label class="board-ai-level-label">🤖 Forca e kompjuterit
+              <select id="boardAiLevel" class="board-ai-level-select">
+                <option value="weak" ${boardAiLevel==="weak"?"selected":""}>I dobët</option>
+                <option value="medium" ${boardAiLevel==="medium"?"selected":""}>I mesëm</option>
+                <option value="strong" ${boardAiLevel==="strong"?"selected":""}>I fortë</option>
+                <option value="pro" ${boardAiLevel==="pro"?"selected":""}>Profesionel</option>
+              </select>
+            </label>
             <button id="boardQuickOnline" class="primary" type="button">🌐 ${selectedType==="chess"?tr("chess"):tr("morris")} Online · 15 s</button><button id="boardPracticeNow" class="secondary" type="button">${gx("practice")}</button>
           </div>
           <section id="boardLeaderboard" class="card board-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
@@ -2435,7 +2451,15 @@ function renderLobby(msg=""){
   if(timerSoloButton) timerSoloButton.onclick=startTimerSoloGame;
   document.getElementById("timerQuickOnline")?.addEventListener("click",()=>startArcadeQuick("timer"));
   document.getElementById("boardQuickOnline")?.addEventListener("click",()=>startBoardQuickOnline(selectedType));
-  document.getElementById("boardPracticeNow")?.addEventListener("click",()=>startPracticeForGame(selectedType));
+  document.getElementById("boardAiLevel")?.addEventListener("change",(e)=>{
+    boardAiLevel=e.target.value||"medium";
+    localStorage.setItem(BOARD_AI_LEVEL_KEY,boardAiLevel);
+  });
+  document.getElementById("boardPracticeNow")?.addEventListener("click",()=>{
+    const pick=document.getElementById("boardAiLevel")?.value;
+    if(pick){boardAiLevel=pick;localStorage.setItem(BOARD_AI_LEVEL_KEY,boardAiLevel);}
+    startPracticeForGame(selectedType);
+  });
   if(boardGameSelected()){
     loadBoardProfileAndLeaderboard(selectedType);if(gamesAdmin)loadBoardAdminProfiles();
   }
@@ -2784,6 +2808,11 @@ function startTimerSoloGame(){
 
 function startComputerGame(){
   if(selectedType==="timer") return;
+  const difficulty=document.getElementById("boardAiLevel")?.value;
+  if(difficulty){
+    boardAiLevel=difficulty;
+    localStorage.setItem(BOARD_AI_LEVEL_KEY,boardAiLevel);
+  }
   if(channel){ supabase.removeChannel(channel); channel=null; }
   if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; }
   room={
@@ -2952,7 +2981,7 @@ function renderRoom(){
   if(newButton)newButton.onclick=startComputerGame;
   document.getElementById("boardResignBtn")?.addEventListener("click",resignBoardGame);
   document.getElementById("boardRematchBtn")?.addEventListener("click",requestBoardRematch);
-  document.getElementById("leaveGame").onclick=()=>{clearBoardRematchTimer();if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}if(channel)supabase.removeChannel(channel);channel=null;renderLobby();};
+  document.getElementById("leaveGame").onclick=()=>{clearBoardRematchTimer();if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}if(channel)supabase.removeChannel(channel);channel=null;stopGameAudioForExit();renderLobby();};
   if(!local&&room.status==="finished")startBoardRematchPolling();
   if(room.game_type==="chess")renderChess(myColor());else renderMorris(myColor());
   scheduleComputerTurn();
@@ -3268,6 +3297,15 @@ async function chessClick(r,c){
   genericGameTone(captured?220:520,captured?.[1]==="k"?.15:.06);selected=null;await saveState(ns,"active");if(ns.winner&&!room.local)await recordBoardWin(ns.winner,"win");if(!room.local)renderRoom();
 }
 
+function aiPickByLevel(candidates){
+  if(!candidates.length) return null;
+  const sorted=[...candidates].sort((a,b)=>b.score-a.score);
+  if(boardAiLevel==="weak") return sorted[Math.floor(Math.random()*sorted.length)];
+  if(boardAiLevel==="medium") return sorted[Math.floor(Math.random()*Math.min(6,sorted.length))];
+  if(boardAiLevel==="strong") return sorted[Math.floor(Math.random()*Math.min(2,sorted.length))];
+  return sorted[0];
+}
+
 function computerChessMove(){
   if(!room?.local || room.game_type!=="chess" || room.state.turn!=="b" || room.state.winner) return;
 
@@ -3282,7 +3320,20 @@ function computerChessMove(){
       const captured=st.board[rr][cc];
       let score=(captured ? (values[captured[1]]||0)*20 : 0);
       score += (3.5-Math.abs(3.5-rr)) + (3.5-Math.abs(3.5-cc));
-      score += Math.random()*3;
+      if(boardAiLevel==="strong"||boardAiLevel==="pro"){
+        const next=st.board.map(row=>row.slice());
+        next[r][c]=null; next[rr][cc]=p;
+        const danger=[];
+        for(let wr=0;wr<8;wr++) for(let wc=0;wc<8;wc++){
+          const wp=next[wr][wc];
+          if(!wp||wp[0]!=="w") continue;
+          for(const [trr,tcc] of chessMoves(next,wr,wc)){
+            if(trr===rr&&tcc===cc) danger.push(values[p[1]]||0);
+          }
+        }
+        score -= danger.length ? Math.max(...danger)*10 : 0;
+      }
+      score += boardAiLevel==="pro" ? 0 : Math.random()*3;
       candidates.push({r,c,rr,cc,score});
     }
   }
@@ -3294,8 +3345,7 @@ function computerChessMove(){
     return;
   }
 
-  candidates.sort((a,b)=>b.score-a.score);
-  const pick=candidates[Math.floor(Math.random()*Math.min(3,candidates.length))];
+  const pick=aiPickByLevel(candidates);
   let piece=st.board[pick.r][pick.c];
   const captured=st.board[pick.rr][pick.cc];
   st.board[pick.r][pick.c]=null;
@@ -3351,16 +3401,23 @@ async function morrisClick(pos){
 function bestMorrisPlacement(st,color){
   const other=color==="w"?"b":"w";
   const empty=st.board.map((v,i)=>v===null?i:-1).filter(i=>i>=0);
+  if(!empty.length) return undefined;
+  if(boardAiLevel==="weak") return empty[Math.floor(Math.random()*empty.length)];
 
-  for(const pos of empty){
-    const b=st.board.slice(); b[pos]=color;
-    if(formsMill(b,pos,color)) return pos;
-  }
-  for(const pos of empty){
-    const b=st.board.slice(); b[pos]=other;
-    if(formsMill(b,pos,other)) return pos;
-  }
-  return empty[Math.floor(Math.random()*empty.length)];
+  const ranked=empty.map(pos=>{
+    let score=0;
+    const own=st.board.slice(); own[pos]=color;
+    const opp=st.board.slice(); opp[pos]=other;
+    if(formsMill(own,pos,color)) score+=100;
+    if(formsMill(opp,pos,other)) score+=boardAiLevel==="medium"?55:85;
+    score+=M_LINES.filter(line=>line.includes(pos)).length*2;
+    if(boardAiLevel!=="pro") score+=Math.random()*5;
+    return {pos,score};
+  }).sort((a,b)=>b.score-a.score);
+
+  if(boardAiLevel==="medium") return ranked[Math.floor(Math.random()*Math.min(4,ranked.length))].pos;
+  if(boardAiLevel==="strong") return ranked[Math.floor(Math.random()*Math.min(2,ranked.length))].pos;
+  return ranked[0].pos;
 }
 
 function computerMorrisMove(){
@@ -3424,7 +3481,13 @@ function computerMorrisMove(){
   }
 
   moves.sort((a,b)=>b.score-a.score);
-  const pick=moves[0];
+  const pick=boardAiLevel==="weak"
+    ? moves[Math.floor(Math.random()*moves.length)]
+    : boardAiLevel==="medium"
+      ? moves[Math.floor(Math.random()*Math.min(5,moves.length))]
+      : boardAiLevel==="strong"
+        ? moves[Math.floor(Math.random()*Math.min(2,moves.length))]
+        : moves[0];
   st.board[pick.from]=null;
   st.board[pick.to]=color;
 
@@ -3992,5 +4055,16 @@ document.addEventListener("fullscreenchange",()=>{
   }
 });
 
-window.PajazitiGames={activate,reloadSettings,reloadLanguage:()=>{if(!room)renderLobby();else renderRoom();scheduleAutoTranslateGameUI();},refreshUserName:()=>{boardProfile=null;warProfile=null;if(!room)renderLobby();else renderRoom();}};
+window.PajazitiGames={
+  activate,
+  deactivate:()=>{
+    stopGameAudioForExit();
+    stopTetris();
+    clearTimerPhaseTimeout();
+    if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
+  },
+  reloadSettings,
+  reloadLanguage:()=>{if(!room)renderLobby();else renderRoom();scheduleAutoTranslateGameUI();},
+  refreshUserName:()=>{boardProfile=null;warProfile=null;if(!room)renderLobby();else renderRoom();}
+};
 if(tabLabel)tabLabel.textContent=tr("games");
