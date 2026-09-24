@@ -1014,6 +1014,7 @@ async function refreshClockAds(){
     img.removeAttribute("src");
     clockAdUrls=[];
     if(clockAdTimer){clearInterval(clockAdTimer);clockAdTimer=null;}
+    scheduleHomeMenuFit();
     return;
   }
   const urls=[];
@@ -1024,7 +1025,9 @@ async function refreshClockAds(){
   clockAdIndex=0;
   if(!urls.length){wrap.classList.add("hidden");return;}
   wrap.classList.remove("hidden");
+  img.onload=()=>scheduleHomeMenuFit();
   img.src=urls[0];
+  scheduleHomeMenuFit();
   if(clockAdTimer){clearInterval(clockAdTimer);clockAdTimer=null;}
   if(urls.length>1){
     clockAdTimer=setInterval(()=>{
@@ -1073,6 +1076,82 @@ addClockWidgetBtn?.addEventListener("click",()=>{
   }catch(_){}
   clockWidgetStatus.textContent=t("clock.nativeOnly");
 });
+
+let homeMenuFitRaf=0;
+
+function clearHomeMenuFit(){
+  document.body.classList.remove("diamond-home-fit");
+  const app=document.getElementById("appView");
+  app?.style.removeProperty("--home-tab-height");
+  app?.style.removeProperty("--home-menu-gap");
+}
+
+function fitHomeMenuToViewport(){
+  if(ADMIN_ONLY) return;
+  const app=document.getElementById("appView");
+  const shell=app?.closest?.(".shell") || document.querySelector(".shell");
+  const nav=document.getElementById("appTabs");
+  const hero=document.getElementById("diamondHomeHero");
+  const quote=document.getElementById("diamondQuote");
+  if(!app||!shell||!nav||!hero||!quote) return;
+
+  const isHome=activeSection==="home" && !nav.classList.contains("hidden");
+  if(!isHome){
+    clearHomeMenuFit();
+    return;
+  }
+
+  document.body.classList.add("diamond-home-fit");
+  if(homeMenuFitRaf) cancelAnimationFrame(homeMenuFitRaf);
+  homeMenuFitRaf=requestAnimationFrame(()=>{
+    const viewport=Math.floor(window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 720);
+    const buttons=[...nav.querySelectorAll(".app-tab")].filter((el)=>!el.classList.contains("hidden") && getComputedStyle(el).display!=="none");
+    const columns=2;
+    const rows=Math.max(1,Math.ceil(buttons.length/columns));
+
+    const shellStyle=getComputedStyle(shell);
+    const padTop=parseFloat(shellStyle.paddingTop)||0;
+    const padBottom=parseFloat(shellStyle.paddingBottom)||0;
+
+    const topbar=app.querySelector(".topbar");
+    let topbarOuter=0;
+    if(topbar){
+      const s=getComputedStyle(topbar);
+      topbarOuter=topbar.getBoundingClientRect().height+(parseFloat(s.marginTop)||0)+(parseFloat(s.marginBottom)||0);
+    }
+
+    const heroOuter=hero.getBoundingClientRect().height;
+    const quoteStyle=getComputedStyle(quote);
+    const quoteOuter=quote.getBoundingClientRect().height+(parseFloat(quoteStyle.marginTop)||0)+(parseFloat(quoteStyle.marginBottom)||0);
+
+    const gap=viewport<700?5:6;
+    const safety=8;
+    const free=viewport-padTop-padBottom-topbarOuter-heroOuter-quoteOuter-safety-gap*(rows-1);
+    let rowHeight=Math.floor(free/rows);
+    rowHeight=Math.max(46,Math.min(72,rowHeight));
+
+    app.style.setProperty("--home-tab-height",rowHeight+"px");
+    app.style.setProperty("--home-menu-gap",gap+"px");
+
+    requestAnimationFrame(()=>{
+      const bottom=quote.getBoundingClientRect().bottom;
+      const overflow=Math.ceil(bottom-(window.visualViewport?.height || window.innerHeight || viewport)+4);
+      if(overflow>0){
+        const current=parseFloat(getComputedStyle(app).getPropertyValue("--home-tab-height"))||rowHeight;
+        const reduced=Math.max(42,Math.floor(current-(overflow/rows)-1));
+        app.style.setProperty("--home-tab-height",reduced+"px");
+      }
+    });
+  });
+}
+
+function scheduleHomeMenuFit(){
+  requestAnimationFrame(()=>fitHomeMenuToViewport());
+}
+
+window.addEventListener("resize",scheduleHomeMenuFit,{passive:true});
+window.addEventListener("orientationchange",scheduleHomeMenuFit,{passive:true});
+try{window.visualViewport?.addEventListener("resize",scheduleHomeMenuFit,{passive:true});}catch(_){}
 
 function setSection(next) {
   const previousSection=activeSection;
@@ -1141,6 +1220,9 @@ function setSection(next) {
   if (showKI) window.DiamondKI?.activate?.();
   if (showShareApp) window.DiamondShareApp?.activate?.();
   if (showNews) window.DiamondNews?.activate?.();
+
+  if(isHome && !ADMIN_ONLY) scheduleHomeMenuFit();
+  else clearHomeMenuFit();
 }
 galleryTab?.addEventListener("click", () => setSection("gallery"));
 infoTab?.addEventListener("click", () => setSection("info"));
@@ -1248,7 +1330,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.83";
+    let versionName="5.84";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
