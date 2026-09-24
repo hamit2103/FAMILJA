@@ -1075,6 +1075,10 @@ addClockWidgetBtn?.addEventListener("click",()=>{
 });
 
 function setSection(next) {
+  const previousSection=activeSection;
+  if(previousSection==="games" && next!=="games"){
+    try{window.PajazitiGames?.deactivate?.();}catch(_){}
+  }
   activeSection = next;
   const sectionBackBtn = document.getElementById("sectionBackBtn");
   const appTabsNav = document.getElementById("appTabs");
