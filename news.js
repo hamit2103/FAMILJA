@@ -1,5 +1,5 @@
 const NEWS_LANG_KEY="pajaziti-language";
-const NEWS_API_ORIGIN="https://familja.vercel.app";
+const NEWS_API_ORIGIN="https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/diamond-news-refresh";
 const COUNTRIES={
   de:{flag:"🇩🇪",nameKey:"germany"},
   xk:{flag:"🇽🇰",nameKey:"kosovo"},
@@ -46,7 +46,7 @@ function relativeTime(iso){
 }
 function newsRoot(){return document.getElementById("newsRoot");}
 function countryTitle(code){const c=COUNTRIES[code];return c?c.flag+" "+nt(c.nameKey):"";}
-function apiUrl(country){return NEWS_API_ORIGIN+"/api/news?country="+encodeURIComponent(country);}
+function apiUrl(country){return NEWS_API_ORIGIN+"?country="+encodeURIComponent(country);}
 
 let activeCountry=null;
 let refreshTimer=null;
