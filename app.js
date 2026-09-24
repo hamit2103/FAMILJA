@@ -1000,39 +1000,72 @@ async function saveSharedMenuOrder(){
 
 menuOrderSave?.addEventListener("click",saveSharedMenuOrder);
 
-let clockAdUrls=[];
+let clockAdItems=[];
 let clockAdIndex=0;
 let clockAdTimer=null;
+
+async function showClockAdAt(index=0){
+  const img=document.getElementById("clockAdImage");
+  const wrap=document.getElementById("clockAdCarousel");
+  if(!img||!wrap||!clockAdItems.length) return;
+
+  clockAdIndex=((index%clockAdItems.length)+clockAdItems.length)%clockAdItems.length;
+  const item=clockAdItems[clockAdIndex];
+  let triedRetry=false;
+
+  const load=async()=>{
+    const url=await signedUrl(item.storage_path);
+    img.onload=()=>{
+      wrap.classList.remove("hidden");
+      img.classList.add("loaded");
+      scheduleHomeMenuFit();
+    };
+    img.onerror=async()=>{
+      img.classList.remove("loaded");
+      if(!triedRetry){
+        triedRetry=true;
+        try{
+          await new Promise(resolve=>setTimeout(resolve,250));
+          const retryUrl=await signedUrl(item.storage_path);
+          img.src=retryUrl+(retryUrl.includes("?")?"&":"?")+"adretry="+Date.now();
+          return;
+        }catch(_){}
+      }
+      wrap.classList.add("hidden");
+      scheduleHomeMenuFit();
+    };
+    img.src=url+(url.includes("?")?"&":"?")+"adts="+Date.now();
+  };
+
+  try{await load();}catch(_){
+    wrap.classList.add("hidden");
+    scheduleHomeMenuFit();
+  }
+}
 
 async function refreshClockAds(){
   const img=document.getElementById("clockAdImage");
   const wrap=document.getElementById("clockAdCarousel");
   if(!img||!wrap||ADMIN_ONLY) return;
-  const photos=(mediaItems||[]).filter(item=>(item?.type||"").startsWith("image/"));
-  if(!photos.length){
+
+  clockAdItems=(mediaItems||[]).filter(item=>(item?.type||"").startsWith("image/"));
+  clockAdIndex=0;
+
+  if(clockAdTimer){clearInterval(clockAdTimer);clockAdTimer=null;}
+
+  if(!clockAdItems.length){
     wrap.classList.add("hidden");
+    img.classList.remove("loaded");
     img.removeAttribute("src");
-    clockAdUrls=[];
-    if(clockAdTimer){clearInterval(clockAdTimer);clockAdTimer=null;}
     scheduleHomeMenuFit();
     return;
   }
-  const urls=[];
-  for(const item of photos){
-    try{urls.push(await signedUrl(item.storage_path));}catch(_){}
-  }
-  clockAdUrls=urls;
-  clockAdIndex=0;
-  if(!urls.length){wrap.classList.add("hidden");return;}
-  wrap.classList.remove("hidden");
-  img.onload=()=>scheduleHomeMenuFit();
-  img.src=urls[0];
-  scheduleHomeMenuFit();
-  if(clockAdTimer){clearInterval(clockAdTimer);clockAdTimer=null;}
-  if(urls.length>1){
+
+  await showClockAdAt(0);
+
+  if(clockAdItems.length>1){
     clockAdTimer=setInterval(()=>{
-      clockAdIndex=(clockAdIndex+1)%clockAdUrls.length;
-      if(img.isConnected) img.src=clockAdUrls[clockAdIndex];
+      showClockAdAt(clockAdIndex+1).catch(()=>{});
     },8000);
   }
 }
@@ -1330,7 +1363,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.84";
+    let versionName="5.85";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
