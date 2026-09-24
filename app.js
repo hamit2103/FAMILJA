@@ -1003,6 +1003,23 @@ menuOrderSave?.addEventListener("click",saveSharedMenuOrder);
 let clockAdItems=[];
 let clockAdIndex=0;
 let clockAdTimer=null;
+let clockAdObjectUrl="";
+
+function clearClockAdObjectUrl(){
+  if(clockAdObjectUrl){
+    try{URL.revokeObjectURL(clockAdObjectUrl);}catch(_){}
+    clockAdObjectUrl="";
+  }
+}
+
+async function clockAdBlobUrl(path){
+  const {data,error}=await supabase.storage.from(BUCKET).download(path);
+  if(error) throw error;
+  if(!data || !data.size) throw new Error("EMPTY_AD_FILE");
+  clearClockAdObjectUrl();
+  clockAdObjectUrl=URL.createObjectURL(data);
+  return clockAdObjectUrl;
+}
 
 async function showClockAdAt(index=0){
   const img=document.getElementById("clockAdImage");
@@ -1011,33 +1028,32 @@ async function showClockAdAt(index=0){
 
   clockAdIndex=((index%clockAdItems.length)+clockAdItems.length)%clockAdItems.length;
   const item=clockAdItems[clockAdIndex];
-  let triedRetry=false;
+  wrap.classList.add("hidden");
+  img.classList.remove("loaded");
+  img.removeAttribute("src");
 
-  const load=async()=>{
-    const url=await signedUrl(item.storage_path);
-    img.onload=()=>{
-      wrap.classList.remove("hidden");
-      img.classList.add("loaded");
-      scheduleHomeMenuFit();
-    };
-    img.onerror=async()=>{
-      img.classList.remove("loaded");
-      if(!triedRetry){
-        triedRetry=true;
-        try{
-          await new Promise(resolve=>setTimeout(resolve,250));
-          const retryUrl=await signedUrl(item.storage_path);
-          img.src=retryUrl+(retryUrl.includes("?")?"&":"?")+"adretry="+Date.now();
-          return;
-        }catch(_){}
-      }
-      wrap.classList.add("hidden");
-      scheduleHomeMenuFit();
-    };
-    img.src=url+(url.includes("?")?"&":"?")+"adts="+Date.now();
-  };
-
-  try{await load();}catch(_){
+  try{
+    const src=await clockAdBlobUrl(item.storage_path);
+    await new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>reject(new Error("AD_IMAGE_TIMEOUT")),7000);
+      img.onload=()=>{
+        clearTimeout(timer);
+        img.classList.add("loaded");
+        wrap.classList.remove("hidden");
+        scheduleHomeMenuFit();
+        resolve();
+      };
+      img.onerror=()=>{
+        clearTimeout(timer);
+        reject(new Error("AD_IMAGE_DECODE_FAILED"));
+      };
+      img.src=src;
+    });
+  }catch(error){
+    console.warn("Home ad load failed",error);
+    clearClockAdObjectUrl();
+    img.classList.remove("loaded");
+    img.removeAttribute("src");
     wrap.classList.add("hidden");
     scheduleHomeMenuFit();
   }
@@ -1054,6 +1070,7 @@ async function refreshClockAds(){
   if(clockAdTimer){clearInterval(clockAdTimer);clockAdTimer=null;}
 
   if(!clockAdItems.length){
+    clearClockAdObjectUrl();
     wrap.classList.add("hidden");
     img.classList.remove("loaded");
     img.removeAttribute("src");
@@ -1363,7 +1380,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.85";
+    let versionName="5.86";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
