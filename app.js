@@ -660,6 +660,7 @@ let realtimeChannel = null;
 let installPrompt = null;
 let currentUser = null;
 let currentAppProfile = null;
+let healthAccessAllowed = false;
 let activeSection = "gallery";
 let adminMessagePollTimer = null;
 const ADMIN_MESSAGE_LAST_KEY="diamond-admin-message-last";
@@ -691,7 +692,8 @@ const TAB_LABELS = {
   dietTab:"🥗 Diet",
   kiTab:"🤖 KI",
   shareAppTab:"🔗 Ndaje appin",
-  newsTab:"📰 Lajme"
+  newsTab:"📰 Lajme",
+  healthTab:"🩺 Shëndeti"
 };
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
@@ -725,6 +727,52 @@ if (!presenceDeviceId) {
     ? "android_"+stableHardwareId
     : (globalThis.crypto?.randomUUID?.() || ("device_" + Math.random().toString(36).slice(2) + Date.now()));
   localStorage.setItem(PRESENCE_DEVICE_KEY, presenceDeviceId);
+}
+
+async function refreshHealthAccess(){
+  const tab=document.getElementById("healthTab");
+  const view=document.getElementById("healthView");
+
+  if(!currentUser){
+    healthAccessAllowed=false;
+    tab?.classList.add("hidden");
+    view?.classList.add("hidden");
+    return false;
+  }
+
+  if(isAdmin()){
+    healthAccessAllowed=true;
+    tab?.classList.remove("hidden");
+    return true;
+  }
+
+  try{
+    const {data,error}=await supabase.rpc("health_access_get",{
+      p_device:presenceDeviceId,
+      p_hardware:stableHardwareId||null
+    });
+    if(error) throw error;
+    healthAccessAllowed=!!data;
+  }catch(error){
+    console.warn("health access",error);
+    healthAccessAllowed=false;
+  }
+
+  tab?.classList.toggle("hidden",!healthAccessAllowed);
+  if(!healthAccessAllowed){
+    view?.classList.add("hidden");
+    if(activeSection==="health") setSection("home");
+  }
+  return healthAccessAllowed;
+}
+
+async function openHealthSection(){
+  const allowed=await refreshHealthAccess();
+  if(!allowed && !isAdmin()){
+    alert("Ky seksion është privat. Vetëm Admini mund ta aktivizojë për këtë user.");
+    return;
+  }
+  setSection("health");
 }
 
 const CHAT_NAME_KEY = "pajaziti-chat-name";
@@ -1095,6 +1143,7 @@ function setSection(next) {
   const showKI = next === "ki";
   const showShareApp = next === "shareapp";
   const showNews = next === "news";
+  const showHealth = next === "health";
   const showAdminHub = next === "adminhub";
   const adminHubView = document.getElementById("adminHubView");
   const adminHubTab = document.getElementById("adminHubTab");
@@ -1111,6 +1160,7 @@ function setSection(next) {
   kiTab?.classList.toggle("active", showKI);
   shareAppTab?.classList.toggle("active", showShareApp);
   newsTab?.classList.toggle("active", showNews);
+  document.getElementById("healthTab")?.classList.toggle("active", showHealth);
   adminHubTab?.classList.toggle("active", showAdminHub);
 
   galleryView?.classList.toggle("hidden", !showGallery);
@@ -1125,6 +1175,7 @@ function setSection(next) {
   kiView?.classList.toggle("hidden", !showKI);
   shareAppView?.classList.toggle("hidden", !showShareApp);
   newsView?.classList.toggle("hidden", !showNews);
+  document.getElementById("healthView")?.classList.toggle("hidden", !showHealth);
   adminHubView?.classList.toggle("hidden", !showAdminHub);
 
   appTabsNav?.classList.toggle("hidden", !isHome);
@@ -1154,6 +1205,7 @@ dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
 shareAppTab?.addEventListener("click", () => setSection("shareapp"));
 newsTab?.addEventListener("click", () => setSection("news"));
+document.getElementById("healthTab")?.addEventListener("click", openHealthSection);
 document.getElementById("adminHubTab")?.addEventListener("click", () => setSection("adminhub"));
 document.getElementById("sectionBackBtn")?.addEventListener("click", () => setSection("home"));
 
@@ -1478,7 +1530,7 @@ async function registerDeviceInfo(){
 async function loadAdminUsers(){
   if(!isAdmin()||!adminUsersList)return;
   try{
-    const result=await supabase.rpc("user_profile_admin_list");
+    const result=await supabase.rpc("user_profile_admin_list_health");
     if(result.error) throw result.error;
     const users=Array.isArray(result.data)?result.data:[];
     if(adminUserCount)adminUserCount.textContent=String(users.length);
@@ -1511,7 +1563,7 @@ async function loadAdminUsers(){
       const strong=document.createElement("strong");
       strong.textContent=p.display_name||"User";
       const status=document.createElement("small");
-      status.textContent=(p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv")+" · "+seen;
+      status.textContent=(p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv")+" · "+(p.health_access?"🩺 Shëndeti ON":"🩺 Shëndeti OFF")+" · "+seen;
       const tech=document.createElement("small");
       tech.textContent="🌐 IP: "+(p.ip_address||"—")+" · 📱 ID: "+(p.device_id||"—");
       main.append(strong,status,tech);
@@ -1545,6 +1597,18 @@ async function loadAdminUsers(){
         await loadAdminUsers();
       };
 
+      const health=document.createElement("button");
+      health.className="secondary";health.type="button";
+      health.textContent=p.health_access?"🩺 Hiq Shëndetin":"🩺 Lejo Shëndetin";
+      health.onclick=async()=>{
+        health.disabled=true;
+        const out=await supabase.rpc("health_access_admin_set",{p_device:p.device_id,p_allowed:!p.health_access});
+        health.disabled=false;
+        if(out.error){showMessage(adminUsersStatus,out.error.message||"Gabim.","error");return;}
+        showMessage(adminUsersStatus,p.health_access?"Qasja te Shëndeti u hoq.":"Qasja te Shëndeti u aktivizua për këtë user.","success");
+        await loadAdminUsers();
+      };
+
       const message=document.createElement("button");
       message.className="secondary";message.type="button";message.textContent="💬 Mesazh";
       message.onclick=()=>{
@@ -1553,7 +1617,7 @@ async function loadAdminUsers(){
         adminMessageCard?.scrollIntoView({behavior:"smooth",block:"center"});
       };
 
-      row.append(main,input,rename,block,message);
+      row.append(main,input,rename,block,health,message);
       adminUsersList.appendChild(row);
     }
   }catch(error){
@@ -3318,12 +3382,16 @@ function startRealtime() {
       async (payload) => {
         if(isAdmin()) return;
         const row=payload?.new||{};
-        if(row.device_id===presenceDeviceId && row.is_blocked){
-          await supabase.auth.signOut();
-          currentUser=null;
-          appView?.classList.add("hidden");
-          loginView?.classList.remove("hidden");
-          showMessage(loginMessage,"Ky telefon është bllokuar nga Admini.","error");
+        if(row.device_id===presenceDeviceId){
+          if(row.is_blocked){
+            await supabase.auth.signOut();
+            currentUser=null;
+            appView?.classList.add("hidden");
+            loginView?.classList.remove("hidden");
+            showMessage(loginMessage,"Ky telefon është bllokuar nga Admini.","error");
+            return;
+          }
+          await refreshHealthAccess();
         }
       }
     )
@@ -3360,6 +3428,9 @@ async function applySession(session) {
     if (storageCard) storageCard.classList.add("hidden");
     if (onlineCount) onlineCount.textContent = "0";
     if (infoUnreadBadge) infoUnreadBadge.classList.add("hidden");
+    healthAccessAllowed=false;
+    document.getElementById("healthTab")?.classList.add("hidden");
+    document.getElementById("healthView")?.classList.add("hidden");
     if (prayerCheckTimer) {
       clearInterval(prayerCheckTimer);
       prayerCheckTimer = null;
@@ -3391,6 +3462,7 @@ async function applySession(session) {
   }
   roleLabel.textContent = isAdmin() ? t("role.admin") : (globalUserName() || t("role.family"));
   uploadStatus.textContent = "";
+  await refreshHealthAccess();
   setSection(ADMIN_ONLY && isAdmin() ? "adminhub" : "home");
   await loadMedia();
   await loadSharedMenuOrder();
