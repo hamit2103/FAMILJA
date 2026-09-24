@@ -491,6 +491,39 @@ const addClockWidgetBtn = $("addClockWidgetBtn");
 const clockWidgetStatus = $("clockWidgetStatus");
 let clockPreviewTimer = null;
 
+const UPDATE_CHECK_I18N={
+  sq:{button:"🔄 Kontrollo update",checking:"Po kontrollohet...",latest:"E ke versionin më të ri",found:"Update u gjet. Po hapet instalimi...",android:"Ky kontroll punon në app-in Android.",error:"Kontrolli i update-it dështoi."},
+  de:{button:"🔄 Update prüfen",checking:"Wird geprüft...",latest:"Du hast die neueste Version",found:"Update gefunden. Installation wird geöffnet...",android:"Diese Prüfung funktioniert in der Android-App.",error:"Update-Prüfung fehlgeschlagen."},
+  tr:{button:"🔄 Güncellemeyi kontrol et",checking:"Kontrol ediliyor...",latest:"En yeni sürümdesin",found:"Güncelleme bulundu. Kurulum açılıyor...",android:"Bu kontrol Android uygulamasında çalışır.",error:"Güncelleme kontrolü başarısız."},
+  en:{button:"🔄 Check update",checking:"Checking...",latest:"You have the latest version",found:"Update found. Opening installer...",android:"This check works in the Android app.",error:"Update check failed."},
+  it:{button:"🔄 Controlla update",checking:"Controllo...",latest:"Hai la versione più recente",found:"Update trovato. Apertura installazione...",android:"Questo controllo funziona nell'app Android.",error:"Controllo update non riuscito."},
+  hr:{button:"🔄 Provjeri update",checking:"Provjera...",latest:"Imaš najnoviju verziju",found:"Update pronađen. Otvara se instalacija...",android:"Ova provjera radi u Android aplikaciji.",error:"Provjera updatea nije uspjela."},
+  fr:{button:"🔄 Vérifier la mise à jour",checking:"Vérification...",latest:"Tu as la dernière version",found:"Mise à jour trouvée. Ouverture de l’installation...",android:"Cette vérification fonctionne dans l’app Android.",error:"Échec de la vérification."},
+  ar:{button:"🔄 التحقق من التحديث",checking:"جارٍ التحقق...",latest:"لديك أحدث إصدار",found:"تم العثور على تحديث. جارٍ فتح التثبيت...",android:"يعمل هذا الفحص في تطبيق Android.",error:"فشل التحقق من التحديث."}
+};
+function updateCheckStrings(){return UPDATE_CHECK_I18N[currentLanguage]||UPDATE_CHECK_I18N.sq;}
+function applyManualUpdateLanguage(){const b=document.getElementById("manualUpdateBtn");if(b)b.textContent=updateCheckStrings().button;}
+async function manualCheckForUpdate(){
+  const btn=document.getElementById("manualUpdateBtn"),status=document.getElementById("manualUpdateStatus"),s=updateCheckStrings();
+  if(!btn||!status)return;
+  if(!window.AndroidApp?.checkForUpdateNow){status.textContent=s.android;return;}
+  btn.disabled=true; status.textContent=s.checking;
+  try{
+    const endpoint=ADMIN_ONLY?"familja-admin-update":"familja-update";
+    const pkg=window.AndroidApp?.getPackageName?.()||(ADMIN_ONLY?"com.pajaziti.familja.admin":"com.pajaziti.familja");
+    const hardware=window.AndroidApp?.getStableDeviceId?.()||"";
+    const currentCode=Number(window.AndroidApp?.getVersionCode?.()||0);
+    const currentName=window.AndroidApp?.getVersionName?.()||"";
+    const url=SUPABASE_URL+"/functions/v1/"+endpoint+"?package="+encodeURIComponent(pkg)+"&hardware="+encodeURIComponent(hardware)+"&t="+Date.now();
+    const res=await fetch(url,{cache:"no-store"});
+    if(!res.ok)throw new Error("HTTP "+res.status);
+    const info=await res.json(),latestCode=Number(info?.versionCode||0),latestName=String(info?.versionName||"");
+    if(info?.released===false||!latestCode||latestCode<=currentCode){status.textContent=s.latest+(currentName?(" · v"+currentName):"");return;}
+    status.textContent=s.found+(latestName?(" v"+latestName):"");
+    setTimeout(()=>{try{window.AndroidApp.checkForUpdateNow();}catch(_){}},250);
+  }catch(error){console.warn("manual update check",error);status.textContent=s.error;}
+  finally{setTimeout(()=>{btn.disabled=false;},900);}
+}
 function refreshAppVersionLabel(){
   if(!appVersionLabel) return;
   try{
@@ -503,9 +536,12 @@ function refreshAppVersionLabel(){
   if(!appVersionLabel.textContent.trim()) appVersionLabel.textContent="v5.4";
 }
 refreshAppVersionLabel();
+const manualUpdateBtn = $("manualUpdateBtn");
+manualUpdateBtn?.addEventListener("click",manualCheckForUpdate);
+applyManualUpdateLanguage();
 
-languageSelectLogin?.addEventListener("change", (e) => { applyLanguage(e.target.value); applyPrivateChatLanguage(); });
-languageSelectApp?.addEventListener("change", (e) => { applyLanguage(e.target.value); applyPrivateChatLanguage(); });
+languageSelectLogin?.addEventListener("change", (e) => { applyLanguage(e.target.value); applyPrivateChatLanguage(); applyManualUpdateLanguage(); });
+languageSelectApp?.addEventListener("change", (e) => { applyLanguage(e.target.value); applyPrivateChatLanguage(); applyManualUpdateLanguage(); });
 
 const PERSONAL_THEME_KEY = "pajaziti_personal_theme_v2";
 const MENU_THEME_SETTING_KEY = "menu_theme_defaults";
@@ -1332,7 +1368,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.90";
+    let versionName="5.91";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1710,7 +1746,7 @@ async function registerDeviceInfo(){
   try{
     const {data:{session}}=await supabase.auth.getSession();
     const token=session?.access_token;if(!token)return;
-    let versionName="5.90";
+    let versionName="5.91";
     try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
     const registerResponse=await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",
