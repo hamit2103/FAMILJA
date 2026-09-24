@@ -715,6 +715,17 @@ function warMultiAliveOpponents(){
   return warMultiPlayers.filter(p=>p.device_id!==deviceId && !p.eliminated && !p.kicked && p.hp>0);
 }
 
+function warMultiFlag(player){
+  if(player?.device_id===deviceId) return "🇦🇱";
+  const flags=["🇫🇷","🇷🇺","🇨🇳","🇮🇳","🇵🇰","🇹🇷","🇬🇧","🇺🇸"];
+  const order=Math.max(0,Number(player?.turn_order||0));
+  return flags[order%flags.length];
+}
+
+function warMultiPowerIcon(player){
+  try{return warSpecial(player?.special||"attack")?.icon||"⚔️";}catch(_){return "⚔️";}
+}
+
 function warMultiPlayerCard(player){
   const isMe=player.device_id===deviceId;
   const isTurn=warMultiRoom?.turn_device===player.device_id;
@@ -726,7 +737,7 @@ function warMultiPlayerCard(player){
         type="button"
         data-war-target="${escapeHtml(player.device_id)}"
         ${isMe||player.eliminated||player.kicked?"disabled":""}>
-        <span class="war-multi-name">${isMe?"🇦🇱 ":""}${escapeHtml(player.display_name)} ${isMe?"(Ti)":""}</span>
+        <span class="war-multi-name">${escapeHtml(player.display_name)} ${isMe?"(Ti)":""}</span>
         <span class="war-multi-hearts">${warHearts(player.hp,player.max_hp)}</span>
         <span class="war-multi-status">
           ${player.kicked?"🚫 Larguar nga admini":""}
@@ -737,10 +748,12 @@ function warMultiPlayerCard(player){
           ${player.burned?" 🔥":""}
           ${isTurn&&!player.eliminated&&!player.kicked?" 🎯 "+wtr("turn"):""}
         </span>
+        <span class="war-multi-flag-badge" aria-hidden="true">${warMultiFlag(player)}</span>
         <span class="war-multi-soldier ${isMe?"mine":"enemy"}" aria-hidden="true">
           <img src="./war-soldier.svg" alt="">
           <i class="war-multi-muzzle"></i>
         </span>
+        <span class="war-multi-power-badge" aria-hidden="true">${warMultiPowerIcon(player)}</span>
       </button>
       ${gamesAdmin&&!isMe&&!player.kicked?`<label class="war-admin-kick-pick"><input type="checkbox" data-war-kick-device="${escapeHtml(player.device_id)}"> Largo</label>`:""}
     </div>`;
@@ -956,11 +969,16 @@ function renderWarMultiGame(){
         </div>
 
         <div class="war-shared-room war-online-shared-room">
-          <div class="war-room-wall"><span>ANGEL ARENA</span></div>
+          <div class="war-room-wall"><span>LUFTRA · BATTLE ROYALE</span></div>
           <div class="war-room-floor"></div>
           <div class="war-online-stage">
             <div class="war-online-opponents">${enemyPlayers.map(warMultiPlayerCard).join("")}</div>
-            <div class="war-online-vs" aria-hidden="true"><span>VS</span></div>
+            <div class="war-online-core" aria-hidden="true">
+              <span class="war-online-crown">👑</span>
+              <strong>LUFTRA</strong>
+              <span>BATTLE ROYALE</span>
+              <small>👥 ${alive.length}/${warMultiPlayers.length}</small>
+            </div>
             <div class="war-online-me">${myPlayer?warMultiPlayerCard(myPlayer):""}</div>
           </div>
         </div>
@@ -1379,7 +1397,7 @@ function renderWarGame(){
         </div>
 
         <div class="practice-banner">${gx("practiceNote")}</div>
-        <div id="warBattleScene" class="war-battle-scene war-battle-scene-new">
+        <div class="war-practice-badge" aria-hidden="true"><strong>LUFTRA</strong><span>BATTLE</span></div>\n        <div id="warBattleScene" class="war-battle-scene war-battle-scene-new">
           <div class="war-combatant war-combatant-enemy ${e.burned?"burned":""}">
             <div class="war-combatant-info">
               <span class="war-side-label">${wtr("opponent")}</span>
