@@ -392,6 +392,7 @@ const dietTab = $("dietTab");
 const kiTab = $("kiTab");
 const shareAppTab = $("shareAppTab");
 const newsTab = $("newsTab");
+const privateChatTab = $("privateChatTab");
 const menuOrderAdmin = $("menuOrderAdmin");
 const menuOrderList = $("menuOrderList");
 const menuOrderSave = $("menuOrderSave");
@@ -408,6 +409,7 @@ const dietView = $("dietView");
 const kiView = $("kiView");
 const shareAppView = $("shareAppView");
 const newsView = $("newsView");
+const privateChatView = $("privateChatView");
 const infoCompose = $("infoCompose");
 const infoName = $("infoName");
 const infoText = $("infoText");
@@ -475,6 +477,15 @@ const chatSendBtn = $("chatSendBtn");
 const chatStatus = $("chatStatus");
 const chatRefreshBtn = $("chatRefreshBtn");
 const chatList = $("chatList");
+const privateChatMiniWrap = $("privateChatMiniWrap");
+const privateChatUnreadBadge = $("privateChatUnreadBadge");
+const privateChatAdminPicker = $("privateChatAdminPicker");
+const privateChatAdminUser = $("privateChatAdminUser");
+const privateChatList = $("privateChatList");
+const privateChatText = $("privateChatText");
+const privateChatSendBtn = $("privateChatSendBtn");
+const privateChatStatus = $("privateChatStatus");
+const privateChatRefreshBtn = $("privateChatRefreshBtn");
 const addClockWidgetBtn = $("addClockWidgetBtn");
 const clockWidgetStatus = $("clockWidgetStatus");
 let clockPreviewTimer = null;
@@ -492,8 +503,8 @@ function refreshAppVersionLabel(){
 }
 refreshAppVersionLabel();
 
-languageSelectLogin?.addEventListener("change", (e) => applyLanguage(e.target.value));
-languageSelectApp?.addEventListener("change", (e) => applyLanguage(e.target.value));
+languageSelectLogin?.addEventListener("change", (e) => { applyLanguage(e.target.value); applyPrivateChatLanguage(); });
+languageSelectApp?.addEventListener("change", (e) => { applyLanguage(e.target.value); applyPrivateChatLanguage(); });
 
 const PERSONAL_THEME_KEY = "pajaziti_personal_theme_v2";
 const MENU_THEME_SETTING_KEY = "menu_theme_defaults";
@@ -663,6 +674,7 @@ let currentAppProfile = null;
 let healthAccessAllowed = false;
 let activeSection = "gallery";
 let adminMessagePollTimer = null;
+let privateChatPollTimer = null;
 const ADMIN_MESSAGE_LAST_KEY="diamond-admin-message-last";
 const NOTIFY_SECRET_KEY="diamond-notify-secret";
 let mediaItems = [];
@@ -1154,6 +1166,7 @@ function setSection(next) {
   const showShareApp = next === "shareapp";
   const showNews = next === "news";
   const showHealth = next === "health";
+  const showPrivateChat = next === "privatechat";
   const showAdminHub = next === "adminhub";
   const adminHubView = document.getElementById("adminHubView");
   const adminHubTab = document.getElementById("adminHubTab");
@@ -1170,6 +1183,7 @@ function setSection(next) {
   kiTab?.classList.toggle("active", showKI);
   shareAppTab?.classList.toggle("active", showShareApp);
   newsTab?.classList.toggle("active", showNews);
+  privateChatTab?.classList.toggle("active", showPrivateChat);
   document.getElementById("healthTab")?.classList.toggle("active", showHealth);
   adminHubTab?.classList.toggle("active", showAdminHub);
 
@@ -1185,10 +1199,12 @@ function setSection(next) {
   kiView?.classList.toggle("hidden", !showKI);
   shareAppView?.classList.toggle("hidden", !showShareApp);
   newsView?.classList.toggle("hidden", !showNews);
+  privateChatView?.classList.toggle("hidden", !showPrivateChat);
   document.getElementById("healthView")?.classList.toggle("hidden", !showHealth);
   adminHubView?.classList.toggle("hidden", !showAdminHub);
 
   appTabsNav?.classList.toggle("hidden", !isHome);
+  privateChatMiniWrap?.classList.toggle("hidden", !isHome);
   sectionBackBtn?.classList.toggle("hidden", isHome);
 
   if (showInfo) loadInfo({ markRead: true });
@@ -1202,6 +1218,7 @@ function setSection(next) {
   if (showKI) window.DiamondKI?.activate?.();
   if (showShareApp) window.DiamondShareApp?.activate?.();
   if (showNews) window.DiamondNews?.activate?.();
+  if (showPrivateChat) loadPrivateChat().catch(console.warn);
 }
 galleryTab?.addEventListener("click", () => setSection("gallery"));
 infoTab?.addEventListener("click", () => setSection("info"));
@@ -1215,6 +1232,7 @@ dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
 shareAppTab?.addEventListener("click", () => setSection("shareapp"));
 newsTab?.addEventListener("click", () => setSection("news"));
+privateChatTab?.addEventListener("click", () => setSection("privatechat"));
 document.getElementById("healthTab")?.addEventListener("click", openHealthSection);
 document.getElementById("adminHubTab")?.addEventListener("click", () => setSection("adminhub"));
 document.getElementById("sectionBackBtn")?.addEventListener("click", () => setSection("home"));
@@ -1313,7 +1331,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.85";
+    let versionName="5.86";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1519,12 +1537,178 @@ async function sendAdminMessage(){
 }
 adminMessageSend?.addEventListener("click",sendAdminMessage);
 
+
+const PRIVATE_CHAT_I18N={
+  sq:{button:"Admin",title:"💬 Mesazh privat me Adminin",desc:"Këtë bisedë e shihni vetëm ti dhe Admini.",user:"Zgjidh userin",placeholder:"Shkruaj mesazhin...",send:"📨 Dërgo",empty:"Ende nuk ka mesazhe.",sent:"U dërgua.",loading:"Po ngarkohet..."},
+  de:{button:"Admin",title:"💬 Private Nachricht an Admin",desc:"Nur du und der Admin können diesen Chat sehen.",user:"Benutzer wählen",placeholder:"Nachricht schreiben...",send:"📨 Senden",empty:"Noch keine Nachrichten.",sent:"Gesendet.",loading:"Wird geladen..."},
+  tr:{button:"Admin",title:"💬 Yöneticiyle özel mesaj",desc:"Bu sohbeti yalnızca sen ve yönetici görebilir.",user:"Kullanıcı seç",placeholder:"Mesaj yaz...",send:"📨 Gönder",empty:"Henüz mesaj yok.",sent:"Gönderildi.",loading:"Yükleniyor..."},
+  en:{button:"Admin",title:"💬 Private message with Admin",desc:"Only you and the Admin can see this conversation.",user:"Choose user",placeholder:"Write a message...",send:"📨 Send",empty:"No messages yet.",sent:"Sent.",loading:"Loading..."},
+  it:{button:"Admin",title:"💬 Messaggio privato con Admin",desc:"Solo tu e l'Admin potete vedere questa conversazione.",user:"Scegli utente",placeholder:"Scrivi un messaggio...",send:"📨 Invia",empty:"Nessun messaggio.",sent:"Inviato.",loading:"Caricamento..."},
+  hr:{button:"Admin",title:"💬 Privatna poruka s Adminom",desc:"Ovaj razgovor vidite samo ti i Admin.",user:"Odaberi korisnika",placeholder:"Napiši poruku...",send:"📨 Pošalji",empty:"Još nema poruka.",sent:"Poslano.",loading:"Učitavanje..."},
+  ar:{button:"المشرف",title:"💬 رسالة خاصة مع المشرف",desc:"لا يرى هذه المحادثة إلا أنت والمشرف.",user:"اختر المستخدم",placeholder:"اكتب رسالة...",send:"📨 إرسال",empty:"لا توجد رسائل بعد.",sent:"تم الإرسال.",loading:"جارٍ التحميل..."},
+  fr:{button:"Admin",title:"💬 Message privé avec l’Admin",desc:"Seuls toi et l’Admin peuvent voir cette conversation.",user:"Choisir l’utilisateur",placeholder:"Écrire un message...",send:"📨 Envoyer",empty:"Aucun message.",sent:"Envoyé.",loading:"Chargement..."}
+};
+function privateChatStrings(){return PRIVATE_CHAT_I18N[currentLanguage]||PRIVATE_CHAT_I18N.sq;}
+function applyPrivateChatLanguage(){
+  const s=privateChatStrings();
+  const label=document.getElementById("privateChatTabLabel"); if(label) label.textContent=s.button;
+  const title=document.getElementById("privateChatTitle"); if(title) title.textContent=s.title;
+  const desc=document.getElementById("privateChatDesc"); if(desc) desc.textContent=s.desc;
+  const user=document.getElementById("privateChatUserLabel"); if(user) user.textContent=s.user;
+  if(privateChatText) privateChatText.placeholder=s.placeholder;
+  if(privateChatSendBtn) privateChatSendBtn.textContent=s.send;
+}
+function setPrivateChatBadge(count){
+  if(!privateChatUnreadBadge)return;
+  const n=Math.max(0,Number(count)||0);
+  privateChatUnreadBadge.textContent=String(Math.min(n,99));
+  privateChatUnreadBadge.classList.toggle("hidden",n<1);
+}
+function renderPrivateChatMessages(items=[]){
+  if(!privateChatList)return;
+  privateChatList.innerHTML="";
+  const rows=[...items].reverse();
+  if(!rows.length){
+    const empty=document.createElement("div");
+    empty.className="muted";
+    empty.textContent=privateChatStrings().empty;
+    privateChatList.appendChild(empty);
+    return;
+  }
+  for(const item of rows){
+    const mine=isAdmin()?item.sender_role==="admin":item.sender_role==="user";
+    const row=document.createElement("article");
+    row.className="private-chat-message"+(mine?" mine":"");
+    const head=document.createElement("div");
+    head.className="private-chat-message-head";
+    const who=document.createElement("strong");
+    who.textContent=item.sender_name||(item.sender_role==="admin"?"Admin":"User");
+    const time=document.createElement("span");
+    time.textContent=formatChatTime(item.created_at);
+    head.append(who,time);
+    const body=document.createElement("div");
+    body.className="private-chat-message-body";
+    body.textContent=item.message||"";
+    row.append(head,body);
+    privateChatList.appendChild(row);
+  }
+  privateChatList.scrollTop=privateChatList.scrollHeight;
+}
+async function loadPrivateChatThreads(preferred=""){
+  if(!isAdmin()||!privateChatAdminUser)return [];
+  const {data,error}=await supabase.rpc("private_chat_admin_threads");
+  if(error)throw error;
+  const rows=Array.isArray(data)?data:[];
+  const previous=preferred||privateChatAdminUser.value||"";
+  privateChatAdminUser.innerHTML="";
+  for(const row of rows){
+    const opt=document.createElement("option");
+    opt.value=row.device_id||"";
+    const unread=Number(row.unread_count)||0;
+    opt.textContent=(unread?("🔴 "+unread+" · "):"")+(row.display_name||"User");
+    privateChatAdminUser.appendChild(opt);
+  }
+  if(rows.length){
+    const target=rows.some(r=>r.device_id===previous)?previous:rows[0].device_id;
+    privateChatAdminUser.value=target;
+  }
+  setPrivateChatBadge(rows.reduce((sum,r)=>sum+(Number(r.unread_count)||0),0));
+  return rows;
+}
+async function loadPrivateChat(){
+  if(!supabase||!currentUser)return;
+  applyPrivateChatLanguage();
+  if(privateChatStatus)showMessage(privateChatStatus,privateChatStrings().loading);
+  try{
+    let data=[];
+    if(isAdmin()){
+      privateChatAdminPicker?.classList.remove("hidden");
+      const rows=await loadPrivateChatThreads();
+      const device=privateChatAdminUser?.value||"";
+      if(!device){
+        renderPrivateChatMessages([]);
+        if(privateChatStatus)showMessage(privateChatStatus,"");
+        return;
+      }
+      const out=await supabase.rpc("private_chat_admin_list",{p_device:device,p_limit:100});
+      if(out.error)throw out.error;
+      data=out.data||[];
+      await loadPrivateChatThreads(device);
+    }else{
+      privateChatAdminPicker?.classList.add("hidden");
+      const out=await supabase.rpc("private_chat_user_list",{p_device:presenceDeviceId,p_secret:diamondNotifySecret(),p_limit:100});
+      if(out.error)throw out.error;
+      data=out.data||[];
+      setPrivateChatBadge(0);
+    }
+    renderPrivateChatMessages(data);
+    if(privateChatStatus)showMessage(privateChatStatus,"");
+  }catch(error){
+    console.warn("private chat load",error);
+    if(privateChatStatus)showMessage(privateChatStatus,"Chat-i privat nuk u ngarkua.","error");
+  }
+}
+async function sendPrivateChatMessage(){
+  if(!supabase||!currentUser||!privateChatSendBtn)return;
+  const message=(privateChatText?.value||"").trim();
+  if(!message)return;
+  privateChatSendBtn.disabled=true;
+  try{
+    let out;
+    if(isAdmin()){
+      const device=privateChatAdminUser?.value||"";
+      if(!device)throw new Error("Zgjidh userin.");
+      out=await supabase.rpc("private_chat_admin_send",{p_device:device,p_message:message.slice(0,1000)});
+    }else{
+      out=await supabase.rpc("private_chat_user_send",{p_device:presenceDeviceId,p_secret:diamondNotifySecret(),p_message:message.slice(0,1000)});
+    }
+    if(out.error)throw out.error;
+    if(privateChatText)privateChatText.value="";
+    if(privateChatStatus)showMessage(privateChatStatus,privateChatStrings().sent,"success");
+    await loadPrivateChat();
+  }catch(error){
+    console.warn("private chat send",error);
+    if(privateChatStatus)showMessage(privateChatStatus,error?.message||"Mesazhi nuk u dërgua.","error");
+  }finally{
+    privateChatSendBtn.disabled=false;
+  }
+}
+async function refreshPrivateChatBadge(){
+  if(!supabase||!currentUser)return;
+  try{
+    if(isAdmin()){
+      const {data,error}=await supabase.rpc("private_chat_admin_threads");
+      if(error)throw error;
+      setPrivateChatBadge((data||[]).reduce((sum,r)=>sum+(Number(r.unread_count)||0),0));
+    }else if(currentAppProfile){
+      const {data,error}=await supabase.rpc("private_chat_user_unread",{p_device:presenceDeviceId,p_secret:diamondNotifySecret()});
+      if(error)throw error;
+      setPrivateChatBadge(data||0);
+    }
+  }catch(error){console.warn("private chat unread",error);}
+}
+function startPrivateChatPolling(){
+  if(privateChatPollTimer)clearInterval(privateChatPollTimer);
+  refreshPrivateChatBadge();
+  privateChatPollTimer=setInterval(()=>{
+    refreshPrivateChatBadge();
+    if(activeSection==="privatechat")loadPrivateChat().catch(()=>{});
+  },15000);
+}
+privateChatSendBtn?.addEventListener("click",sendPrivateChatMessage);
+privateChatRefreshBtn?.addEventListener("click",()=>loadPrivateChat());
+privateChatAdminUser?.addEventListener("change",()=>loadPrivateChat());
+privateChatText?.addEventListener("keydown",(event)=>{
+  if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();sendPrivateChatMessage();}
+});
+applyPrivateChatLanguage();
+
 async function registerDeviceInfo(){
   if(!supabase||!currentUser||isAdmin())return;
   try{
     const {data:{session}}=await supabase.auth.getSession();
     const token=session?.access_token;if(!token)return;
-    let versionName="5.69";
+    let versionName="5.86";
     try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
     const registerResponse=await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",
@@ -3647,6 +3831,7 @@ async function applySession(session) {
   await registerInstall();
   await registerDailyActivity();
   await registerDeviceInfo();
+  startPrivateChatPolling();
   if(isAdmin()) { await loadAdminStats(); await loadAdminUsers(); await loadAdminMessageHistory(); refreshNewDeviceNotifyButton(); }
   else startAdminMessagePolling();
   startRealtime();
