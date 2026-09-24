@@ -4690,3 +4690,25 @@ button.war-weapon-icon:disabled{
 @media(max-width:520px){
   .admin-hub-grid{grid-template-columns:1fr 1fr}
 }
+
+
+/* DIAMOND 5.79 admin login/back controls */
+.admin-remember-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  font-weight:700;
+}
+.admin-remember-row input{
+  width:22px;
+  height:22px;
+  accent-color:#7b3aec;
+}
+#sectionBackBtn.section-back-btn{
+  display:block;
+  width:100%;
+  margin:8px 0 14px;
+  font-size:16px;
+}
+#sectionBackBtn.section-back-btn.hidden{display:none!important}
