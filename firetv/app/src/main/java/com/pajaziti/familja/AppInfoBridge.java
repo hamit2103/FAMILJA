@@ -31,6 +31,13 @@ public class AppInfoBridge {
     }
 
     @JavascriptInterface
+    public void installUpdateFromUrl(String apkUrl) {
+        try {
+            activity.installUpdateFromUrl(apkUrl);
+        } catch (Exception ignored) {}
+    }
+
+    @JavascriptInterface
     public long getVersionCode() {
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
