@@ -11,6 +11,7 @@ const LANG_KEY = "pajaziti-language";
 const TV_URL_KEY = "pajaziti-tv-url";
 const TV_NAME_KEY = "pajaziti-tv-last-name";
 const TV_LOCAL_PLAYLIST_KEY = "pajaziti-tv-local-playlist";
+const TV_PRIVATE_SERVER_ID = "local-private-server";
 const ADMIN_EMAIL = "admin@familja.local";
 
 const FREE_TV_PLAYLISTS = [
@@ -481,6 +482,20 @@ async function loadCatalog(){
     }
   }
 
+  const privateSource=getLocalSource();
+  if(privateSource){
+    try{
+      const privateChannels=await sourceToChannels(privateSource);
+      serverCatalog.unshift({
+        id:TV_PRIVATE_SERVER_ID,
+        title:"📱 Lista ime private",
+        countryGroup:"Private",
+        localOnly:true,
+        channels:privateChannels.map(ch=>catalogChannel(ch,"Tjera"))
+      });
+    }catch(_){}
+  }
+
   appendBuiltInFreeServers();
   let selected=activeServer();
   if(selected?.builtIn) await loadBuiltInServer(selected);
@@ -499,7 +514,7 @@ async function persistCatalog(){
       kind:TV_CATALOG_KIND,
       updatedAt:new Date().toISOString(),
       servers:serverCatalog
-        .filter(server=>!server.builtIn)
+        .filter(server=>!server.builtIn && !server.localOnly)
         .map(({builtIn,playlistUrls,loading,...server})=>server)
     }),
     updated_at:new Date().toISOString(),
@@ -530,6 +545,56 @@ async function addM3UServerFromText(text,title,countryGroup){
   syncActiveChannels();
   await persistCatalog();
   return server;
+}
+
+async function savePrivateM3U(){
+  const status=document.getElementById("tvPrivateM3UStatus");
+  const input=document.getElementById("tvPrivateM3UUrl");
+  const url=(input?.value||"").trim();
+  if(!url){
+    if(status) status.textContent="Shkruaj linkun M3U.";
+    return;
+  }
+
+  if(status) status.textContent=tr("loading");
+  try{
+    const source={source_type:"url",source_value:url};
+    // Device-local only: no Supabase/database write.
+    saveLocalSource(source);
+    const privateChannels=await sourceToChannels(source);
+
+    serverCatalog=serverCatalog.filter(s=>s.id!==TV_PRIVATE_SERVER_ID);
+    serverCatalog.unshift({
+      id:TV_PRIVATE_SERVER_ID,
+      title:"📱 Lista ime private",
+      countryGroup:"Private",
+      localOnly:true,
+      channels:privateChannels.map(ch=>catalogChannel(ch,"Tjera"))
+    });
+
+    activeServerId=TV_PRIVATE_SERVER_ID;
+    localStorage.setItem(TV_ACTIVE_SERVER_KEY,activeServerId);
+    syncActiveChannels();
+    currentMode="home";
+    currentFilter="";
+    currentGroup="";
+    render();
+  }catch(error){
+    console.warn("Private M3U load",error);
+    if(status) status.textContent="Lista private nuk u lexua.";
+  }
+}
+
+function deletePrivateM3U(){
+  localStorage.removeItem(TV_LOCAL_PLAYLIST_KEY);
+  if(activeServerId===TV_PRIVATE_SERVER_ID){
+    activeServerId="";
+    localStorage.removeItem(TV_ACTIVE_SERVER_KEY);
+  }
+  serverCatalog=serverCatalog.filter(s=>s.id!==TV_PRIVATE_SERVER_ID);
+  syncActiveChannels();
+  currentMode="servers";
+  render();
 }
 
 async function adminAddM3U(){
@@ -626,6 +691,15 @@ async function useServer(id){
   if(!server) return;
   activeServerId=server.id;
   localStorage.setItem(TV_ACTIVE_SERVER_KEY,server.id);
+  if(server.localOnly){
+    syncActiveChannels();
+    currentMode="home";
+    currentFilter="";
+    currentGroup="";
+    destroyPlayer();
+    render();
+    return;
+  }
   if(server.builtIn && !server.channels?.length){
     server.loading=true;
     render();
@@ -652,9 +726,20 @@ function renderServers(){
           <span class="tv-server-icon">🗄️</span>
           <span><strong>${esc(server.title)}</strong><small>${server.builtIn?"FREE · ":""}${esc(server.countryGroup)} · ${server.loading?"…":(server.channels?.length||0)} ${tr("channels")}</small></span>
         </button>
-        ${isAdmin() && !server.builtIn?'<button type="button" class="tv-server-delete" data-tv-delete-server="'+esc(server.id)+'">🗑️</button>':""}
+        ${server.localOnly?'<button type="button" class="tv-server-delete-local" data-tv-delete-local="1">🗑️</button>':(isAdmin() && !server.builtIn?'<button type="button" class="tv-server-delete" data-tv-delete-server="'+esc(server.id)+'">🗑️</button>':"")}
       </article>`).join("")
     : '<div class="tv-empty-server">Ende nuk ka listë TV.</div>';
+
+  const localPrivate=`
+    <section class="tv-server-admin tv-local-private">
+      <h3>📱 Lista ime private M3U</h3>
+      <p class="tv-admin-private-note">Ky link ruhet vetëm në këtë telefon. Nuk dërgohet në databazën e DIAMOND dhe nuk i shfaqet askujt tjetër.</p>
+      <div class="tv-server-form-grid">
+        <input id="tvPrivateM3UUrl" type="password" inputmode="url" autocomplete="off" placeholder="Linku M3U privat">
+        <button id="tvSavePrivateM3U" class="primary" type="button">📱 Ruaj vetëm në këtë telefon</button>
+      </div>
+      <div id="tvPrivateM3UStatus" class="message"></div>
+    </section>`;
 
   const admin=isAdmin()?`
     <section class="tv-server-admin">
@@ -695,6 +780,7 @@ function renderServers(){
         <h2>🗄️ ${tr("server")}</h2>
       </div>
       <div class="tv-server-grid">${cards}</div>
+      ${localPrivate}
       ${admin}
     </section>`;
 }
@@ -1170,6 +1256,10 @@ function render(){
   });
   document.querySelectorAll("[data-tv-delete-server]").forEach(btn=>{
     btn.addEventListener("click",()=>adminDeleteServer(btn.dataset.tvDeleteServer));
+  });
+  document.getElementById("tvSavePrivateM3U")?.addEventListener("click",savePrivateM3U);
+  document.querySelectorAll("[data-tv-delete-local]").forEach(btn=>{
+    btn.addEventListener("click",deletePrivateM3U);
   });
   document.getElementById("tvAddM3U")?.addEventListener("click",adminAddM3U);
   document.getElementById("tvServerFile")?.addEventListener("change",e=>adminAddM3UFile(e.target.files?.[0]));
