@@ -5117,3 +5117,9 @@ button.war-weapon-icon:disabled{
   .diet-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 /* END DIET PROFILE + DAILY JOURNAL 5.98 */
+
+/* DIET LIVE CALORIES 6.00 */
+.diet-live-kcal{display:block;margin-top:6px;font-weight:850;color:#166534}
+.diet-summary{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media(max-width:720px){.diet-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* END DIET LIVE CALORIES 6.00 */
