@@ -1,5 +1,5 @@
-const CACHE = "diamond-v123";
-const SHELL = ["./", "./index.html", "./admin.html", "./admin-manifest.webmanifest", "./styles.css?v=100", "./app.js?v=118", "./app-config.js", "./manifest.webmanifest", "./angel-icon.jpg", "./sports.js?v=8", "./games.js?v=94", "./tv.js?v=55", "./radio.js?v=54", "./quran.js?v=1", "./prayer-extras.js?v=2", "./news.js?v=3"];
+const CACHE = "diamond-v124";
+const SHELL = ["./", "./index.html", "./admin.html", "./admin-manifest.webmanifest", "./styles.css?v=101", "./app.js?v=118", "./app-config.js", "./manifest.webmanifest", "./angel-icon.jpg", "./sports.js?v=10", "./games.js?v=94", "./tv.js?v=55", "./radio.js?v=54", "./quran.js?v=1", "./prayer-extras.js?v=2", "./news.js?v=3"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
