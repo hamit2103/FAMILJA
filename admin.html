@@ -103,7 +103,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v5.77</span>
+            <span id="appVersionLabel" class="app-version-label">v5.78</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -641,7 +641,7 @@
     async function adminLoginFallback(){
       const code=(input?.value||"").trim(); if(!code){if(msg)msg.textContent="Shkruaj kodin e hyrjes.";return;}
       if(btn)btn.disabled=true; if(msg)msg.textContent="Duke kontrolluar kodin…";
-      try{const {data,error}=await client.auth.signInWithPassword({email:"admin@familja.local",password:code});if(error||!data?.session){if(msg)msg.textContent=error?.message||"Kodi nuk u pranua.";return;} document.getElementById("loginView")?.classList.add("hidden");document.getElementById("appView")?.classList.remove("hidden");document.getElementById("adminPanel")?.classList.remove("hidden");document.getElementById("appTabs")?.classList.remove("hidden");window.DiamondAdminSessionReady=true;if(msg)msg.textContent="";}
+      try{const {data,error}=await client.auth.signInWithPassword({email:"admin@familja.local",password:code});if(error||!data?.session){if(msg)msg.textContent=error?.message||"Kodi nuk u pranua.";return;} if(msg)msg.textContent="✅ Hyrja u pranua. Po hapet Admini…"; window.DiamondAdminSessionReady=true; setTimeout(()=>window.location.reload(),120);}
       catch(e){if(msg)msg.textContent="Gabim në hyrje: "+(e?.message||"provo përsëri");}finally{if(btn)btn.disabled=false;}
     }
     btn?.addEventListener("click",e=>{if(!document.getElementById("loginView")?.classList.contains("hidden")){e.preventDefault();e.stopImmediatePropagation();adminLoginFallback();}},true);
