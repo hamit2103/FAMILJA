@@ -1137,7 +1137,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.78";
+    let versionName="5.79";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1519,7 +1519,7 @@ async function login() {
   }
 }
 loginBtn.addEventListener("click", async () => {
-  mode = "family";
+  mode = ADMIN_ONLY ? "admin" : "family";
   await login();
 });
 codeInput.addEventListener("keydown", (e) => {
@@ -3382,7 +3382,7 @@ window.DiamondNavigationBack = function(){
     }
     if(window.DiamondPrayerGuide?.back?.()) return true;
     if(activeSection && activeSection!=="home"){
-      setSection("home");
+      setSection(ADMIN_ONLY && isAdmin() ? "adminhub" : "home");
       return true;
     }
     if(appView && !appView.classList.contains("hidden")){
