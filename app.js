@@ -679,7 +679,7 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
+const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","privateChatTab","newsTab"];
 
 function menuTabIds(){
   const domIds=Array.from(document.querySelectorAll("#appTabs .app-tab"))
@@ -699,6 +699,7 @@ const TAB_LABELS = {
   dietTab:"🥗 Diet",
   kiTab:"🤖 KI",
   shareAppTab:"🔗 Ndaje appin",
+  privateChatTab:"✉️ Admin",
   newsTab:"📰 Lajme",
   healthTab:"🩺 Shëndeti"
 };
@@ -1092,6 +1093,125 @@ async function refreshClockAds(){
   }
 }
 
+
+let privateChatTargetDevice="";
+let privateChatLastId=0;
+
+function privateChatEls(){
+  return {
+    view:document.getElementById("privateChatView"),
+    thread:document.getElementById("privateChatThread"),
+    text:document.getElementById("privateChatText"),
+    send:document.getElementById("privateChatSend"),
+    status:document.getElementById("privateChatStatus"),
+    picker:document.getElementById("privateChatAdminPicker"),
+    pickerWrap:document.getElementById("privateChatAdminPickerWrap"),
+    badge:document.getElementById("privateChatBadge")
+  };
+}
+
+function renderPrivateChatMessages(rows=[]){
+  const {thread}=privateChatEls();
+  if(!thread) return;
+  thread.innerHTML="";
+  if(!rows.length){
+    thread.innerHTML='<div class="muted private-chat-empty">Ende nuk ka mesazhe.</div>';
+    return;
+  }
+  for(const m of rows){
+    const mine=isAdmin()?m.sender_role==="admin":m.sender_role==="user";
+    const item=document.createElement("div");
+    item.className="private-chat-message "+(mine?"mine":"theirs");
+    const body=document.createElement("div");
+    body.className="private-chat-bubble";
+    body.textContent=m.body||"";
+    const meta=document.createElement("small");
+    meta.textContent=(m.sender_role==="admin"?"Admin":"User")+" · "+new Date(m.created_at).toLocaleString();
+    item.append(body,meta);
+    thread.appendChild(item);
+    privateChatLastId=Math.max(privateChatLastId,Number(m.id||0));
+  }
+  thread.scrollTop=thread.scrollHeight;
+}
+
+async function loadPrivateChatThread(){
+  const {status}=privateChatEls();
+  const target=isAdmin()?privateChatTargetDevice:presenceDeviceId;
+  if(!target){
+    renderPrivateChatMessages([]);
+    if(status) status.textContent="Zgjidh userin.";
+    return;
+  }
+  try{
+    const {data,error}=await supabase.rpc("private_message_thread",{p_device:target,p_after_id:0});
+    if(error) throw error;
+    renderPrivateChatMessages(Array.isArray(data)?data:[]);
+    if(status) status.textContent="";
+  }catch(error){
+    console.warn("private chat load",error);
+    if(status) status.textContent="Biseda nuk u ngarkua.";
+  }
+}
+
+async function loadPrivateChatAdminPicker(){
+  if(!isAdmin()) return;
+  const {picker,pickerWrap}=privateChatEls();
+  if(!picker||!pickerWrap) return;
+  pickerWrap.classList.remove("hidden");
+  const previous=privateChatTargetDevice||picker.value||"";
+  const {data,error}=await supabase.rpc("user_profile_admin_list_health");
+  if(error){console.warn(error);return;}
+  picker.innerHTML='<option value="">— Zgjidh userin —</option>';
+  for(const p of (Array.isArray(data)?data:[])){
+    const o=document.createElement("option");
+    o.value=p.device_id||"";
+    o.textContent=p.display_name||p.device_id||"User";
+    picker.appendChild(o);
+  }
+  if([...picker.options].some(o=>o.value===previous)) picker.value=previous;
+  privateChatTargetDevice=picker.value||"";
+  picker.onchange=async()=>{
+    privateChatTargetDevice=picker.value||"";
+    privateChatLastId=0;
+    await loadPrivateChatThread();
+  };
+}
+
+async function sendPrivateChatMessage(){
+  const {text,status,send}=privateChatEls();
+  const body=(text?.value||"").trim();
+  const target=isAdmin()?privateChatTargetDevice:presenceDeviceId;
+  if(!target){
+    if(status) status.textContent="Zgjidh userin.";
+    return;
+  }
+  if(!body) return;
+  if(send) send.disabled=true;
+  try{
+    const fn=isAdmin()?"private_message_send_admin":"private_message_send_user";
+    const {error}=await supabase.rpc(fn,{p_device:target,p_body:body});
+    if(error) throw error;
+    if(text) text.value="";
+    if(status) status.textContent="U dërgua.";
+    await loadPrivateChatThread();
+  }catch(error){
+    console.warn("private chat send",error);
+    if(status) status.textContent="Mesazhi nuk u dërgua.";
+  }finally{
+    if(send) send.disabled=false;
+  }
+}
+
+async function openPrivateChat(){
+  document.getElementById("privateChatBadge")?.classList.add("hidden");
+  setSection("privatechat");
+  if(isAdmin()) await loadPrivateChatAdminPicker();
+  else privateChatTargetDevice=presenceDeviceId;
+  await loadPrivateChatThread();
+}
+
+document.getElementById("privateChatSend")?.addEventListener("click",sendPrivateChatMessage);
+
 function updateClockPreview(){
   document.querySelectorAll("[data-clock-zone]").forEach((el)=>{
     try{
@@ -1154,6 +1274,7 @@ function setSection(next) {
   const showShareApp = next === "shareapp";
   const showNews = next === "news";
   const showHealth = next === "health";
+  const showPrivateChat = next === "privatechat";
   const showAdminHub = next === "adminhub";
   const adminHubView = document.getElementById("adminHubView");
   const adminHubTab = document.getElementById("adminHubTab");
@@ -1171,6 +1292,7 @@ function setSection(next) {
   shareAppTab?.classList.toggle("active", showShareApp);
   newsTab?.classList.toggle("active", showNews);
   document.getElementById("healthTab")?.classList.toggle("active", showHealth);
+  document.getElementById("privateChatTab")?.classList.toggle("active", showPrivateChat);
   adminHubTab?.classList.toggle("active", showAdminHub);
 
   galleryView?.classList.toggle("hidden", !showGallery);
@@ -1186,6 +1308,7 @@ function setSection(next) {
   shareAppView?.classList.toggle("hidden", !showShareApp);
   newsView?.classList.toggle("hidden", !showNews);
   document.getElementById("healthView")?.classList.toggle("hidden", !showHealth);
+  document.getElementById("privateChatView")?.classList.toggle("hidden", !showPrivateChat);
   adminHubView?.classList.toggle("hidden", !showAdminHub);
 
   appTabsNav?.classList.toggle("hidden", !isHome);
@@ -1202,6 +1325,7 @@ function setSection(next) {
   if (showKI) window.DiamondKI?.activate?.();
   if (showShareApp) window.DiamondShareApp?.activate?.();
   if (showNews) window.DiamondNews?.activate?.();
+  if (showPrivateChat) loadPrivateChatThread();
 }
 galleryTab?.addEventListener("click", () => setSection("gallery"));
 infoTab?.addEventListener("click", () => setSection("info"));
@@ -1215,6 +1339,7 @@ dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
 shareAppTab?.addEventListener("click", () => setSection("shareapp"));
 newsTab?.addEventListener("click", () => setSection("news"));
+document.getElementById("privateChatTab")?.addEventListener("click", openPrivateChat);
 document.getElementById("healthTab")?.addEventListener("click", openHealthSection);
 document.getElementById("adminHubTab")?.addEventListener("click", () => setSection("adminhub"));
 document.getElementById("sectionBackBtn")?.addEventListener("click", () => setSection("home"));
@@ -1249,7 +1374,7 @@ function setupAdminHub(){
     button.dataset.adminBound="1";
     button.addEventListener("click",()=>{
       const target=button.dataset.adminOpen||"home";
-      setSection(target);
+      if(target==="privatechat") openPrivateChat(); else setSection(target);
     });
   });
 }
@@ -1313,7 +1438,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.85";
+    let versionName="5.86";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -3527,6 +3652,20 @@ function startRealtime() {
       "postgres_changes",
       { event: "*", schema: "public", table: "information" },
       () => loadInfo({ markRead: activeSection === "info" })
+    )
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "private_admin_messages" },
+      (payload) => {
+        const row=payload?.new||{};
+        const target=isAdmin()?privateChatTargetDevice:presenceDeviceId;
+        if(activeSection==="privatechat" && row.device_id===target){
+          loadPrivateChatThread();
+        }else if(!isAdmin() && row.device_id===presenceDeviceId && row.sender_role==="admin"){
+          const b=document.getElementById("privateChatBadge");
+          if(b){b.textContent="1";b.classList.remove("hidden");}
+        }
+      }
     )
     .on(
       "postgres_changes",
