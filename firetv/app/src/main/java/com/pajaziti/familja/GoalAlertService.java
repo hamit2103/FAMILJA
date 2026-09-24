@@ -36,7 +36,7 @@ public class GoalAlertService extends Service {
     private final Runnable poller = new Runnable() {
         @Override public void run() {
             pollOnce();
-            handler.postDelayed(this, 10_000L);
+            handler.postDelayed(this, 3_000L);
         }
     };
 
