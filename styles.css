@@ -4481,3 +4481,80 @@ body:has(#appView:not(.hidden)){
   .war-online-core{width:164px;min-height:96px}
   .war-online-core strong{font-size:24px}
 }
+
+
+/* DIAMOND 5.76 - shared Luftra online/computer battle layout */
+.war-practice-arena{
+  background:linear-gradient(180deg,#06111f 0%,#0b2740 50%,#0b1728 100%)!important;
+}
+.war-practice-shared-room{
+  min-height:610px!important;
+  position:relative!important;
+}
+.war-practice-stage{
+  min-height:540px!important;
+}
+.war-practice-stage .war-online-opponents{
+  display:grid!important;
+  grid-template-columns:minmax(0,290px)!important;
+  justify-content:center!important;
+}
+.war-practice-stage .war-online-me{
+  grid-template-columns:minmax(0,290px)!important;
+}
+.war-practice-player{
+  cursor:default!important;
+}
+.war-practice-shared-room .war-shot-lane{
+  position:absolute!important;
+  inset:48px 16px 18px 16px!important;
+  width:auto!important;
+  height:auto!important;
+  pointer-events:none!important;
+  z-index:8!important;
+}
+.war-practice-shared-room .war-projectile{
+  left:50%!important;
+  top:50%!important;
+}
+.war-practice-shared-room .war-explosion{
+  left:50%!important;
+}
+.war-practice-shared-room .war-explosion.at-top{top:16%!important}
+.war-practice-shared-room .war-explosion.at-bottom{bottom:16%!important}
+.war-practice-controls{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:9px;
+  align-items:stretch;
+}
+.war-practice-controls .war-actions{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+.war-practice-controls .war-actions button{
+  min-height:90px!important;
+}
+.war-practice-controls .war-reroll{
+  width:105px;
+  min-height:90px;
+}
+.war-practice-info{
+  display:grid;
+  gap:8px;
+}
+.war-practice-summary{
+  margin-bottom:0!important;
+}
+@media(max-width:560px){
+  .war-practice-shared-room{min-height:620px!important}
+  .war-practice-stage{min-height:555px!important}
+  .war-practice-controls{
+    grid-template-columns:minmax(0,1fr) 88px;
+  }
+  .war-practice-controls .war-reroll{
+    width:88px;
+    font-size:11px;
+  }
+}
