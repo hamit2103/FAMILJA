@@ -5021,3 +5021,7 @@ button.war-weapon-icon:disabled{
 
 /* DIAMOND 5.91 — manual update button */
 .manual-update-wrap{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px}.manual-update-btn{border:1px solid rgba(34,211,238,.9);border-radius:999px;padding:7px 11px;background:rgba(5,44,73,.88);color:#fff;font-size:12px;font-weight:900;box-shadow:0 4px 12px rgba(2,132,199,.18)}.manual-update-btn:disabled{opacity:.62}.manual-update-status{font-size:10px;font-weight:800;color:#d7efff;max-width:190px;line-height:1.2}
+
+
+/* DIAMOND 5.92 — per-user module permissions */
+.module-access-list{display:grid;gap:8px;margin:12px 0}.module-access-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #dbe3ef;border-radius:12px;background:#fff;color:#111827}.module-access-row input{width:20px;height:20px;accent-color:#7c3aed}.module-access-row span{display:grid;gap:2px}.module-access-row small{color:#64748b;font-size:11px}.module-access-row strong{font-size:14px}
