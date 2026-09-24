@@ -187,13 +187,26 @@ public class MainActivity extends Activity {
                 filePathCallback = filePathCallbackParam;
 
                 try {
-                    Intent intent = fileChooserParams.createIntent();
-                    startActivityForResult(intent, REQ_FILES);
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("*/*");
+                    intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*","video/*"});
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivityForResult(Intent.createChooser(intent, "Zgjidh foto ose video"), REQ_FILES);
                     return true;
                 } catch (Exception error) {
-                    filePathCallback.onReceiveValue(null);
-                    filePathCallback = null;
-                    return false;
+                    try {
+                        Intent fallback = fileChooserParams.createIntent();
+                        startActivityForResult(fallback, REQ_FILES);
+                        return true;
+                    } catch (Exception ignored) {
+                        if (filePathCallback != null) {
+                            filePathCallback.onReceiveValue(null);
+                            filePathCallback = null;
+                        }
+                        return false;
+                    }
                 }
             }
         });
@@ -713,7 +726,41 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQ_FILES) {
             if (filePathCallback != null) {
-                Uri[] result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+                Uri[] result = null;
+
+                if (resultCode == Activity.RESULT_OK && data != null) {
+                    try {
+                        android.content.ClipData clip = data.getClipData();
+                        if (clip != null && clip.getItemCount() > 0) {
+                            int count = clip.getItemCount();
+                            result = new Uri[count];
+                            for (int i = 0; i < count; i++) {
+                                Uri uri = clip.getItemAt(i).getUri();
+                                result[i] = uri;
+                                try {
+                                    getContentResolver().takePersistableUriPermission(
+                                        uri,
+                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    );
+                                } catch (Exception ignored) {}
+                            }
+                        } else if (data.getData() != null) {
+                            Uri uri = data.getData();
+                            result = new Uri[]{uri};
+                            try {
+                                getContentResolver().takePersistableUriPermission(
+                                    uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                );
+                            } catch (Exception ignored) {}
+                        } else {
+                            result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+                        }
+                    } catch (Exception error) {
+                        result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+                    }
+                }
+
                 filePathCallback.onReceiveValue(result);
                 filePathCallback = null;
             }
