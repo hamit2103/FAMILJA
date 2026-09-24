@@ -4784,3 +4784,96 @@ button.war-weapon-icon:disabled{
 @media(max-width:560px){
   .home-clock-ad-carousel{width:50%;min-width:145px}
 }
+
+
+/* Private Health module */
+.health-tab{
+  border-color:#34d399!important;
+}
+#healthView{
+  display:grid;
+  gap:14px;
+}
+.health-hero-card{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  background:linear-gradient(135deg,#ecfdf5,#eff6ff)!important;
+  color:#111827!important;
+}
+.health-hero-icon{
+  width:54px;
+  height:54px;
+  min-width:54px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  font-size:30px;
+  background:#d1fae5;
+}
+.health-hero-card h2{
+  margin:0 0 6px;
+}
+.health-hero-card p{
+  margin:0;
+  line-height:1.5;
+}
+.health-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.health-card{
+  color:#111827!important;
+  line-height:1.55;
+}
+.health-card h3{
+  margin:0 0 10px;
+  font-size:18px;
+}
+.health-card p{
+  margin:8px 0;
+}
+.health-card ul{
+  margin:0;
+  padding-left:21px;
+  display:grid;
+  gap:8px;
+}
+.health-note,
+.health-warning{
+  padding:10px 12px;
+  border-radius:12px;
+  font-weight:800;
+}
+.health-note{
+  background:#eff6ff;
+  color:#1e3a8a;
+}
+.health-warning{
+  background:#fff7ed;
+  color:#9a3412;
+}
+.health-exercise-list{
+  display:grid;
+  gap:8px;
+}
+.health-exercise-list>div{
+  display:grid;
+  gap:3px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+}
+.health-exercise-list span{
+  font-size:14px;
+  color:#475569;
+}
+.health-urgent{
+  border:2px solid #ef4444;
+  background:#fef2f2!important;
+}
+@media(max-width:700px){
+  .health-grid{grid-template-columns:1fr}
+}

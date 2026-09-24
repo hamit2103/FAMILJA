@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=90">
+  <link rel="stylesheet" href="styles.css?v=93">
   <title>DIAMOND</title>
   <style>
     /* Inline menu-order hotfix */
@@ -201,6 +201,7 @@
         <button id="dietTab" class="app-tab" type="button"><span>🥗 </span><span id="dietTabLabel">Diet</span></button>
         <button id="kiTab" class="app-tab" type="button"><span>🤖 </span><span id="kiTabLabel">KI</span></button>
         <button id="shareAppTab" class="app-tab" type="button"><span>🔗 </span><span id="shareAppTabLabel">Ndaje appin</span></button>
+        <button id="healthTab" class="app-tab health-tab hidden" type="button"><span>🩺 </span><span id="healthTabLabel">Shëndeti</span></button>
         <button id="newsTab" class="app-tab" type="button"><span>📰 </span><span id="newsTabLabel">Lajme</span></button>
       </nav><div id="diamondQuote" class="diamond-quote" data-i18n="home.quote">“Ne e bëjmë të pamundurën të mundur.”</div>
 
@@ -362,6 +363,84 @@
 
       <section id="newsView" class="hidden">
         <div id="newsRoot"></div>
+      </section>
+
+      <section id="healthView" class="hidden">
+        <section class="card health-hero-card">
+          <div class="health-hero-icon">🩺</div>
+          <div>
+            <h2>Shëndeti · Kanceri i fytit / kokë-qafë</h2>
+            <p class="muted">Udhëzues edukativ për trajtimin, ushqyerjen me sondë, radioterapinë, kimioterapinë dhe ushtrimet e gëlltitjes. Nuk zëvendëson ekipin onkologjik.</p>
+          </div>
+        </section>
+
+        <section class="health-grid">
+          <article class="card health-card">
+            <h3>🎯 Si trajtohet zakonisht</h3>
+            <p>Trajtimi varet nga vendi dhe faza e tumorit dhe mund të përfshijë operacion, radioterapi, kimioterapi ose kombinime të tyre. Ekipi i kokë-qafës zakonisht përfshin onkologun, ORL/kirurgun, dietologun dhe logopedin/terapistin e gëlltitjes.</p>
+            <p class="health-note">Mos ndrysho trajtimin, barnat apo ushqimin pa folur me ekipin që e trajton pacientin.</p>
+          </article>
+
+          <article class="card health-card">
+            <h3>☢️ Gjatë radioterapisë (Strahlentherapie)</h3>
+            <ul>
+              <li>Dhimbja në gojë/fyt, goja e thatë, ndryshimi i shijes dhe vështirësia në gëlltitje mund të shfaqen gjatë trajtimit.</li>
+              <li>Mbaj kontakt me ekipin për kontrollin e dhimbjes dhe për kujdesin e gojës.</li>
+              <li>Ushqimet e buta dhe të lagështa shpesh tolerohen më mirë; shmang përkohësisht ushqimet shumë pikante, shumë të tharta, shumë të nxehta, të thata ose thërrmuese nëse irritojnë.</li>
+              <li>Pesha dhe hidratimi duhen kontrolluar rregullisht; dietologu mund të rekomandojë pije ushqyese ose ushqyerje me sondë.</li>
+            </ul>
+          </article>
+
+          <article class="card health-card">
+            <h3>💉 Gjatë kimioterapisë</h3>
+            <ul>
+              <li>Merr barnat vetëm sipas skemës së ekipit onkologjik dhe mos shto suplemente pa i pyetur.</li>
+              <li>Raporto shpejt të vjellat e pakontrollueshme, pamundësinë për të pirë/ushqyer, diarrenë e rëndë, plagët e rënda në gojë ose dobësinë e pazakontë.</li>
+              <li>Temperatura gjatë kimioterapisë mund të jetë shenjë infeksioni serioz; ndiq kufirin e temperaturës dhe numrin e urgjencës që të ka dhënë qendra e onkologjisë.</li>
+            </ul>
+          </article>
+
+          <article class="card health-card">
+            <h3>🥤 Nëse ka Magensonde / PEG / NG</h3>
+            <ul>
+              <li>Përdor vetëm ushqimin, ujin dhe barnat që janë lejuar për atë lloj sonde.</li>
+              <li>Gjatë ushqyerjes mbaje pjesën e sipërme të trupit të ngritur rreth 30–45° dhe qëndro ngritur edhe pas ushqyerjes sipas planit të ekipit.</li>
+              <li>Sonda zakonisht shpëlahet me ujë para/pas ushqimit dhe barnave, por sasia dhe lloji i ujit duhet të jenë sipas planit të dietologut/infermierit.</li>
+              <li>Për sondën nazogastrike, pozicioni duhet kontrolluar me metodën që të ka mësuar ekipi para përdorimit.</li>
+              <li>Nëse sonda del, bllokohet, rrjedh, ka gjakderdhje, dhimbje të re, të vjella ose vështirësi në frymëmarrje: ndalo ushqyerjen dhe kontakto ekipin.</li>
+            </ul>
+          </article>
+
+          <article class="card health-card">
+            <h3>🗣️ Gjimnastika e nofullës dhe gëlltitjes</h3>
+            <p class="health-warning">Këto ushtrime nuk janë për çdo pacient. Bëji vetëm ato që logopedi/terapisti i gëlltitjes i ka zgjedhur për pacientin.</p>
+            <div class="health-exercise-list">
+              <div><strong>Hapja e nofullës</strong><span>Hape gojën butë sa të lejon terapisti, mbaje pak dhe relaksoje.</span></div>
+              <div><strong>Lëvizja e nofullës</strong><span>Lëvize ngadalë djathtas-majtas pa shkaktuar dhimbje.</span></div>
+              <div><strong>Effortful swallow</strong><span>Gëlltit pështymën duke shtrënguar fort muskujt e fytit, vetëm nëse është rekomanduar.</span></div>
+              <div><strong>Mendelsohn</strong><span>Gjatë gëlltitjes mbahet laringu lart për pak sekonda; kjo duhet mësuar nga logopedi.</span></div>
+              <div><strong>Tërheqja e gjuhës</strong><span>Tërhiqe gjuhën mbrapa, mbaje shkurt dhe relaksoje.</span></div>
+              <div><strong>Pitch glide / zëri</strong><span>Ngri zërin gradualisht nga ton i ulët në të lartë, vetëm nëse është lejuar.</span></div>
+            </div>
+            <p class="health-note">Mos ushtro me ushqim ose pije nëse nuk ke marrë udhëzim të qartë për sigurinë e gëlltitjes.</p>
+          </article>
+
+          <article class="card health-card health-urgent">
+            <h3>🚨 Kur duhet ndihmë urgjente</h3>
+            <ul>
+              <li>Vështirësi në frymëmarrje, mbytje ose gjakderdhje e madhe.</li>
+              <li>Pamundësi për të gëlltitur pështymën ose dehidrim i rëndë.</li>
+              <li>Temperaturë gjatë kimioterapisë sipas kufirit urgjent që ka caktuar ekipi onkologjik.</li>
+              <li>Problem i sondës me kollë/frymëmarrje, dalje të sondës ose dyshim se është zhvendosur.</li>
+            </ul>
+            <p><strong>Në urgjencë në Gjermani: 112.</strong> Për çështje jo-urgjente kontakto ekipin onkologjik, Hausarzt/116117 ose qendrën ku kryhet terapia.</p>
+          </article>
+
+          <article class="card health-card">
+            <h3>📚 Burime mjekësore</h3>
+            <p>Kjo përmbledhje bazohet në materiale nga Krebsinformationsdienst (DKFZ), National Cancer Institute dhe shërbime NHS për kancerin kokë-qafë, radioterapinë, ushqyerjen me sondë dhe rehabilitimin e gëlltitjes.</p>
+          </article>
+        </section>
       </section>
 
       <section id="shareAppView" class="hidden">
@@ -656,7 +735,7 @@
   })();
   </script>
 
-<script type="module" src="app.js?v=103"></script>
+<script type="module" src="app.js?v=107"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=53"></script>
@@ -667,7 +746,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=103"></script>
+  <script type="module" src="share-app.js?v=107"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
