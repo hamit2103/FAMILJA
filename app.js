@@ -680,6 +680,13 @@ let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
 const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
+
+function menuTabIds(){
+  const domIds=Array.from(document.querySelectorAll("#appTabs .app-tab"))
+    .map(el=>el.id)
+    .filter(id=>id && id!=="adminHubTab");
+  return [...new Set([...domIds,...DEFAULT_TAB_ORDER])];
+}
 const TAB_LABELS = {
   galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
@@ -908,7 +915,7 @@ document.addEventListener("keydown", (event) => {
 let hiddenTabs=[];
 
 function applyHiddenTabs(){
-  for(const id of DEFAULT_TAB_ORDER){
+  for(const id of menuTabIds()){
     const el=document.getElementById(id);
     if(el) el.classList.toggle("admin-hidden-tab",hiddenTabs.includes(id));
   }
@@ -922,7 +929,8 @@ async function loadHiddenTabs(){
     .eq("key","hidden_tabs")
     .maybeSingle();
   if(error){console.warn("Hidden tabs load",error);return;}
-  hiddenTabs=Array.isArray(data?.value)?data.value.filter(id=>DEFAULT_TAB_ORDER.includes(id)):[];
+  const known=menuTabIds();
+  hiddenTabs=Array.isArray(data?.value)?data.value.filter(id=>known.includes(id)):[];
   applyHiddenTabs();
   if(isAdmin()) renderMenuOrderAdmin();
 }
@@ -944,8 +952,9 @@ async function saveHiddenTabs(){
 }
 
 function normalizeMenuOrder(order){
-  const incoming = Array.isArray(order) ? order.filter((id)=>DEFAULT_TAB_ORDER.includes(id)) : [];
-  return [...new Set([...incoming,...DEFAULT_TAB_ORDER])];
+  const known=menuTabIds();
+  const incoming=Array.isArray(order)?order.filter(id=>known.includes(id)):[];
+  return [...new Set([...incoming,...known])];
 }
 
 function applyMenuOrder(order){
@@ -957,9 +966,10 @@ function applyMenuOrder(order){
 }
 
 function currentMenuOrder(){
+  const known=new Set(menuTabIds());
   return Array.from(appTabs?.querySelectorAll(".app-tab") || [])
     .map((el)=>el.id)
-    .filter((id)=>DEFAULT_TAB_ORDER.includes(id));
+    .filter((id)=>known.has(id));
 }
 
 function renderMenuOrderAdmin(){
@@ -967,7 +977,7 @@ function renderMenuOrderAdmin(){
   const order=currentMenuOrder();
   menuOrderList.innerHTML=order.map((id,index)=>`
     <div class="menu-order-row" data-menu-id="${id}">
-      <span class="menu-order-name">${TAB_LABELS[id] || id}</span>
+      <span class="menu-order-name">${TAB_LABELS[id] || document.getElementById(id)?.textContent?.trim() || id}</span>
       <div class="menu-order-actions">
         <button class="secondary menu-order-visibility" type="button" data-visible-id="${id}">${hiddenTabs.includes(id)?"↩️ Kthe":"🙈 Hiq"}</button>
         <button class="secondary menu-order-move" type="button" data-move="up" ${index===0?"disabled":""}>⬆️</button>

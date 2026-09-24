@@ -615,7 +615,13 @@
       window.__PAJAZITI_MENU_ORDER_HOTFIX__ = true;
 
       const ADMIN_EMAIL = "admin@familja.local";
-      const DEFAULT_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab"];
+      const BASE_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
+      const menuIds = () => {
+        const domIds = Array.from(document.querySelectorAll("#appTabs .app-tab"))
+          .map(el => el.id)
+          .filter(id => id && id !== "adminHubTab");
+        return [...new Set([...domIds, ...BASE_ORDER])];
+      };
       const LABELS = {
         galleryTab:"📢 Reklama",
         infoTab:"ℹ️ Informacion",
@@ -626,7 +632,8 @@
         tvTab:"📺 TV",
         radioTab:"📻 Radio",
         dietTab:"🥗 Diet",
-        kiTab:"🤖 KI"
+        kiTab:"🤖 KI",
+        healthTab:"🩺 Shëndeti"
       };
 
       const supa = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -640,14 +647,15 @@
       const status = document.getElementById("menuOrderStatus");
 
       const normalize = (order) => {
-        const arr = Array.isArray(order) ? order.filter(id => DEFAULT_ORDER.includes(id)) : [];
-        return [...new Set([...arr, ...DEFAULT_ORDER])];
+        const known = menuIds();
+        const arr = Array.isArray(order) ? order.filter(id => known.includes(id)) : [];
+        return [...new Set([...arr, ...known])];
       };
 
       const current = () =>
         Array.from(tabs?.querySelectorAll(".app-tab") || [])
           .map(el => el.id)
-          .filter(id => DEFAULT_ORDER.includes(id));
+          .filter(id => menuIds().includes(id));
 
       const apply = (order) => {
         if (!tabs) return;
@@ -693,7 +701,7 @@
           .select("value")
           .eq("key","tab_order")
           .maybeSingle();
-        apply(data?.value || DEFAULT_ORDER);
+        apply(data?.value || menuIds());
         const { data: sessionData } = await supa.auth.getSession();
         const isAdmin = sessionData.session?.user?.email === ADMIN_EMAIL;
         box?.classList.toggle("hidden", !isAdmin);
@@ -771,7 +779,7 @@
     window.DiamondAdminCoreNav={open,home};
   })();
   </script>
-  <script type="module" src="app.js?v=108"></script>
+  <script type="module" src="app.js?v=109"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=53"></script>
@@ -782,7 +790,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=108"></script>
+  <script type="module" src="share-app.js?v=109"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
