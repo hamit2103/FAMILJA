@@ -1,26 +1,12 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
-    }
+  "headers": [{"source": "/(.*)","headers": [{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"}]}],
+  "rewrites": [
+    {"source":"/download","destination":"/api/download"},
+    {"source":"/android","destination":"/api/download?platform=android"},
+    {"source":"/firestick","destination":"/api/download?platform=firestick"},
+    {"source":"/iphone","destination":"/api/download?platform=ios"}
   ],
-  "redirects": [
-    {
-      "source": "/tv.apk",
-      "destination": "/pajaziti-firetv.apk",
-      "permanent": false
-    }
-  ]
+  "redirects": [{"source":"/tv.apk","destination":"/pajaziti-firetv.apk","permanent":false}]
 }
