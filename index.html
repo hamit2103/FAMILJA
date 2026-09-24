@@ -113,7 +113,7 @@
         <div>
           <div class="app-title-row" style="display:block">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.93</span>
+            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.94</span>
             <div class="manual-update-wrap">
               <button id="manualUpdateBtn" class="manual-update-btn" type="button">🔄 Kontrollo dhe instalo update</button>
               <span id="manualUpdateStatus" class="manual-update-status"></span>
@@ -480,29 +480,54 @@
       <section id="shareAppView" class="hidden">
         <section class="card share-app-card">
           <div class="share-app-icon">🔗</div>
-          <h2 id="shareAppTitle">Ndaje linkun e DIAMOND</h2>
+          <h2 id="shareAppTitle">Ndaje DIAMOND</h2>
+
+          <section class="share-platform-card smart-share-card">
+            <h3 id="shareSmartTitle">🔗 Link universal</h3>
+            <p id="shareSmartDesc" class="muted">Një link i vetëm që e dallon pajisjen: Android, Fire TV ose iPhone.</p>
+            <input id="shareSmartLink" class="share-app-link" type="text" readonly value="https://familja.vercel.app/download">
+            <div class="share-app-actions">
+              <button id="shareSmartButton" class="primary" type="button">🔗 Ndaje</button>
+              <button id="copyShareSmartButton" class="secondary" type="button">📋 Kopjo linkun</button>
+            </div>
+            <button id="openShareSmartButton" class="secondary share-ios-open" type="button">🌐 Hape</button>
+            <div id="shareSmartStatus" class="message"></div>
+          </section>
 
           <section class="share-platform-card">
-            <h3 id="shareAndroidTitle">Android (APK)</h3>
-            <p id="shareAppDesc" class="muted">Ky link është gjithmonë i njëjtë dhe shkarkon automatikisht versionin më të ri të DIAMOND.</p>
-            <input id="shareAppLink" class="share-app-link" type="text" readonly value="https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-apk">
+            <h3 id="shareAndroidTitle">📱 Android</h3>
+            <p id="shareAppDesc" class="muted">Link permanent për Android. Gjithmonë hap versionin më të ri.</p>
+            <input id="shareAppLink" class="share-app-link" type="text" readonly value="https://familja.vercel.app/android">
             <div class="share-app-actions">
               <button id="shareAppButton" class="primary" type="button">🔗 Ndaje</button>
               <button id="copyShareAppButton" class="secondary" type="button">📋 Kopjo linkun</button>
             </div>
-            <p id="shareAppHint" class="muted small">Mund ta dërgosh me WhatsApp, SMS, Messenger ose çdo aplikacion tjetër.</p>
+            <button id="openShareAndroidButton" class="secondary share-ios-open" type="button">🌐 Hape</button>
+            <p id="shareAppHint" class="muted small">Ky link nuk ndryshon pas update-ve.</p>
             <div id="shareAppStatus" class="message"></div>
+          </section>
+
+          <section class="share-platform-card fire-share-card">
+            <h3 id="shareFireTitle">📺 Fire TV Stick</h3>
+            <p id="shareFireDesc" class="muted">Link permanent për Downloader / Fire TV Stick. Gjithmonë merr versionin më të ri.</p>
+            <input id="shareFireLink" class="share-app-link" type="text" readonly value="https://familja.vercel.app/firestick">
+            <div class="share-app-actions">
+              <button id="shareFireButton" class="primary" type="button">📺 Ndaje</button>
+              <button id="copyShareFireButton" class="secondary" type="button">📋 Kopjo linkun</button>
+            </div>
+            <button id="openShareFireButton" class="secondary share-ios-open" type="button">🌐 Hape</button>
+            <div id="shareFireStatus" class="message"></div>
           </section>
 
           <section class="share-platform-card ios-share-card">
             <h3 id="shareIosTitle">🍎 iPhone / Safari</h3>
-            <p id="shareIosDesc" class="muted">Ky link e hap DIAMOND në web. Hape në Safari dhe pastaj përdor Share → Add to Home Screen.</p>
-            <input id="shareIosLink" class="share-app-link" type="text" readonly value="https://familja.vercel.app/">
+            <p id="shareIosDesc" class="muted">Link permanent për iPhone. Hape në Safari dhe përdor Share → Add to Home Screen.</p>
+            <input id="shareIosLink" class="share-app-link" type="text" readonly value="https://familja.vercel.app/iphone">
             <div class="share-app-actions">
               <button id="shareIosButton" class="primary" type="button">🍎 Ndaje</button>
               <button id="copyShareIosButton" class="secondary" type="button">📋 Kopjo linkun</button>
             </div>
-            <button id="openShareIosButton" class="secondary share-ios-open" type="button">🌐 Hape në Safari</button>
+            <button id="openShareIosButton" class="secondary share-ios-open" type="button">🌐 Hape</button>
             <div id="shareIosStatus" class="message"></div>
           </section>
         </section>
@@ -777,7 +802,7 @@
   })();
   </script>
 
-<script type="module" src="app.js?v=116"></script>
+<script type="module" src="app.js?v=117"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=55"></script>
@@ -788,7 +813,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=116"></script>
+  <script type="module" src="share-app.js?v=117"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
