@@ -4558,3 +4558,135 @@ body:has(#appView:not(.hidden)){
     font-size:11px;
   }
 }
+
+
+/* DIAMOND 5.77 - admin hub + clean Luftra battle */
+.war-room-player-wrap{position:relative}
+.war-player-weapons{
+  position:absolute;
+  right:-6px;
+  bottom:14px;
+  display:flex;
+  gap:7px;
+  z-index:12;
+  pointer-events:none;
+}
+.war-player-weapons.mine{
+  right:auto;
+  left:-6px;
+  pointer-events:auto;
+}
+.war-weapon-icon{
+  width:48px;
+  height:48px;
+  min-width:48px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,.92);
+  background:radial-gradient(circle at 35% 30%,#203956 0 35%,#08111d 70%);
+  display:grid;
+  place-items:center;
+  font-size:28px;
+  line-height:1;
+  box-shadow:0 5px 16px rgba(0,0,0,.35),0 0 0 2px rgba(56,189,248,.2);
+  padding:0;
+}
+button.war-weapon-icon{
+  cursor:pointer;
+}
+button.war-weapon-icon:disabled{
+  opacity:.45;
+  filter:grayscale(.5);
+}
+.war-weapon-icon.static{
+  pointer-events:none;
+}
+.war-multi-power-badge{display:none!important}
+.war-battle-footer{
+  margin-top:10px;
+  display:grid;
+  gap:6px;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(15,23,42,.88);
+  color:#fff;
+}
+.war-battle-meta{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  font-weight:900;
+}
+.war-battle-footer .war-message{
+  margin:0;
+  color:#fff!important;
+  text-align:center;
+}
+.war-practice-note{
+  text-align:center;
+  opacity:.85;
+}
+.war-practice-controls{
+  grid-template-columns:1fr!important;
+  justify-items:center;
+}
+.war-reroll-compact{
+  width:auto!important;
+  min-width:92px;
+  min-height:46px!important;
+  margin:8px auto 0;
+}
+@media(max-width:560px){
+  .war-player-weapons{right:-2px;bottom:10px;gap:5px}
+  .war-player-weapons.mine{left:-2px;right:auto}
+  .war-weapon-icon{
+    width:44px;
+    height:44px;
+    min-width:44px;
+    font-size:25px;
+  }
+}
+
+/* Dedicated admin mini-app */
+.admin-hub-view{
+  display:grid;
+  gap:12px;
+}
+.admin-hub-hero{
+  padding:18px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#111827,#312e81);
+  color:#fff;
+  box-shadow:0 12px 30px rgba(15,23,42,.22);
+}
+.admin-hub-hero h2{margin:0 0 4px}
+.admin-hub-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.admin-hub-shortcut{
+  min-height:88px;
+  border-radius:18px;
+  border:1px solid rgba(99,102,241,.22);
+  background:#fff;
+  color:#111827;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  font-weight:900;
+  padding:12px;
+}
+.admin-hub-shortcut span{font-size:28px}
+.admin-hub-stack{
+  display:grid;
+  gap:12px;
+}
+.admin-hub-stack>.card,
+.admin-hub-stack>.menu-order-admin{
+  margin:0!important;
+}
+@media(max-width:520px){
+  .admin-hub-grid{grid-template-columns:1fr 1fr}
+}

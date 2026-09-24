@@ -984,6 +984,9 @@ function setSection(next) {
   const showKI = next === "ki";
   const showShareApp = next === "shareapp";
   const showNews = next === "news";
+  const showAdminHub = next === "adminhub";
+  const adminHubView = document.getElementById("adminHubView");
+  const adminHubTab = document.getElementById("adminHubTab");
 
   galleryTab?.classList.toggle("active", showGallery);
   infoTab?.classList.toggle("active", showInfo);
@@ -997,6 +1000,7 @@ function setSection(next) {
   kiTab?.classList.toggle("active", showKI);
   shareAppTab?.classList.toggle("active", showShareApp);
   newsTab?.classList.toggle("active", showNews);
+  adminHubTab?.classList.toggle("active", showAdminHub);
 
   galleryView?.classList.toggle("hidden", !showGallery);
   infoView?.classList.toggle("hidden", !showInfo);
@@ -1010,6 +1014,7 @@ function setSection(next) {
   kiView?.classList.toggle("hidden", !showKI);
   shareAppView?.classList.toggle("hidden", !showShareApp);
   newsView?.classList.toggle("hidden", !showNews);
+  adminHubView?.classList.toggle("hidden", !showAdminHub);
 
   appTabsNav?.classList.toggle("hidden", !isHome);
   sectionBackBtn?.classList.toggle("hidden", isHome);
@@ -1038,7 +1043,40 @@ dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
 shareAppTab?.addEventListener("click", () => setSection("shareapp"));
 newsTab?.addEventListener("click", () => setSection("news"));
+document.getElementById("adminHubTab")?.addEventListener("click", () => setSection("adminhub"));
 document.getElementById("sectionBackBtn")?.addEventListener("click", () => setSection("home"));
+
+function setupAdminHub(){
+  if(!ADMIN_ONLY || !isAdmin()) return;
+  const hub=document.getElementById("adminHubStack");
+  const tab=document.getElementById("adminHubTab");
+  if(tab) tab.classList.remove("hidden");
+  if(!hub) return;
+
+  const adminNodes=[
+    document.getElementById("menuOrderAdmin"),
+    document.getElementById("adminPanel"),
+    document.getElementById("installStatsCard"),
+    document.getElementById("adminUsersCard"),
+    document.getElementById("adminMessageCard"),
+    document.getElementById("storageCard"),
+    document.getElementById("infoCompose")
+  ].filter(Boolean);
+
+  for(const node of adminNodes){
+    node.classList.remove("hidden");
+    hub.appendChild(node);
+  }
+
+  document.querySelectorAll("[data-admin-open]").forEach((button)=>{
+    if(button.dataset.adminBound==="1") return;
+    button.dataset.adminBound="1";
+    button.addEventListener("click",()=>{
+      const target=button.dataset.adminOpen||"home";
+      setSection(target);
+    });
+  });
+}
 
 function setMode(next) {
   if (ADMIN_ONLY) next = "admin";
@@ -1063,7 +1101,8 @@ function setMode(next) {
     adminMode?.classList.add("hidden");
     familyDirectHint?.classList.remove("hidden");
     userNameWrap?.classList.remove("hidden");
-    adminCodeWrap?.classList.remove("hidden");
+    adminCodeWrap?.classList.add("hidden");
+    document.getElementById("adminDirectLoginBtn")?.classList.add("hidden");
     refreshUserNameLoginUi();
   }
 }
@@ -1098,7 +1137,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.76";
+    let versionName="5.77";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -3195,6 +3234,7 @@ async function applySession(session) {
   if (storageCard) storageCard.classList.toggle("hidden", !isAdmin());
   adminUsersCard?.classList.toggle("hidden", !isAdmin());
   adminMessageCard?.classList.toggle("hidden", !isAdmin());
+  if(isAdmin()) setupAdminHub();
   if(!isAdmin()){
     await loadGlobalUserProfile().catch(()=>null);
     if(!currentAppProfile){
@@ -3210,7 +3250,7 @@ async function applySession(session) {
   }
   roleLabel.textContent = isAdmin() ? t("role.admin") : (globalUserName() || t("role.family"));
   uploadStatus.textContent = "";
-  setSection("home");
+  setSection(ADMIN_ONLY && isAdmin() ? "adminhub" : "home");
   await loadMedia();
   await loadSharedMenuOrder();
   await loadHiddenTabs();
