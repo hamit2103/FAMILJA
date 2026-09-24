@@ -755,6 +755,13 @@ function warMultiPlayerCard(player){
         </span>
         <span class="war-multi-power-badge" aria-hidden="true">${warMultiPowerIcon(player)}</span>
       </button>
+      <div class="war-player-weapons ${isMe?"mine":""}" aria-label="Armët">
+        ${isMe
+          ? `<button class="war-weapon-icon" data-war-action="${escapeHtml(player.special||"attack")}" type="button">${warSpecial(player.special||"attack").icon}</button>
+             <button class="war-weapon-icon" data-war-action="${escapeHtml(player.special2||"attack")}" type="button">${warSpecial(player.special2||"attack").icon}</button>`
+          : `<span class="war-weapon-icon static">${warSpecial(player.special||"attack").icon}</span>
+             <span class="war-weapon-icon static">${warSpecial(player.special2||"attack").icon}</span>`}
+      </div>
       ${gamesAdmin&&!isMe&&!player.kicked?`<label class="war-admin-kick-pick"><input type="checkbox" data-war-kick-device="${escapeHtml(player.device_id)}"> Largo</label>`:""}
     </div>`;
 }
@@ -962,12 +969,6 @@ function renderWarMultiGame(){
           <span class="war-turn">${warMultiRoom.status==="finished"?wtr("finish"):(myTurn?wtr("yourTurnCaps"):wtr("waitTurnCaps"))}</span>
         </div>
 
-        <div class="war-multi-summary">
-          <strong>👥 ${alive.length} ${wtr("alive")} / ${warMultiPlayers.length} ${wtr("players")}</strong>
-          <span>💎 ${Number(warProfile?.diamonds||0)}</span>
-          <span>${escapeHtml(warMultiRoom.message||"")}</span>
-        </div>
-
         <div class="war-shared-room war-online-shared-room">
           <div class="war-room-wall"><span>LUFTRA · BATTLE ROYALE</span></div>
           <div class="war-room-floor"></div>
@@ -981,6 +982,11 @@ function renderWarMultiGame(){
             </div>
             <div class="war-online-me">${myPlayer?warMultiPlayerCard(myPlayer):""}</div>
           </div>
+        </div>
+
+        <div class="war-battle-footer">
+          <div class="war-battle-meta"><strong>👥 ${alive.length}/${warMultiPlayers.length}</strong><span>💎 ${Number(warProfile?.diamonds||0)}</span></div>
+          <p class="war-message">${escapeHtml(warMultiRoom.message||"")}</p>
         </div>
 
         <div class="war-room-tools">
@@ -1001,8 +1007,7 @@ function renderWarMultiGame(){
           <button id="warMultiAgain" class="primary" type="button">${wtr("playOnlineAgain")}</button>
         `:`
           <div class="war-multi-target-hint">${myTurn?(warMultiSelectedTarget?"🎯 "+wtr("target")+": "+escapeHtml(warMultiPlayers.find(p=>p.device_id===warMultiSelectedTarget)?.display_name||""):"🎯 "+wtr("tapTarget")):"⏳ "+wtr("waitYourTurn")}</div>
-          <div class="war-actions">${warActionCard(special)}${warActionCard(special2)}</div>
-          <button id="warMultiReroll" class="secondary war-reroll" type="button" ${myTurn?"":"disabled"}>🎲 ${wtr("changeWeapons")} · 3 💎</button>
+          <button id="warMultiReroll" class="secondary war-reroll war-reroll-compact" type="button" ${myTurn?"":"disabled"}>🎲 · 3 💎</button>
         `}
       </section>
     </div>`;
@@ -1458,6 +1463,13 @@ function warPracticePlayerCard(fighter,{isPlayer=false,isTurn=false}={}){
         </span>
         <span class="war-multi-power-badge" aria-hidden="true">${power}</span>
       </div>
+      <div class="war-player-weapons ${isPlayer?"mine":""}" aria-label="Armët">
+        ${isPlayer
+          ? `<button class="war-weapon-icon" data-war-action="${escapeHtml(fighter.special||"attack")}" type="button">${warSpecial(fighter.special||"attack").icon}</button>
+             <button class="war-weapon-icon" data-war-action="${escapeHtml(fighter.special2||"attack")}" type="button">${warSpecial(fighter.special2||"attack").icon}</button>`
+          : `<span class="war-weapon-icon static">${warSpecial(fighter.special||"attack").icon}</span>
+             <span class="war-weapon-icon static">${warSpecial(fighter.special2||"attack").icon}</span>`}
+      </div>
     </div>`;
 }
 
@@ -1480,12 +1492,6 @@ function renderWarGame(){
           <span class="war-turn">${s.over?wtr("finish"):(s.turn==="player"?wtr("yourTurnCaps"):wtr("opponent"))}</span>
           <button id="warSoundToggle" class="war-sound-toggle" type="button">${warSoundEnabled?wtr("soundOn"):wtr("soundOff")}</button>
           <span id="warAudioStatus" class="war-audio-status"></span>
-        </div>
-
-        <div class="war-multi-summary war-practice-summary">
-          <strong>🤖 ${gx("practice")}</strong>
-          <span>🏆 ${wins} · 🎮 ${games}</span>
-          <span>💎 ${Number(warProfile?.diamonds||0)}</span>
         </div>
 
         <div id="warBattleScene" class="war-shared-room war-online-shared-room war-practice-shared-room">
@@ -1511,18 +1517,19 @@ function renderWarGame(){
           </div>
         </div>
 
-        <div class="war-battle-info war-practice-info">
-          <div class="war-progress war-progress-inline">
-            <strong>❤️ ${wtr("bonus")}: ${activeBonus}</strong>
-            <small>🤖 ${gx("practiceNote")}</small>
+        <div class="war-battle-info war-practice-info war-battle-footer">
+          <div class="war-battle-meta">
+            <strong>❤️ ${activeBonus}</strong>
+            <span>🏆 ${wins} · 🎮 ${games}</span>
+            <span>💎 ${Number(warProfile?.diamonds||0)}</span>
           </div>
           <p id="warMessage" class="war-message">${escapeHtml(s.message)}</p>
+          <small class="war-practice-note">🤖 ${gx("practiceNote")}</small>
         </div>
 
         ${s.over?`<button id="warRestart" class="primary war-restart" type="button">${wtr("playAgain")}</button>`:`
           <div class="war-practice-controls">
-            <div class="war-actions">${warActionCard(p.special)}${warActionCard(p.special2)}</div>
-            <button id="warReroll" class="secondary war-reroll" type="button" ${s.turn!=="player"||s.rerollUsedThisTurn?"disabled":""}>${wtr("changeWeapons")} · 3 💎</button>
+            <button id="warReroll" class="secondary war-reroll war-reroll-compact" type="button" ${s.turn!=="player"||s.rerollUsedThisTurn?"disabled":""}>🎲 · 3 💎</button>
           </div>
         `}
       </section>
@@ -2142,7 +2149,7 @@ async function loadBoardProfileAndLeaderboard(game=selectedType){
     const input=document.getElementById("boardPlayerName");
     const info=document.getElementById("boardNameInfo");
     if(input){input.value=boardProfile?.display_name||localStorage.getItem(BOARD_NAME_KEY)||"";input.readOnly=!!boardProfile;input.classList.toggle("board-name-locked",!!boardProfile);}
-    if(info) info.textContent=boardProfile ? "🔒 Emri është i përhershëm. Vetëm Admini mund ta ndryshojë; pikët mbeten." : "Shkruaje emrin një herë. Pastaj ruhet përgjithmonë.";
+    if(info) info.textContent=boardProfile ? "" : "Shkruaje emrin një herë. Pastaj ruhet përgjithmonë.";
     const pair=await Promise.all([supabase.rpc("board_weekly_leaderboard",{p_game:game}),supabase.rpc("board_weekly_champion",{p_game:game})]);
     if(pair[0].error) throw pair[0].error;
     if(pair[1].error) throw pair[1].error;
@@ -2372,7 +2379,7 @@ function renderLobby(msg=""){
               <strong class="war-diamonds">💎 <span id="warDiamonds">200</span></strong>
             </div>
             <input id="warPlayerName" type="hidden" value="${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"")}">
-            <div id="warNameInfo" class="game-help">Emri ndryshohet vetëm nga Admini.</div>
+            <div id="warNameInfo" class="game-help hidden"></div>
             <div class="war-diamond-note">💎 +5 çdo orë · 🎲 armë të reja 3 💎 · 🤖 ${gx("practiceNote")}</div>
             <button id="warGame" class="primary" type="button">${gx("practice")}</button>
             <button id="warMultiBtn" class="secondary war-online-btn" type="button">🌐 Luaj Online (deri 8 veta)</button>
