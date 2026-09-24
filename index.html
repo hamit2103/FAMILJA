@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=96">
+  <link rel="stylesheet" href="styles.css?v=97">
   <title>DIAMOND</title>
   <style>
     /* Inline menu-order hotfix */
@@ -113,7 +113,7 @@
         <div>
           <div class="app-title-row" style="display:block">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.85</span>
+            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.86</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -203,7 +203,35 @@
         <button id="shareAppTab" class="app-tab" type="button"><span>🔗 </span><span id="shareAppTabLabel">Ndaje appin</span></button>
         <button id="healthTab" class="app-tab health-tab hidden" type="button"><span>🩺 </span><span id="healthTabLabel">Shëndeti</span></button>
         <button id="newsTab" class="app-tab" type="button"><span>📰 </span><span id="newsTabLabel">Lajme</span></button>
-      </nav><div id="diamondQuote" class="diamond-quote" data-i18n="home.quote">“Ne e bëjmë të pamundurën të mundur.”</div>
+      </nav>
+      <div id="privateChatMiniWrap" class="private-chat-mini-wrap">
+        <button id="privateChatTab" class="private-chat-mini" type="button">
+          <span>💬</span><span id="privateChatTabLabel">Admin</span>
+          <span id="privateChatUnreadBadge" class="private-chat-unread hidden">0</span>
+        </button>
+      </div>
+      <div id="diamondQuote" class="diamond-quote" data-i18n="home.quote">“Ne e bëjmë të pamundurën të mundur.”</div>
+
+      <section id="privateChatView" class="hidden">
+        <section class="card private-chat-card">
+          <div class="private-chat-head">
+            <div>
+              <h2 id="privateChatTitle">💬 Mesazh privat me Adminin</h2>
+              <p id="privateChatDesc" class="muted small">Këtë bisedë e shihni vetëm ti dhe Admini.</p>
+            </div>
+            <button id="privateChatRefreshBtn" class="secondary" type="button">↻</button>
+          </div>
+          <div id="privateChatAdminPicker" class="private-chat-admin-picker hidden">
+            <label id="privateChatUserLabel" for="privateChatAdminUser">Zgjidh userin</label>
+            <select id="privateChatAdminUser"></select>
+          </div>
+          <div id="privateChatList" class="private-chat-list"></div>
+          <textarea id="privateChatText" maxlength="1000" rows="3" placeholder="Shkruaj mesazhin..."></textarea>
+          <button id="privateChatSendBtn" class="primary" type="button">📨 Dërgo</button>
+          <div id="privateChatStatus" class="message"></div>
+        </section>
+      </section>
+
 
       <section id="menuOrderAdmin" class="menu-order-admin hidden">
         <div class="menu-order-head">
@@ -745,7 +773,7 @@
   })();
   </script>
 
-<script type="module" src="app.js?v=111"></script>
+<script type="module" src="app.js?v=112"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=55"></script>
@@ -756,7 +784,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=111"></script>
+  <script type="module" src="share-app.js?v=112"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
