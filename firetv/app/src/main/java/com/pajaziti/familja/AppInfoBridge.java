@@ -24,6 +24,13 @@ public class AppInfoBridge {
     }
 
     @JavascriptInterface
+    public void checkForUpdateNow() {
+        try {
+            activity.triggerUpdateCheck();
+        } catch (Exception ignored) {}
+    }
+
+    @JavascriptInterface
     public String getVersionName() {
         try {
             return activity.getPackageManager()

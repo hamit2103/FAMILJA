@@ -1313,7 +1313,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.84";
+    let versionName="5.85";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -3531,11 +3531,16 @@ function startRealtime() {
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "app_settings" },
-      () => {
+      (payload) => {
         loadSharedMenuOrder();
         loadHiddenTabs();
         loadAdminMenuTheme();
         window.PajazitiGames?.reloadSettings?.();
+
+        const key=payload?.new?.key || payload?.old?.key || "";
+        if(key===UPDATE_RELEASE_POLICY_KEY && !ADMIN_ONLY){
+          try{window.AndroidApp?.checkForUpdateNow?.();}catch(_){}
+        }
       }
     )
     .on(
@@ -3645,7 +3650,28 @@ async function applySession(session) {
   if(isAdmin()) { await loadAdminStats(); await loadAdminUsers(); await loadAdminMessageHistory(); refreshNewDeviceNotifyButton(); }
   else startAdminMessagePolling();
   startRealtime();
+
+  if(!ADMIN_ONLY){
+    try{window.AndroidApp?.checkForUpdateNow?.();}catch(_){}
+  }
 }
+
+let diamondUpdateCheckTimer=null;
+function startForegroundUpdateChecks(){
+  if(ADMIN_ONLY) return;
+  if(diamondUpdateCheckTimer) clearInterval(diamondUpdateCheckTimer);
+  diamondUpdateCheckTimer=setInterval(()=>{
+    if(document.visibilityState==="visible"){
+      try{window.AndroidApp?.checkForUpdateNow?.();}catch(_){}
+    }
+  },15000);
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible" && !ADMIN_ONLY){
+    try{window.AndroidApp?.checkForUpdateNow?.();}catch(_){}
+  }
+});
+startForegroundUpdateChecks();
 
 loadDiamondWeather().catch(()=>{});
 

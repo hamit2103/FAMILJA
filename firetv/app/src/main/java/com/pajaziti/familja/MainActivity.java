@@ -230,6 +230,7 @@ public class MainActivity extends Activity {
             // The app must still open even if a device blocks dynamic receiver registration.
         }
 
+        UpdatePollReceiver.schedule(this);
         webView.postDelayed(this::checkForUpdates, 1800);
         handleSportIntent(getIntent());
     }
@@ -291,6 +292,10 @@ public class MainActivity extends Activity {
         } catch (Exception error) {
             return 0L;
         }
+    }
+
+    public void triggerUpdateCheck() {
+        runOnUiThread(this::checkForUpdates);
     }
 
     private void checkForUpdates() {

@@ -63,6 +63,10 @@
             android:exported="false" />
 
         <receiver
+            android:name="com.pajaziti.familja.UpdatePollReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name="com.pajaziti.familja.AdminDeviceAlertReceiver"
             android:exported="false" />
 
