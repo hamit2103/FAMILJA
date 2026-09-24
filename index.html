@@ -723,7 +723,7 @@
   <script>
   /* Core navigation fallback: works even if remote modules fail to load. */
   (()=>{
-    const pairs={galleryTab:"galleryView",infoTab:"infoView",prayerTab:"prayerView",clockTab:"clockView",sportTab:"sportView",gamesTab:"gamesView",tvTab:"tvView",radioTab:"radioView",dietTab:"dietView",kiTab:"kiView",shareAppTab:"shareAppView",newsTab:"newsView",healthTab:"healthView"};
+    const pairs={galleryTab:"galleryView",infoTab:"infoView",prayerTab:"prayerView",clockTab:"clockView",sportTab:"sportView",gamesTab:"gamesView",tvTab:"tvView",radioTab:"radioView",dietTab:"dietView",kiTab:"kiView",shareAppTab:"shareAppView",newsTab:"newsView"};
     const views=[...new Set(Object.values(pairs))];
     const home=()=>{views.forEach(id=>document.getElementById(id)?.classList.add("hidden"));document.getElementById("appTabs")?.classList.remove("hidden");document.getElementById("sectionBackBtn")?.classList.add("hidden");document.getElementById("diamondHomeHero")?.classList.remove("hidden");document.getElementById("diamondQuote")?.classList.remove("hidden");};
     const open=(id)=>{views.forEach(v=>document.getElementById(v)?.classList.toggle("hidden",v!==id));document.getElementById("appTabs")?.classList.add("hidden");document.getElementById("sectionBackBtn")?.classList.remove("hidden");document.getElementById("diamondHomeHero")?.classList.add("hidden");document.getElementById("diamondQuote")?.classList.add("hidden");const hooks={gamesView:"PajazitiGames",tvView:"PajazitiTV",radioView:"PajazitiRadio",dietView:"DiamondDiet",kiView:"DiamondKI",newsView:"DiamondNews",shareAppView:"DiamondShareApp"};const hook=hooks[id];if(hook) try{window[hook]?.activate?.();}catch(_){} window.scrollTo(0,0);};
