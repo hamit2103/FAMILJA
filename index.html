@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=89">
+  <link rel="stylesheet" href="styles.css?v=90">
   <title>DIAMOND</title>
   <style>
     /* Inline menu-order hotfix */
@@ -113,7 +113,7 @@
         <div>
           <div class="app-title-row" style="display:block">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.82</span>
+            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v5.83</span>
           </div>
           <p id="roleLabel" class="muted"></p>
           <div id="onlineBadge" class="online-badge">
@@ -177,7 +177,18 @@
 
       <button id="sectionBackBtn" class="secondary section-back-btn hidden" type="button">← Kthehu mbrapa</button>
 
-      <section id="diamondHomeHero" class="diamond-home-hero"><div class="diamond-brand">💎 <strong>DIAMOND</strong><small data-i18n="home.allInOne">Gjithçka në një vend</small></div><div class="diamond-status diamond-clock-only"><div class="home-digital-clock"><strong id="homeDigitalTime">--:--:--</strong><span id="homeDigitalDate">--.--.----</span></div></div></section>
+      <section id="diamondHomeHero" class="diamond-home-hero">
+        <div class="diamond-brand">💎 <strong>DIAMOND</strong><small data-i18n="home.allInOne">Gjithçka në një vend</small></div>
+        <div id="homeClockStatus" class="diamond-status diamond-clock-only home-clock-ad-status">
+          <div class="home-digital-clock">
+            <strong id="homeDigitalTime">--:--:--</strong>
+            <span id="homeDigitalDate">--.--.----</span>
+          </div>
+          <div id="clockAdCarousel" class="home-clock-ad-carousel hidden" aria-label="Reklama">
+            <img id="clockAdImage" alt="Reklama">
+          </div>
+        </div>
+      </section>
       <nav id="appTabs" class="app-tabs" aria-label="Menu">
         <button id="galleryTab" class="app-tab active" type="button"><span>📢 </span><span data-i18n="tabs.photos">Reklama</span></button>
         <button id="infoTab" class="app-tab info-tab-button" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span><span id="infoUnreadBadge" class="info-unread-badge hidden">0</span></button>
@@ -320,9 +331,6 @@
             <div class="clock-zone"><span>🇺🇸 <span data-i18n="clock.newyork">New York</span></span><strong data-clock-zone="America/New_York">--:--</strong></div>
           </div>
           <div class="clock-brand">DIAMOND</div>
-          <div id="clockAdCarousel" class="clock-ad-carousel hidden">
-            <img id="clockAdImage" alt="Reklama">
-          </div>
           <button id="addClockWidgetBtn" class="primary clock-widget-add" type="button">📌 <span data-i18n="clock.add">Shto orën në ekran</span></button>
           <div id="clockWidgetStatus" class="message" data-i18n="clock.androidHint">Në Android, shtype butonin për ta vendosur widgetin në Home Screen.</div>
         </section>
@@ -648,7 +656,7 @@
   })();
   </script>
 
-<script type="module" src="app.js?v=102"></script>
+<script type="module" src="app.js?v=103"></script>
   <script type="module" src="sports.js?v=9"></script>
   <script type="module" src="games.js?v=94"></script>
   <script type="module" src="tv.js?v=53"></script>
@@ -659,7 +667,7 @@
   <script type="module" src="ruqya.js?v=1"></script>
   <script type="module" src="diet.js?v=1"></script>
   <script type="module" src="ki.js?v=1"></script>
-  <script type="module" src="share-app.js?v=102"></script>
+  <script type="module" src="share-app.js?v=103"></script>
   <script type="module" src="news.js?v=3"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";

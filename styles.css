@@ -4754,3 +4754,33 @@ button.war-weapon-icon:disabled{
 @media(max-width:560px){
   .clock-ad-carousel{width:50%;min-width:150px}
 }
+
+
+/* DIAMOND 5.83 - ads inside main home clock only */
+.home-clock-ad-status{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+.home-clock-ad-carousel{
+  width:min(50%,300px);
+  margin:0 auto 4px;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.62);
+  box-shadow:0 7px 18px rgba(2,23,42,.24);
+  background:#061a2b;
+  aspect-ratio:16/9;
+}
+.home-clock-ad-carousel.hidden{display:none!important}
+.home-clock-ad-carousel img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+}
+.clock-widget-card .clock-ad-carousel{display:none!important}
+@media(max-width:560px){
+  .home-clock-ad-carousel{width:50%;min-width:145px}
+}
