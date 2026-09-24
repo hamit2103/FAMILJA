@@ -1101,7 +1101,8 @@ function setMode(next) {
     adminMode?.classList.add("hidden");
     familyDirectHint?.classList.remove("hidden");
     userNameWrap?.classList.remove("hidden");
-    adminCodeWrap?.classList.remove("hidden");
+    adminCodeWrap?.classList.add("hidden");
+    document.getElementById("adminDirectLoginBtn")?.classList.add("hidden");
     refreshUserNameLoginUi();
   }
 }
