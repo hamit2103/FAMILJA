@@ -4877,3 +4877,27 @@ button.war-weapon-icon:disabled{
 @media(max-width:700px){
   .health-grid{grid-template-columns:1fr}
 }
+
+
+/* ADMIN-only Health access control */
+.admin-health-access-card{
+  margin:0!important;
+  border:1px solid rgba(52,211,153,.35);
+  background:linear-gradient(135deg,#ecfdf5,#eff6ff)!important;
+  color:#111827!important;
+}
+.admin-health-access-card h2{margin:0 0 6px}
+.admin-health-access-card label{margin-top:12px}
+.health-access-select{
+  width:100%;
+  min-height:48px;
+  border-radius:14px;
+  border:1px solid #cbd5e1;
+  background:#fff;
+  color:#111827;
+  padding:10px 12px;
+  font-weight:800;
+}
+#healthAccessToggleBtn{
+  margin-top:10px;
+}
