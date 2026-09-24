@@ -313,16 +313,16 @@ function applyLanguage(language = currentLanguage) {
   window.DiamondRuqya?.reloadLanguage?.();
   window.DiamondDiet?.reloadLanguage?.();
   const simple={
-    sq:{diet:"Diet",ki:"KI",share:"Ndaje appin",news:"Lajme",back:"← Kthehu mbrapa",admin:"Admin",login:"Hyr"},
-    de:{diet:"Ernährung",ki:"KI",share:"App teilen",news:"Nachrichten",back:"← Zurück",admin:"Admin",login:"Anmelden"},
-    tr:{diet:"Diyet",ki:"YZ",share:"Uygulamayı paylaş",news:"Haberler",back:"← Geri",admin:"Yönetici",login:"Giriş"},
-    en:{diet:"Diet",ki:"AI",share:"Share app",news:"News",back:"← Back",admin:"Admin",login:"Sign in"},
-    it:{diet:"Dieta",ki:"IA",share:"Condividi app",news:"Notizie",back:"← Indietro",admin:"Admin",login:"Accedi"},
-    hr:{diet:"Prehrana",ki:"AI",share:"Podijeli aplikaciju",news:"Vijesti",back:"← Natrag",admin:"Admin",login:"Prijava"},
-    fr:{diet:"Régime",ki:"IA",share:"Partager l’app",news:"Actualités",back:"← Retour",admin:"Admin",login:"Connexion"},
-    ar:{diet:"النظام الغذائي",ki:"الذكاء الاصطناعي",share:"مشاركة التطبيق",news:"الأخبار",back:"← رجوع",admin:"المشرف",login:"دخول"}
+    sq:{diet:"Diet",ki:"KI",share:"Ndaje appin",news:"Lajme",private:"Privat",back:"← Kthehu mbrapa",admin:"Admin",login:"Hyr"},
+    de:{diet:"Ernährung",ki:"KI",share:"App teilen",news:"Nachrichten",private:"Privat",back:"← Zurück",admin:"Admin",login:"Anmelden"},
+    tr:{diet:"Diyet",ki:"YZ",share:"Uygulamayı paylaş",news:"Haberler",private:"Özel",back:"← Geri",admin:"Yönetici",login:"Giriş"},
+    en:{diet:"Diet",ki:"AI",share:"Share app",news:"News",private:"Private",back:"← Back",admin:"Admin",login:"Sign in"},
+    it:{diet:"Dieta",ki:"IA",share:"Condividi app",news:"Notizie",private:"Privato",back:"← Indietro",admin:"Admin",login:"Accedi"},
+    hr:{diet:"Prehrana",ki:"AI",share:"Podijeli aplikaciju",news:"Vijesti",private:"Privatno",back:"← Natrag",admin:"Admin",login:"Prijava"},
+    fr:{diet:"Régime",ki:"IA",share:"Partager l’app",news:"Actualités",private:"Privé",back:"← Retour",admin:"Admin",login:"Connexion"},
+    ar:{diet:"النظام الغذائي",ki:"الذكاء الاصطناعي",share:"مشاركة التطبيق",news:"الأخبار",private:"خاص",back:"← رجوع",admin:"المشرف",login:"دخول"}
   }[language]||{};
-  [["dietTabLabel","diet"],["kiTabLabel","ki"],["shareAppTabLabel","share"],["newsTabLabel","news"],["sectionBackBtn","back"],["adminMode","admin"],["loginBtn","login"]].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&simple[k])el.textContent=simple[k];});
+  [["dietTabLabel","diet"],["kiTabLabel","ki"],["shareAppTabLabel","share"],["newsTabLabel","news"],["healthTabLabel","private"],["sectionBackBtn","back"],["adminMode","admin"],["loginBtn","login"]].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&simple[k])el.textContent=simple[k];});
   window.DiamondKI?.reloadLanguage?.();
   window.DiamondShareApp?.reloadLanguage?.();
   window.DiamondNews?.reloadLanguage?.();
@@ -749,8 +749,13 @@ const TAB_LABELS = {
   kiTab:"🤖 KI",
   shareAppTab:"🔗 Ndaje appin",
   newsTab:"📰 Lajme",
-  healthTab:"🩺 Shëndeti"
+  healthTab:"🔒 Privat"
 };
+const MODULE_IDS = [
+  "galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab",
+  "tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab","healthTab"
+];
+let moduleAccessMap={};
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
 const PRAYER_ALARMS_KEY = "pajaziti-prayer-alarms";
@@ -785,40 +790,45 @@ if (!presenceDeviceId) {
   localStorage.setItem(PRESENCE_DEVICE_KEY, presenceDeviceId);
 }
 
-async function refreshHealthAccess(){
-  const tab=document.getElementById("healthTab");
-  const view=document.getElementById("healthView");
-
+async function refreshModuleAccess(){
   if(!currentUser){
-    healthAccessAllowed=false;
-    tab?.classList.add("hidden");
-    view?.classList.add("hidden");
-    return false;
+    moduleAccessMap={};
+    for(const id of MODULE_IDS) document.getElementById(id)?.classList.add("hidden");
+    document.getElementById("healthView")?.classList.add("hidden");
+    return moduleAccessMap;
   }
 
   if(isAdmin()){
-    healthAccessAllowed=true;
-    tab?.classList.remove("hidden");
-    return true;
+    moduleAccessMap=Object.fromEntries(MODULE_IDS.map(id=>[id,true]));
+    applyHiddenTabs();
+    return moduleAccessMap;
   }
 
   try{
-    const {data,error}=await supabase.rpc("health_access_get",{
+    const {data,error}=await supabase.rpc("module_access_get",{
       p_device:presenceDeviceId,
       p_hardware:stableHardwareId||null
     });
     if(error) throw error;
-    healthAccessAllowed=!!data;
+    moduleAccessMap=(data&&typeof data==="object")?data:{};
   }catch(error){
-    console.warn("health access",error);
-    healthAccessAllowed=false;
+    console.warn("module access",error);
+    moduleAccessMap={};
   }
 
-  tab?.classList.toggle("hidden",!healthAccessAllowed);
-  if(!healthAccessAllowed){
-    view?.classList.add("hidden");
-    if(activeSection==="health") setSection("home");
+  applyHiddenTabs();
+
+  if(moduleAccessMap.healthTab===false && activeSection==="health"){
+    document.getElementById("healthView")?.classList.add("hidden");
+    setSection("home");
   }
+
+  return moduleAccessMap;
+}
+
+async function refreshHealthAccess(){
+  await refreshModuleAccess();
+  healthAccessAllowed=isAdmin() || moduleAccessMap.healthTab===true;
   return healthAccessAllowed;
 }
 
@@ -966,7 +976,14 @@ let hiddenTabs=[];
 function applyHiddenTabs(){
   for(const id of menuTabIds()){
     const el=document.getElementById(id);
-    if(el) el.classList.toggle("admin-hidden-tab",hiddenTabs.includes(id));
+    if(!el) continue;
+    const hiddenForEveryone=hiddenTabs.includes(id);
+    const allowedForThisUser=isAdmin()
+      ? true
+      : (Object.prototype.hasOwnProperty.call(moduleAccessMap,id)
+          ? moduleAccessMap[id]===true
+          : !hiddenForEveryone);
+    el.classList.toggle("admin-hidden-tab",!allowedForThisUser);
   }
 }
 
@@ -981,6 +998,7 @@ async function loadHiddenTabs(){
   const known=menuTabIds();
   hiddenTabs=Array.isArray(data?.value)?data.value.filter(id=>known.includes(id)):[];
   applyHiddenTabs();
+  if(!isAdmin()) await refreshModuleAccess();
   if(isAdmin()) renderMenuOrderAdmin();
 }
 
@@ -1368,7 +1386,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="5.91";
+    let versionName="5.92";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1746,7 +1764,7 @@ async function registerDeviceInfo(){
   try{
     const {data:{session}}=await supabase.auth.getSession();
     const token=session?.access_token;if(!token)return;
-    let versionName="5.91";
+    let versionName="5.92";
     try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
     const registerResponse=await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",
@@ -1853,60 +1871,94 @@ async function saveUpdateReleasePolicy(){
 
 document.getElementById("updateReleaseSaveBtn")?.addEventListener("click",saveUpdateReleasePolicy);
 
-function renderAdminHealthAccessControl(users=[]){
+async function renderAdminModuleAccessControl(users=[]){
   if(!ADMIN_ONLY || !isAdmin()) return;
-  const select=document.getElementById("healthAccessUserSelect");
-  const button=document.getElementById("healthAccessToggleBtn");
-  const status=document.getElementById("healthAccessStatus");
-  if(!select||!button) return;
+  const select=document.getElementById("moduleAccessUserSelect");
+  const list=document.getElementById("moduleAccessList");
+  const reset=document.getElementById("moduleAccessResetBtn");
+  const status=document.getElementById("moduleAccessStatus");
+  if(!select||!list) return;
 
   const previous=select.value||"";
   select.innerHTML='<option value="">— Zgjidh userin —</option>';
   for(const p of users){
     const opt=document.createElement("option");
     opt.value=p.device_id||"";
-    opt.textContent=(p.display_name||"User")+(p.health_access?" · 🩺 ON":" · 🩺 OFF");
-    opt.dataset.allowed=p.health_access?"1":"0";
+    opt.textContent=p.display_name||p.device_id||"User";
     select.appendChild(opt);
   }
   if([...select.options].some(o=>o.value===previous)) select.value=previous;
 
-  const sync=()=>{
-    const opt=select.options[select.selectedIndex];
-    const chosen=!!select.value;
-    const allowed=opt?.dataset?.allowed==="1";
-    button.disabled=!chosen;
-    button.textContent=!chosen
-      ? "🩺 Lejo Shëndetin"
-      : allowed
-        ? "🩺 Hiq Shëndetin nga ky user"
-        : "🩺 Lejo Shëndetin për këtë user";
+  const renderEmpty=()=>{
+    list.innerHTML='<div class="muted small">Zgjidh një user për të rregulluar modulet vetëm për atë user.</div>';
+    if(reset) reset.disabled=true;
   };
-  select.onchange=sync;
-  button.onclick=async()=>{
-    if(!select.value) return;
-    const opt=select.options[select.selectedIndex];
-    const allowed=opt?.dataset?.allowed==="1";
-    button.disabled=true;
-    if(status){status.textContent="Po ruhet...";status.className="message";}
-    const out=await supabase.rpc("health_access_admin_set",{
-      p_device:select.value,
-      p_allowed:!allowed
-    });
+
+  const loadForSelected=async()=>{
+    const device=select.value||"";
+    if(!device){renderEmpty();return;}
+    if(status){status.textContent="Po ngarkohet...";status.className="message";}
+    const out=await supabase.rpc("module_access_admin_get",{p_device:device});
     if(out.error){
+      list.innerHTML="";
       if(status){status.textContent=out.error.message||"Gabim.";status.className="message error";}
-      sync();
       return;
     }
-    if(status){
-      status.textContent=allowed
-        ? "Shëndeti u hoq për këtë user."
-        : "Shëndeti u aktivizua vetëm për këtë user.";
-      status.className="message success";
+    const rows=Array.isArray(out.data)?out.data:[];
+    const map=new Map(rows.map(r=>[r.module_id,r]));
+    list.innerHTML="";
+    for(const id of MODULE_IDS){
+      const row=map.get(id)||{allowed:id!=="healthTab"&&!hiddenTabs.includes(id),overridden:false,default_allowed:id!=="healthTab"&&!hiddenTabs.includes(id)};
+      const wrap=document.createElement("label");
+      wrap.className="module-access-row";
+      const cb=document.createElement("input");
+      cb.type="checkbox";
+      cb.checked=!!row.allowed;
+      const text=document.createElement("span");
+      const base=TAB_LABELS[id]||id;
+      text.innerHTML="<strong>"+base+"</strong><small>"+(row.overridden?"Vendosur vetëm për këtë user":"Standardi i Adminit")+"</small>";
+      cb.onchange=async()=>{
+        cb.disabled=true;
+        const save=await supabase.rpc("module_access_admin_set",{
+          p_device:device,
+          p_module:id,
+          p_allowed:cb.checked
+        });
+        cb.disabled=false;
+        if(save.error){
+          cb.checked=!cb.checked;
+          if(status){status.textContent=save.error.message||"Nuk u ruajt.";status.className="message error";}
+          return;
+        }
+        if(status){status.textContent="✅ Moduli u përditësua vetëm për këtë user.";status.className="message success";}
+        await loadForSelected();
+      };
+      wrap.append(cb,text);
+      list.appendChild(wrap);
     }
-    await loadAdminUsers();
+    if(reset) reset.disabled=false;
+    if(status){status.textContent="";status.className="message";}
   };
-  sync();
+
+  select.onchange=loadForSelected;
+  if(reset){
+    reset.onclick=async()=>{
+      const device=select.value||"";
+      if(!device)return;
+      reset.disabled=true;
+      const out=await supabase.rpc("module_access_admin_reset",{p_device:device,p_module:null});
+      reset.disabled=false;
+      if(out.error){
+        if(status){status.textContent=out.error.message||"Nuk u rivendos.";status.className="message error";}
+        return;
+      }
+      if(status){status.textContent="✅ U kthye te modulet standarde të Adminit.";status.className="message success";}
+      await loadForSelected();
+    };
+  }
+
+  if(select.value) await loadForSelected();
+  else renderEmpty();
 }
 
 async function loadAdminUsers(){
@@ -1916,7 +1968,7 @@ async function loadAdminUsers(){
     if(result.error) throw result.error;
     const users=Array.isArray(result.data)?result.data:[];
     if(adminUserCount)adminUserCount.textContent=String(users.length);
-    renderAdminHealthAccessControl(users);
+    await renderAdminModuleAccessControl(users);
     await loadUpdateReleasePolicy(users);
 
     if(adminMessageTarget){
@@ -1947,7 +1999,7 @@ async function loadAdminUsers(){
       const strong=document.createElement("strong");
       strong.textContent=p.display_name||"User";
       const status=document.createElement("small");
-      status.textContent=(p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv")+" · "+(p.health_access?"🩺 Shëndeti ON":"🩺 Shëndeti OFF")+" · "+seen;
+      status.textContent=(p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv")+" · "+seen;
       const tech=document.createElement("small");
       tech.textContent="🌐 IP: "+(p.ip_address||"—")+" · 📱 ID: "+(p.device_id||"—");
       main.append(strong,status,tech);
@@ -1981,16 +2033,15 @@ async function loadAdminUsers(){
         await loadAdminUsers();
       };
 
-      const health=document.createElement("button");
-      health.className="secondary";health.type="button";
-      health.textContent=p.health_access?"🩺 Hiq Shëndetin":"🩺 Lejo Shëndetin";
-      health.onclick=async()=>{
-        health.disabled=true;
-        const out=await supabase.rpc("health_access_admin_set",{p_device:p.device_id,p_allowed:!p.health_access});
-        health.disabled=false;
-        if(out.error){showMessage(adminUsersStatus,out.error.message||"Gabim.","error");return;}
-        showMessage(adminUsersStatus,p.health_access?"Qasja te Shëndeti u hoq.":"Qasja te Shëndeti u aktivizua për këtë user.","success");
-        await loadAdminUsers();
+      const modules=document.createElement("button");
+      modules.className="secondary";modules.type="button";modules.textContent="⚙️ Modulet";
+      modules.onclick=()=>{
+        const select=document.getElementById("moduleAccessUserSelect");
+        if(select){
+          select.value=p.device_id||"";
+          select.dispatchEvent(new Event("change"));
+          document.getElementById("adminModuleAccessCard")?.scrollIntoView({behavior:"smooth",block:"center"});
+        }
       };
 
       const message=document.createElement("button");
@@ -2001,7 +2052,7 @@ async function loadAdminUsers(){
         adminMessageCard?.scrollIntoView({behavior:"smooth",block:"center"});
       };
 
-      row.append(main,input,rename,block,health,message);
+      row.append(main,input,rename,block,modules,message);
       adminUsersList.appendChild(row);
     }
   }catch(error){
@@ -3756,6 +3807,7 @@ function startRealtime() {
       (payload) => {
         loadSharedMenuOrder();
         loadHiddenTabs();
+        if(!isAdmin()) refreshModuleAccess();
         loadAdminMenuTheme();
         window.PajazitiGames?.reloadSettings?.();
 
@@ -3780,7 +3832,7 @@ function startRealtime() {
             showMessage(loginMessage,"Ky telefon është bllokuar nga Admini.","error");
             return;
           }
-          await refreshHealthAccess();
+          await refreshModuleAccess();
         }
       }
     )
@@ -3851,11 +3903,11 @@ async function applySession(session) {
   }
   roleLabel.textContent = isAdmin() ? t("role.admin") : (globalUserName() || t("role.family"));
   uploadStatus.textContent = "";
-  await refreshHealthAccess();
   setSection(ADMIN_ONLY && isAdmin() ? "adminhub" : "home");
   await loadMedia();
   await loadSharedMenuOrder();
   await loadHiddenTabs();
+  await refreshModuleAccess();
   await loadAdminMenuTheme();
   let savedCoords = savedPrayerCoords();
   if (savedCoords) {
