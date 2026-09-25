@@ -362,12 +362,37 @@ body.lightbox-open { overflow: hidden; }
 /* Online games */
 .games-shell { display: grid; gap: 14px; }
 .games-lobby { display: grid; gap: 14px; }
-.games-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.game-choice {
-  border: 0; border-radius: 18px; padding: 18px 12px; background: #fff;
-  box-shadow: 0 6px 22px rgba(0,0,0,.06); font-weight: 850; font-size: 18px;
+.games-choice { display:grid;grid-template-columns:1fr;gap:12px; }
+.game-choice{
+  border:0;border-radius:18px;padding:12px 14px;background:#fff;
+  box-shadow:0 6px 22px rgba(0,0,0,.06);display:grid;
+  grid-template-columns:minmax(145px,.9fr) minmax(250px,1.45fr);
+  align-items:center;gap:10px;overflow:hidden
 }
-.game-choice.active { background: #7c3aed; color: #fff; }
+.game-choice.active{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff}
+.game-choice.blocked{opacity:.64}
+.game-choice-title{
+  min-width:0;border:0;background:transparent;color:inherit;padding:12px 8px;
+  font:inherit;font-weight:900;font-size:18px;text-align:left;line-height:1.2
+}
+.game-choice-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.game-choice-actions.single{grid-template-columns:1fr}
+.game-choice-actions button{
+  min-height:48px;border:0;border-radius:14px;padding:8px 9px;color:#fff;
+  font-weight:900;font-size:13px;line-height:1.15;box-shadow:0 5px 14px rgba(0,0,0,.16)
+}
+.game-choice-online{background:linear-gradient(135deg,#2563eb,#312e81)}
+.game-choice-play{background:linear-gradient(135deg,#10b981,#047857)}
+.game-choice .game-block-note{grid-column:1/-1;font-size:11px;opacity:.85}
+@media(max-width:620px){
+  .game-choice{grid-template-columns:minmax(120px,.82fr) minmax(210px,1.35fr);padding:10px}
+  .game-choice-title{font-size:17px;padding:9px 6px}
+  .game-choice-actions button{min-height:46px;font-size:12px;padding:7px 6px}
+}
+@media(max-width:430px){
+  .game-choice{grid-template-columns:1fr}
+  .game-choice-title{text-align:center}
+}
 .game-join-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 .game-join-row input { min-width: 0; text-transform: uppercase; letter-spacing: 3px; font-weight: 850; }
 .game-room-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
