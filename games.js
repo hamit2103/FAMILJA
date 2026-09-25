@@ -41,6 +41,7 @@ let gameMusicGain=null;
 let adminGameTheme={light:"#f0d9b5",dark:"#b58863",primary:"#ffffff",secondary:"#111827",arena:"#111827"};
 let userGameTheme=null;
 let boardAiLevel=localStorage.getItem(BOARD_AI_LEVEL_KEY)||"medium";
+let gameThemePanelOpen=false;
 
 let quickChessTimer=null;
 let quickChessDeadline=0;
@@ -107,6 +108,9 @@ function ensureUniversalGameStyle(){
       color:#fff;font-weight:900;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.32)}
     #diamondUniversalGameAgain{background:linear-gradient(135deg,#7c3aed,#2563eb)}
     #diamondUniversalGameLeave{background:rgba(17,24,39,.94)}
+    body.diamond-run-top-chrome #gamesRoot{padding-top:52px!important;padding-bottom:10px!important}
+    #diamondUniversalGameChrome.diamond-run-chrome #diamondUniversalGameActions{top:max(7px,env(safe-area-inset-top));bottom:auto;left:8px;transform:none;width:min(calc(100vw - 108px),360px);grid-template-columns:1fr 1fr;gap:6px}
+    #diamondUniversalGameChrome.diamond-run-chrome #diamondUniversalGameActions button{min-height:34px;border-radius:11px;font-size:11px;padding:5px 7px}
     @media (max-height:650px){body.diamond-game-fullscreen-active #gamesRoot{padding-top:42px!important;padding-bottom:66px!important}
       #diamondUniversalGameActions button{min-height:42px;font-size:13px}}
   `;
@@ -122,6 +126,7 @@ async function deactivateUniversalGameFullscreen(){
   if(!universalGameFullscreen&&!document.getElementById("diamondUniversalGameChrome"))return;
   universalGameFullscreen=false;
   document.body.classList.remove("diamond-game-fullscreen-active");
+  document.body.classList.remove("diamond-run-top-chrome");
   document.getElementById("diamondUniversalGameChrome")?.remove();
   try{
     if(document.fullscreenElement&&document.exitFullscreen)await document.exitFullscreen();
@@ -191,6 +196,9 @@ function renderUniversalGameChrome(){
     chrome.id="diamondUniversalGameChrome";
     document.body.appendChild(chrome);
   }
+  const diamondRunActive=selectedType==="diamondrun"&&!!root.querySelector(".diamond-run-shell");
+  chrome.className=diamondRunActive?"diamond-run-chrome":"";
+  document.body.classList.toggle("diamond-run-top-chrome",diamondRunActive);
   chrome.innerHTML=`<button id="diamondUniversalGameClose" type="button" aria-label="${universalGameText("close")}">✕</button>
     <div id="diamondUniversalGameActions">
       <button id="diamondUniversalGameAgain" type="button">${universalGameText("again")}</button>
@@ -321,7 +329,15 @@ function openGameInfo(){
 }
 function ensureGameInfoButton(){
   if(!root||!root.firstElementChild||document.getElementById("gameInfoButton"))return;
-  const btn=document.createElement("button");btn.id="gameInfoButton";btn.className="game-info-fab";btn.type="button";btn.textContent=gx("info");btn.addEventListener("click",openGameInfo);root.firstElementChild.appendChild(btn);
+  const runningDiamond=selectedType==="diamondrun"&&!!root.querySelector(".diamond-run-shell");
+  const btn=document.createElement("button");
+  btn.id="gameInfoButton";
+  btn.className="game-info-fab"+(runningDiamond?" diamond-run-info-mini":"");
+  btn.type="button";
+  btn.textContent=runningDiamond?"i":gx("info");
+  btn.setAttribute("aria-label",gx("info"));
+  btn.addEventListener("click",openGameInfo);
+  root.firstElementChild.appendChild(btn);
 }
 function startPracticeForGame(game=selectedType){
   practiceFallbackGame=null;
@@ -430,23 +446,26 @@ async function saveAdminGameTheme(){
   const normalized=normalizeGameTheme(theme);
   const {data:s}=await supabase.auth.getSession();const user=s?.session?.user;if(!user)return;
   const {error}=await supabase.from("app_settings").upsert({key:GAME_THEME_SETTING_KEY,value:normalized,updated_at:new Date().toISOString(),updated_by:user.id},{onConflict:"key"});
-  if(!error){adminGameTheme=normalized;if(!userGameTheme)applyGameTheme();renderLobby();}
+  if(!error){adminGameTheme=normalized;if(!userGameTheme)applyGameTheme();gameThemePanelOpen=false;renderLobby();}
 }
 function saveUserGameTheme(){
   const theme={light:document.getElementById("gameColorLight")?.value,dark:document.getElementById("gameColorDark")?.value,primary:document.getElementById("gameColorPrimary")?.value,secondary:document.getElementById("gameColorSecondary")?.value,arena:document.getElementById("gameColorArena")?.value};
   userGameTheme=normalizeGameTheme(theme);localStorage.setItem(GAME_USER_THEME_KEY,JSON.stringify(userGameTheme));applyGameTheme();
 }
-function resetUserGameTheme(){userGameTheme=null;localStorage.removeItem(GAME_USER_THEME_KEY);applyGameTheme();renderLobby();}
+function resetUserGameTheme(){userGameTheme=null;localStorage.removeItem(GAME_USER_THEME_KEY);applyGameTheme();gameThemePanelOpen=false;renderLobby();}
 function gameThemeControls(){
   const t=currentGameTheme();
-  return '<section class="game-theme-controls"><strong>'+gx(gamesAdmin?"adminColors":"myColors")+'</strong><div class="game-color-grid">'+
-    '<label>1<input id="gameColorLight" type="color" value="'+t.light+'"></label>'+
-    '<label>2<input id="gameColorDark" type="color" value="'+t.dark+'"></label>'+
-    '<label>3<input id="gameColorPrimary" type="color" value="'+t.primary+'"></label>'+
-    '<label>4<input id="gameColorSecondary" type="color" value="'+t.secondary+'"></label>'+
-    '<label>◼<input id="gameColorArena" type="color" value="'+t.arena+'"></label></div>'+
-    (gamesAdmin?'<button id="saveAdminGameTheme" class="secondary" type="button">'+gx("saveAdminColors")+'</button>':'<button id="resetUserGameTheme" class="secondary" type="button">'+gx("resetColors")+'</button>')+
-    '</section>';
+  const panel=gameThemePanelOpen
+    ? '<section class="game-theme-controls"><strong>'+gx(gamesAdmin?"adminColors":"myColors")+'</strong><div class="game-color-grid">'+
+      '<label>1<input id="gameColorLight" type="color" value="'+t.light+'"></label>'+
+      '<label>2<input id="gameColorDark" type="color" value="'+t.dark+'"></label>'+
+      '<label>3<input id="gameColorPrimary" type="color" value="'+t.primary+'"></label>'+
+      '<label>4<input id="gameColorSecondary" type="color" value="'+t.secondary+'"></label>'+
+      '<label>◼<input id="gameColorArena" type="color" value="'+t.arena+'"></label></div>'+
+      (gamesAdmin?'<button id="saveAdminGameTheme" class="secondary" type="button">'+gx("saveAdminColors")+'</button>':'<button id="resetUserGameTheme" class="secondary" type="button">'+gx("resetColors")+'</button>')+
+      '</section>'
+    : '';
+  return '<div class="game-theme-dock"><button id="gameThemeToggle" class="game-theme-toggle" type="button" aria-label="'+gx("colors")+'" title="'+gx("colors")+'">🎨</button>'+panel+'</div>';
 }
 function setMasterSound(enabled){
   masterSoundEnabled=!!enabled;localStorage.setItem(GAME_SOUND_MASTER_KEY,masterSoundEnabled?"on":"off");
@@ -2589,29 +2608,30 @@ function renderLobby(msg=""){
                 <option value="pro" ${boardAiLevel==="pro"?"selected":""}>Profesionel</option>
               </select>
             </label>
-            <button id="boardQuickOnline" class="primary" type="button">🌐 ${selectedType==="chess"?tr("chess"):tr("morris")} Online · 15 s</button><button id="boardPracticeNow" class="secondary" type="button">${gx("practice")}</button>
+            <button id="boardPracticeNow" class="primary" type="button">🎮 Luaj</button>
+            <button id="boardQuickOnline" class="secondary" type="button">🌐 Luaj online</button>
           </div>
           <section id="boardLeaderboard" class="card board-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
           ${gamesAdmin?'<section class="card board-admin-panel"><h3>👑 Admin · Emrat e lojtarëve</h3><p class="muted">Vetëm Admini mund t’i ndryshojë. Pikët mbeten të njëjta.</p><div id="boardAdminProfiles">Po ngarkohen lojtarët…</div></section>':""}
         ` : selectedType==="timer" ? `
           <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
-          <button id="timerSoloGame" class="primary" type="button">${gx("practice")}</button>
-          <button id="timerQuickOnline" class="secondary" type="button">${gx("online2to8")}</button>
+          <button id="timerSoloGame" class="primary" type="button">🎮 Luaj</button>
+          <button id="timerQuickOnline" class="secondary" type="button">🌐 Luaj online</button>
           <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
         ` : selectedType==="diamondrun" ? `
           <div class="game-help">💎 ${tr("diamondrun")}</div>
-          <button id="diamondRunGame" class="primary" type="button">🎮 Fillo lojën</button>
+          <button id="diamondRunGame" class="primary" type="button">🎮 Luaj</button>
           <div class="game-help">🏃 Vrapo · ⬆️ Kërce · 💎 Mblidh diamante · ❤️ 3 jetë · 🚩 Arrij flamurin</div>
           <div class="game-help">🎯 5 nivele · checkpoint · armiq · pengesa · komandim me prekje në telefon.</div>
         ` : selectedType==="uck" ? `
           <div class="game-help">🪖 ${tr("uck")}</div>
-          <button id="uckGame" class="primary" type="button">🎮 Fillo misionin</button>
+          <button id="uckGame" class="primary" type="button">🎮 Luaj</button>
           <div class="game-help">🚑 Ndihmë · 📦 Furnizime · 👨‍👩‍👧 Civilë · 🧭 Rrugë e sigurt · 🛡️ Mbrojtje zone</div>
           <div class="game-help">🎯 Misione të ndryshme, pikë, jetë dhe terren malor.</div>
         ` : selectedType==="kingdom" ? `
           <div class="game-help">🏰 ${tr("kingdom")}</div>
-          <button id="kingdomGame" class="primary" type="button">🎮 ${tr("computer")}</button>
+          <button id="kingdomGame" class="primary" type="button">🎮 Luaj</button>
           <div class="game-help">🌱 Tokë · 🧱 Mur · 🛡️ Ushtar · 🌉 Urë · 🔥 Zjarr · 🌊 Ujë · 💣 Bombë · 💎 Diamanti i Zi</div>
           <div class="game-help">🎯 24 raunde · pushto kështjellën ose mbaro me territorin më të madh.</div>
         ` : selectedType==="war" ? `
@@ -2623,8 +2643,8 @@ function renderLobby(msg=""){
             <input id="warPlayerName" type="hidden" value="${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"")}">
             <div id="warNameInfo" class="game-help hidden"></div>
             <div class="war-diamond-note">💎 +5 çdo orë · 🎲 armë të reja 3 💎 · 🤖 ${gx("practiceNote")}</div>
-            <button id="warGame" class="primary" type="button">${gx("practice")}</button>
-            <button id="warMultiBtn" class="secondary war-online-btn" type="button">🌐 Luaj Online (deri 8 veta)</button>
+            <button id="warGame" class="primary" type="button">🎮 Luaj</button>
+            <button id="warMultiBtn" class="secondary war-online-btn" type="button">🌐 Luaj online</button>
             <div id="warMultiCount" class="war-online-count">👥 Në pritje: 0 / 8</div>
             <div class="game-help">Online pret 10 sekonda. Nëse askush nuk hyn, del “Provo përsëri” — nuk kalon te kompjuteri.</div>
           </div>
@@ -2632,15 +2652,15 @@ function renderLobby(msg=""){
           ${gamesAdmin?`<section class="war-admin-panel"><h3>👑 Admin · Luftra</h3><p class="muted">Jep diamanta çdo lojtari. Emri lidhet me pajisjen dhe mund të ndryshohet vetëm 2 herë.</p><div id="warAdminProfiles">Po ngarkohen lojtarët…</div></section>`:""}
         ` : selectedType==="tetris" ? `
           <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
-          <button id="tetrisGame" class="primary" type="button">${gx("practice")}</button>
-          <button id="tetrisQuickOnline" class="secondary" type="button">${gx("online2to4")}</button>
+          <button id="tetrisGame" class="primary" type="button">🎮 Luaj</button>
+          <button id="tetrisQuickOnline" class="secondary" type="button">🌐 Luaj online</button>
           <div class="game-help">Online pret deri 15 sekonda. Lojtari i fundit që mbetet në lojë fiton 🥇.</div>
           <div class="game-help">👆 Prek një herë ekranin = rrotullo · ✋ Mbaje të shtypur dhe tërhiqe = lëvize ku dëshiron</div>
           <section id="tetrisRecentWins" class="tetris-leaderboard-mini"><div class="muted">🥇 Po ngarkohen fituesit online…</div></section>
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun") ? "" : `
+        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun" || selectedType==="chess" || selectedType==="morris" || selectedType==="timer") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -2659,6 +2679,7 @@ function renderLobby(msg=""){
   ensureGameInfoButton();
   document.getElementById("gameMasterSound")?.addEventListener("click",()=>{setMasterSound(!masterSoundEnabled);renderLobby();});
   document.getElementById("gameMusicToggle")?.addEventListener("click",()=>{setGameMusic(!gameMusicEnabled);renderLobby();});
+  document.getElementById("gameThemeToggle")?.addEventListener("click",()=>{gameThemePanelOpen=!gameThemePanelOpen;renderLobby();});
   ["gameColorLight","gameColorDark","gameColorPrimary","gameColorSecondary","gameColorArena"].forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{if(!gamesAdmin)saveUserGameTheme();}));
   document.getElementById("saveAdminGameTheme")?.addEventListener("click",saveAdminGameTheme);
   document.getElementById("resetUserGameTheme")?.addEventListener("click",resetUserGameTheme);
@@ -2765,7 +2786,7 @@ function renderLobby(msg=""){
 async function startDiamondRunGame(){
   stopGameMusic();
   try{
-    const mod=await import("./diamond-run.js?v=3");
+    const mod=await import("./diamond-run.js?v=4");
     mod.startDiamondRunGame({root,onBack:()=>renderLobby()});
   }catch(error){
     console.warn("diamond run",error);
