@@ -27,7 +27,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site
-          cp index.html styles.css app.js app-config.js games.js tv.js radio.js manifest.webmanifest icon.svg sw.js war.js kosovo-free-https.m3u rtk-free.m3u pajaziti-android.apk pajaziti-fresh.apk _site/
+          cp index.html styles.css app.js app-config.js games.js kingdom.js tv.js radio.js manifest.webmanifest icon.svg sw.js war.js kosovo-free-https.m3u rtk-free.m3u pajaziti-android.apk pajaziti-fresh.apk _site/
           touch _site/.nojekyll
 
       - name: Setup Pages
