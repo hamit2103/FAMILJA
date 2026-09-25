@@ -33,8 +33,18 @@ const DTX2={
  fr:{walkBurn:"Brûlées en marchant",walkEstimate:"Marche estimée",foodEstimate:"Estimation automatique",notRecognizedShort:"Non reconnu pour les kcal"},
  ar:{walkBurn:"المحروقة بالمشي",walkEstimate:"تقدير المشي",foodEstimate:"تقدير تلقائي",notRecognizedShort:"غير معروف للسعرات"}
 };
+const DTX3={
+ sq:{amount:"Sasia",piece:"copë"},
+ de:{amount:"Menge",piece:"Stück"},
+ tr:{amount:"Miktar",piece:"adet"},
+ en:{amount:"Amount",piece:"piece"},
+ it:{amount:"Quantità",piece:"pezzo"},
+ hr:{amount:"Količina",piece:"kom"},
+ fr:{amount:"Quantité",piece:"pièce"},
+ ar:{amount:"الكمية",piece:"قطعة"}
+};
 function dl(){const l=localStorage.getItem(DIET_LANG_KEY)||"sq";return DT[l]?l:"en";}
-function dt(k){return DT[dl()]?.[k]??DTX[dl()]?.[k]??DTX2[dl()]?.[k]??DT.en[k]??DTX.en[k]??DTX2.en[k]??k;}
+function dt(k){return DT[dl()]?.[k]??DTX[dl()]?.[k]??DTX2[dl()]?.[k]??DTX3[dl()]?.[k]??DT.en[k]??DTX.en[k]??DTX2.en[k]??DTX3.en[k]??k;}
 function dateKey(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");}
 function read(key,fb){try{return JSON.parse(localStorage.getItem(key)||"")||fb}catch{return fb}}
 function write(key,v){localStorage.setItem(key,JSON.stringify(v))}
@@ -198,51 +208,108 @@ function autoKcalPlan(weight,targetWeight,targetDate,goalDirection){
 function logs(){return read(DIET_LOG_KEY,{});}
 function todayLogs(){return logs()[dateKey()]||[];}
 function saveToday(items){const all=logs();all[dateKey()]=items;write(DIET_LOG_KEY,all);}
-function dayJournal(){const all=read(DIET_DAY_KEY,{});return all[dateKey()]||{walking:"",breakfast:"",lunch:"",dinner:"",extra:""};}
+function dayJournal(){const all=read(DIET_DAY_KEY,{});return all[dateKey()]||{walking:"",breakfast:"",lunch:"",dinner:"",extra:"",quantities:{}};}
 function saveDayJournal(v){const all=read(DIET_DAY_KEY,{});all[dateKey()]=v;write(DIET_DAY_KEY,all);}
-function parseFood(text){
+function splitMealParts(text){
+ const raw=String(text||"").trim();
+ if(!raw)return [];
+ return raw.split(/\n|;|\+|,\s+|\s+(?:dhe|und|and|ve|et)\s+/i).map(x=>x.trim()).filter(Boolean);
+}
+function aliasBoundaryMatch(text,alias){
+ const lower=String(text||"").toLocaleLowerCase(),a=String(alias||"").toLocaleLowerCase();
+ let from=0;
+ const word=ch=>!!ch&&/[\p{L}\p{N}]/u.test(ch);
+ while(true){
+   const i=lower.indexOf(a,from);
+   if(i<0)return false;
+   const before=i>0?lower[i-1]:"",after=i+a.length<lower.length?lower[i+a.length]:"";
+   if(!word(before)&&!word(after))return true;
+   from=i+1;
+ }
+}
+function findFoodMatch(text){
+ const raw=String(text||"").trim();
+ if(!raw)return null;
+ const candidates=[];
+ FOODS.forEach(f=>f.p.forEach(alias=>{if(aliasBoundaryMatch(raw,alias))candidates.push({food:f,alias:String(alias)});}));
+ candidates.sort((a,b)=>b.alias.length-a.alias.length);
+ return candidates[0]||null;
+}
+function unitOptions(food){
+ if(!food)return [];
+ if(food.kind==="ml")return [{value:"ml",label:"ml"},{value:"l",label:"l"}];
+ if(food.kind==="g")return [{value:"g",label:"g"},{value:"kg",label:"kg"}];
+ return [{value:"unit",label:dt("piece")}];
+}
+function amountToBase(amount,unit,food){
+ const n=Number(amount);
+ if(!Number.isFinite(n)||n<0)return 0;
+ if(food?.kind==="g")return unit==="kg"?n*1000:n;
+ if(food?.kind==="ml")return unit==="l"?n*1000:n;
+ return n;
+}
+function kcalForAmount(food,amountBase){
+ if(!food)return 0;
+ if(food.kind==="g"||food.kind==="ml")return Math.max(0,Math.round(Number(amountBase||0)*Number(food.k||0)/100));
+ return Math.max(0,Math.round(Number(amountBase||0)*Number(food.k||0)));
+}
+function parseFood(text,override=null){
  const raw=String(text||"").trim();
  if(!raw)return null;
  const exact=raw.match(/(\d+(?:[.,]\d+)?)\s*kcal/i);
- if(exact)return {label:raw,kcal:Math.max(0,Math.round(Number(exact[1].replace(",","."))))};
- const lower=raw.toLocaleLowerCase();
- const candidates=[];
- FOODS.forEach(f=>f.p.forEach(alias=>{
-   const a=String(alias).toLocaleLowerCase();
-   if(lower.includes(a))candidates.push({f,alias:a});
- }));
- candidates.sort((a,b)=>b.alias.length-a.alias.length);
- const food=candidates[0]?.f||null;
+ if(exact)return {label:raw,kcal:Math.max(0,Math.round(Number(exact[1].replace(",",".")))),amount:0,unit:"kcal"};
+ const match=findFoodMatch(raw);
+ const food=match?.food||null;
  if(!food)return null;
- let amount=null;
+ const lower=raw.toLocaleLowerCase();
+ let amount=null,unit=food.kind==="ml"?"ml":food.kind==="g"?"g":"unit";
+ if(override&&override.amount!==""&&override.amount!=null){
+   const base=amountToBase(Number(String(override.amount).replace(",",".")),override.unit||unit,food);
+   return {label:raw,kcal:kcalForAmount(food,base),amount:base,unit,food,alias:match.alias};
+ }
  if(food.kind==="g"){
    const kg=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:kg|kilogram|kilogramm|kilo)\b/i);
    const g=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|gram|gramm)\b/i);
    amount=kg?Number(kg[1].replace(",","."))*1000:g?Number(g[1].replace(",",".")):food.serv;
-   return {label:raw,kcal:Math.round(amount*food.k/100),amount,unit:"g"};
- }
- if(food.kind==="ml"){
+ }else if(food.kind==="ml"){
    const liter=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:l|lt|liter|litra|litre)\b/i);
    const ml=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:ml|milliliter|millilitre)\b/i);
    amount=liter?Number(liter[1].replace(",","."))*1000:ml?Number(ml[1].replace(",",".")):food.serv;
-   return {label:raw,kcal:Math.round(amount*food.k/100),amount,unit:"ml"};
+ }else{
+   const count=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:cop(?:ë|e)|stück|stueck|piece|pcs?|adet|tane)?\b/i);
+   amount=count?Number(count[1].replace(",",".")):food.serv;
  }
- const count=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:cop(?:ë|e)|stück|stueck|piece|pcs?|adet|tane)?\b/i);
- amount=count?Number(count[1].replace(",",".")):food.serv;
- return {label:raw,kcal:Math.round(amount*food.k),amount,unit:"unit"};
+ return {label:raw,kcal:kcalForAmount(food,amount),amount,unit,food,alias:match.alias};
 }
-function parseMealText(text){
- const raw=String(text||"").trim();
- if(!raw)return [];
- const parts=raw.split(/\n|;|\+|,\s+|\s+(?:dhe|und|and|ve|et)\s+/i).map(x=>x.trim()).filter(Boolean);
- const parsed=parts.map(parseFood).filter(Boolean);
- if(parsed.length)return parsed;
- const one=parseFood(raw);
- return one?[one]:[];
+function quantityKey(part,index){return String(index)+"|"+String(part||"").trim().toLocaleLowerCase();}
+function quantityView(parsed,override){
+ const food=parsed?.food;if(!food)return {amount:"",unit:""};
+ if(override&&override.amount!==""&&override.amount!=null)return {amount:override.amount,unit:override.unit||parsed.unit};
+ return {amount:parsed.amount,unit:parsed.unit};
 }
-function mealTextKcal(text){return parseMealText(text).reduce((sum,x)=>sum+Number(x.kcal||0),0);}
+function mealParsed(text,mealKey,quantities={}){
+ return splitMealParts(text).map((part,index)=>{
+   const key=quantityKey(part,index),ov=quantities?.[mealKey]?.[key]||null;
+   const parsed=parseFood(part,ov);
+   return {part,index,key,parsed};
+ }).filter(x=>x.parsed);
+}
+function mealTextKcal(text,mealKey="",quantities={}){
+ return mealParsed(text,mealKey,quantities).reduce((sum,x)=>sum+Number(x.parsed?.kcal||0),0);
+}
 function diaryFoodKcal(day){
- return ["breakfast","lunch","dinner","extra"].reduce((sum,k)=>sum+mealTextKcal(day?.[k]||""),0);
+ const q=day?.quantities||{};
+ return ["breakfast","lunch","dinner","extra"].reduce((sum,k)=>sum+mealTextKcal(day?.[k]||"",k,q),0);
+}
+function quantityRowsHtml(text,mealKey,quantities={}){
+ const rows=mealParsed(text,mealKey,quantities);
+ if(!rows.length)return "";
+ return rows.map(x=>{
+   const parsed=x.parsed,food=parsed.food,view=quantityView(parsed,quantities?.[mealKey]?.[x.key]);
+   if(!food||parsed.unit==="kcal")return "";
+   const opts=unitOptions(food).map(o=>'<option value="'+esc(o.value)+'" '+(String(view.unit)===o.value?'selected':'')+'>'+esc(o.label)+'</option>').join("");
+   return '<div class="diet-qty-row" data-qty-meal="'+esc(mealKey)+'" data-qty-key="'+esc(x.key)+'"><span class="diet-qty-name">'+esc(x.part)+'</span><label>'+esc(dt("amount"))+' <input class="diet-qty-amount" inputmode="decimal" type="number" min="0" step="0.1" value="'+esc(view.amount)+'"></label><select class="diet-qty-unit">'+opts+'</select></div>';
+ }).join("");
 }
 function parseWalking(text,weight,heightCm){
  const raw=String(text||"").toLocaleLowerCase().trim(),w=Number(weight);
@@ -314,23 +381,39 @@ function render(){
    <h3>🚶 ${esc(dt("walking"))}</h3><input id="dietWalking" type="text" value="${esc(day.walking||"")}" placeholder="${esc(dt("walkingPh"))}"><small id="dietWalkingKcal" class="diet-live-kcal">${day.walking?(esc(dt("walkEstimate"))+": ≈ "+walk.kcal+" "+esc(dt("kcal"))):""}</small>
    <h3>🍽️ ${esc(dt("meals"))}</h3>
    <div class="diet-meal-grid">
-     <label><span>🌅 ${esc(dt("breakfast"))}</span><textarea id="dietBreakfast" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.breakfast||"")}</textarea><small id="dietBreakfastKcal" class="diet-live-kcal">${day.breakfast?(mealTextKcal(day.breakfast)?"≈ "+mealTextKcal(day.breakfast)+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
-     <label><span>☀️ ${esc(dt("lunch"))}</span><textarea id="dietLunch" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.lunch||"")}</textarea><small id="dietLunchKcal" class="diet-live-kcal">${day.lunch?(mealTextKcal(day.lunch)?"≈ "+mealTextKcal(day.lunch)+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
-     <label><span>🌙 ${esc(dt("dinner"))}</span><textarea id="dietDinner" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.dinner||"")}</textarea><small id="dietDinnerKcal" class="diet-live-kcal">${day.dinner?(mealTextKcal(day.dinner)?"≈ "+mealTextKcal(day.dinner)+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
-     <label><span>🍎 ${esc(dt("extra"))}</span><textarea id="dietExtra" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.extra||"")}</textarea><small id="dietExtraKcal" class="diet-live-kcal">${day.extra?(mealTextKcal(day.extra)?"≈ "+mealTextKcal(day.extra)+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
+     <label><span>🌅 ${esc(dt("breakfast"))}</span><textarea id="dietBreakfast" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.breakfast||"")}</textarea><div id="dietBreakfastQty" class="diet-qty-box"></div><small id="dietBreakfastKcal" class="diet-live-kcal">${day.breakfast?(mealTextKcal(day.breakfast,"breakfast",day.quantities||{})?"≈ "+mealTextKcal(day.breakfast,"breakfast",day.quantities||{})+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
+     <label><span>☀️ ${esc(dt("lunch"))}</span><textarea id="dietLunch" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.lunch||"")}</textarea><div id="dietLunchQty" class="diet-qty-box"></div><small id="dietLunchKcal" class="diet-live-kcal">${day.lunch?(mealTextKcal(day.lunch,"lunch",day.quantities||{})?"≈ "+mealTextKcal(day.lunch,"lunch",day.quantities||{})+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
+     <label><span>🌙 ${esc(dt("dinner"))}</span><textarea id="dietDinner" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.dinner||"")}</textarea><div id="dietDinnerQty" class="diet-qty-box"></div><small id="dietDinnerKcal" class="diet-live-kcal">${day.dinner?(mealTextKcal(day.dinner,"dinner",day.quantities||{})?"≈ "+mealTextKcal(day.dinner,"dinner",day.quantities||{})+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
+     <label><span>🍎 ${esc(dt("extra"))}</span><textarea id="dietExtra" rows="3" placeholder="${esc(dt("mealPh"))}">${esc(day.extra||"")}</textarea><div id="dietExtraQty" class="diet-qty-box"></div><small id="dietExtraKcal" class="diet-live-kcal">${day.extra?(mealTextKcal(day.extra,"extra",day.quantities||{})?"≈ "+mealTextKcal(day.extra,"extra",day.quantities||{})+" "+esc(dt("kcal")):esc(dt("notRecognizedShort"))):""}</small></label>
    </div>
    <button id="dietSaveDay" class="primary" type="button">${esc(dt("saveDay"))}</button><div id="dietDayStatus" class="message"></div>
  </section>
  <section class="card diet-add-card"><h3>➕ ${esc(dt("food"))}</h3><textarea id="dietFood" rows="2" placeholder="${esc(dt("placeholder"))}"></textarea><button id="dietAdd" class="primary" type="button">${esc(dt("add"))}</button><div id="dietFoodStatus" class="message"></div></section>
  <section class="card"><h3>📅 ${esc(dt("today"))}</h3><div id="dietList" class="diet-list">${items.length?items.map((x,i)=>`<div class="diet-row"><div><strong>${esc(x.label)}</strong><small>${new Date(x.time).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</small></div><b>${x.kcal} ${esc(dt("kcal"))}</b><button type="button" data-diet-del="${i}">×</button></div>`).join(""):`<p class="muted">${esc(dt("empty"))}</p>`}</div></section>`;
 
+ const quantityState=JSON.parse(JSON.stringify(day.quantities||{}));
  let onlineTimer=null,onlineSeq=0;
+ const fields={breakfast:"dietBreakfast",lunch:"dietLunch",dinner:"dietDinner",extra:"dietExtra"};
+ const refreshQuantityBox=(mealKey,id)=>{
+   const box=document.getElementById(id+"Qty"),txt=document.getElementById(id)?.value||"";
+   if(!box)return;
+   box.innerHTML=quantityRowsHtml(txt,mealKey,quantityState);
+   box.querySelectorAll(".diet-qty-row").forEach(row=>{
+     const qKey=row.dataset.qtyKey,amount=row.querySelector(".diet-qty-amount"),unit=row.querySelector(".diet-qty-unit");
+     const saveOverride=()=>{
+       quantityState[mealKey]=quantityState[mealKey]||{};
+       quantityState[mealKey][qKey]={amount:amount?.value||"",unit:unit?.value||""};
+       liveNutrition();
+     };
+     amount?.addEventListener("input",saveOverride);
+     unit?.addEventListener("change",saveOverride);
+   });
+ };
  const liveNutrition=()=>{
-   const fields={breakfast:"dietBreakfast",lunch:"dietLunch",dinner:"dietDinner",extra:"dietExtra"};
    let mealTotal=0;
    const unresolved=[];
    Object.entries(fields).forEach(([key,id])=>{
-     const el=document.getElementById(id),txt=el?.value||"",kcal=mealTextKcal(txt),note=document.getElementById(id+"Kcal");
+     const el=document.getElementById(id),txt=el?.value||"",kcal=mealTextKcal(txt,key,quantityState),note=document.getElementById(id+"Kcal");
      const cached=onlineFoodCache.get(String(txt).trim().toLocaleLowerCase()),onlineKcal=Number(cached?.kcal||0),finalKcal=kcal||onlineKcal;
      mealTotal+=finalKcal;
      if(note)note.textContent=txt?(finalKcal?"≈ "+finalKcal+" "+dt("kcal")+(onlineKcal&&!kcal?" · online":""):dt("notRecognizedShort")):"";
@@ -369,7 +452,12 @@ function render(){
  };
  ["dietWeight","dietHeight","dietTargetWeight","dietTargetDate","dietGoalDirection","dietBmiMode","dietKcalMode"].forEach(id=>document.getElementById(id)?.addEventListener("input",liveCalc));
  ["dietGoalDirection","dietBmiMode","dietKcalMode"].forEach(id=>document.getElementById(id)?.addEventListener("change",liveCalc));
- ["dietWalking","dietBreakfast","dietLunch","dietDinner","dietExtra","dietKcalTarget"].forEach(id=>document.getElementById(id)?.addEventListener("input",liveNutrition));
+ document.getElementById("dietWalking")?.addEventListener("input",liveNutrition);
+ document.getElementById("dietKcalTarget")?.addEventListener("input",liveNutrition);
+ Object.entries(fields).forEach(([key,id])=>{
+   document.getElementById(id)?.addEventListener("input",()=>{refreshQuantityBox(key,id);liveNutrition();});
+   refreshQuantityBox(key,id);
+ });
  liveNutrition();
 
  document.getElementById("dietSave")?.addEventListener("click",()=>{
@@ -377,7 +465,7 @@ function render(){
    const saved={name:document.getElementById("dietName")?.value.trim()||"",weight:numValue("dietWeight"),height:numValue("dietHeight"),bmiMode:document.getElementById("dietBmiMode")?.value||"auto",bmi:document.getElementById("dietBmi")?.value||"",kcalMode:document.getElementById("dietKcalMode")?.value||"auto",target:numValue("dietKcalTarget"),goalDirection:document.getElementById("dietGoalDirection")?.value||"lose",targetWeight:numValue("dietTargetWeight"),targetDate:document.getElementById("dietTargetDate")?.value||"",startedAt:document.getElementById("dietStartedAt")?.value||""};
    write(DIET_PROFILE_KEY,saved);const status=document.getElementById("dietStatus");if(status)status.textContent=dt("saved");setTimeout(render,250);
  });
- document.getElementById("dietSaveDay")?.addEventListener("click",()=>{liveNutrition();saveDayJournal({walking:document.getElementById("dietWalking")?.value.trim()||"",breakfast:document.getElementById("dietBreakfast")?.value.trim()||"",lunch:document.getElementById("dietLunch")?.value.trim()||"",dinner:document.getElementById("dietDinner")?.value.trim()||"",extra:document.getElementById("dietExtra")?.value.trim()||""});const status=document.getElementById("dietDayStatus");if(status)status.textContent=dt("daySaved");});
+ document.getElementById("dietSaveDay")?.addEventListener("click",()=>{liveNutrition();saveDayJournal({walking:document.getElementById("dietWalking")?.value.trim()||"",breakfast:document.getElementById("dietBreakfast")?.value.trim()||"",lunch:document.getElementById("dietLunch")?.value.trim()||"",dinner:document.getElementById("dietDinner")?.value.trim()||"",extra:document.getElementById("dietExtra")?.value.trim()||"",quantities:quantityState});const status=document.getElementById("dietDayStatus");if(status)status.textContent=dt("daySaved");});
  document.getElementById("dietAdd")?.addEventListener("click",async()=>{const status=document.getElementById("dietFoodStatus"),input=document.getElementById("dietFood"),raw=input?.value||"";let parsed=parseFood(raw);if(!parsed)parsed=await lookupFoodOnline(raw);if(!parsed){if(status)status.textContent=dt("notFound");return;}const arr=todayLogs();arr.push({...parsed,time:new Date().toISOString()});saveToday(arr);if(input)input.value="";render();});
  root.querySelectorAll("[data-diet-del]").forEach(btn=>btn.addEventListener("click",()=>{const arr=todayLogs();arr.splice(Number(btn.dataset.dietDel),1);saveToday(arr);render();}));
 }
