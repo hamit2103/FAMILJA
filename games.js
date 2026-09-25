@@ -31,6 +31,7 @@ const GAME_SOUND_MASTER_KEY = "diamond-game-sound-master";
 const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
+const COMPUTER_AI_LEVELS_KEY = "diamond-computer-ai-levels-v1";
 const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun","diamondadventure"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
@@ -40,7 +41,13 @@ let gameMusicTimer=null;
 let gameMusicGain=null;
 let adminGameTheme={light:"#f0d9b5",dark:"#b58863",primary:"#ffffff",secondary:"#111827",arena:"#111827"};
 let userGameTheme=null;
-let boardAiLevel=localStorage.getItem(BOARD_AI_LEVEL_KEY)||"medium";
+let computerAiLevels={};
+try{computerAiLevels=JSON.parse(localStorage.getItem(COMPUTER_AI_LEVELS_KEY)||"{}")||{};}catch(_){computerAiLevels={};}
+const legacyAiLevel=localStorage.getItem(BOARD_AI_LEVEL_KEY)||"medium";
+for(const id of ["chess","morris","war","kingdom"]){
+  if(!["weak","medium","strong","pro"].includes(computerAiLevels[id])) computerAiLevels[id]=legacyAiLevel;
+}
+let boardAiLevel=computerAiLevels.chess||"medium";
 let gameThemePanelOpen=false;
 
 let quickChessTimer=null;
@@ -1613,12 +1620,14 @@ function warSpecial(key){
 function warInitialState(){
   const bonus=warBonusHeartCount();
   const maxHp=Math.min(20,5+bonus);
+  const aiLevel=getGameAiLevel("war");
+  const enemyHp=aiLevel==="weak"?4:aiLevel==="strong"?6:aiLevel==="pro"?7:5;
   const playerName=warProfile?.display_name||localStorage.getItem(WAR_NAME_KEY)||tr("you");
   const playerWeapons=warRollPair();
   const enemyWeapons=warRollPair();
   return {
     player:{name:playerName,hp:maxHp,maxHp,protect:0,frozen:false,burned:false,special:playerWeapons[0],special2:playerWeapons[1]},
-    enemy:{name:tr("computerName"),hp:5,maxHp:5,protect:0,frozen:false,burned:false,special:enemyWeapons[0],special2:enemyWeapons[1]},
+    enemy:{name:tr("computerName"),hp:enemyHp,maxHp:enemyHp,protect:0,frozen:false,burned:false,special:enemyWeapons[0],special2:enemyWeapons[1]},
     turn:"player",
     over:false,
     gameCounted:false,
@@ -1839,6 +1848,8 @@ function renderWarGame(){
 async function startWarGame(){
   const button=document.getElementById("warGame");
   if(button)button.disabled=true;
+  const difficulty=document.getElementById("boardAiLevel")?.value||getGameAiLevel("war");
+  setGameAiLevel("war",difficulty);
   const name=(localStorage.getItem("pajaziti-global-user-name")||tr("you")).trim().slice(0,20);
   warProfile={...(warProfile||{}),display_name:name,diamonds:Number(warProfile?.diamonds||200)};
   warGameState=warInitialState();
@@ -2295,6 +2306,34 @@ function warPlayerAction(action){
   });
 }
 
+function warAiActionScore(action,e,p){
+  let score=0;
+  const protection=(p.protect||0)>0;
+  if(action==="attack")score=22;
+  else if(action==="bomb")score=protection?18:44;
+  else if(action==="heart")score=(e.maxHp-e.hp)*14+(e.hp<=2?45:0);
+  else if(action==="helicopter")score=protection?30:62;
+  else if(action==="drone")score=protection?24:48;
+  else if(action==="fire")score=protection?22:58;
+  else if(action==="atom")score=protection?28:78;
+  else if(action==="protect")score=e.protect>0?8:(e.hp<=3?72:38);
+  else if(action==="azrael")score=protection?32:220;
+  else if(action==="ice")score=p.frozen?6:46;
+  const damage={attack:1,bomb:2,helicopter:2,drone:1,fire:2,atom:3}[action]||0;
+  if(!protection&&damage>=p.hp)score+=160;
+  return score;
+}
+function warChooseEnemyAction(e,p){
+  const actions=[e.special,e.special2].filter(Boolean);
+  if(!actions.length)return "attack";
+  const ranked=actions.map(action=>({action,score:warAiActionScore(action,e,p)})).sort((a,b)=>b.score-a.score);
+  const level=getGameAiLevel("war");
+  if(level==="weak")return Math.random()<.7?ranked[ranked.length-1].action:actions[Math.floor(Math.random()*actions.length)];
+  if(level==="medium")return Math.random()<.65?ranked[0].action:actions[Math.floor(Math.random()*actions.length)];
+  if(level==="strong")return Math.random()<.9?ranked[0].action:actions[Math.floor(Math.random()*actions.length)];
+  return ranked[0].action;
+}
+
 function warEnemyTurn(){
   const s=warGameState;
   if(!s||s.over||s.turn!=="enemy") return;
@@ -2305,7 +2344,7 @@ function warEnemyTurn(){
   if(!e.special||!e.special2){
     [e.special,e.special2]=warRollPair();
   }
-  const chosen=Math.random()<.5?e.special:e.special2;
+  const chosen=warChooseEnemyAction(e,p);
 
   s.turn="animating";
   renderWarGame();
@@ -2388,6 +2427,44 @@ function gameHasOnline(id){
 }
 function gameUsesComputer(id){
   return ["chess","morris","war","kingdom"].includes(id);
+}
+function getGameAiLevel(game){
+  const level=computerAiLevels[game];
+  return ["weak","medium","strong","pro"].includes(level)?level:"medium";
+}
+function setGameAiLevel(game,level){
+  const safe=["weak","medium","strong","pro"].includes(level)?level:"medium";
+  computerAiLevels[game]=safe;
+  try{localStorage.setItem(COMPUTER_AI_LEVELS_KEY,JSON.stringify(computerAiLevels));}catch(_){}
+  if(game==="chess"||game==="morris"){
+    boardAiLevel=safe;
+    localStorage.setItem(BOARD_AI_LEVEL_KEY,safe);
+  }
+  return safe;
+}
+function computerDifficultyText(key){
+  const l=lang();
+  const map={
+    sq:{label:"🤖 Forca e kompjuterit",weak:"I dobët",medium:"I mesëm",strong:"I fortë",pro:"Profesionel",note:"Niveli ndryshon realisht mënyrën si luan kompjuteri."},
+    de:{label:"🤖 Computerstärke",weak:"Schwach",medium:"Mittel",strong:"Stark",pro:"Profi",note:"Die Stufe ändert wirklich, wie stark der Computer spielt."},
+    tr:{label:"🤖 Bilgisayar gücü",weak:"Zayıf",medium:"Orta",strong:"Güçlü",pro:"Profesyonel",note:"Seviye bilgisayarın gerçekten ne kadar güçlü oynadığını değiştirir."},
+    en:{label:"🤖 Computer strength",weak:"Weak",medium:"Medium",strong:"Strong",pro:"Professional",note:"The selected level really changes how strongly the computer plays."},
+    it:{label:"🤖 Forza del computer",weak:"Debole",medium:"Medio",strong:"Forte",pro:"Professionale",note:"Il livello cambia davvero la forza di gioco del computer."},
+    hr:{label:"🤖 Snaga računala",weak:"Slabo",medium:"Srednje",strong:"Jako",pro:"Profesionalno",note:"Odabrana razina stvarno mijenja jačinu računala."},
+    fr:{label:"🤖 Force de l’ordinateur",weak:"Faible",medium:"Moyen",strong:"Fort",pro:"Professionnel",note:"Le niveau change réellement la force de jeu de l’ordinateur."},
+    ar:{label:"🤖 قوة الكمبيوتر",weak:"ضعيف",medium:"متوسط",strong:"قوي",pro:"محترف",note:"المستوى يغيّر فعليًا قوة لعب الكمبيوتر."}
+  };
+  return map[l]?.[key]||map.sq[key]||key;
+}
+function computerDifficultyControls(game){
+  const level=getGameAiLevel(game);
+  return '<div class="board-profile-box computer-difficulty-box"><label class="board-ai-level-label">'+computerDifficultyText("label")+
+    '<select id="boardAiLevel" class="board-ai-level-select" data-ai-game="'+game+'">'+
+      '<option value="weak" '+(level==="weak"?"selected":"")+'>'+computerDifficultyText("weak")+'</option>'+
+      '<option value="medium" '+(level==="medium"?"selected":"")+'>'+computerDifficultyText("medium")+'</option>'+
+      '<option value="strong" '+(level==="strong"?"selected":"")+'>'+computerDifficultyText("strong")+'</option>'+
+      '<option value="pro" '+(level==="pro"?"selected":"")+'>'+computerDifficultyText("pro")+'</option>'+
+    '</select></label><div class="game-help">'+computerDifficultyText("note")+'</div></div>';
 }
 function gameMenuActionText(key){
   const l=lang();
@@ -2667,17 +2744,11 @@ function renderLobby(msg=""){
           </section>
         `:""}
 
+        ${gameUsesComputer(selectedType)?computerDifficultyControls(selectedType):""}
+
         ${(selectedType==="chess" || selectedType==="morris") ? `
           <div class="board-profile-box">
             <div class="game-help">👤 Emri: <strong>${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</strong></div>
-            <label class="board-ai-level-label">🤖 Forca e kompjuterit
-              <select id="boardAiLevel" class="board-ai-level-select">
-                <option value="weak" ${boardAiLevel==="weak"?"selected":""}>I dobët</option>
-                <option value="medium" ${boardAiLevel==="medium"?"selected":""}>I mesëm</option>
-                <option value="strong" ${boardAiLevel==="strong"?"selected":""}>I fortë</option>
-                <option value="pro" ${boardAiLevel==="pro"?"selected":""}>Profesionel</option>
-              </select>
-            </label>
             <div class="game-help">⬆️ Zgjidh “Luaj online” ose “Luaj me kompjuterin” te karta e lojës sipër.</div>
           </div>
           <section id="boardLeaderboard" class="card board-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
@@ -2771,8 +2842,9 @@ function renderLobby(msg=""){
   document.getElementById("timerQuickOnline")?.addEventListener("click",()=>startArcadeQuick("timer"));
   document.getElementById("boardQuickOnline")?.addEventListener("click",()=>startBoardQuickOnline(selectedType));
   document.getElementById("boardAiLevel")?.addEventListener("change",(e)=>{
-    boardAiLevel=e.target.value||"medium";
-    localStorage.setItem(BOARD_AI_LEVEL_KEY,boardAiLevel);
+    const game=e.target.dataset.aiGame||selectedType;
+    const level=setGameAiLevel(game,e.target.value||"medium");
+    if(game==="chess"||game==="morris")boardAiLevel=level;
   });
   document.getElementById("boardPracticeNow")?.addEventListener("click",()=>{
     const pick=document.getElementById("boardAiLevel")?.value;
@@ -2891,8 +2963,10 @@ async function startUckGame(){
 async function startKingdomGame(){
   stopGameMusic();
   try{
-    const mod=await import("./kingdom.js?v=1");
-    mod.startKingdomGame({root,onBack:()=>renderLobby()});
+    const difficulty=document.getElementById("boardAiLevel")?.value||getGameAiLevel("kingdom");
+    setGameAiLevel("kingdom",difficulty);
+    const mod=await import("./kingdom.js?v=2");
+    mod.startKingdomGame({root,onBack:()=>renderLobby(),difficulty});
   }catch(error){
     console.warn("kingdom game",error);
     renderLobby("Mbretëria e Fundit nuk u hap. Provo përsëri.");
@@ -3180,11 +3254,8 @@ function startTimerSoloGame(){
 
 function startComputerGame(){
   if(selectedType==="timer") return;
-  const difficulty=document.getElementById("boardAiLevel")?.value;
-  if(difficulty){
-    boardAiLevel=difficulty;
-    localStorage.setItem(BOARD_AI_LEVEL_KEY,boardAiLevel);
-  }
+  const difficulty=document.getElementById("boardAiLevel")?.value||getGameAiLevel(selectedType);
+  boardAiLevel=setGameAiLevel(selectedType,difficulty);
   if(channel){ supabase.removeChannel(channel); channel=null; }
   if(aiTimer){ clearTimeout(aiTimer); aiTimer=null; }
   room={
@@ -3695,15 +3766,27 @@ function computerChessMove(){
       if(boardAiLevel==="strong"||boardAiLevel==="pro"){
         const next=st.board.map(row=>row.slice());
         next[r][c]=null; next[rr][cc]=p;
-        const danger=[];
+        let movedDanger=0,opponentBestCapture=0,blackBestThreat=0;
         for(let wr=0;wr<8;wr++) for(let wc=0;wc<8;wc++){
           const wp=next[wr][wc];
           if(!wp||wp[0]!=="w") continue;
           for(const [trr,tcc] of chessMoves(next,wr,wc)){
-            if(trr===rr&&tcc===cc) danger.push(values[p[1]]||0);
+            const target=next[trr][tcc];
+            if(trr===rr&&tcc===cc)movedDanger=Math.max(movedDanger,values[p[1]]||0);
+            if(target&&target[0]==="b")opponentBestCapture=Math.max(opponentBestCapture,values[target[1]]||0);
           }
         }
-        score -= danger.length ? Math.max(...danger)*10 : 0;
+        for(let br=0;br<8;br++) for(let bc=0;bc<8;bc++){
+          const bp=next[br][bc];
+          if(!bp||bp[0]!=="b")continue;
+          for(const [trr,tcc] of chessMoves(next,br,bc)){
+            const target=next[trr][tcc];
+            if(target&&target[0]==="w")blackBestThreat=Math.max(blackBestThreat,values[target[1]]||0);
+          }
+        }
+        score-=movedDanger*(boardAiLevel==="pro"?14:9);
+        score-=opponentBestCapture*(boardAiLevel==="pro"?7:3);
+        score+=blackBestThreat*(boardAiLevel==="pro"?6:3);
       }
       score += boardAiLevel==="pro" ? 0 : Math.random()*3;
       candidates.push({r,c,rr,cc,score});
@@ -3802,7 +3885,23 @@ function computerMorrisMove(){
     let targets=st.board.map((v,i)=>v===other?i:-1).filter(i=>i>=0);
     const nonMill=targets.filter(i=>!formsMill(st.board,i,other));
     if(nonMill.length) targets=nonMill;
-    const pos=targets[Math.floor(Math.random()*targets.length)];
+    const ranked=targets.map(pos=>{
+      let score=M_LINES.filter(line=>line.includes(pos)).length*4;
+      for(const line of M_LINES.filter(line=>line.includes(pos))){
+        const own=line.filter(i=>st.board[i]===other).length;
+        const empty=line.filter(i=>st.board[i]===null).length;
+        if(own===2&&empty===1)score+=45;
+        if(own===1&&empty===2)score+=10;
+      }
+      return {pos,score};
+    }).sort((a,b)=>b.score-a.score);
+    const pos=boardAiLevel==="weak"
+      ? targets[Math.floor(Math.random()*targets.length)]
+      : boardAiLevel==="medium"
+        ? ranked[Math.floor(Math.random()*Math.min(3,ranked.length))]?.pos
+        : boardAiLevel==="strong"
+          ? ranked[Math.floor(Math.random()*Math.min(2,ranked.length))]?.pos
+          : ranked[0]?.pos;
     if(pos!==undefined) st.board[pos]=null;
     st.mustRemove=false;
     st.turn=other;
@@ -3839,8 +3938,18 @@ function computerMorrisMove(){
     for(const to of targets){
       const b=st.board.slice();
       b[from]=null; b[to]=color;
-      let score=formsMill(b,to,color)?100:0;
-      score+=Math.random()*5;
+      let score=formsMill(b,to,color)?120:0;
+      const blockProbe=b.slice();blockProbe[to]=other;
+      if(formsMill(blockProbe,to,other))score+=boardAiLevel==="medium"?35:70;
+      score+=M_LINES.filter(line=>line.includes(to)).length*3;
+      if(boardAiLevel==="pro"){
+        for(const line of M_LINES.filter(line=>line.includes(to))){
+          const own=line.filter(i=>b[i]===color).length;
+          const empty=line.filter(i=>b[i]===null).length;
+          if(own===2&&empty===1)score+=24;
+        }
+      }
+      if(boardAiLevel!=="pro")score+=Math.random()*5;
       moves.push({from,to,score});
     }
   }
