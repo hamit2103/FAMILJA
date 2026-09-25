@@ -31,7 +31,7 @@ const GAME_SOUND_MASTER_KEY = "diamond-game-sound-master";
 const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
-const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun"];
+const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun","diamondadventure"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
 let masterSoundEnabled=localStorage.getItem(GAME_SOUND_MASTER_KEY)!=="off";
@@ -117,7 +117,7 @@ function ensureUniversalGameStyle(){
   document.head.appendChild(style);
 }
 function universalExitSelector(){
-  return "#drBack,#uckBack,#kgbk,#warBack,#warMultiBack,#warRetryBack,#tetrisBack,#timerBackGames,#leaveGame,#arcadeLeave";
+  return "#drBack,#daBack,#uckBack,#kgbk,#warBack,#warMultiBack,#warRetryBack,#tetrisBack,#timerBackGames,#leaveGame,#arcadeLeave";
 }
 function visibleRootButton(selector){
   return [...root.querySelectorAll(selector)].find(el=>el&&el.offsetParent!==null&&!el.disabled)||null;
@@ -156,6 +156,10 @@ async function restartUniversalGame(){
   if(selectedType==="diamondrun"){
     const back=visibleRootButton("#drBack");if(back)back.click();
     setTimeout(()=>startDiamondRunGame(),20);return;
+  }
+  if(selectedType==="diamondadventure"){
+    const back=visibleRootButton("#daBack");if(back)back.click();
+    setTimeout(()=>startDiamondAdventureGame(),20);return;
   }
   if(selectedType==="uck"){startUckGame();return;}
   if(selectedType==="kingdom"){startKingdomGame();return;}
@@ -315,6 +319,17 @@ const DIAMOND_RUN_INFO={
   ar:["Diamond Run","لعبة منصات أصلية من DIAMOND: اركض واقفز واجمع الألماس وتجنب الأعداء والعوائق وفعّل نقاط الحفظ حتى تصل إلى العلم. تحتوي على 5 مستويات تزداد صعوبة."]
 };
 for(const [code,data] of Object.entries(DIAMOND_RUN_INFO)){if(GAME_INFO[code])GAME_INFO[code].diamondrun=data;}
+const DIAMOND_ADVENTURE_INFO={
+  sq:["Diamond Adventure","Vrapo në 5 botë, kërce, rrotullohu, thyej kuti, mblidh diamante, përdor mburojë dhe mposht Boss-in. Progresi ruhet automatikisht."],
+  de:["Diamond Adventure","Laufe durch 5 Welten, springe, wirble, zerstöre Kisten, sammle Diamanten, nutze Schilde und besiege den Boss. Fortschritt wird automatisch gespeichert."],
+  tr:["Diamond Adventure","5 dünyada koş, zıpla, dön, kutuları kır, elmas topla, kalkan kullan ve Boss’u yen. İlerleme otomatik kaydedilir."],
+  en:["Diamond Adventure","Run through 5 worlds, jump, spin, break boxes, collect diamonds, use shields and defeat the boss. Progress saves automatically."],
+  it:["Diamond Adventure","Corri in 5 mondi, salta, ruota, rompi casse, raccogli diamanti, usa scudi e sconfiggi il boss."],
+  hr:["Diamond Adventure","Trči kroz 5 svjetova, skači, okreći se, razbijaj kutije, skupljaj dijamante i pobijedi bossa."],
+  fr:["Diamond Adventure","Traverse 5 mondes, saute, tourne, casse des caisses, ramasse des diamants et bats le boss."],
+  ar:["Diamond Adventure","اركض عبر 5 عوالم، اقفز ولف، اكسر الصناديق، اجمع الألماس واهزم الزعيم."]
+};
+for(const [code,data] of Object.entries(DIAMOND_ADVENTURE_INFO)){if(GAME_INFO[code])GAME_INFO[code].diamondadventure=data;}
 function gameInfoData(){const d=GAME_INFO[lang()]?.[selectedType]||GAME_INFO.sq[selectedType]||GAME_INFO.sq.chess;return {title:d[0],body:d[1]};}
 function closeGameInfo(){document.getElementById("gameInfoOverlay")?.remove();}
 function openGameInfo(){
@@ -348,6 +363,7 @@ function startPracticeForGame(game=selectedType){
   if(game==="kingdom"){selectedType=game;startKingdomGame();return;}
   if(game==="uck"){selectedType=game;startUckGame();return;}
   if(game==="diamondrun"){selectedType=game;startDiamondRunGame();return;}
+  if(game==="diamondadventure"){selectedType=game;startDiamondAdventureGame();return;}
 }
 
 
@@ -2363,6 +2379,7 @@ function gameChoiceLabel(id){
   if(id==="kingdom") return "🏰 "+tr("kingdom");
   if(id==="uck") return "🪖 "+tr("uck");
   if(id==="diamondrun") return "💎 "+tr("diamondrun");
+  if(id==="diamondadventure") return "💎🏃 Diamond Adventure";
   return id;
 }
 
@@ -2421,6 +2438,7 @@ async function launchGameFromMenu(id,mode){
   if(id==="kingdom"){startKingdomGame();return;}
   if(id==="uck"){startUckGame();return;}
   if(id==="diamondrun"){startDiamondRunGame();return;}
+  if(id==="diamondadventure"){startDiamondAdventureGame();return;}
 }
 
 function boardGameSelected(){ return selectedType==="chess" || selectedType==="morris"; }
@@ -2637,6 +2655,7 @@ function renderLobby(msg=""){
                 <option value="kingdom">Mbretëria e Fundit</option>
                 <option value="uck">UÇK – Rruga e Lirisë</option>
                 <option value="diamondrun">Diamond Run</option>
+                <option value="diamondadventure">Diamond Adventure</option>
               </select>
               <input id="gameBlockUntil" type="datetime-local">
               <div class="game-block-actions">
@@ -2673,6 +2692,10 @@ function renderLobby(msg=""){
           <div class="game-help">⬆️ Shtyp “Luaj” te karta Diamond Run sipër.</div>
           <div class="game-help">🏃 Vrapo · ⬆️ Kërce · 💎 Mblidh diamante · ❤️ 3 jetë · 🚩 Arrij flamurin</div>
           <div class="game-help">🎯 5 nivele · checkpoint · armiq · pengesa · komandim me prekje në telefon.</div>
+        ` : selectedType==="diamondadventure" ? `
+          <div class="game-help">💎🏃 Diamond Adventure</div>
+          <div class="game-help">🌴 5 botë · 📦 kuti speciale · 🌀 rrotullim · 🛡️ mburojë · 👹 Boss · 💾 progres i ruajtur.</div>
+          <div class="game-help">⬆️ Shtyp “Luaj” te karta Diamond Adventure sipër.</div>
         ` : selectedType==="uck" ? `
           <div class="game-help">🪖 ${tr("uck")}</div>
           <div class="game-help">⬆️ Shtyp “Luaj” te karta UÇK sipër.</div>
@@ -2707,7 +2730,7 @@ function renderLobby(msg=""){
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun" || selectedType==="chess" || selectedType==="morris" || selectedType==="timer") ? "" : `
+        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun" || selectedType==="diamondadventure" || selectedType==="chess" || selectedType==="morris" || selectedType==="timer") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -2831,6 +2854,17 @@ function renderLobby(msg=""){
   }
 }
 
+
+async function startDiamondAdventureGame(){
+  stopGameMusic();
+  try{
+    const mod=await import("./diamond-adventure.js?v=1");
+    mod.startDiamondAdventureGame({root,onBack:()=>renderLobby()});
+  }catch(error){
+    console.warn("diamond adventure",error);
+    renderLobby("Diamond Adventure nuk u hap. Provo përsëri.");
+  }
+}
 
 async function startDiamondRunGame(){
   stopGameMusic();
