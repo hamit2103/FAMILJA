@@ -6,7 +6,7 @@ tr:{title:"Son Krallık",turn:"Tur",you:"Sen",enemy:"Rakip",territory:"Bölge",s
 en:{title:"The Last Kingdom",turn:"Round",you:"You",enemy:"Opponent",territory:"Territory",shield:"Shield",choose:"Choose a power, then tap a valid tile.",back:"Back to games",restart:"Play again",win:"🏆 You won the kingdom!",lose:"💥 The opponent won.",draw:"🤝 Draw.",invalid:"That action cannot be used there.",computer:"Computer is playing…",help:"Goal: expand your territory and capture the enemy castle. After 24 rounds, the larger territory wins.",cards:"Your powers",land:"Land",wall:"Wall",soldier:"Soldier",bridge:"Bridge",fire:"Fire",water:"Water",bomb:"Bomb",guard:"Shield",quake:"Earthquake",black:"Black Diamond",rewind:"Time rewind"}
 };
 const A=[["land","🌱",24,1],["wall","🧱",12,1],["soldier","🛡️",18,1],["bridge","🌉",10,1],["fire","🔥",8,1],["water","🌊",8,1],["bomb","💣",7,1],["guard","🛡️",8,0],["quake","🌍",3,0],["black","💎",3,1],["rewind","⏪",2,0]];
-const N=9,P=1,E=2,CP=72,CE=8,MAX=24;let S,H,back,L="sq",pick=null,lock=false;
+const N=9,P=1,E=2,CP=72,CE=8,MAX=24;let S,H,back,L="sq",pick=null,lock=false,D="medium";
 const x=k=>(T[L]||T.sq)[k]||T.sq[k]||k, K=i=>String(i), rc=i=>[Math.floor(i/N),i%N], id=(r,c)=>r*N+c, inside=(r,c)=>r>=0&&r<N&&c>=0&&c<N;
 function near(i){const [r,c]=rc(i),o=[];[[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>{if(inside(r+a,c+b))o.push(id(r+a,c+b))});return o}
 const adj=(i,w)=>near(i).some(n=>S.c[n]===w);
@@ -27,6 +27,72 @@ function label(a){return a[1]+" "+x(a[0])}
 function render(){const valid=new Set(pick&&pick[3]&&!S.over&&!lock?targets(pick,P):[]);H.innerHTML=`<section class="kg"><div class="kgh"><button id="kgbk">← ${x("back")}</button><div class="kgt">🏰 ${x("title")}</div><button id="kgrs">↻</button></div><div class="kgs"><div><b>🔵 ${x("you")}</b><br>${x("territory")}: ${count(P)} · ${x("shield")}: ${S.ps}</div><div><b>${x("turn")}</b><br>${Math.min(S.t,MAX)}/${MAX}</div><div><b>${x("enemy")} 🔴</b><br>${x("territory")}: ${count(E)} · ${x("shield")}: ${S.es}</div></div><div class="kgb">${S.c.map((v,i)=>`<button class="kgc ${v===P?"p":v===E?"e":""} ${valid.has(i)?"v":""} ${i===CP||i===CE?"castle":""} ${S.w.has(K(i))?"wall":""}" data-cell="${i}"></button>`).join("")}</div>${S.over?`<div class="kgres">${S.win===P?x("win"):S.win===E?x("lose"):x("draw")}<br><button id="kgagain" class="kgr">${x("restart")}</button></div>`:`<div class="kgcards"><strong>${x("cards")}</strong><div class="kgrow">${S.h.map((a,n)=>`<button class="kgp ${pick===a?"on":""}" data-card="${n}">${label(a)}</button>`).join("")}</div></div>`}<div class="kgm">${S.msg}</div><div class="kghlp">${x("help")}</div></section>`;H.querySelector("#kgbk").onclick=()=>back&&back();H.querySelector("#kgrs").onclick=reset;H.querySelector("#kgagain")?.addEventListener("click",reset);H.querySelectorAll("[data-card]").forEach(b=>b.onclick=()=>choose(+b.dataset.card));H.querySelectorAll("[data-cell]").forEach(b=>b.onclick=()=>play(+b.dataset.cell))}
 function choose(n){if(S.over||lock)return;const a=S.h[n];pick=a;if(instant(a,P)){S.msg=label(a)+" ✓";pick=null;render();after();return}if(!targets(a,P).length){S.msg=x("invalid");pick=null;S.h=hand();render();return}S.msg=x("choose")+" "+label(a);render()}
 function play(i){if(S.over||lock||!pick)return;if(!targets(pick,P).includes(i)){S.msg=x("invalid");render();return}apply(pick,i,P);S.msg=label(pick)+" ✓";pick=null;render();if(!done())after()}
-function ai(){S.last=snap();let a;for(let z=0;z<12;z++){a=draw();if(!a[3]||targets(a,E).length)break}if(instant(a,E)){S.msg=x("computer")+" "+label(a);return}const q=targets(a,E);if(!q.length)return;let i=q[Math.floor(Math.random()*q.length)],hit=q.filter(j=>S.c[j]===P);if(hit.includes(CP))i=CP;else if(hit.length&&Math.random()<.72)i=hit[Math.floor(Math.random()*hit.length)];apply(a,i,E);S.msg=x("computer")+" "+label(a)}
+function aiActionScore(a){
+  const key=a[0];
+  if(key==="black")return 105;
+  if(key==="bomb")return 88;
+  if(key==="soldier")return 78;
+  if(key==="fire")return 74;
+  if(key==="bridge")return 64;
+  if(key==="water")return 58;
+  if(key==="guard")return S.es?20:62;
+  if(key==="quake")return 48;
+  if(key==="land")return 40;
+  if(key==="wall")return 34;
+  if(key==="rewind")return D==="weak"?18:2;
+  return 25;
+}
+function aiTargetScore(a,i){
+  let score=0;
+  if(i===CP)score+=1200;
+  if(S.c[i]===P)score+=150;
+  const [r,c]=rc(i),[cr,cc]=rc(CP),dist=Math.abs(r-cr)+Math.abs(c-cc);
+  score+=(16-dist)*4;
+  if(a[0]==="black"&&S.c[i]===P)score+=160;
+  if((a[0]==="bomb"||a[0]==="fire"||a[0]==="water")&&S.c[i]===P)score+=90;
+  if(a[0]==="land"&&adj(i,E))score+=25;
+  if(a[0]==="wall"&&dist<=4)score+=28;
+  return score;
+}
+function chooseAiPlan(){
+  const tries=D==="weak"?1:D==="medium"?2:D==="strong"?4:7;
+  const plans=[];
+  for(let n=0;n<tries;n++){
+    let a=null;
+    for(let z=0;z<12;z++){
+      const candidate=draw();
+      if(!candidate[3]||targets(candidate,E).length){a=candidate;break}
+    }
+    if(!a)continue;
+    const q=a[3]?targets(a,E):[];
+    const bestTarget=q.length?Math.max(...q.map(i=>aiTargetScore(a,i))):0;
+    plans.push({a,score:aiActionScore(a)+bestTarget,q});
+  }
+  if(!plans.length)return null;
+  if(D==="weak")return plans[Math.floor(Math.random()*plans.length)];
+  plans.sort((a,b)=>b.score-a.score);
+  if(D==="medium"&&plans.length>1&&Math.random()<.35)return plans[1];
+  if(D==="strong"&&plans.length>1&&Math.random()<.12)return plans[1];
+  return plans[0];
+}
+function chooseAiTarget(a,q){
+  if(!q.length)return undefined;
+  if(D==="weak")return q[Math.floor(Math.random()*q.length)];
+  const ranked=q.map(i=>({i,score:aiTargetScore(a,i)})).sort((a,b)=>b.score-a.score);
+  if(D==="medium"&&ranked.length>1&&Math.random()<.35)return ranked[Math.floor(Math.random()*Math.min(3,ranked.length))].i;
+  if(D==="strong"&&ranked.length>1&&Math.random()<.12)return ranked[Math.floor(Math.random()*Math.min(2,ranked.length))].i;
+  return ranked[0].i;
+}
+function ai(){
+  S.last=snap();
+  const plan=chooseAiPlan();
+  if(!plan)return;
+  const a=plan.a;
+  if(instant(a,E)){S.msg=x("computer")+" "+label(a);return}
+  const q=plan.q&&plan.q.length?plan.q:targets(a,E);
+  const i=chooseAiTarget(a,q);
+  if(i===undefined)return;
+  apply(a,i,E);S.msg=x("computer")+" "+label(a)
+}
 function after(){if(S.over)return render();lock=true;S.msg=x("computer");render();setTimeout(()=>{ai();S.t++;S.h=hand();lock=false;done();render()},520)}
-export function startKingdomGame(o={}){css();H=o.root||document.getElementById("gamesRoot");back=typeof o.onBack==="function"?o.onBack:null;L=localStorage.getItem(LANG_KEY)||"sq";if(!T[L])L="en";reset()}
+export function startKingdomGame(o={}){css();H=o.root||document.getElementById("gamesRoot");back=typeof o.onBack==="function"?o.onBack:null;L=localStorage.getItem(LANG_KEY)||"sq";if(!T[L])L="en";D=["weak","medium","strong","pro"].includes(o.difficulty)?o.difficulty:"medium";reset()}
