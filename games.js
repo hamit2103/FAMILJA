@@ -135,8 +135,10 @@ function ensureUniversalGameStyle(){
       width:min(94vw,560px);z-index:2147483647;background:linear-gradient(160deg,#07162e,#0b2445);color:#fff;
       border:1px solid rgba(56,189,248,.62);border-radius:20px;padding:14px;box-sizing:border-box;
       box-shadow:0 22px 60px rgba(0,0,0,.55);font-family:system-ui,sans-serif}
-    #diamondControlLayoutPanel .dcl-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    #diamondControlLayoutPanel .dcl-head strong{font-size:18px}
+    #diamondControlLayoutPanel .dcl-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+      touch-action:none;cursor:move;user-select:none;-webkit-user-select:none;padding:2px 2px 6px}
+    #diamondControlLayoutPanel .dcl-head strong{font-size:18px;pointer-events:none}
+    #diamondControlLayoutPanel .dcl-head button{cursor:pointer;touch-action:manipulation}
     #diamondControlLayoutPanel .dcl-note{font-size:12px;line-height:1.35;color:#dbeafe;margin:8px 0 10px}
     #diamondControlLayoutPanel .dcl-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     #diamondControlLayoutPanel .dcl-actions button{min-height:44px;border:1px solid rgba(255,255,255,.22);border-radius:13px;color:#fff;
@@ -471,6 +473,44 @@ function closeGameControlLayoutEditor({revert=true}={}){
   }
   if(revert)scheduleGameControlLayoutSync();
 }
+function bindGameControlPanelDrag(panel){
+  const handle=panel?.querySelector(".dcl-head");
+  if(!handle)return;
+  handle.addEventListener("pointerdown",(event)=>{
+    if(event.target?.closest?.("button"))return;
+    event.preventDefault();event.stopPropagation();
+    const rect=panel.getBoundingClientRect();
+    const startX=event.clientX,startY=event.clientY;
+    const startLeft=rect.left,startTop=rect.top;
+    panel.style.left=startLeft+"px";
+    panel.style.top=startTop+"px";
+    panel.style.right="auto";
+    panel.style.bottom="auto";
+    panel.style.transform="none";
+    try{handle.setPointerCapture(event.pointerId);}catch(_){}
+    const move=(ev)=>{
+      if(ev.pointerId!==event.pointerId)return;
+      ev.preventDefault();ev.stopPropagation();
+      const w=panel.offsetWidth||rect.width;
+      const h=panel.offsetHeight||rect.height;
+      const left=Math.max(0,Math.min(Math.max(0,window.innerWidth-w),startLeft+(ev.clientX-startX)));
+      const top=Math.max(0,Math.min(Math.max(0,window.innerHeight-h),startTop+(ev.clientY-startY)));
+      panel.style.left=left+"px";
+      panel.style.top=top+"px";
+    };
+    const end=(ev)=>{
+      if(ev.pointerId!==event.pointerId)return;
+      ev.preventDefault();ev.stopPropagation();
+      try{handle.releasePointerCapture(event.pointerId);}catch(_){}
+      handle.removeEventListener("pointermove",move);
+      handle.removeEventListener("pointerup",end);
+      handle.removeEventListener("pointercancel",end);
+    };
+    handle.addEventListener("pointermove",move,{passive:false});
+    handle.addEventListener("pointerup",end,{passive:false});
+    handle.addEventListener("pointercancel",end,{passive:false});
+  },{passive:false});
+}
 function renderGameControlLayoutPanel(){
   document.getElementById("diamondControlLayoutPanel")?.remove();
   const panel=document.createElement("div");
@@ -481,6 +521,7 @@ function renderGameControlLayoutPanel(){
     '<button id="diamondControlLayoutStandard" class="standard" type="button">'+clt("standard")+'</button></div>'+
     '<div id="diamondControlLayoutStatus" class="dcl-status"></div>';
   document.body.appendChild(panel);
+  bindGameControlPanelDrag(panel);
   panel.querySelector("#diamondControlLayoutClose").onclick=()=>closeGameControlLayoutEditor({revert:true});
   panel.querySelector("#diamondControlLayoutSave").onclick=saveGameControlLayout;
   panel.querySelector("#diamondControlLayoutStandard").onclick=restoreAdminGameControlLayout;
