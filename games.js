@@ -31,7 +31,7 @@ const GAME_SOUND_MASTER_KEY = "diamond-game-sound-master";
 const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
-const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck"];
+const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
 let masterSoundEnabled=localStorage.getItem(GAME_SOUND_MASTER_KEY)!=="off";
@@ -83,6 +83,8 @@ const KINGDOM_NAMES={sq:"Mbretëria e Fundit",de:"Das letzte Königreich",tr:"So
 for(const [code,name] of Object.entries(KINGDOM_NAMES)){if(TXT[code])TXT[code].kingdom=name;}
 const UCK_NAMES={sq:"UÇK – Rruga e Lirisë",de:"UÇK – Weg der Freiheit",tr:"UÇK – Özgürlük Yolu",en:"UÇK – Road to Freedom",it:"UÇK – Via della Libertà",hr:"UÇK – Put slobode",fr:"UÇK – Chemin de la liberté",ar:"UÇK – طريق الحرية"};
 for(const [code,name] of Object.entries(UCK_NAMES)){if(TXT[code])TXT[code].uck=name;}
+const DIAMOND_RUN_NAMES={sq:"Diamond Run",de:"Diamond Run",tr:"Diamond Run",en:"Diamond Run",it:"Diamond Run",hr:"Diamond Run",fr:"Diamond Run",ar:"Diamond Run"};
+for(const [code,name] of Object.entries(DIAMOND_RUN_NAMES)){if(TXT[code])TXT[code].diamondrun=name;}
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
 function tr(k){ return TXT[lang()][k] || TXT.sq[k] || k; }
@@ -131,6 +133,17 @@ const UCK_INFO={
   ar:["UÇK – طريق الحرية","لعبة مهام بجندي من UÇK: ابحث عن الطرق الآمنة، أوصل الإمدادات، قدّم المساعدة الطبية، رافق المدنيين وأمّن المناطق المحددة. أكمل المهمة بأكبر قدر ممكن من الصحة والنقاط."]
 };
 for(const [code,data] of Object.entries(UCK_INFO)){if(GAME_INFO[code])GAME_INFO[code].uck=data;}
+const DIAMOND_RUN_INFO={
+  sq:["Diamond Run","Lojë platformë origjinale DIAMOND: vrapo, kërce, mblidh diamante, shmang armiqtë dhe pengesat, aktivizo checkpoint-et dhe arrij flamurin. Ka 5 nivele që bëhen gjithnjë e më të vështira."],
+  de:["Diamond Run","Originales DIAMOND-Plattformspiel: laufen, springen, Diamanten sammeln, Gegner und Hindernisse meiden, Checkpoints aktivieren und die Flagge erreichen. Es gibt 5 zunehmend schwierigere Level."],
+  tr:["Diamond Run","Özgün DIAMOND platform oyunu: koş, zıpla, elmasları topla, düşmanlardan ve engellerden kaç, kontrol noktalarını etkinleştir ve bayrağa ulaş. Giderek zorlaşan 5 bölüm vardır."],
+  en:["Diamond Run","Original DIAMOND platform game: run, jump, collect diamonds, avoid enemies and hazards, activate checkpoints and reach the flag. It has 5 increasingly difficult levels."],
+  it:["Diamond Run","Platform originale DIAMOND: corri, salta, raccogli diamanti, evita nemici e ostacoli, attiva i checkpoint e raggiungi la bandiera. Ci sono 5 livelli sempre più difficili."],
+  hr:["Diamond Run","Originalna DIAMOND platform igra: trči, skači, skupljaj dijamante, izbjegavaj neprijatelje i prepreke, aktiviraj kontrolne točke i dođi do zastave. Ima 5 sve težih razina."],
+  fr:["Diamond Run","Jeu de plateforme DIAMOND original : courez, sautez, ramassez des diamants, évitez ennemis et dangers, activez les checkpoints et atteignez le drapeau. Il comporte 5 niveaux de difficulté croissante."],
+  ar:["Diamond Run","لعبة منصات أصلية من DIAMOND: اركض واقفز واجمع الألماس وتجنب الأعداء والعوائق وفعّل نقاط الحفظ حتى تصل إلى العلم. تحتوي على 5 مستويات تزداد صعوبة."]
+};
+for(const [code,data] of Object.entries(DIAMOND_RUN_INFO)){if(GAME_INFO[code])GAME_INFO[code].diamondrun=data;}
 function gameInfoData(){const d=GAME_INFO[lang()]?.[selectedType]||GAME_INFO.sq[selectedType]||GAME_INFO.sq.chess;return {title:d[0],body:d[1]};}
 function closeGameInfo(){document.getElementById("gameInfoOverlay")?.remove();}
 function openGameInfo(){
@@ -155,6 +168,7 @@ function startPracticeForGame(game=selectedType){
   if(game==="war"){selectedType=game;startWarGame(true);return;}
   if(game==="kingdom"){selectedType=game;startKingdomGame();return;}
   if(game==="uck"){selectedType=game;startUckGame();return;}
+  if(game==="diamondrun"){selectedType=game;startDiamondRunGame();return;}
 }
 
 
@@ -2166,6 +2180,7 @@ function gameChoiceLabel(id){
   if(id==="war") return "⚔️ "+tr("war");
   if(id==="kingdom") return "🏰 "+tr("kingdom");
   if(id==="uck") return "🪖 "+tr("uck");
+  if(id==="diamondrun") return "💎 "+tr("diamondrun");
   return id;
 }
 
@@ -2388,6 +2403,7 @@ function renderLobby(msg=""){
                 <option value="war">Luftra</option>
                 <option value="kingdom">Mbretëria e Fundit</option>
                 <option value="uck">UÇK – Rruga e Lirisë</option>
+                <option value="diamondrun">Diamond Run</option>
               </select>
               <input id="gameBlockUntil" type="datetime-local">
               <div class="game-block-actions">
@@ -2420,6 +2436,11 @@ function renderLobby(msg=""){
           <button id="timerQuickOnline" class="secondary" type="button">${gx("online2to8")}</button>
           <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
+        ` : selectedType==="diamondrun" ? `
+          <div class="game-help">💎 ${tr("diamondrun")}</div>
+          <button id="diamondRunGame" class="primary" type="button">🎮 Fillo lojën</button>
+          <div class="game-help">🏃 Vrapo · ⬆️ Kërce · 💎 Mblidh diamante · ❤️ 3 jetë · 🚩 Arrij flamurin</div>
+          <div class="game-help">🎯 5 nivele · checkpoint · armiq · pengesa · komandim me prekje në telefon.</div>
         ` : selectedType==="uck" ? `
           <div class="game-help">🪖 ${tr("uck")}</div>
           <button id="uckGame" class="primary" type="button">🎮 Fillo misionin</button>
@@ -2456,7 +2477,7 @@ function renderLobby(msg=""){
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck") ? "" : `
+        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -2505,6 +2526,9 @@ function renderLobby(msg=""){
   if(boardGameSelected()){
     loadBoardProfileAndLeaderboard(selectedType);if(gamesAdmin)loadBoardAdminProfiles();
   }
+
+  const diamondRunButton=document.getElementById("diamondRunGame");
+  if(diamondRunButton) diamondRunButton.onclick=startDiamondRunGame;
 
   const uckButton=document.getElementById("uckGame");
   if(uckButton) uckButton.onclick=startUckGame;
@@ -2574,6 +2598,17 @@ function renderLobby(msg=""){
   }
 }
 
+
+async function startDiamondRunGame(){
+  stopGameMusic();
+  try{
+    const mod=await import("./diamond-run.js?v=1");
+    mod.startDiamondRunGame({root,onBack:()=>renderLobby()});
+  }catch(error){
+    console.warn("diamond run",error);
+    renderLobby("Diamond Run nuk u hap. Provo përsëri.");
+  }
+}
 
 async function startUckGame(){
   stopGameMusic();
