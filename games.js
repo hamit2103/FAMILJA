@@ -63,6 +63,169 @@ let timerVisibleClockTimer=null;
 let gameBlocks={};
 let practiceFallbackGame=null;
 
+const UNIVERSAL_GAME_UI={
+  sq:{again:"🔄 Përsëri luaj",leave:"🚪 Largohu",close:"Mbyll lojën"},
+  de:{again:"🔄 Nochmal spielen",leave:"🚪 Verlassen",close:"Spiel schließen"},
+  tr:{again:"🔄 Tekrar oyna",leave:"🚪 Ayrıl",close:"Oyunu kapat"},
+  en:{again:"🔄 Play again",leave:"🚪 Leave",close:"Close game"},
+  it:{again:"🔄 Gioca ancora",leave:"🚪 Esci",close:"Chiudi gioco"},
+  hr:{again:"🔄 Igraj ponovno",leave:"🚪 Izađi",close:"Zatvori igru"},
+  fr:{again:"🔄 Rejouer",leave:"🚪 Quitter",close:"Fermer le jeu"},
+  ar:{again:"🔄 العب مجدداً",leave:"🚪 مغادرة",close:"إغلاق اللعبة"}
+};
+let universalGameFullscreen=false;
+let universalGameSyncQueued=false;
+function universalGameText(key){
+  const l=localStorage.getItem(LANG_KEY)||"sq";
+  return UNIVERSAL_GAME_UI[l]?.[key]||UNIVERSAL_GAME_UI.sq[key]||key;
+}
+function ensureUniversalGameStyle(){
+  if(document.getElementById("diamondUniversalGameStyle"))return;
+  const style=document.createElement("style");
+  style.id="diamondUniversalGameStyle";
+  style.textContent=`
+    body.diamond-game-fullscreen-active{overflow:hidden!important;overscroll-behavior:none;background:#050816!important}
+    body.diamond-game-fullscreen-active #gamesRoot{
+      position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+      max-width:none!important;margin:0!important;padding:48px 0 76px!important;box-sizing:border-box!important;
+      z-index:2147483000!important;background:#050816!important;overflow:auto!important;
+      -webkit-overflow-scrolling:touch;overscroll-behavior:contain
+    }
+    body.diamond-game-fullscreen-active #gamesRoot>.games-shell,
+    body.diamond-game-fullscreen-active #gamesRoot>section,
+    body.diamond-game-fullscreen-active #gamesRoot>div{
+      width:100%!important;max-width:none!important;box-sizing:border-box!important;margin:0 auto!important
+    }
+    body.diamond-game-fullscreen-active #gamesRoot .card{max-width:min(100%,1100px);margin-left:auto!important;margin-right:auto!important}
+    #diamondUniversalGameChrome{position:fixed;inset:0;z-index:2147483645;pointer-events:none;font-family:system-ui,sans-serif}
+    #diamondUniversalGameClose{position:absolute;top:max(7px,env(safe-area-inset-top));right:8px;width:34px;height:34px;
+      border-radius:50%;border:1px solid rgba(255,255,255,.32);background:rgba(5,8,22,.82);color:#fff;font-size:18px;
+      font-weight:900;display:grid;place-items:center;pointer-events:auto;box-shadow:0 5px 18px rgba(0,0,0,.32)}
+    #diamondUniversalGameActions{position:absolute;left:50%;bottom:max(7px,env(safe-area-inset-bottom));transform:translateX(-50%);
+      width:min(94vw,560px);display:grid;grid-template-columns:1.2fr .8fr;gap:9px;pointer-events:auto}
+    #diamondUniversalGameActions button{min-height:48px;border:1px solid rgba(255,255,255,.22);border-radius:15px;
+      color:#fff;font-weight:900;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.32)}
+    #diamondUniversalGameAgain{background:linear-gradient(135deg,#7c3aed,#2563eb)}
+    #diamondUniversalGameLeave{background:rgba(17,24,39,.94)}
+    @media (max-height:650px){body.diamond-game-fullscreen-active #gamesRoot{padding-top:42px!important;padding-bottom:66px!important}
+      #diamondUniversalGameActions button{min-height:42px;font-size:13px}}
+  `;
+  document.head.appendChild(style);
+}
+function universalExitSelector(){
+  return "#drBack,#uckBack,#kgbk,#warBack,#warMultiBack,#warRetryBack,#tetrisBack,#timerBackGames,#leaveGame,#arcadeLeave";
+}
+function visibleRootButton(selector){
+  return [...root.querySelectorAll(selector)].find(el=>el&&el.offsetParent!==null&&!el.disabled)||null;
+}
+async function deactivateUniversalGameFullscreen(){
+  if(!universalGameFullscreen&&!document.getElementById("diamondUniversalGameChrome"))return;
+  universalGameFullscreen=false;
+  document.body.classList.remove("diamond-game-fullscreen-active");
+  document.getElementById("diamondUniversalGameChrome")?.remove();
+  try{
+    if(document.fullscreenElement&&document.exitFullscreen)await document.exitFullscreen();
+  }catch(_){}
+}
+async function leaveUniversalGame(){
+  const nativeExit=visibleRootButton(universalExitSelector());
+  if(nativeExit){
+    nativeExit.click();
+    setTimeout(()=>{if(root&&!root.querySelector(".games-lobby"))renderLobby();},80);
+    return;
+  }
+  clearQuickChess();
+  clearArcadePolling();
+  clearBoardRematchTimer();
+  clearTimerPhaseTimeout();
+  if(aiTimer){clearTimeout(aiTimer);aiTimer=null;}
+  if(channel){try{supabase.removeChannel(channel);}catch(_){}channel=null;}
+  stopTetris();
+  stopGameAudioForExit();
+  room=null;
+  renderLobby();
+}
+async function restartUniversalGame(){
+  const nativeReplay=visibleRootButton("#warRestart,#warMultiAgain,#tetrisNew,#newComputerGame,#boardRematchBtn,#kgagain,#kgrs,#uckReset");
+  if(nativeReplay){nativeReplay.click();return;}
+  if(selectedType==="diamondrun"){
+    const back=visibleRootButton("#drBack");if(back)back.click();
+    setTimeout(()=>startDiamondRunGame(),20);return;
+  }
+  if(selectedType==="uck"){startUckGame();return;}
+  if(selectedType==="kingdom"){startKingdomGame();return;}
+  if(selectedType==="war"){
+    const multi=!!warMultiRoom||!!document.getElementById("warMultiBack")||!!document.getElementById("warRetryOnline");
+    if(multi){
+      const back=visibleRootButton("#warMultiBack,#warRetryBack");if(back)back.click();
+      setTimeout(()=>startWarMultiSearch(),30);
+    }else startWarGame();
+    return;
+  }
+  if(selectedType==="tetris"){
+    if(tetrisOnline||arcadeMode==="tetris"){
+      try{await leaveArcade();}catch(_){}
+      startArcadeQuick("tetris");
+    }else startTetrisGame({practice:true});
+    return;
+  }
+  if(selectedType==="timer"){
+    if(arcadeMode==="timer"&&arcadeRoom){
+      try{await leaveArcade();}catch(_){}
+      startArcadeQuick("timer");
+    }else startTimerSoloGame();
+    return;
+  }
+  if(selectedType==="chess"||selectedType==="morris"){
+    if(room?.local){startComputerGame();return;}
+    const leave=visibleRootButton("#leaveGame,#timerBackGames");if(leave)leave.click();
+    setTimeout(()=>startBoardQuickOnline(selectedType),30);
+    return;
+  }
+  startPracticeForGame(selectedType);
+}
+function renderUniversalGameChrome(){
+  let chrome=document.getElementById("diamondUniversalGameChrome");
+  if(!chrome){
+    chrome=document.createElement("div");
+    chrome.id="diamondUniversalGameChrome";
+    document.body.appendChild(chrome);
+  }
+  chrome.innerHTML=`<button id="diamondUniversalGameClose" type="button" aria-label="${universalGameText("close")}">✕</button>
+    <div id="diamondUniversalGameActions">
+      <button id="diamondUniversalGameAgain" type="button">${universalGameText("again")}</button>
+      <button id="diamondUniversalGameLeave" type="button">${universalGameText("leave")}</button>
+    </div>`;
+  document.getElementById("diamondUniversalGameClose").onclick=leaveUniversalGame;
+  document.getElementById("diamondUniversalGameLeave").onclick=leaveUniversalGame;
+  document.getElementById("diamondUniversalGameAgain").onclick=restartUniversalGame;
+}
+async function activateUniversalGameFullscreen(){
+  ensureUniversalGameStyle();
+  renderUniversalGameChrome();
+  if(universalGameFullscreen)return;
+  universalGameFullscreen=true;
+  document.body.classList.add("diamond-game-fullscreen-active");
+  try{
+    const el=document.documentElement;
+    if(!document.fullscreenElement&&el.requestFullscreen)await el.requestFullscreen({navigationUI:"hide"});
+  }catch(_){}
+}
+function syncUniversalGameFullscreen(){
+  universalGameSyncQueued=false;
+  if(!root)return;
+  const lobby=!!root.querySelector(".games-lobby");
+  const hasContent=!!root.firstElementChild;
+  if(!hasContent||lobby)deactivateUniversalGameFullscreen();
+  else activateUniversalGameFullscreen();
+}
+function scheduleUniversalGameFullscreenSync(){
+  if(universalGameSyncQueued)return;
+  universalGameSyncQueued=true;
+  requestAnimationFrame(syncUniversalGameFullscreen);
+}
+if(root)new MutationObserver(scheduleUniversalGameFullscreenSync).observe(root,{childList:true,subtree:true});
+
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
   deviceId = globalThis.crypto?.randomUUID?.() || ("device_" + Date.now() + Math.random().toString(36).slice(2));
