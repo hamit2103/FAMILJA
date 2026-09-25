@@ -31,7 +31,7 @@ const GAME_SOUND_MASTER_KEY = "diamond-game-sound-master";
 const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
-const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom"];
+const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
 let masterSoundEnabled=localStorage.getItem(GAME_SOUND_MASTER_KEY)!=="off";
@@ -81,6 +81,8 @@ const TXT = {
 };
 const KINGDOM_NAMES={sq:"Mbretëria e Fundit",de:"Das letzte Königreich",tr:"Son Krallık",en:"The Last Kingdom",it:"L'ultimo Regno",hr:"Posljednje Kraljevstvo",fr:"Le Dernier Royaume",ar:"المملكة الأخيرة"};
 for(const [code,name] of Object.entries(KINGDOM_NAMES)){if(TXT[code])TXT[code].kingdom=name;}
+const UCK_NAMES={sq:"UÇK – Rruga e Lirisë",de:"UÇK – Weg der Freiheit",tr:"UÇK – Özgürlük Yolu",en:"UÇK – Road to Freedom",it:"UÇK – Via della Libertà",hr:"UÇK – Put slobode",fr:"UÇK – Chemin de la liberté",ar:"UÇK – طريق الحرية"};
+for(const [code,name] of Object.entries(UCK_NAMES)){if(TXT[code])TXT[code].uck=name;}
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
 function tr(k){ return TXT[lang()][k] || TXT.sq[k] || k; }
@@ -118,6 +120,17 @@ const KINGDOM_INFO={
   ar:["المملكة الأخيرة","وسّع أرضك وابنِ الجدران والجسور واستخدم الجنود والقوى النادرة للاستيلاء على قلعة الخصم. في كل جولة تحصل على قوتين عشوائيتين؛ بعد 24 جولة يفوز صاحب الأرض الأكبر."]
 };
 for(const [code,data] of Object.entries(KINGDOM_INFO)){if(GAME_INFO[code])GAME_INFO[code].kingdom=data;}
+const UCK_INFO={
+  sq:["UÇK – Rruga e Lirisë","Lojë misioni me ushtar UÇK: gjej rrugën e sigurt, dërgo furnizime, ndihmo të plagosurit, shoqëro civilët dhe mbro zonat e caktuara. Qëllimi është të përfundosh misionin me sa më shumë jetë dhe pikë."],
+  de:["UÇK – Weg der Freiheit","Missionsspiel mit einem UÇK-Soldaten: finde sichere Wege, bringe Nachschub, leiste medizinische Hilfe, begleite Zivilisten und sichere markierte Zonen. Ziel ist es, die Mission mit möglichst viel Gesundheit und Punkten abzuschließen."],
+  tr:["UÇK – Özgürlük Yolu","UÇK askeriyle görev oyunu: güvenli yolu bul, malzeme ulaştır, yaralılara yardım et, sivillere eşlik et ve belirlenen bölgeleri koru. Amaç görevi mümkün olduğunca yüksek sağlık ve puanla tamamlamaktır."],
+  en:["UÇK – Road to Freedom","Mission game with a UÇK soldier: find safe routes, deliver supplies, provide medical aid, escort civilians and secure marked zones. Finish each mission with as much health and score as possible."],
+  it:["UÇK – Via della Libertà","Gioco a missioni con un soldato UÇK: trova percorsi sicuri, consegna rifornimenti, presta soccorso medico, accompagna civili e proteggi le zone indicate. Completa la missione con più salute e punti possibile."],
+  hr:["UÇK – Put slobode","Igra misija s vojnikom UÇK-a: pronađi sigurne putove, dostavi zalihe, pruži medicinsku pomoć, prati civile i osiguraj označene zone. Završi misiju sa što više zdravlja i bodova."],
+  fr:["UÇK – Chemin de la liberté","Jeu de missions avec un soldat UÇK : trouvez des itinéraires sûrs, livrez du ravitaillement, apportez une aide médicale, escortez des civils et sécurisez les zones indiquées. Terminez avec le plus de santé et de points possible."],
+  ar:["UÇK – طريق الحرية","لعبة مهام بجندي من UÇK: ابحث عن الطرق الآمنة، أوصل الإمدادات، قدّم المساعدة الطبية، رافق المدنيين وأمّن المناطق المحددة. أكمل المهمة بأكبر قدر ممكن من الصحة والنقاط."]
+};
+for(const [code,data] of Object.entries(UCK_INFO)){if(GAME_INFO[code])GAME_INFO[code].uck=data;}
 function gameInfoData(){const d=GAME_INFO[lang()]?.[selectedType]||GAME_INFO.sq[selectedType]||GAME_INFO.sq.chess;return {title:d[0],body:d[1]};}
 function closeGameInfo(){document.getElementById("gameInfoOverlay")?.remove();}
 function openGameInfo(){
@@ -141,6 +154,7 @@ function startPracticeForGame(game=selectedType){
   if(game==="tetris"){selectedType=game;startTetrisGame({practice:true});return;}
   if(game==="war"){selectedType=game;startWarGame(true);return;}
   if(game==="kingdom"){selectedType=game;startKingdomGame();return;}
+  if(game==="uck"){selectedType=game;startUckGame();return;}
 }
 
 
@@ -2151,6 +2165,7 @@ function gameChoiceLabel(id){
   if(id==="tetris") return "🧱 "+tr("tetris");
   if(id==="war") return "⚔️ "+tr("war");
   if(id==="kingdom") return "🏰 "+tr("kingdom");
+  if(id==="uck") return "🪖 "+tr("uck");
   return id;
 }
 
@@ -2372,6 +2387,7 @@ function renderLobby(msg=""){
                 <option value="tetris">Blloqe</option>
                 <option value="war">Luftra</option>
                 <option value="kingdom">Mbretëria e Fundit</option>
+                <option value="uck">UÇK – Rruga e Lirisë</option>
               </select>
               <input id="gameBlockUntil" type="datetime-local">
               <div class="game-block-actions">
@@ -2404,6 +2420,11 @@ function renderLobby(msg=""){
           <button id="timerQuickOnline" class="secondary" type="button">${gx("online2to8")}</button>
           <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
+        ` : selectedType==="uck" ? `
+          <div class="game-help">🪖 ${tr("uck")}</div>
+          <button id="uckGame" class="primary" type="button">🎮 Fillo misionin</button>
+          <div class="game-help">🚑 Ndihmë · 📦 Furnizime · 👨‍👩‍👧 Civilë · 🧭 Rrugë e sigurt · 🛡️ Mbrojtje zone</div>
+          <div class="game-help">🎯 Misione të ndryshme, pikë, jetë dhe terren malor.</div>
         ` : selectedType==="kingdom" ? `
           <div class="game-help">🏰 ${tr("kingdom")}</div>
           <button id="kingdomGame" class="primary" type="button">🎮 ${tr("computer")}</button>
@@ -2435,7 +2456,7 @@ function renderLobby(msg=""){
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom") ? "" : `
+        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -2484,6 +2505,9 @@ function renderLobby(msg=""){
   if(boardGameSelected()){
     loadBoardProfileAndLeaderboard(selectedType);if(gamesAdmin)loadBoardAdminProfiles();
   }
+
+  const uckButton=document.getElementById("uckGame");
+  if(uckButton) uckButton.onclick=startUckGame;
 
   const kingdomButton=document.getElementById("kingdomGame");
   if(kingdomButton) kingdomButton.onclick=startKingdomGame;
@@ -2550,6 +2574,17 @@ function renderLobby(msg=""){
   }
 }
 
+
+async function startUckGame(){
+  stopGameMusic();
+  try{
+    const mod=await import("./uck.js?v=1");
+    mod.startUckGame({root,onBack:()=>renderLobby()});
+  }catch(error){
+    console.warn("uck game",error);
+    renderLobby("UÇK – Rruga e Lirisë nuk u hap. Provo përsëri.");
+  }
+}
 
 async function startKingdomGame(){
   stopGameMusic();
