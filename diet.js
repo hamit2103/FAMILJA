@@ -50,7 +50,11 @@ const FOODS=[
  {p:["pul","huhn","chicken","tavuk"],k:165,kind:"g",serv:180},
  {p:["mish viçi","rind","beef","dana"],k:250,kind:"g",serv:180},
  {p:["peshk","fisch","fish","balık"],k:180,kind:"g",serv:180},
- {p:["vez","ei","egg","yumurta"],k:78,kind:"unit",serv:1},
+ {p:["vezë e vogël","veze e vogel","kleines ei","ei s","small egg","küçük yumurta"],k:54,kind:"unit",serv:1},
+ {p:["vezë mesatare","veze mesatare","mittleres ei","ei m","medium egg","orta yumurta"],k:66,kind:"unit",serv:1},
+ {p:["vezë e madhe","veze e madhe","großes ei","grosses ei","ei l","large egg","büyük yumurta"],k:78,kind:"unit",serv:1},
+ {p:["vezë xl","veze xl","ei xl","extra large egg","çok büyük yumurta"],k:90,kind:"unit",serv:1},
+ {p:["vez","ei","egg","yumurta"],k:66,kind:"unit",serv:1},
  {p:["qumësht","milch","milk","süt"],k:50,kind:"ml",serv:250},
  {p:["kos","joghurt","yogurt","yoğurt"],k:60,kind:"g",serv:200},
  {p:["djath","käse","cheese","peynir"],k:280,kind:"g",serv:50},
@@ -65,6 +69,12 @@ const FOODS=[
  {p:["sallat","salat","salad"],k:150,kind:"unit",serv:1},
  {p:["çokoll","schokolade","chocolate","çikolata"],k:535,kind:"g",serv:50},
  {p:["bisk","keks","cookie","kurabi"],k:480,kind:"g",serv:50},
+ {p:["coca cola light","coca-cola light","cola light","coke light"],k:0.6,kind:"ml",serv:330},
+ {p:["coca cola zero","coca-cola zero","cola zero","coke zero","zero sugar cola"],k:0.2,kind:"ml",serv:330},
+ {p:["pepsi max","pepsi zero","pepsi light"],k:0.3,kind:"ml",serv:330},
+ {p:["fanta zero","fanta light","fanta zero sugar"],k:0.5,kind:"ml",serv:330},
+ {p:["sprite zero","sprite light","sprite zero sugar"],k:0.5,kind:"ml",serv:330},
+ {p:["red bull sugarfree","red bull sugar free","red bull zero"],k:3,kind:"ml",serv:250},
  {p:["cola","kola"],k:42,kind:"ml",serv:330},
  {p:["lëng","saft","juice","meyve suyu"],k:45,kind:"ml",serv:250},
  {p:["ayran"],k:35,kind:"ml",serv:250},
@@ -125,6 +135,8 @@ const FOODS=[
  {p:["skyr"],k:65,kind:"g",serv:200},
  {p:["protein pudding","high protein pudding"],k:80,kind:"g",serv:200},
  {p:["ice cream","eis","akullore","dondurma"],k:200,kind:"g",serv:100},
+ {p:["käsesahnekuchen","kaesesahnekuchen","kasesahnekuchen","käse-sahne-kuchen","kaese sahne kuchen"],k:330,kind:"g",serv:100},
+ {p:["käsekuchen","kaesekuchen","kasekuchen","cheesecake"],k:320,kind:"g",serv:100},
  {p:["cake","kuchen","torte","tortë","pasta tatlı"],k:350,kind:"g",serv:100},
  {p:["baklava"],k:430,kind:"g",serv:80},
  {p:["donut"],k:300,kind:"unit",serv:1},
@@ -194,6 +206,7 @@ function parseFood(text){
  const exact=raw.match(/(\d+(?:[.,]\d+)?)\s*kcal/i);
  if(exact)return {label:raw,kcal:Math.max(0,Math.round(Number(exact[1].replace(",","."))))};
  const lower=raw.toLocaleLowerCase();
+ const escRx=v=>String(v).replace(/[.*+?^{}()|[\]\\]/g,"\\ const lower=raw.toLocaleLowerCase();
  const food=FOODS.find(f=>f.p.some(p=>lower.includes(p)));
  if(!food)return null;
  let amount=null;
@@ -211,7 +224,32 @@ function parseFood(text){
  }
  const count=lower.match(/(^|\s)(\d+(?:[.,]\d+)?)(?=\s|$)/);
  amount=count?Number(count[2].replace(",",".")):food.serv;
- return {label:raw,kcal:Math.round(amount*food.k)};
+ return {label:raw,kcal:Math.round(amount*food.k)};");
+ const candidates=[];
+ FOODS.forEach(f=>f.p.forEach(alias=>{
+   const a=String(alias).toLocaleLowerCase();
+   const rx=new RegExp("(^|[^\\p{L}\\p{N}])"+escRx(a)+"($|[^\\p{L}\\p{N}])","u");
+   if(rx.test(lower))candidates.push({f,alias:a});
+ }));
+ candidates.sort((a,b)=>b.alias.length-a.alias.length);
+ const food=candidates[0]?.f||null;
+ if(!food)return null;
+ let amount=null;
+ if(food.kind==="g"){
+   const kg=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:kg|kilogram(?:m|me)?|kilo)\b/);
+   const g=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|gram(?:m|me)?)\b/);
+   amount=kg?Number(kg[1].replace(",","."))*1000:g?Number(g[1].replace(",",".")):food.serv;
+   return {label:raw,kcal:Math.round(amount*food.k/100),amount,unit:"g"};
+ }
+ if(food.kind==="ml"){
+   const liter=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:l|lt|liter|litra|litre)\b/);
+   const ml=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:ml|milliliter|millilitre)\b/);
+   amount=liter?Number(liter[1].replace(",","."))*1000:ml?Number(ml[1].replace(",",".")):food.serv;
+   return {label:raw,kcal:Math.round(amount*food.k/100),amount,unit:"ml"};
+ }
+ const count=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:cop(?:ë|e)|stück|stueck|piece|pcs?|adet|tane)?\b/);
+ amount=count?Number(count[1].replace(",",".")):food.serv;
+ return {label:raw,kcal:Math.round(amount*food.k),amount,unit:"unit"};
 }
 function parseMealText(text){
  const raw=String(text||"").trim();
