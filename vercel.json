@@ -6,7 +6,8 @@
     {"source":"/download","destination":"/api/download"},
     {"source":"/android","destination":"/api/download?platform=android"},
     {"source":"/firestick","destination":"/api/download?platform=firestick"},
-    {"source":"/iphone","destination":"/api/download?platform=ios"}
+    {"source":"/iphone","destination":"/api/download?platform=ios"},
+    {"source":"/radio/zeri-shtimes","destination":"http://radio.1dhe1.com:8090/stream"}
   ],
   "redirects": [{"source":"/tv.apk","destination":"/pajaziti-firetv.apk","permanent":false}]
 }
