@@ -2765,7 +2765,7 @@ function renderLobby(msg=""){
 async function startDiamondRunGame(){
   stopGameMusic();
   try{
-    const mod=await import("./diamond-run.js?v=2");
+    const mod=await import("./diamond-run.js?v=3");
     mod.startDiamondRunGame({root,onBack:()=>renderLobby()});
   }catch(error){
     console.warn("diamond run",error);

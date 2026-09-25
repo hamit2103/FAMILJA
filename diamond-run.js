@@ -172,12 +172,12 @@ export function startDiamondRunGame(opts){
   function hideMessage(){msg.classList.add("hidden");msg.innerHTML="";}
   function showMessage(text,buttonText,action){
     paused=true;msg.classList.remove("hidden");
-    msg.innerHTML="<div>"+text+"</div><div class="dr-message-actions"><button id="drMsgBtn">"+buttonText+"</button></div>";
+    msg.innerHTML=`<div>${text}</div><div class="dr-message-actions"><button id="drMsgBtn">${buttonText}</button></div>`;
     document.getElementById("drMsgBtn").onclick=action;
   }
   function showResumeChoice(saved){
     paused=true;msg.classList.remove("hidden");
-    msg.innerHTML="<div>👤 "+escapeHtml(userName)+"<br>🏁 "+t("level")+" "+(saved.levelIndex+1)+"/5</div><div class="dr-message-actions"><button id="drContinue">▶ "+t("continueFrom")+" "+(saved.levelIndex+1)+"</button><button id="drRestartSaved" class="secondary">↺ "+t("startOver")+"</button></div>";
+    msg.innerHTML=`<div>👤 ${escapeHtml(userName)}<br>🏁 ${t("level")} ${saved.levelIndex+1}/5</div><div class="dr-message-actions"><button id="drContinue">▶ ${t("continueFrom")} ${saved.levelIndex+1}</button><button id="drRestartSaved" class="secondary">↺ ${t("startOver")}</button></div>`;
     document.getElementById("drContinue").onclick=function(){
       lives=clamp(Number(saved.lives)||3,1,9);
       score=Math.max(0,Number(saved.score)||0);
