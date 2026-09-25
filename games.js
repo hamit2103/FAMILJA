@@ -31,7 +31,7 @@ const GAME_SOUND_MASTER_KEY = "diamond-game-sound-master";
 const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
-const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war"];
+const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
 let masterSoundEnabled=localStorage.getItem(GAME_SOUND_MASTER_KEY)!=="off";
@@ -79,6 +79,8 @@ const TXT = {
   ar:{games:"الألعاب",online:"العب عبر الإنترنت",computer:"العب ضد الكمبيوتر",computerName:"الكمبيوتر",computerThinking:"الكمبيوتر يفكر…",newGame:"لعبة جديدة",chess:"الشطرنج",morris:"الطاحونة",timer:"ملك الثواني",tetris:"الكتل",war:"الحرب",choose:"اختر اللعبة",playerName:"اسمك",needName:"اكتب اسمك.",needPlayers:"يلزم لاعبان على الأقل.",ready:"استعد…",hiddenTime:"الثواني مخفية",stop:"إيقاف",stopped:"توقفت! انتظر الآخرين…",round:"الجولة",startRound:"ابدأ الجولة",eliminated:"تم إقصاؤه",king:"ملك اللعبة",power:"القوة",weekly:"الترتيب الأسبوعي",lastChampion:"بطل الأسبوع الماضي",wins:"انتصارات",players:"اللاعبون",maxPlayers:"2–8 لاعبين",roomLocked:"بدأت اللعبة؛ لا يمكن للاعبين جدد الانضمام.",youEliminated:"تم إقصاؤك. شاهد حتى النهاية.",backGames:"العودة للألعاب",soloTimer:"🤖 العب وحدك",practiceOnly:"تدريب ضد الكمبيوتر — لا يحتسب في الترتيب الأسبوعي.",you:"أنت",opponents:"الخصوم",active:"في اللعب",soundOn:"🔊 الصوت يعمل",soundOff:"🔇 الصوت متوقف",create:"إنشاء غرفة",code:"رمز الغرفة",join:"انضم",waiting:"بانتظار اللاعب الثاني…",yourTurn:"دورك",opponentTurn:"دور الخصم",white:"أبيض",black:"أسود",leave:"مغادرة اللعبة",room:"الغرفة",copy:"نسخ الرمز",copied:"تم النسخ",invalid:"الغرفة غير موجودة.",full:"الغرفة ممتلئة.",gameOver:"انتهت اللعبة",winner:"الفائز",helpChess:"اضغط قطعتك ثم مربع الوجهة.",helpMorris:"ضع أحجارك التسعة أولاً. عند تكوين ثلاثة في صف، أزل حجرًا للخصم.",error:"خطأ"},
   fr:{games:"Jeux",online:"Jouer en ligne",computer:"Jouer contre l'ordinateur",computerName:"Ordinateur",computerThinking:"L'ordinateur réfléchit…",newGame:"Nouvelle partie",chess:"Échecs",morris:"Moulin",timer:"Roi des secondes",tetris:"Blocs",war:"Guerre",choose:"Choisir un jeu",playerName:"Votre nom",needName:"Entrez votre nom.",needPlayers:"Au moins 2 joueurs sont requis.",ready:"Préparez-vous…",hiddenTime:"Les secondes sont cachées",stop:"STOP",stopped:"Arrêté ! Attendez les autres…",round:"Manche",startRound:"Démarrer la manche",eliminated:"éliminé",king:"Roi du jeu",power:"Puissance",weekly:"Classement hebdomadaire",lastChampion:"Champion de la semaine dernière",wins:"Victoires",players:"Joueurs",maxPlayers:"2–8 joueurs",roomLocked:"La partie a commencé ; aucun nouveau joueur ne peut rejoindre.",youEliminated:"Vous êtes éliminé. Regardez jusqu'à la fin.",backGames:"Retour aux jeux",soloTimer:"🤖 Jouer seul",practiceOnly:"Entraînement contre l'ordinateur — ne compte pas pour le classement.",you:"Vous",opponents:"Adversaires",active:"En jeu",soundOn:"🔊 Son ON",soundOff:"🔇 Son OFF",create:"Créer une salle",code:"Code de salle",join:"Rejoindre",waiting:"En attente du deuxième joueur…",yourTurn:"À vous de jouer",opponentTurn:"Tour de l'adversaire",white:"Blanc",black:"Noir",leave:"Quitter la partie",room:"Salle",copy:"Copier le code",copied:"Code copié",invalid:"Salle introuvable.",full:"Salle pleine.",gameOver:"Partie terminée",winner:"Gagnant",helpChess:"Touchez votre pièce puis la case de destination.",helpMorris:"Placez d'abord vos 9 pions. Quand vous formez une ligne de trois, retirez un pion adverse.",error:"Erreur"}
 };
+const KINGDOM_NAMES={sq:"Mbretëria e Fundit",de:"Das letzte Königreich",tr:"Son Krallık",en:"The Last Kingdom",it:"L'ultimo Regno",hr:"Posljednje Kraljevstvo",fr:"Le Dernier Royaume",ar:"المملكة الأخيرة"};
+for(const [code,name] of Object.entries(KINGDOM_NAMES)){if(TXT[code])TXT[code].kingdom=name;}
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
 function tr(k){ return TXT[lang()][k] || TXT.sq[k] || k; }
@@ -105,6 +107,17 @@ const GAME_INFO={
   fr:{chess:["Échecs","Déplace les pièces selon les règles et mets le roi adverse échec et mat. Les parties en ligne comptent pour les victoires hebdomadaires. Contre l'ordinateur, c'est un entraînement sans points."],morris:["Moulin","Place 9 pions. Quand tu formes une ligne de trois, retire un pion adverse. Ensuite, déplace les pions sur les points reliés. L'online compte; l'ordinateur est un entraînement sans points."],timer:["Roi des secondes","L'app donne un temps cible. Appuie sur STOP le plus près possible. En ligne, tu joues contre d'autres utilisateurs. Contre l'ordinateur, c'est un entraînement sans points."],tetris:["Blocs","Fais pivoter et déplace les blocs pour compléter des lignes. En ligne, le dernier joueur restant gagne. Le mode solo est un entraînement et n'enregistre aucun point de classement."],war:["Guerre","Choisis une des deux armes et attaque l'adversaire. Jusqu'à 8 joueurs peuvent jouer en ligne. Contre l'ordinateur, c'est uniquement un entraînement: aucun point, diamant ou récompense."]},
   ar:{chess:["الشطرنج","حرّك القطع حسب قواعد الشطرنج وحاصر ملك الخصم. اللعب أونلاين يُحتسب ضمن انتصارات الأسبوع. اللعب ضد الكمبيوتر تدريب فقط بدون نقاط."],morris:["الطاحونة","ضع 9 أحجار. عند تكوين ثلاثة على خط واحد أزل حجرًا للخصم، ثم حرّك الأحجار بين النقاط المتصلة. الأونلاين يُحتسب؛ والكمبيوتر تدريب بدون نقاط."],timer:["ملك الثواني","يحدد التطبيق وقتًا مستهدفًا. اضغط إيقاف بأقرب وقت ممكن إليه. أونلاين تلعب ضد مستخدمين آخرين، وضد الكمبيوتر تدريب فقط بدون نقاط."],tetris:["الكتل","دوّر الكتل وحرّكها لإكمال الصفوف. أونلاين يفوز آخر لاعب يبقى. اللعب الفردي تدريب ولا يحفظ نقاطًا في الترتيب."],war:["الحرب","اختر واحدًا من سلاحين وهاجم الخصم. يمكن لما يصل إلى 8 لاعبين اللعب أونلاين. ضد الكمبيوتر تدريب فقط: بدون نقاط أو ألماس أو مكافآت."]}
 };
+const KINGDOM_INFO={
+  sq:["Mbretëria e Fundit","Zgjero territorin, ndërto mure dhe ura, përdor ushtarë e fuqi të rralla dhe provo të pushtosh kështjellën kundërshtare. Çdo raund merr 2 fuqi rastësore; pas 24 raundeve fiton territori më i madh."],
+  de:["Das letzte Königreich","Erweitere dein Gebiet, baue Mauern und Brücken und nutze Soldaten sowie seltene Kräfte, um die gegnerische Burg zu erobern. Jede Runde erhältst du 2 zufällige Kräfte; nach 24 Runden gewinnt das größere Gebiet."],
+  tr:["Son Krallık","Bölgeni büyüt, duvarlar ve köprüler kur, askerleri ve nadir güçleri kullanarak rakibin kalesini ele geçir. Her turda 2 rastgele güç gelir; 24 turun sonunda daha büyük bölge kazanır."],
+  en:["The Last Kingdom","Expand your territory, build walls and bridges, and use soldiers and rare powers to capture the enemy castle. Each round gives you 2 random powers; after 24 rounds the larger territory wins."],
+  it:["L'ultimo Regno","Espandi il territorio, costruisci muri e ponti e usa soldati e poteri rari per conquistare il castello avversario. Ogni turno ricevi 2 poteri casuali; dopo 24 turni vince il territorio più grande."],
+  hr:["Posljednje Kraljevstvo","Proširi teritorij, gradi zidove i mostove te koristi vojnike i rijetke moći kako bi osvojio protivnički dvorac. Svaku rundu dobivaš 2 nasumične moći; nakon 24 runde pobjeđuje veći teritorij."],
+  fr:["Le Dernier Royaume","Agrandissez votre territoire, construisez des murs et des ponts et utilisez soldats et pouvoirs rares pour capturer le château adverse. Chaque tour donne 2 pouvoirs aléatoires; après 24 tours, le plus grand territoire gagne."],
+  ar:["المملكة الأخيرة","وسّع أرضك وابنِ الجدران والجسور واستخدم الجنود والقوى النادرة للاستيلاء على قلعة الخصم. في كل جولة تحصل على قوتين عشوائيتين؛ بعد 24 جولة يفوز صاحب الأرض الأكبر."]
+};
+for(const [code,data] of Object.entries(KINGDOM_INFO)){if(GAME_INFO[code])GAME_INFO[code].kingdom=data;}
 function gameInfoData(){const d=GAME_INFO[lang()]?.[selectedType]||GAME_INFO.sq[selectedType]||GAME_INFO.sq.chess;return {title:d[0],body:d[1]};}
 function closeGameInfo(){document.getElementById("gameInfoOverlay")?.remove();}
 function openGameInfo(){
@@ -127,6 +140,7 @@ function startPracticeForGame(game=selectedType){
   if(game==="timer"){selectedType=game;startTimerSoloGame();return;}
   if(game==="tetris"){selectedType=game;startTetrisGame({practice:true});return;}
   if(game==="war"){selectedType=game;startWarGame(true);return;}
+  if(game==="kingdom"){selectedType=game;startKingdomGame();return;}
 }
 
 
@@ -2136,6 +2150,7 @@ function gameChoiceLabel(id){
   if(id==="timer") return "⏱️ "+tr("timer");
   if(id==="tetris") return "🧱 "+tr("tetris");
   if(id==="war") return "⚔️ "+tr("war");
+  if(id==="kingdom") return "🏰 "+tr("kingdom");
   return id;
 }
 
@@ -2356,6 +2371,7 @@ function renderLobby(msg=""){
                 <option value="timer">Kral i Sekondave</option>
                 <option value="tetris">Blloqe</option>
                 <option value="war">Luftra</option>
+                <option value="kingdom">Mbretëria e Fundit</option>
               </select>
               <input id="gameBlockUntil" type="datetime-local">
               <div class="game-block-actions">
@@ -2388,6 +2404,11 @@ function renderLobby(msg=""){
           <button id="timerQuickOnline" class="secondary" type="button">${gx("online2to8")}</button>
           <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
+        ` : selectedType==="kingdom" ? `
+          <div class="game-help">🏰 ${tr("kingdom")}</div>
+          <button id="kingdomGame" class="primary" type="button">🎮 ${tr("computer")}</button>
+          <div class="game-help">🌱 Tokë · 🧱 Mur · 🛡️ Ushtar · 🌉 Urë · 🔥 Zjarr · 🌊 Ujë · 💣 Bombë · 💎 Diamanti i Zi</div>
+          <div class="game-help">🎯 24 raunde · pushto kështjellën ose mbaro me territorin më të madh.</div>
         ` : selectedType==="war" ? `
           <div class="war-user-setup">
             <div class="war-economy-head">
@@ -2414,7 +2435,7 @@ function renderLobby(msg=""){
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        ${(selectedType==="tetris" || selectedType==="war") ? "" : `
+        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -2463,6 +2484,9 @@ function renderLobby(msg=""){
   if(boardGameSelected()){
     loadBoardProfileAndLeaderboard(selectedType);if(gamesAdmin)loadBoardAdminProfiles();
   }
+
+  const kingdomButton=document.getElementById("kingdomGame");
+  if(kingdomButton) kingdomButton.onclick=startKingdomGame;
 
   const tetrisButton=document.getElementById("tetrisGame");
   if(tetrisButton) tetrisButton.onclick=startTetrisGame;
@@ -2526,6 +2550,17 @@ function renderLobby(msg=""){
   }
 }
 
+
+async function startKingdomGame(){
+  stopGameMusic();
+  try{
+    const mod=await import("./kingdom.js?v=1");
+    mod.startKingdomGame({root,onBack:()=>renderLobby()});
+  }catch(error){
+    console.warn("kingdom game",error);
+    renderLobby("Mbretëria e Fundit nuk u hap. Provo përsëri.");
+  }
+}
 
 function clearQuickChess(){
   if(quickChessTimer){clearInterval(quickChessTimer);quickChessTimer=null;}
