@@ -2366,10 +2366,61 @@ function gameChoiceLabel(id){
   return id;
 }
 
+function gameHasOnline(id){
+  return ["chess","morris","timer","tetris","war"].includes(id);
+}
+function gameUsesComputer(id){
+  return ["chess","morris","war","kingdom"].includes(id);
+}
+function gameMenuActionText(key){
+  const l=lang();
+  const map={
+    sq:{play:"🎮 Luaj",online:"🌐 Luaj online",computer:"🤖 Luaj me kompjuterin"},
+    de:{play:"🎮 Spielen",online:"🌐 Online spielen",computer:"🤖 Gegen Computer"},
+    tr:{play:"🎮 Oyna",online:"🌐 Çevrimiçi oyna",computer:"🤖 Bilgisayara karşı"},
+    en:{play:"🎮 Play",online:"🌐 Play online",computer:"🤖 Play computer"},
+    it:{play:"🎮 Gioca",online:"🌐 Gioca online",computer:"🤖 Gioca col computer"},
+    hr:{play:"🎮 Igraj",online:"🌐 Igraj online",computer:"🤖 Igraj protiv računala"},
+    fr:{play:"🎮 Jouer",online:"🌐 Jouer en ligne",computer:"🤖 Jouer contre l’ordinateur"},
+    ar:{play:"🎮 العب",online:"🌐 العب أونلاين",computer:"🤖 العب ضد الكمبيوتر"}
+  };
+  return map[l]?.[key]||map.sq[key]||key;
+}
 function renderGameChoices(){
-  return gameOrder.map((id)=>
-    `<button class="game-choice ${selectedType===id?"active":""}" data-game="${id}" ${activeGameBlock(id)&&!gamesAdmin?"disabled":""}>${gameChoiceLabel(id)}${activeGameBlock(id)?`<small class="game-block-note">🔒 ${gameBlockText(id)}</small>`:""}</button>`
-  ).join("");
+  return gameOrder.map((id)=>{
+    const blocked=activeGameBlock(id)&&!gamesAdmin;
+    const online=gameHasOnline(id);
+    const computer=gameUsesComputer(id);
+    return `<div class="game-choice ${selectedType===id?"active":""} ${blocked?"blocked":""}">
+      <button class="game-choice-title" data-game="${id}" type="button" ${blocked?"disabled":""}>${gameChoiceLabel(id)}</button>
+      <div class="game-choice-actions ${online?"":"single"}">
+        ${online?`<button class="game-choice-online" data-game-online="${id}" type="button" ${blocked?"disabled":""}>${gameMenuActionText("online")}</button>`:""}
+        <button class="game-choice-play" data-game-play="${id}" type="button" ${blocked?"disabled":""}>${gameMenuActionText(computer?"computer":"play")}</button>
+      </div>
+      ${activeGameBlock(id)?`<small class="game-block-note">🔒 ${gameBlockText(id)}</small>`:""}
+    </div>`;
+  }).join("");
+}
+async function launchGameFromMenu(id,mode){
+  if(activeGameBlock(id)&&!gamesAdmin){
+    const m=document.getElementById("gameMessage");
+    if(m)m.textContent="Kjo lojë është e bllokuar nga Admini "+gameBlockText(id)+".";
+    return;
+  }
+  selectedType=id;
+  if(mode==="online"){
+    if(id==="chess"||id==="morris"){await startBoardQuickOnline(id);return;}
+    if(id==="timer"||id==="tetris"){await startArcadeQuick(id);return;}
+    if(id==="war"){await startWarMultiSearch();return;}
+    return;
+  }
+  if(id==="chess"||id==="morris"){startComputerGame();return;}
+  if(id==="timer"){startTimerSoloGame();return;}
+  if(id==="tetris"){startTetrisGame({practice:true});return;}
+  if(id==="war"){startWarGame();return;}
+  if(id==="kingdom"){startKingdomGame();return;}
+  if(id==="uck"){startUckGame();return;}
+  if(id==="diamondrun"){startDiamondRunGame();return;}
 }
 
 function boardGameSelected(){ return selectedType==="chess" || selectedType==="morris"; }
@@ -2608,30 +2659,28 @@ function renderLobby(msg=""){
                 <option value="pro" ${boardAiLevel==="pro"?"selected":""}>Profesionel</option>
               </select>
             </label>
-            <button id="boardPracticeNow" class="primary" type="button">🎮 Luaj</button>
-            <button id="boardQuickOnline" class="secondary" type="button">🌐 Luaj online</button>
+            <div class="game-help">⬆️ Zgjidh “Luaj online” ose “Luaj me kompjuterin” te karta e lojës sipër.</div>
           </div>
           <section id="boardLeaderboard" class="card board-leaderboard"><div class="muted">🏆 Po ngarkohet renditja javore…</div></section>
           ${gamesAdmin?'<section class="card board-admin-panel"><h3>👑 Admin · Emrat e lojtarëve</h3><p class="muted">Vetëm Admini mund t’i ndryshojë. Pikët mbeten të njëjta.</p><div id="boardAdminProfiles">Po ngarkohen lojtarët…</div></section>':""}
         ` : selectedType==="timer" ? `
           <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
-          <button id="timerSoloGame" class="primary" type="button">🎮 Luaj</button>
-          <button id="timerQuickOnline" class="secondary" type="button">🌐 Luaj online</button>
+          <div class="game-help">⬆️ Zgjidh “Luaj” ose “Luaj online” te karta e lojës sipër.</div>
           <div class="game-help">🎯 Online: app-i zgjedh vetë një numër nga 00:01 deri 09:99. I pari që shtyp STOP në kohën e duhur fiton.</div>
           <div class="game-help">👥 ${tr("maxPlayers")} · 🔒 ${tr("hiddenTime")}</div>
         ` : selectedType==="diamondrun" ? `
           <div class="game-help">💎 ${tr("diamondrun")}</div>
-          <button id="diamondRunGame" class="primary" type="button">🎮 Luaj</button>
+          <div class="game-help">⬆️ Shtyp “Luaj” te karta Diamond Run sipër.</div>
           <div class="game-help">🏃 Vrapo · ⬆️ Kërce · 💎 Mblidh diamante · ❤️ 3 jetë · 🚩 Arrij flamurin</div>
           <div class="game-help">🎯 5 nivele · checkpoint · armiq · pengesa · komandim me prekje në telefon.</div>
         ` : selectedType==="uck" ? `
           <div class="game-help">🪖 ${tr("uck")}</div>
-          <button id="uckGame" class="primary" type="button">🎮 Luaj</button>
+          <div class="game-help">⬆️ Shtyp “Luaj” te karta UÇK sipër.</div>
           <div class="game-help">🚑 Ndihmë · 📦 Furnizime · 👨‍👩‍👧 Civilë · 🧭 Rrugë e sigurt · 🛡️ Mbrojtje zone</div>
           <div class="game-help">🎯 Misione të ndryshme, pikë, jetë dhe terren malor.</div>
         ` : selectedType==="kingdom" ? `
           <div class="game-help">🏰 ${tr("kingdom")}</div>
-          <button id="kingdomGame" class="primary" type="button">🎮 Luaj</button>
+          <div class="game-help">⬆️ Shtyp “Luaj me kompjuterin” te karta e lojës sipër.</div>
           <div class="game-help">🌱 Tokë · 🧱 Mur · 🛡️ Ushtar · 🌉 Urë · 🔥 Zjarr · 🌊 Ujë · 💣 Bombë · 💎 Diamanti i Zi</div>
           <div class="game-help">🎯 24 raunde · pushto kështjellën ose mbaro me territorin më të madh.</div>
         ` : selectedType==="war" ? `
@@ -2643,8 +2692,7 @@ function renderLobby(msg=""){
             <input id="warPlayerName" type="hidden" value="${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"")}">
             <div id="warNameInfo" class="game-help hidden"></div>
             <div class="war-diamond-note">💎 +5 çdo orë · 🎲 armë të reja 3 💎 · 🤖 ${gx("practiceNote")}</div>
-            <button id="warGame" class="primary" type="button">🎮 Luaj</button>
-            <button id="warMultiBtn" class="secondary war-online-btn" type="button">🌐 Luaj online</button>
+            <div class="game-help">⬆️ Zgjidh “Luaj online” ose “Luaj me kompjuterin” te karta Luftra sipër.</div>
             <div id="warMultiCount" class="war-online-count">👥 Në pritje: 0 / 8</div>
             <div class="game-help">Online pret 10 sekonda. Nëse askush nuk hyn, del “Provo përsëri” — nuk kalon te kompjuteri.</div>
           </div>
@@ -2652,8 +2700,7 @@ function renderLobby(msg=""){
           ${gamesAdmin?`<section class="war-admin-panel"><h3>👑 Admin · Luftra</h3><p class="muted">Jep diamanta çdo lojtari. Emri lidhet me pajisjen dhe mund të ndryshohet vetëm 2 herë.</p><div id="warAdminProfiles">Po ngarkohen lojtarët…</div></section>`:""}
         ` : selectedType==="tetris" ? `
           <div class="game-help">👤 ${escapeHtml(localStorage.getItem("pajaziti-global-user-name")||"—")}</div>
-          <button id="tetrisGame" class="primary" type="button">🎮 Luaj</button>
-          <button id="tetrisQuickOnline" class="secondary" type="button">🌐 Luaj online</button>
+          <div class="game-help">⬆️ Zgjidh “Luaj” ose “Luaj online” te karta Blloqe sipër.</div>
           <div class="game-help">Online pret deri 15 sekonda. Lojtari i fundit që mbetet në lojë fiton 🥇.</div>
           <div class="game-help">👆 Prek një herë ekranin = rrotullo · ✋ Mbaje të shtypur dhe tërhiqe = lëvize ku dëshiron</div>
           <section id="tetrisRecentWins" class="tetris-leaderboard-mini"><div class="muted">🥇 Po ngarkohen fituesit online…</div></section>
@@ -2684,6 +2731,8 @@ function renderLobby(msg=""){
   document.getElementById("saveAdminGameTheme")?.addEventListener("click",saveAdminGameTheme);
   document.getElementById("resetUserGameTheme")?.addEventListener("click",resetUserGameTheme);
   root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.game;if(activeGameBlock(id)&&!gamesAdmin){const m=document.getElementById("gameMessage");if(m)m.textContent="Kjo lojë është e bllokuar nga Admini "+gameBlockText(id)+".";return;}selectedType=id;renderLobby();});
+  root.querySelectorAll("[data-game-play]").forEach(btn=>btn.onclick=async()=>{btn.disabled=true;try{await launchGameFromMenu(btn.dataset.gamePlay,"play");}finally{if(btn.isConnected)btn.disabled=false;}});
+  root.querySelectorAll("[data-game-online]").forEach(btn=>btn.onclick=async()=>{btn.disabled=true;try{await launchGameFromMenu(btn.dataset.gameOnline,"online");}finally{if(btn.isConnected)btn.disabled=false;}});
   const warChoice=root.querySelector('[data-game="war"]'); if(warChoice) warChoice.addEventListener("click",()=>{selectedType="war";renderLobby();},{once:true});
   bindGameOrderAdmin();
   document.getElementById("gameBlockSave")?.addEventListener("click",setAdminGameBlock);
