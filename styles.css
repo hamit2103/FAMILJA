@@ -5123,3 +5123,20 @@ button.war-weapon-icon:disabled{
 .diet-summary{grid-template-columns:repeat(6,minmax(0,1fr))}
 @media(max-width:720px){.diet-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* END DIET LIVE CALORIES 6.00 */
+
+/* DIET QUANTITY CONTROLS 6.03 */
+.diet-qty-box{display:grid;gap:7px;margin-top:8px}
+.diet-qty-row{
+  display:grid;grid-template-columns:minmax(0,1fr) 110px 84px;gap:8px;align-items:end;
+  padding:9px;border-radius:12px;background:rgba(255,255,255,.58);border:1px solid rgba(100,116,139,.18)
+}
+.diet-qty-name{font-weight:850;align-self:center;overflow-wrap:anywhere}
+.diet-qty-row label{display:grid;gap:4px;font-size:.82rem;font-weight:750}
+.diet-qty-amount,.diet-qty-unit{
+  width:100%;box-sizing:border-box;border:1px solid rgba(100,116,139,.28);border-radius:10px;
+  padding:9px;background:#fff;color:#111827;font:inherit
+}
+@media(max-width:620px){
+  .diet-qty-row{grid-template-columns:1fr 92px 72px}
+}
+/* END DIET QUANTITY CONTROLS 6.03 */
