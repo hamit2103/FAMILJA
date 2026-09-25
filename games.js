@@ -27,6 +27,8 @@ const BOARD_NAME_KEY = "pajaziti-global-user-name";
 const ADMIN_EMAIL = "admin@familja.local";
 const GAME_ORDER_SETTING_KEY = "game_order";
 const GAME_THEME_SETTING_KEY = "game_theme_defaults";
+const GAME_CONTROL_LAYOUT_SETTING_KEY = "game_control_layout_defaults_v1";
+const GAME_CONTROL_LAYOUT_USER_KEY = "diamond-game-control-layout-v1";
 const GAME_SOUND_MASTER_KEY = "diamond-game-sound-master";
 const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
@@ -49,6 +51,12 @@ for(const id of ["chess","morris","war","kingdom"]){
 }
 let boardAiLevel=computerAiLevels.chess||"medium";
 let gameThemePanelOpen=false;
+let adminGameControlLayouts={};
+let userGameControlLayouts={};
+let controlLayoutEditActive=false;
+let controlLayoutDraft={};
+let controlLayoutGame=null;
+let controlLayoutSyncRaf=0;
 
 let quickChessTimer=null;
 let quickChessDeadline=0;
@@ -120,6 +128,25 @@ function ensureUniversalGameStyle(){
     #diamondUniversalGameChrome.diamond-run-chrome #diamondUniversalGameActions button{min-height:34px;border-radius:11px;font-size:11px;padding:5px 7px}
     @media (max-height:650px){body.diamond-game-fullscreen-active #gamesRoot{padding-top:42px!important;padding-bottom:66px!important}
       #diamondUniversalGameActions button{min-height:42px;font-size:13px}}
+    #diamondControlLayoutBtn{position:absolute;top:max(48px,calc(env(safe-area-inset-top) + 41px));right:8px;width:38px;height:38px;
+      border-radius:13px;border:1px solid rgba(255,255,255,.32);background:rgba(5,8,22,.88);color:#fff;font-size:20px;
+      display:grid;place-items:center;pointer-events:auto;box-shadow:0 5px 18px rgba(0,0,0,.32);z-index:3}
+    #diamondControlLayoutPanel{position:fixed;left:50%;bottom:max(78px,calc(env(safe-area-inset-bottom) + 70px));transform:translateX(-50%);
+      width:min(94vw,560px);z-index:2147483647;background:linear-gradient(160deg,#07162e,#0b2445);color:#fff;
+      border:1px solid rgba(56,189,248,.62);border-radius:20px;padding:14px;box-sizing:border-box;
+      box-shadow:0 22px 60px rgba(0,0,0,.55);font-family:system-ui,sans-serif}
+    #diamondControlLayoutPanel .dcl-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    #diamondControlLayoutPanel .dcl-head strong{font-size:18px}
+    #diamondControlLayoutPanel .dcl-note{font-size:12px;line-height:1.35;color:#dbeafe;margin:8px 0 10px}
+    #diamondControlLayoutPanel .dcl-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    #diamondControlLayoutPanel .dcl-actions button{min-height:44px;border:1px solid rgba(255,255,255,.22);border-radius:13px;color:#fff;
+      font-weight:900;background:#172554;padding:8px}
+    #diamondControlLayoutPanel .dcl-actions .save{background:linear-gradient(135deg,#7c3aed,#2563eb)}
+    #diamondControlLayoutPanel .dcl-actions .standard{background:#b91c1c}
+    #diamondControlLayoutPanel .dcl-status{min-height:18px;margin-top:8px;font-size:12px;color:#bae6fd}
+    .diamond-movable-control{box-sizing:border-box!important}
+    body.diamond-control-layout-editing .diamond-movable-control{outline:3px dashed #ef4444!important;outline-offset:3px!important;
+      touch-action:none!important;cursor:move!important;box-shadow:0 0 0 4px rgba(239,68,68,.16),0 10px 28px rgba(0,0,0,.35)!important}
   `;
   document.head.appendChild(style);
 }
@@ -211,6 +238,7 @@ function renderUniversalGameChrome(){
   chrome.className=diamondRunActive?"diamond-run-chrome":"";
   document.body.classList.toggle("diamond-run-top-chrome",diamondRunActive);
   chrome.innerHTML=`<button id="diamondUniversalGameClose" type="button" aria-label="${universalGameText("close")}">✕</button>
+    <button id="diamondControlLayoutBtn" type="button" aria-label="Rregullo pullat" title="Rregullo pullat">⚙️</button>
     <div id="diamondUniversalGameActions">
       <button id="diamondUniversalGameAgain" type="button">${universalGameText("again")}</button>
       <button id="diamondUniversalGameLeave" type="button">${universalGameText("leave")}</button>
@@ -218,6 +246,7 @@ function renderUniversalGameChrome(){
   document.getElementById("diamondUniversalGameClose").onclick=leaveUniversalGame;
   document.getElementById("diamondUniversalGameLeave").onclick=leaveUniversalGame;
   document.getElementById("diamondUniversalGameAgain").onclick=restartUniversalGame;
+  document.getElementById("diamondControlLayoutBtn").onclick=openGameControlLayoutEditor;
 }
 async function activateUniversalGameFullscreen(){
   ensureUniversalGameStyle();
@@ -241,9 +270,285 @@ function syncUniversalGameFullscreen(){
 function scheduleUniversalGameFullscreenSync(){
   if(universalGameSyncQueued)return;
   universalGameSyncQueued=true;
-  requestAnimationFrame(syncUniversalGameFullscreen);
+  requestAnimationFrame(()=>{syncUniversalGameFullscreen();scheduleGameControlLayoutSync();});
 }
 if(root)new MutationObserver(scheduleUniversalGameFullscreenSync).observe(root,{childList:true,subtree:true});
+
+
+const CONTROL_LAYOUT_TEXT={
+  sq:{title:"⚙️ Rregullo pullat",note:"Mbaje pullën me gisht dhe tërhiqe ku të duash. Pozicioni ruhet vetëm në këtë telefon.",adminNote:"Lëvizi pullat. Kur i ruan si standard, ky bëhet pozicioni standard për të gjithë.",save:"💾 Ruaj në këtë telefon",saveAdmin:"👑 Ruaj si standard",standard:"↩️ Kthe standardin",close:"✕ Mbyll",saved:"✅ U ruajt në këtë telefon.",savedAdmin:"✅ Standardi i Adminit u ruajt për të gjithë.",reset:"✅ U kthye te standardi i Adminit.",none:"Kjo lojë nuk ka pulla kontrolli që mund të lëvizen."},
+  de:{title:"⚙️ Tasten anordnen",note:"Taste gedrückt halten und an die gewünschte Stelle ziehen. Die Position bleibt nur auf diesem Gerät gespeichert.",adminNote:"Verschiebe die Tasten. Beim Speichern wird diese Anordnung zum Standard für alle.",save:"💾 Auf diesem Gerät speichern",saveAdmin:"👑 Als Standard speichern",standard:"↩️ Standard wiederherstellen",close:"✕ Schließen",saved:"✅ Auf diesem Gerät gespeichert.",savedAdmin:"✅ Admin-Standard für alle gespeichert.",reset:"✅ Admin-Standard wiederhergestellt.",none:"Dieses Spiel hat keine verschiebbaren Steuertasten."},
+  tr:{title:"⚙️ Tuşları düzenle",note:"Tuşa basılı tutup istediğin yere sürükle. Konum yalnızca bu telefonda saklanır.",adminNote:"Tuşları taşı. Standart olarak kaydedince bu düzen herkes için varsayılan olur.",save:"💾 Bu telefona kaydet",saveAdmin:"👑 Standart olarak kaydet",standard:"↩️ Standarta dön",close:"✕ Kapat",saved:"✅ Bu telefona kaydedildi.",savedAdmin:"✅ Yönetici standardı herkes için kaydedildi.",reset:"✅ Yönetici standardına dönüldü.",none:"Bu oyunda taşınabilir kontrol tuşu yok."},
+  en:{title:"⚙️ Arrange controls",note:"Hold a control and drag it where you want. Its position is saved only on this device.",adminNote:"Move the controls. Saving as standard makes this the default layout for everyone.",save:"💾 Save on this device",saveAdmin:"👑 Save as standard",standard:"↩️ Restore standard",close:"✕ Close",saved:"✅ Saved on this device.",savedAdmin:"✅ Admin standard saved for everyone.",reset:"✅ Restored the Admin standard.",none:"This game has no movable control buttons."},
+  it:{title:"⚙️ Disponi i comandi",note:"Tieni premuto un comando e trascinalo dove vuoi. La posizione resta salvata solo su questo dispositivo.",adminNote:"Sposta i comandi. Salvando come standard, questa disposizione diventa quella predefinita per tutti.",save:"💾 Salva su questo dispositivo",saveAdmin:"👑 Salva come standard",standard:"↩️ Ripristina standard",close:"✕ Chiudi",saved:"✅ Salvato su questo dispositivo.",savedAdmin:"✅ Standard Admin salvato per tutti.",reset:"✅ Ripristinato lo standard Admin.",none:"Questo gioco non ha pulsanti di controllo spostabili."},
+  hr:{title:"⚙️ Rasporedi tipke",note:"Drži tipku i povuci je gdje želiš. Položaj se sprema samo na ovom uređaju.",adminNote:"Pomakni tipke. Spremanjem kao standard ovo postaje zadani raspored za sve.",save:"💾 Spremi na ovom uređaju",saveAdmin:"👑 Spremi kao standard",standard:"↩️ Vrati standard",close:"✕ Zatvori",saved:"✅ Spremljeno na ovom uređaju.",savedAdmin:"✅ Admin standard spremljen za sve.",reset:"✅ Vraćen Admin standard.",none:"Ova igra nema pomične upravljačke tipke."},
+  fr:{title:"⚙️ Disposer les commandes",note:"Maintiens une commande et fais-la glisser où tu veux. La position est enregistrée uniquement sur cet appareil.",adminNote:"Déplace les commandes. Enregistrer comme standard rend cette disposition par défaut pour tous.",save:"💾 Enregistrer sur cet appareil",saveAdmin:"👑 Enregistrer comme standard",standard:"↩️ Restaurer le standard",close:"✕ Fermer",saved:"✅ Enregistré sur cet appareil.",savedAdmin:"✅ Standard Admin enregistré pour tous.",reset:"✅ Standard Admin restauré.",none:"Ce jeu n’a pas de boutons de contrôle déplaçables."},
+  ar:{title:"⚙️ ترتيب أزرار التحكم",note:"اضغط مطولاً على الزر واسحبه إلى المكان الذي تريده. يُحفظ موضعه على هذا الجهاز فقط.",adminNote:"حرّك الأزرار. عند الحفظ كإعداد قياسي يصبح هذا الترتيب الافتراضي للجميع.",save:"💾 حفظ على هذا الجهاز",saveAdmin:"👑 حفظ كإعداد قياسي",standard:"↩️ استعادة القياسي",close:"✕ إغلاق",saved:"✅ تم الحفظ على هذا الجهاز.",savedAdmin:"✅ تم حفظ إعداد المشرف للجميع.",reset:"✅ تمت استعادة إعداد المشرف.",none:"لا توجد أزرار تحكم قابلة للتحريك في هذه اللعبة."}
+};
+function clt(key){
+  const l=localStorage.getItem(LANG_KEY)||"sq";
+  return CONTROL_LAYOUT_TEXT[l]?.[key]||CONTROL_LAYOUT_TEXT.sq[key]||key;
+}
+const GAME_CONTROL_LAYOUT_TARGETS={
+  diamondadventure:[
+    {key:"left",selector:"#daLeft"},{key:"right",selector:"#daRight"},{key:"spin",selector:"#daSpin"},{key:"jump",selector:"#daJump"}
+  ],
+  diamondrun:[
+    {key:"left",selector:"#drLeft"},{key:"right",selector:"#drRight"},{key:"jump",selector:"#drJump"},{key:"shoot",selector:"#drShoot"}
+  ],
+  tetris:[
+    {key:"left",selector:'[data-tetris="left"]'},{key:"rotate",selector:'[data-tetris="rotate"]'},
+    {key:"right",selector:'[data-tetris="right"]'},{key:"down",selector:'[data-tetris="down"]'},{key:"drop",selector:'[data-tetris="drop"]'}
+  ],
+  timer:[
+    {key:"start",selector:"#startTimerRound"},{key:"stop",selector:"#timerStopButton"}
+  ],
+  war:[
+    {key:"weapon1",selector:".war-player-weapons.mine button:nth-of-type(1)"},
+    {key:"weapon2",selector:".war-player-weapons.mine button:nth-of-type(2)"},
+    {key:"reroll",selector:"#warReroll,#warMultiReroll"}
+  ],
+  kingdom:[
+    {key:"card",selector:".kgrow .kgp"}
+  ],
+  uck:[
+    {key:"mission",selector:".uck-missions .uck-mission"},
+    {key:"again",selector:"#uckAgain"},{key:"next",selector:"#uckNext"}
+  ],
+  chess:[
+    {key:"new",selector:"#newComputerGame"},{key:"resign",selector:"#boardResignBtn"},{key:"rematch",selector:"#boardRematchBtn"}
+  ],
+  morris:[
+    {key:"new",selector:"#newComputerGame"},{key:"resign",selector:"#boardResignBtn"},{key:"rematch",selector:"#boardRematchBtn"}
+  ]
+};
+function normalizeControlLayoutMap(value){
+  if(!value||typeof value!=="object"||Array.isArray(value))return {};
+  const out={};
+  for(const [game,layout] of Object.entries(value)){
+    if(!layout||typeof layout!=="object"||Array.isArray(layout))continue;
+    const clean={};
+    for(const [key,pos] of Object.entries(layout)){
+      const x=Number(pos?.x),y=Number(pos?.y);
+      if(Number.isFinite(x)&&Number.isFinite(y))clean[key]={x:Math.max(0,Math.min(1,x)),y:Math.max(0,Math.min(1,y))};
+    }
+    out[game]=clean;
+  }
+  return out;
+}
+async function loadGameControlLayouts(){
+  try{
+    const {data}=await supabase.from("app_settings").select("value").eq("key",GAME_CONTROL_LAYOUT_SETTING_KEY).maybeSingle();
+    adminGameControlLayouts=normalizeControlLayoutMap(data?.value||{});
+  }catch(_){adminGameControlLayouts={};}
+  try{
+    userGameControlLayouts=normalizeControlLayoutMap(JSON.parse(localStorage.getItem(GAME_CONTROL_LAYOUT_USER_KEY)||"{}"));
+  }catch(_){userGameControlLayouts={};}
+  scheduleGameControlLayoutSync();
+}
+function effectiveGameControlLayout(game=selectedType){
+  if(gamesAdmin)return adminGameControlLayouts?.[game]||{};
+  return userGameControlLayouts?.[game]||adminGameControlLayouts?.[game]||{};
+}
+function gameControlTargets(game=selectedType){
+  if(!root||!game)return [];
+  const specs=GAME_CONTROL_LAYOUT_TARGETS[game]||[];
+  const out=[];
+  for(const spec of specs){
+    const nodes=[...root.querySelectorAll(spec.selector)];
+    nodes.forEach((el,index)=>{
+      if(!(el instanceof HTMLElement))return;
+      const suffix=nodes.length>1?":"+index:"";
+      out.push({el,key:spec.key+suffix});
+    });
+  }
+  return out;
+}
+function clearManagedControlStyle(el){
+  if(!el)return;
+  el.classList.remove("diamond-movable-control");
+  el.style.removeProperty("position");el.style.removeProperty("left");el.style.removeProperty("top");
+  el.style.removeProperty("width");el.style.removeProperty("height");el.style.removeProperty("margin");
+  el.style.removeProperty("z-index");el.style.removeProperty("transform");
+  if(el.dataset.diamondWasDisabled==="1")el.disabled=true;
+  delete el.dataset.diamondWasDisabled;
+  delete el.dataset.diamondLayoutKey;
+}
+function placeControlAt(el,pos){
+  if(!el||!pos)return;
+  const rect=el.getBoundingClientRect();
+  const width=Math.max(34,rect.width||el.offsetWidth||48);
+  const height=Math.max(34,rect.height||el.offsetHeight||48);
+  const maxX=Math.max(0,window.innerWidth-width);
+  const maxY=Math.max(0,window.innerHeight-height);
+  const left=Math.max(0,Math.min(maxX,Number(pos.x||0)*maxX));
+  const top=Math.max(0,Math.min(maxY,Number(pos.y||0)*maxY));
+  Object.assign(el.style,{position:"fixed",left:left+"px",top:top+"px",width:width+"px",height:height+"px",margin:"0",zIndex:"2147483300",transform:"none"});
+  el.classList.add("diamond-movable-control");
+}
+function controlPositionFromPixels(el,left,top){
+  const rect=el.getBoundingClientRect();
+  const maxX=Math.max(1,window.innerWidth-rect.width);
+  const maxY=Math.max(1,window.innerHeight-rect.height);
+  return {x:Math.max(0,Math.min(1,left/maxX)),y:Math.max(0,Math.min(1,top/maxY))};
+}
+function bindControlDrag(el,key){
+  if(el.dataset.diamondDragBound==="1")return;
+  el.dataset.diamondDragBound="1";
+  el.addEventListener("pointerdown",(event)=>{
+    if(!controlLayoutEditActive||controlLayoutGame!==selectedType)return;
+    event.preventDefault();event.stopPropagation();
+    const rect=el.getBoundingClientRect();
+    const sx=event.clientX,sy=event.clientY,startLeft=rect.left,startTop=rect.top;
+    try{el.setPointerCapture(event.pointerId);}catch(_){}
+    const move=(ev)=>{
+      if(ev.pointerId!==event.pointerId)return;
+      ev.preventDefault();ev.stopPropagation();
+      const width=el.getBoundingClientRect().width,height=el.getBoundingClientRect().height;
+      const left=Math.max(0,Math.min(window.innerWidth-width,startLeft+(ev.clientX-sx)));
+      const top=Math.max(0,Math.min(window.innerHeight-height,startTop+(ev.clientY-sy)));
+      el.style.left=left+"px";el.style.top=top+"px";
+      controlLayoutDraft[key]=controlPositionFromPixels(el,left,top);
+      setControlLayoutStatus("");
+    };
+    const end=(ev)=>{
+      if(ev.pointerId!==event.pointerId)return;
+      ev.preventDefault();ev.stopPropagation();
+      try{el.releasePointerCapture(event.pointerId);}catch(_){}
+      el.removeEventListener("pointermove",move);
+      el.removeEventListener("pointerup",end);
+      el.removeEventListener("pointercancel",end);
+    };
+    el.addEventListener("pointermove",move,{passive:false});
+    el.addEventListener("pointerup",end,{passive:false});
+    el.addEventListener("pointercancel",end,{passive:false});
+  },{passive:false});
+}
+function freezeControlForEdit(el,key){
+  const saved=controlLayoutDraft[key];
+  if(saved){
+    placeControlAt(el,saved);
+  }else{
+    const rect=el.getBoundingClientRect();
+    const width=Math.max(34,rect.width||el.offsetWidth||48);
+    const height=Math.max(34,rect.height||el.offsetHeight||48);
+    const left=Math.max(0,Math.min(window.innerWidth-width,rect.left));
+    const top=Math.max(0,Math.min(window.innerHeight-height,rect.top));
+    Object.assign(el.style,{position:"fixed",left:left+"px",top:top+"px",width:width+"px",height:height+"px",margin:"0",zIndex:"2147483300",transform:"none"});
+    controlLayoutDraft[key]=controlPositionFromPixels(el,left,top);
+  }
+  if(el.disabled){el.dataset.diamondWasDisabled="1";el.disabled=false;}
+  el.dataset.diamondLayoutKey=key;
+  el.classList.add("diamond-movable-control");
+  bindControlDrag(el,key);
+}
+function syncGameControlLayout(){
+  controlLayoutSyncRaf=0;
+  if(!root||root.querySelector(".games-lobby"))return;
+  const game=selectedType;
+  const targets=gameControlTargets(game);
+  const activeLayout=controlLayoutEditActive&&controlLayoutGame===game?controlLayoutDraft:effectiveGameControlLayout(game);
+  for(const {el,key} of targets){
+    if(controlLayoutEditActive&&controlLayoutGame===game)freezeControlForEdit(el,key);
+    else if(activeLayout?.[key])placeControlAt(el,activeLayout[key]);
+  }
+}
+function scheduleGameControlLayoutSync(){
+  if(controlLayoutSyncRaf)return;
+  controlLayoutSyncRaf=requestAnimationFrame(syncGameControlLayout);
+}
+function setControlLayoutStatus(message){
+  const el=document.getElementById("diamondControlLayoutStatus");
+  if(el)el.textContent=message||"";
+}
+function closeGameControlLayoutEditor({revert=true}={}){
+  const game=controlLayoutGame;
+  controlLayoutEditActive=false;controlLayoutGame=null;controlLayoutDraft={};
+  document.body.classList.remove("diamond-control-layout-editing");
+  document.getElementById("diamondControlLayoutPanel")?.remove();
+  if(root){
+    for(const {el} of gameControlTargets(game))clearManagedControlStyle(el);
+  }
+  if(revert)scheduleGameControlLayoutSync();
+}
+function renderGameControlLayoutPanel(){
+  document.getElementById("diamondControlLayoutPanel")?.remove();
+  const panel=document.createElement("div");
+  panel.id="diamondControlLayoutPanel";
+  panel.innerHTML='<div class="dcl-head"><strong>'+clt("title")+'</strong><button id="diamondControlLayoutClose" type="button">✕</button></div>'+
+    '<div class="dcl-note">'+(gamesAdmin?clt("adminNote"):clt("note"))+'</div>'+
+    '<div class="dcl-actions"><button id="diamondControlLayoutSave" class="save" type="button">'+(gamesAdmin?clt("saveAdmin"):clt("save"))+'</button>'+
+    '<button id="diamondControlLayoutStandard" class="standard" type="button">'+clt("standard")+'</button></div>'+
+    '<div id="diamondControlLayoutStatus" class="dcl-status"></div>';
+  document.body.appendChild(panel);
+  panel.querySelector("#diamondControlLayoutClose").onclick=()=>closeGameControlLayoutEditor({revert:true});
+  panel.querySelector("#diamondControlLayoutSave").onclick=saveGameControlLayout;
+  panel.querySelector("#diamondControlLayoutStandard").onclick=restoreAdminGameControlLayout;
+}
+function openGameControlLayoutEditor(){
+  if(!selectedType||root?.querySelector(".games-lobby"))return;
+  if(controlLayoutEditActive){closeGameControlLayoutEditor({revert:true});return;}
+  controlLayoutGame=selectedType;
+  controlLayoutDraft=JSON.parse(JSON.stringify(effectiveGameControlLayout(controlLayoutGame)||{}));
+  controlLayoutEditActive=true;
+  document.body.classList.add("diamond-control-layout-editing");
+  renderGameControlLayoutPanel();
+  const targets=gameControlTargets(controlLayoutGame);
+  if(!targets.length)setControlLayoutStatus(clt("none"));
+  for(const {el,key} of targets)freezeControlForEdit(el,key);
+}
+async function saveGameControlLayout(){
+  if(!controlLayoutEditActive||!controlLayoutGame)return;
+  const game=controlLayoutGame;
+  const clean=normalizeControlLayoutMap({[game]:controlLayoutDraft})[game]||{};
+  if(gamesAdmin){
+    try{
+      const {data:s}=await supabase.auth.getSession();
+      const user=s?.session?.user;
+      if(!user)throw new Error("AUTH_REQUIRED");
+      const next={...adminGameControlLayouts,[game]:clean};
+      const {error}=await supabase.from("app_settings").upsert({
+        key:GAME_CONTROL_LAYOUT_SETTING_KEY,value:next,updated_at:new Date().toISOString(),updated_by:user.id
+      },{onConflict:"key"});
+      if(error)throw error;
+      adminGameControlLayouts=next;
+      setControlLayoutStatus(clt("savedAdmin"));
+    }catch(error){
+      setControlLayoutStatus("❌ "+(error?.message||"Gabim"));
+      return;
+    }
+  }else{
+    userGameControlLayouts={...userGameControlLayouts,[game]:clean};
+    try{localStorage.setItem(GAME_CONTROL_LAYOUT_USER_KEY,JSON.stringify(userGameControlLayouts));}catch(_){}
+    setControlLayoutStatus(clt("saved"));
+  }
+  setTimeout(()=>closeGameControlLayoutEditor({revert:true}),350);
+}
+function restoreAdminGameControlLayout(){
+  if(!controlLayoutGame)return;
+  const game=controlLayoutGame;
+  if(!gamesAdmin){
+    const next={...userGameControlLayouts};
+    delete next[game];
+    userGameControlLayouts=next;
+    try{localStorage.setItem(GAME_CONTROL_LAYOUT_USER_KEY,JSON.stringify(next));}catch(_){}
+  }
+  controlLayoutDraft=JSON.parse(JSON.stringify(adminGameControlLayouts?.[game]||{}));
+  for(const {el} of gameControlTargets(game))clearManagedControlStyle(el);
+  for(const {el,key} of gameControlTargets(game)){
+    if(controlLayoutDraft[key])placeControlAt(el,controlLayoutDraft[key]);
+    if(controlLayoutEditActive)freezeControlForEdit(el,key);
+  }
+  setControlLayoutStatus(clt("reset"));
+}
+if(root){
+  root.addEventListener("click",(event)=>{
+    if(controlLayoutEditActive&&event.target?.closest?.(".diamond-movable-control")){
+      event.preventDefault();event.stopImmediatePropagation();
+    }
+  },true);
+}
+window.addEventListener("resize",scheduleGameControlLayoutSync);
 
 let deviceId = localStorage.getItem(DEVICE_KEY);
 if (!deviceId) {
@@ -4521,12 +4826,12 @@ function startTetrisGame(options={}){
 async function activate(){
   startTetrisScoreRealtime();
   if(tabLabel)tabLabel.textContent=tr("games");
-  await Promise.all([loadGameOrder(),loadGameBlocks(),loadGameThemeDefaults()]);
+  await Promise.all([loadGameOrder(),loadGameBlocks(),loadGameThemeDefaults(),loadGameControlLayouts()]);
   if(room)renderRoom();else renderLobby();
 }
 
 async function reloadSettings(){
-  await Promise.all([loadGameOrder(),loadGameBlocks(),loadGameThemeDefaults()]);
+  await Promise.all([loadGameOrder(),loadGameBlocks(),loadGameThemeDefaults(),loadGameControlLayouts()]);
   if(!room) renderLobby();
 }
 
