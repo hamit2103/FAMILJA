@@ -206,48 +206,28 @@ function parseFood(text){
  const exact=raw.match(/(\d+(?:[.,]\d+)?)\s*kcal/i);
  if(exact)return {label:raw,kcal:Math.max(0,Math.round(Number(exact[1].replace(",","."))))};
  const lower=raw.toLocaleLowerCase();
- const escRx=v=>String(v).replace(/[.*+?^{}()|[\]\\]/g,"\\ const lower=raw.toLocaleLowerCase();
- const food=FOODS.find(f=>f.p.some(p=>lower.includes(p)));
- if(!food)return null;
- let amount=null;
- if(food.kind==="g"){
-   const kg=lower.match(/(\d+(?:[.,]\d+)?)\s*kg\b/);
-   const g=lower.match(/(\d+(?:[.,]\d+)?)\s*g\b/);
-   amount=kg?Number(kg[1].replace(",","."))*1000:g?Number(g[1].replace(",",".")):food.serv;
-   return {label:raw,kcal:Math.round(amount*food.k/100)};
- }
- if(food.kind==="ml"){
-   const l=lower.match(/(\d+(?:[.,]\d+)?)\s*l\b/);
-   const ml=lower.match(/(\d+(?:[.,]\d+)?)\s*ml\b/);
-   amount=l?Number(l[1].replace(",","."))*1000:ml?Number(ml[1].replace(",",".")):food.serv;
-   return {label:raw,kcal:Math.round(amount*food.k/100)};
- }
- const count=lower.match(/(^|\s)(\d+(?:[.,]\d+)?)(?=\s|$)/);
- amount=count?Number(count[2].replace(",",".")):food.serv;
- return {label:raw,kcal:Math.round(amount*food.k)};");
  const candidates=[];
  FOODS.forEach(f=>f.p.forEach(alias=>{
    const a=String(alias).toLocaleLowerCase();
-   const rx=new RegExp("(^|[^\\p{L}\\p{N}])"+escRx(a)+"($|[^\\p{L}\\p{N}])","u");
-   if(rx.test(lower))candidates.push({f,alias:a});
+   if(lower.includes(a))candidates.push({f,alias:a});
  }));
  candidates.sort((a,b)=>b.alias.length-a.alias.length);
  const food=candidates[0]?.f||null;
  if(!food)return null;
  let amount=null;
  if(food.kind==="g"){
-   const kg=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:kg|kilogram(?:m|me)?|kilo)\b/);
-   const g=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|gram(?:m|me)?)\b/);
+   const kg=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:kg|kilogram|kilogramm|kilo)\b/i);
+   const g=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|gram|gramm)\b/i);
    amount=kg?Number(kg[1].replace(",","."))*1000:g?Number(g[1].replace(",",".")):food.serv;
    return {label:raw,kcal:Math.round(amount*food.k/100),amount,unit:"g"};
  }
  if(food.kind==="ml"){
-   const liter=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:l|lt|liter|litra|litre)\b/);
-   const ml=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:ml|milliliter|millilitre)\b/);
+   const liter=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:l|lt|liter|litra|litre)\b/i);
+   const ml=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:ml|milliliter|millilitre)\b/i);
    amount=liter?Number(liter[1].replace(",","."))*1000:ml?Number(ml[1].replace(",",".")):food.serv;
    return {label:raw,kcal:Math.round(amount*food.k/100),amount,unit:"ml"};
  }
- const count=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:cop(?:ë|e)|stück|stueck|piece|pcs?|adet|tane)?\b/);
+ const count=lower.match(/(\d+(?:[.,]\d+)?)\s*(?:cop(?:ë|e)|stück|stueck|piece|pcs?|adet|tane)?\b/i);
  amount=count?Number(count[1].replace(",",".")):food.serv;
  return {label:raw,kcal:Math.round(amount*food.k),amount,unit:"unit"};
 }
