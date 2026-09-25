@@ -166,7 +166,171 @@ const FOODS=[
  {p:["sprite"],k:39,kind:"ml",serv:330},
  {p:["energy drink","monster"],k:45,kind:"ml",serv:500},
  {p:["latte macchiato","cafe latte","caffè latte"],k:65,kind:"ml",serv:250},
- {p:["cappuccino"],k:50,kind:"ml",serv:200}
+ {p:["cappuccino"],k:50,kind:"ml",serv:200},
+
+ // Pantry / basics
+ {p:["zucker","sheqer","sugar","şeker"],k:400,kind:"g",serv:10},
+ {p:["brauner zucker","brown sugar","esmer şeker"],k:380,kind:"g",serv:10},
+ {p:["puderzucker","icing sugar","pluhur sheqeri"],k:390,kind:"g",serv:10},
+ {p:["mehl","miell","flour","un"],k:364,kind:"g",serv:50},
+ {p:["vollkornmehl","whole wheat flour","tam buğday unu"],k:340,kind:"g",serv:50},
+ {p:["salz","kripë","salt","tuz"],k:0,kind:"g",serv:5},
+ {p:["sonnenblumenöl","sunflower oil","vaj luledielli","ayçiçek yağı"],k:884,kind:"g",serv:10},
+ {p:["rapsöl","canola oil","vaj kolze"],k:884,kind:"g",serv:10},
+ {p:["kokosöl","coconut oil","vaj kokosi","hindistan cevizi yağı"],k:892,kind:"g",serv:10},
+ {p:["erdnussbutter","peanut butter","gjalp kikiriku","fıstık ezmesi"],k:588,kind:"g",serv:20},
+ {p:["tahini","tahin"],k:595,kind:"g",serv:20},
+ {p:["senf","mustard","hardal"],k:66,kind:"g",serv:15},
+ {p:["sojasauce","soy sauce","soya sosu"],k:53,kind:"ml",serv:15},
+ {p:["bbq sauce","barbecue sauce"],k:170,kind:"g",serv:20},
+
+ // Bread / bakery
+ {p:["vollkornbrot","whole grain bread","bukë integrale","tam buğday ekmeği"],k:230,kind:"g",serv:50},
+ {p:["weißbrot","weissbrot","white bread","bukë e bardhë","beyaz ekmek"],k:265,kind:"g",serv:50},
+ {p:["baguette"],k:275,kind:"g",serv:100},
+ {p:["brezel","pretzel"],k:300,kind:"unit",serv:1},
+ {p:["laugenbrötchen","laugenbroetchen"],k:210,kind:"unit",serv:1},
+ {p:["fladenbrot","flatbread","pide ekmeği"],k:270,kind:"g",serv:100},
+ {p:["simit"],k:330,kind:"unit",serv:1},
+ {p:["pogaçe","pogaca","poğaça"],k:300,kind:"unit",serv:1},
+ {p:["tortilla wrap","wrap"],k:310,kind:"g",serv:60},
+ {p:["knäckebrot","crispbread"],k:350,kind:"g",serv:20},
+
+ // Grains / sides
+ {p:["bulgur"],k:83,kind:"g",serv:200},
+ {p:["couscous","kuskus"],k:112,kind:"g",serv:200},
+ {p:["quinoa","kinoa"],k:120,kind:"g",serv:180},
+ {p:["kartoffelpüree","kartoffelpueree","mashed potatoes","pure patate","patates püresi"],k:90,kind:"g",serv:250},
+ {p:["süßkartoffel","suesskartoffel","sweet potato","patate e ëmbël","tatlı patates"],k:86,kind:"g",serv:200},
+ {p:["mais","corn","misër","mısır"],k:96,kind:"g",serv:100},
+
+ // Meat / fish
+ {p:["hähnchenbrust","haehnchenbrust","chicken breast","gjoks pule","tavuk göğsü"],k:165,kind:"g",serv:180},
+ {p:["putenbrust","turkey breast","gjoks gjeldeti","hindi göğsü"],k:135,kind:"g",serv:180},
+ {p:["hackfleisch","ground beef","mish i bluar","kıyma"],k:250,kind:"g",serv:180},
+ {p:["rindersteak","beef steak","biftek"],k:250,kind:"g",serv:200},
+ {p:["lammfleisch","lamb","mish qengji","kuzu eti"],k:294,kind:"g",serv:180},
+ {p:["schweinefleisch","pork","domuz eti"],k:242,kind:"g",serv:180},
+ {p:["wiener würstchen","wiener wurst","wiener"],k:300,kind:"g",serv:100},
+ {p:["bacon","speck"],k:540,kind:"g",serv:30},
+ {p:["leber","liver","mëlçi","ciğer"],k:170,kind:"g",serv:150},
+ {p:["lachs","salmon","salmoni","somon"],k:208,kind:"g",serv:150},
+ {p:["thunfisch","tuna","ton","ton balığı"],k:132,kind:"g",serv:150},
+ {p:["garnelen","shrimp","karkaleca","karides"],k:99,kind:"g",serv:150},
+ {p:["sardinen","sardines","sardele"],k:208,kind:"g",serv:100},
+ {p:["makrele","mackerel","uskumru"],k:205,kind:"g",serv:150},
+ {p:["forelle","trout","alabalık"],k:148,kind:"g",serv:150},
+ {p:["fischstäbchen","fish fingers","balık çubuğu"],k:220,kind:"g",serv:150},
+ {p:["kabeljau","cod","morina"],k:82,kind:"g",serv:150},
+ {p:["dorade","sea bream","çipura"],k:120,kind:"g",serv:180},
+ {p:["calamari","calamari rings","kalamar"],k:175,kind:"g",serv:150},
+
+ // Dairy
+ {p:["sahne","cream","pana","krema"],k:300,kind:"ml",serv:30},
+ {p:["schmand"],k:240,kind:"g",serv:30},
+ {p:["crème fraîche","creme fraiche"],k:300,kind:"g",serv:30},
+ {p:["frischkäse","frischkaese","cream cheese","krem peynir"],k:250,kind:"g",serv:30},
+ {p:["hüttenkäse","huettenkaese","cottage cheese","lor peyniri"],k:98,kind:"g",serv:100},
+ {p:["gouda"],k:356,kind:"g",serv:30},
+ {p:["emmentaler"],k:380,kind:"g",serv:30},
+ {p:["cheddar"],k:403,kind:"g",serv:30},
+ {p:["kefir"],k:60,kind:"ml",serv:250},
+ {p:["milchreis","rice pudding","sutlijaš","sütlaç"],k:130,kind:"g",serv:200},
+ {p:["pudding","vanillepudding","schokopudding"],k:110,kind:"g",serv:200},
+
+ // Fruit
+ {p:["kiwi"],k:61,kind:"g",serv:100},
+ {p:["mango"],k:60,kind:"g",serv:150},
+ {p:["ananas","pineapple"],k:50,kind:"g",serv:150},
+ {p:["pfirsich","peach","pjeshkë","şeftali"],k:39,kind:"g",serv:150},
+ {p:["pflaume","plum","kumbull","erik"],k:46,kind:"g",serv:100},
+ {p:["kirschen","cherries","qershi","kiraz"],k:63,kind:"g",serv:100},
+ {p:["heidelbeeren","blueberries","boronica","yaban mersini"],k:57,kind:"g",serv:100},
+ {p:["himbeeren","raspberries","mjedra","ahududu"],k:52,kind:"g",serv:100},
+ {p:["granatapfel","pomegranate","shegë","nar"],k:83,kind:"g",serv:100},
+ {p:["feigen","figs","fiq","incir"],k:74,kind:"g",serv:100},
+ {p:["aprikose","apricot","kajsi","kayısı"],k:48,kind:"g",serv:100},
+ {p:["zitrone","lemon","limon"],k:29,kind:"g",serv:100},
+
+ // Vegetables
+ {p:["karotte","möhre","moehre","carrot","karotë","havuç"],k:41,kind:"g",serv:100},
+ {p:["paprika","bell pepper","spec","biber"],k:31,kind:"g",serv:100},
+ {p:["zwiebel","onion","qepë","soğan"],k:40,kind:"g",serv:100},
+ {p:["brokkoli","broccoli","brokoli"],k:34,kind:"g",serv:100},
+ {p:["spinat","spinach","spinaq","ıspanak"],k:23,kind:"g",serv:100},
+ {p:["blumenkohl","cauliflower","lulelakër","karnabahar"],k:25,kind:"g",serv:100},
+ {p:["zucchini","kungulleshkë","kabak"],k:17,kind:"g",serv:100},
+ {p:["aubergine","eggplant","patëllxhan","patlıcan"],k:25,kind:"g",serv:100},
+ {p:["champignons","mushrooms","kërpudha","mantar"],k:22,kind:"g",serv:100},
+ {p:["kohl","cabbage","lakër","lahana"],k:25,kind:"g",serv:100},
+
+ // Nuts / seeds
+ {p:["mandeln","almonds","bajame","badem"],k:579,kind:"g",serv:30},
+ {p:["walnüsse","walnuesse","walnuts","arra","ceviz"],k:654,kind:"g",serv:30},
+ {p:["pistazien","pistachios","fëstëk","antep fıstığı"],k:560,kind:"g",serv:30},
+ {p:["cashews","cashew"],k:553,kind:"g",serv:30},
+ {p:["erdnüsse","erdnuesse","peanuts","kikirik","yer fıstığı"],k:567,kind:"g",serv:30},
+ {p:["chia","chiasamen"],k:486,kind:"g",serv:20},
+ {p:["sonnenblumenkerne","sunflower seeds","çekirdek"],k:584,kind:"g",serv:30},
+
+ // Prepared dishes
+ {p:["manti","mantı"],k:200,kind:"g",serv:250},
+ {p:["sarma"],k:150,kind:"g",serv:200},
+ {p:["dolma"],k:170,kind:"g",serv:200},
+ {p:["gulasch","goulash","gulaş"],k:160,kind:"g",serv:300},
+ {p:["döner teller","doner teller"],k:800,kind:"unit",serv:1},
+ {p:["geb ratener reis","gebratener reis","fried rice"],k:180,kind:"g",serv:300},
+ {p:["curryreis","curry rice"],k:160,kind:"g",serv:300},
+ {p:["falafel"],k:330,kind:"g",serv:150},
+ {p:["hummus"],k:166,kind:"g",serv:100},
+
+ // Desserts / snacks
+ {p:["tiramisu"],k:280,kind:"g",serv:100},
+ {p:["brownie"],k:420,kind:"g",serv:80},
+ {p:["apfelkuchen","apple cake"],k:240,kind:"g",serv:100},
+ {p:["schwarzwälder kirschtorte","schwarzwaelder kirschtorte"],k:300,kind:"g",serv:100},
+ {p:["donauwelle"],k:380,kind:"g",serv:100},
+ {p:["knoppers"],k:137,kind:"unit",serv:1},
+ {p:["kinder maxi king"],k:182,kind:"unit",serv:1},
+ {p:["kinder pingui","kinder pingui"],k:135,kind:"unit",serv:1},
+ {p:["milch-schnitte","milchschnitte"],k:118,kind:"unit",serv:1},
+ {p:["ferrero rocher"],k:73,kind:"unit",serv:1},
+ {p:["raffaello"],k:62,kind:"unit",serv:1},
+ {p:["haribo goldbären","haribo goldbaeren","gummy bears"],k:343,kind:"g",serv:30},
+ {p:["leibniz butterkeks"],k:440,kind:"g",serv:30},
+
+ // Drinks
+ {p:["tee","tea","çaj","çay"],k:1,kind:"ml",serv:250},
+ {p:["espresso"],k:2,kind:"unit",serv:1},
+ {p:["kakao","cocoa drink","kakao içecek"],k:80,kind:"ml",serv:250},
+ {p:["apfelschorle"],k:24,kind:"ml",serv:500},
+ {p:["eistee","iced tea"],k:30,kind:"ml",serv:500},
+ {p:["eistee zero","iced tea zero"],k:1,kind:"ml",serv:500},
+ {p:["orangensaft","orange juice","portakal suyu"],k:45,kind:"ml",serv:250},
+ {p:["apfelsaft","apple juice","elma suyu"],k:46,kind:"ml",serv:250},
+
+ // Fitness
+ {p:["whey protein","whey"],k:400,kind:"g",serv:30},
+ {p:["proteinshake","protein shake"],k:70,kind:"ml",serv:300},
+ {p:["proteinriegel","protein bar"],k:360,kind:"g",serv:60},
+
+ // Lidl / Aldi / supermarket private-label families
+ {p:["milbona skyr","milsani skyr"],k:65,kind:"g",serv:200},
+ {p:["milbona high protein pudding","milbona protein pudding","milsani high protein pudding","milsani protein pudding"],k:80,kind:"g",serv:200},
+ {p:["milbona quark","milsani quark"],k:70,kind:"g",serv:200},
+ {p:["milbona naturjoghurt","milsani naturjoghurt"],k:60,kind:"g",serv:200},
+ {p:["crownfield haferflocken","goldähren haferflocken","goldaehren haferflocken"],k:370,kind:"g",serv:50},
+ {p:["crownfield müsli","crownfield muesli"],k:380,kind:"g",serv:50},
+ {p:["alesto mandeln"],k:579,kind:"g",serv:30},
+ {p:["alesto pistazien"],k:560,kind:"g",serv:30},
+ {p:["alesto cashews"],k:553,kind:"g",serv:30},
+ {p:["fin carré schokolade","fin carre schokolade","choceur schokolade"],k:535,kind:"g",serv:25},
+ {p:["combino spaghetti","combino pasta"],k:350,kind:"g",serv:100},
+ {p:["gut bio haferflocken"],k:370,kind:"g",serv:50},
+ {p:["k-classic skyr"],k:65,kind:"g",serv:200},
+ {p:["ja skyr","ja! skyr"],k:65,kind:"g",serv:200},
+ {p:["rewe bio haferflocken"],k:370,kind:"g",serv:50},
+ {p:["gut & günstig haferflocken","gut und günstig haferflocken","gut & guenstig haferflocken"],k:370,kind:"g",serv:50}
 ];
 
 function profile(){
@@ -331,8 +495,15 @@ function parseWalking(text,weight,heightCm){
 }
 const FOOD_API="https://htuzevfjmctmjnqrdrrq.supabase.co/functions/v1/familja-food";
 const onlineFoodCache=new Map();
+const BRAND_HINTS=["milbona","milsani","crownfield","goldähren","goldaehren","alesto","fin carré","fin carre","combino","choceur","gut bio","k-classic","ja!","rewe","edeka","gut & günstig","gut & guenstig","penny","netto","müller","muller","actimel","landliebe","haribo","kinder","ferrero","milka","knoppers","oreo","pringles"];
+function isBrandQuery(text){const q=String(text||"").toLocaleLowerCase();return BRAND_HINTS.some(x=>q.includes(x));}
+function cleanOnlineFoodQuery(text){
+ return String(text||"")
+  .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|gr|gram|gramm|ml|l|lt|liter|litra|litre|stück|stueck|piece|pcs?|adet|cop(?:ë|e))\b/gi," ")
+  .replace(/\s+/g," ").trim();
+}
 async function lookupFoodOnline(text){
- const q=String(text||"").trim();
+ const q=cleanOnlineFoodQuery(text);
  if(q.length<2)return null;
  const key=q.toLocaleLowerCase();
  if(onlineFoodCache.has(key))return onlineFoodCache.get(key);
@@ -414,10 +585,10 @@ function render(){
    const unresolved=[];
    Object.entries(fields).forEach(([key,id])=>{
      const el=document.getElementById(id),txt=el?.value||"",kcal=mealTextKcal(txt,key,quantityState),note=document.getElementById(id+"Kcal");
-     const cached=onlineFoodCache.get(String(txt).trim().toLocaleLowerCase()),onlineKcal=Number(cached?.kcal||0),finalKcal=kcal||onlineKcal;
+     const cacheKey=cleanOnlineFoodQuery(txt).toLocaleLowerCase(),cached=onlineFoodCache.get(cacheKey),onlineKcal=Number(cached?.kcal||0),preferOnline=isBrandQuery(txt)&&splitMealParts(txt).length===1,finalKcal=(preferOnline&&onlineKcal)?onlineKcal:(kcal||onlineKcal);
      mealTotal+=finalKcal;
-     if(note)note.textContent=txt?(finalKcal?"≈ "+finalKcal+" "+dt("kcal")+(onlineKcal&&!kcal?" · online":""):dt("notRecognizedShort")):"";
-     if(txt.trim()&&!kcal&&!cached)unresolved.push({id,txt:txt.trim()});
+     if(note)note.textContent=txt?(finalKcal?"≈ "+finalKcal+" "+dt("kcal")+(onlineKcal&&(preferOnline||!kcal)?" · online":""):dt("notRecognizedShort")):"";
+     if(txt.trim()&&((preferOnline&&!cached)||(!kcal&&!cached)))unresolved.push({id,txt:txt.trim()});
    });
    if(unresolved.length){
      clearTimeout(onlineTimer); const seq=++onlineSeq;
@@ -466,7 +637,7 @@ function render(){
    write(DIET_PROFILE_KEY,saved);const status=document.getElementById("dietStatus");if(status)status.textContent=dt("saved");setTimeout(render,250);
  });
  document.getElementById("dietSaveDay")?.addEventListener("click",()=>{liveNutrition();saveDayJournal({walking:document.getElementById("dietWalking")?.value.trim()||"",breakfast:document.getElementById("dietBreakfast")?.value.trim()||"",lunch:document.getElementById("dietLunch")?.value.trim()||"",dinner:document.getElementById("dietDinner")?.value.trim()||"",extra:document.getElementById("dietExtra")?.value.trim()||"",quantities:quantityState});const status=document.getElementById("dietDayStatus");if(status)status.textContent=dt("daySaved");});
- document.getElementById("dietAdd")?.addEventListener("click",async()=>{const status=document.getElementById("dietFoodStatus"),input=document.getElementById("dietFood"),raw=input?.value||"";let parsed=parseFood(raw);if(!parsed)parsed=await lookupFoodOnline(raw);if(!parsed){if(status)status.textContent=dt("notFound");return;}const arr=todayLogs();arr.push({...parsed,time:new Date().toISOString()});saveToday(arr);if(input)input.value="";render();});
+ document.getElementById("dietAdd")?.addEventListener("click",async()=>{const status=document.getElementById("dietFoodStatus"),input=document.getElementById("dietFood"),raw=input?.value||"";let parsed=isBrandQuery(raw)?await lookupFoodOnline(raw):parseFood(raw);if(!parsed)parsed=parseFood(raw)||await lookupFoodOnline(raw);if(!parsed){if(status)status.textContent=dt("notFound");return;}const arr=todayLogs();arr.push({...parsed,time:new Date().toISOString()});saveToday(arr);if(input)input.value="";render();});
  root.querySelectorAll("[data-diet-del]").forEach(btn=>btn.addEventListener("click",()=>{const arr=todayLogs();arr.splice(Number(btn.dataset.dietDel),1);saveToday(arr);render();}));
 }
 function reloadLanguage(){const tab=document.getElementById("dietTabLabel");if(tab)tab.textContent=dt("tab");render();}
