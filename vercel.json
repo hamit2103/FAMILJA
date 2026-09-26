@@ -56,6 +56,14 @@
     {
       "source": "/radio/k4-shqip",
       "destination": "http://fm.radiokfor.com:8080/"
+    },
+    {
+      "source": "/radio/gjakova",
+      "destination": "http://37.26.69.30:8080/"
+    },
+    {
+      "source": "/radio/llapi",
+      "destination": "http://radio.1dhe1.com:8555/"
     }
   ],
   "redirects": [
