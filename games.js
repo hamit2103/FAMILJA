@@ -34,7 +34,7 @@ const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
 const COMPUTER_AI_LEVELS_KEY = "diamond-computer-ai-levels-v1";
-const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun","diamondadventure"];
+const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun","diamondadventure","diamondnations"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
 let masterSoundEnabled=localStorage.getItem(GAME_SOUND_MASTER_KEY)!=="off";
@@ -46,7 +46,7 @@ let userGameTheme=null;
 let computerAiLevels={};
 try{computerAiLevels=JSON.parse(localStorage.getItem(COMPUTER_AI_LEVELS_KEY)||"{}")||{};}catch(_){computerAiLevels={};}
 const legacyAiLevel=localStorage.getItem(BOARD_AI_LEVEL_KEY)||"medium";
-for(const id of ["chess","morris","war","kingdom"]){
+for(const id of ["chess","morris","war","kingdom","diamondnations"]){
   if(!["weak","medium","strong","pro"].includes(computerAiLevels[id])) computerAiLevels[id]=legacyAiLevel;
 }
 let boardAiLevel=computerAiLevels.chess||"medium";
@@ -198,6 +198,7 @@ async function restartUniversalGame(){
     setTimeout(()=>startDiamondAdventureGame(),20);return;
   }
   if(selectedType==="uck"){startUckGame();return;}
+  if(selectedType==="diamondnations"){startDiamondNationsGame();return;}
   if(selectedType==="kingdom"){startKingdomGame();return;}
   if(selectedType==="war"){
     const multi=!!warMultiRoom||!!document.getElementById("warMultiBack")||!!document.getElementById("warRetryOnline");
@@ -312,6 +313,9 @@ const GAME_CONTROL_LAYOUT_TARGETS={
   ],
   kingdom:[
     {key:"card",selector:".kgrow .kgp"}
+  ],
+  diamondnations:[
+    {key:"attack",selector:"#dnAttack"},{key:"recruit",selector:"#dnRecruit"},{key:"defend",selector:"#dnDefend"},{key:"radar",selector:"#dnRadar"},{key:"strike",selector:"#dnStrike"}
   ],
   uck:[
     {key:"mission",selector:".uck-missions .uck-mission"},
@@ -672,6 +676,17 @@ const DIAMOND_RUN_INFO={
   ar:["Diamond Run","لعبة منصات أصلية من DIAMOND: اركض واقفز واجمع الألماس وتجنب الأعداء والعوائق وفعّل نقاط الحفظ حتى تصل إلى العلم. تحتوي على 5 مستويات تزداد صعوبة."]
 };
 for(const [code,data] of Object.entries(DIAMOND_RUN_INFO)){if(GAME_INFO[code])GAME_INFO[code].diamondrun=data;}
+const DIAMOND_NATIONS_INFO={
+  sq:["DIAMOND NATIONS","Lojë strategjie origjinale DIAMOND. Zgjidh territorin tënd, pushto fqinjët, rekruto ushtri, rrit mbrojtjen, përdor radar dhe Diamond Strike. Fiton kur pushton kryeqytetin e kompjuterit."],
+  de:["DIAMOND NATIONS","Originales DIAMOND-Strategiespiel. Wähle dein Gebiet, erobere Nachbarn, rekrutiere Armee, verstärke die Verteidigung und nutze Radar sowie Diamond Strike. Du gewinnst durch die Eroberung der gegnerischen Hauptstadt."],
+  tr:["DIAMOND NATIONS","Özgün DIAMOND strateji oyunu. Kendi bölgeni seç, komşu bölgeleri ele geçir, ordu kur, savunmayı güçlendir, radar ve Diamond Strike kullan. Rakibin başkentini ele geçirince kazanırsın."],
+  en:["DIAMOND NATIONS","Original DIAMOND strategy game. Select your territory, capture neighboring regions, recruit armies, strengthen defenses, and use radar and Diamond Strike. Capture the enemy capital to win."],
+  it:["DIAMOND NATIONS","Strategia originale DIAMOND: conquista territori confinanti, recluta eserciti, rafforza la difesa e usa radar e Diamond Strike. Vinci conquistando la capitale nemica."],
+  hr:["DIAMOND NATIONS","Originalna DIAMOND strateška igra. Osvajaj susjedne teritorije, regrutiraj vojsku, jačaj obranu i koristi radar i Diamond Strike. Pobjeđuješ osvajanjem protivničkog glavnog grada."],
+  fr:["DIAMOND NATIONS","Jeu de stratégie original DIAMOND. Conquérez les territoires voisins, recrutez une armée, renforcez la défense et utilisez radar et Diamond Strike. Capturez la capitale ennemie pour gagner."],
+  ar:["DIAMOND NATIONS","لعبة استراتيجية أصلية من DIAMOND. احتل المناطق المجاورة، جنّد الجيش، قوِّ الدفاع واستخدم الرادار وDiamond Strike. تفوز عند احتلال عاصمة الخصم."]
+};
+for(const [code,data] of Object.entries(DIAMOND_NATIONS_INFO)){if(GAME_INFO[code])GAME_INFO[code].diamondnations=data;}
 const DIAMOND_ADVENTURE_INFO={
   sq:["Diamond Adventure","Vrapo në 5 botë, kërce, rrotullohu, thyej kuti, mblidh diamante, përdor mburojë dhe mposht Boss-in. Progresi ruhet automatikisht."],
   de:["Diamond Adventure","Laufe durch 5 Welten, springe, wirble, zerstöre Kisten, sammle Diamanten, nutze Schilde und besiege den Boss. Fortschritt wird automatisch gespeichert."],
@@ -2765,6 +2780,7 @@ function gameChoiceLabel(id){
   if(id==="uck") return "🪖 "+tr("uck");
   if(id==="diamondrun") return "💎 "+tr("diamondrun");
   if(id==="diamondadventure") return "💎🏃 Diamond Adventure";
+  if(id==="diamondnations") return "🌍💎 DIAMOND NATIONS";
   return id;
 }
 
@@ -2772,7 +2788,7 @@ function gameHasOnline(id){
   return ["chess","morris","timer","tetris","war"].includes(id);
 }
 function gameUsesComputer(id){
-  return ["chess","morris","war","kingdom"].includes(id);
+  return ["chess","morris","war","kingdom","diamondnations"].includes(id);
 }
 function getGameAiLevel(game){
   const level=computerAiLevels[game];
@@ -2862,6 +2878,7 @@ async function launchGameFromMenu(id,mode){
   if(id==="uck"){startUckGame();return;}
   if(id==="diamondrun"){startDiamondRunGame();return;}
   if(id==="diamondadventure"){startDiamondAdventureGame();return;}
+  if(id==="diamondnations"){startDiamondNationsGame();return;}
 }
 
 function boardGameSelected(){ return selectedType==="chess" || selectedType==="morris"; }
@@ -3079,6 +3096,7 @@ function renderLobby(msg=""){
                 <option value="uck">UÇK – Rruga e Lirisë</option>
                 <option value="diamondrun">Diamond Run</option>
                 <option value="diamondadventure">Diamond Adventure</option>
+                <option value="diamondnations">DIAMOND NATIONS</option>
               </select>
               <input id="gameBlockUntil" type="datetime-local">
               <div class="game-block-actions">
@@ -3113,6 +3131,11 @@ function renderLobby(msg=""){
           <div class="game-help">💎🏃 Diamond Adventure</div>
           <div class="game-help">🌴 5 botë · 📦 kuti speciale · 🌀 rrotullim · 🛡️ mburojë · 👹 Boss · 💾 progres i ruajtur.</div>
           <div class="game-help">⬆️ Shtyp “Luaj” te karta Diamond Adventure sipër.</div>
+        ` : selectedType==="diamondnations" ? `
+          <div class="game-help">🌍💎 DIAMOND NATIONS</div>
+          <div class="game-help">⬆️ Shtyp “Luaj me kompjuterin” te karta e lojës sipër.</div>
+          <div class="game-help">🗺️ Pushto territore · 🪖 Ushtri · 🛡️ Mbrojtje · 📡 Radar · 💎 Diamond Strike</div>
+          <div class="game-help">🎯 Qëllimi: pushto kryeqytetin kundërshtar. Progresi ruhet në telefon.</div>
         ` : selectedType==="uck" ? `
           <div class="game-help">🪖 ${tr("uck")}</div>
           <div class="game-help">⬆️ Shtyp “Luaj” te karta UÇK sipër.</div>
@@ -3147,7 +3170,7 @@ function renderLobby(msg=""){
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun" || selectedType==="diamondadventure" || selectedType==="chess" || selectedType==="morris" || selectedType==="timer") ? "" : `
+        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun" || selectedType==="diamondadventure" || selectedType==="diamondnations" || selectedType==="chess" || selectedType==="morris" || selectedType==="timer") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
@@ -3272,6 +3295,19 @@ function renderLobby(msg=""){
   }
 }
 
+
+async function startDiamondNationsGame(){
+  stopGameMusic();
+  try{
+    const difficulty=document.getElementById("boardAiLevel")?.value||getGameAiLevel("diamondnations");
+    setGameAiLevel("diamondnations",difficulty);
+    const mod=await import("./diamond-nations.js?v=1");
+    mod.startDiamondNationsGame({root,onBack:()=>renderLobby(),difficulty,lang:lang()});
+  }catch(error){
+    console.warn("diamond nations",error);
+    renderLobby("DIAMOND NATIONS nuk u hap. Provo përsëri.");
+  }
+}
 
 async function startDiamondAdventureGame(){
   stopGameMusic();
