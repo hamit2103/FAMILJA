@@ -3301,8 +3301,20 @@ async function startDiamondNationsGame(){
   try{
     const difficulty=document.getElementById("boardAiLevel")?.value||getGameAiLevel("diamondnations");
     setGameAiLevel("diamondnations",difficulty);
-    const mod=await import("./diamond-nations.js?v=1");
-    mod.startDiamondNationsGame({root,onBack:()=>renderLobby(),difficulty,lang:lang()});
+    if(!globalThis.DiamondNations?.startDiamondNationsGame){
+      await new Promise((resolve,reject)=>{
+        document.getElementById("diamondNationsLoader")?.remove();
+        const script=document.createElement("script");
+        script.id="diamondNationsLoader";
+        script.src="./diamond-nations.js?v=2";
+        script.async=true;
+        script.onload=resolve;
+        script.onerror=()=>reject(new Error("DIAMOND_NATIONS_LOAD_FAILED"));
+        document.head.appendChild(script);
+      });
+    }
+    if(!globalThis.DiamondNations?.startDiamondNationsGame) throw new Error("DIAMOND_NATIONS_NOT_READY");
+    globalThis.DiamondNations.startDiamondNationsGame({root,onBack:()=>renderLobby(),difficulty,lang:lang()});
   }catch(error){
     console.warn("diamond nations",error);
     renderLobby("DIAMOND NATIONS nuk u hap. Provo përsëri.");
