@@ -33,11 +33,10 @@ function render(){
      <label class="nearby-label"><span id="nearbyDurationLabel"></span>
        <select id="nearbyDuration"><option value="60"></option><option value="240"></option><option value="0"></option></select>
      </label>
-     <button id="nearbyCreate" class="primary" type="button"></button>
      <label class="nearby-label"><span id="nearbyCustomLabel"></span>
        <input id="nearbyCustomCode" maxlength="12" autocomplete="off" autocapitalize="characters">
      </label>
-     <button id="nearbyCreateCustom" class="secondary" type="button"></button>
+     <button id="nearbyCreate" class="primary" type="button"></button>
      <div class="nearby-divider"><span>—</span></div>
      <input id="nearbyCodeInput" maxlength="12" autocomplete="one-time-code" autocapitalize="characters">
      <button id="nearbyJoin" class="secondary" type="button"></button>
@@ -79,7 +78,7 @@ function render(){
 }
 function reloadLanguage(){
  if(!root())return;
- const map={nearbyTitle:"title",nearbyNote:"note",nearbyDurationLabel:"duration",nearbyCreate:"create",nearbyCreateCustom:"create",nearbyCustomLabel:"custom",nearbyAdminShareLabel:"shareAdmin",nearbyJoin:"join",nearbyYourCodeLabel:"yourCode",nearbyCopy:"copy",nearbyLeftLabel:"left",nearbyPartnerLocLabel:"partnerLoc",nearbyNavigate:"navigate",nearbyMediaRequest:"camera",nearbyMediaStop:"stopMedia",nearbyEnd:"end",nearbyLiveBadge:"live",nearbyRemoteLabel:"remote",nearbyLocalLabel:"sharePreview"};
+ const map={nearbyTitle:"title",nearbyNote:"note",nearbyDurationLabel:"duration",nearbyCreate:"create",nearbyCustomLabel:"custom",nearbyAdminShareLabel:"shareAdmin",nearbyJoin:"join",nearbyYourCodeLabel:"yourCode",nearbyCopy:"copy",nearbyLeftLabel:"left",nearbyPartnerLocLabel:"partnerLoc",nearbyNavigate:"navigate",nearbyMediaRequest:"camera",nearbyMediaStop:"stopMedia",nearbyEnd:"end",nearbyLiveBadge:"live",nearbyRemoteLabel:"remote",nearbyLocalLabel:"sharePreview"};
  for(const [id,k] of Object.entries(map)){const e=by(id);if(e)e.textContent=tx(k)}
  const d=by("nearbyDuration");if(d){d.options[0].text=tx("h1");d.options[1].text=tx("h2");d.options[2].text=tx("h3")}
  const ci=by("nearbyCodeInput");if(ci)ci.placeholder=tx("codePh");
@@ -87,8 +86,7 @@ function reloadLanguage(){
  if(session) pollState().catch(()=>{});
 }
 function bind(){
- by("nearbyCreate")?.addEventListener("click",()=>createSession(false));
- by("nearbyCreateCustom")?.addEventListener("click",()=>createSession(true));
+ by("nearbyCreate")?.addEventListener("click",createSession);
  by("nearbyAdminShareToggle")?.addEventListener("change",toggleAdminLocationShare);
  by("nearbyJoin")?.addEventListener("click",joinSession);
  by("nearbyCodeInput")?.addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12)});
@@ -103,13 +101,13 @@ function saveSession(){if(session?.id)localStorage.setItem(SESSION_KEY,JSON.stri
 function readSaved(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||"null")}catch(_){return null}}
 function showSession(){by("nearbyIdle")?.classList.add("hidden");by("nearbySession")?.classList.remove("hidden");if(by("nearbyCode"))by("nearbyCode").textContent=session?.code||"--------"}
 function showIdle(){by("nearbyIdle")?.classList.remove("hidden");by("nearbySession")?.classList.add("hidden")}
-async function createSession(custom=false){
+async function createSession(){
  setMsg(tx("loading"));
  try{
    await ctx()?.ensureRegistered?.();
    const duration=Number(by("nearbyDuration")?.value||60);
-   const customCode=custom?String(by("nearbyCustomCode")?.value||"").trim().toUpperCase():"";
-   if(custom && (customCode.length<4||customCode.length>12)){setMsg(tx("customPh"),"error");return}
+   const customCode=String(by("nearbyCustomCode")?.value||"").trim().toUpperCase();
+   if(customCode && (customCode.length<4||customCode.length>12)){setMsg(tx("customPh"),"error");return}
    const data=await rpc("nearby_create_session_v2",{...credentials(),p_duration:duration,p_code:customCode||null});
    session={id:data.session_id,code:data.code};lastSignalId=0;saveSession();showSession();startSessionWork();setMsg(tx("waiting"));
  }catch(e){
