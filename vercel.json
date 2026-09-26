@@ -1,13 +1,68 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "headers": [{"source": "/(.*)","headers": [{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"}]}],
-  "rewrites": [
-    {"source":"/download","destination":"/api/download"},
-    {"source":"/android","destination":"/api/download?platform=android"},
-    {"source":"/firestick","destination":"/api/download?platform=firestick"},
-    {"source":"/iphone","destination":"/api/download?platform=ios"},
-    {"source":"/radio/zeri-shtimes","destination":"http://radio.1dhe1.com:8090/stream"}
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
   ],
-  "redirects": [{"source":"/tv.apk","destination":"/pajaziti-firetv.apk","permanent":false}]
+  "rewrites": [
+    {
+      "source": "/download",
+      "destination": "/api/download"
+    },
+    {
+      "source": "/android",
+      "destination": "/api/download?platform=android"
+    },
+    {
+      "source": "/firestick",
+      "destination": "/api/download?platform=firestick"
+    },
+    {
+      "source": "/iphone",
+      "destination": "/api/download?platform=ios"
+    },
+    {
+      "source": "/radio/zeri-shtimes",
+      "destination": "http://radio.1dhe1.com:8090/stream"
+    },
+    {
+      "source": "/radio/rtk1",
+      "destination": "http://82.114.72.2:8088/"
+    },
+    {
+      "source": "/radio/rtk2",
+      "destination": "http://82.114.72.2:8098/"
+    },
+    {
+      "source": "/radio/klan-kosova",
+      "destination": "http://s4.radio.co/sd1d1904dc/listen"
+    },
+    {
+      "source": "/radio/capital-kosovo",
+      "destination": "http://cfm.albaservers.com:8010/"
+    },
+    {
+      "source": "/radio/k4-shqip",
+      "destination": "http://fm.radiokfor.com:8080/"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/tv.apk",
+      "destination": "/pajaziti-firetv.apk",
+      "permanent": false
+    }
+  ]
 }
