@@ -215,7 +215,7 @@ function parseM3U(text){
 
 function isLikelyPlaylistUrl(url){
   const clean=url.split("?")[0].toLowerCase();
-  return clean.endsWith(".m3u") || clean.endsWith(".m3u8") || url.toLowerCase().includes("type=m3u");
+  return clean.endsWith(".m3u") || url.toLowerCase().includes("type=m3u");
 }
 
 async function sourceToChannels(source){
@@ -224,6 +224,8 @@ async function sourceToChannels(source){
 
   const url=source.source_value;
   if(!url) return [];
+  const clean=url.split("?")[0].toLowerCase();
+  if(clean.endsWith(".m3u8")) return [{name:tr("direct"),logo:"",group:"",url,catchup:"",mime:"application/vnd.apple.mpegurl"}];
   if(!isLikelyPlaylistUrl(url)) return [{name:tr("direct"),logo:"",group:"",url,catchup:""}];
 
   try{
