@@ -326,6 +326,7 @@ function applyLanguage(language = currentLanguage) {
   window.DiamondKI?.reloadLanguage?.();
   window.DiamondShareApp?.reloadLanguage?.();
   window.DiamondNews?.reloadLanguage?.();
+  window.DiamondRecipes?.reloadLanguage?.();
   loadDiamondWeather().catch(()=>{});
 
   if (typeof mode !== "undefined" && codeInput) {
@@ -379,6 +380,7 @@ const installBtn = $("installBtn");
 const installLoginBtn = $("installLoginBtn");
 const shareBtn = $("shareBtn");
 const appTabs = $("appTabs");
+const recipesTab = $("recipesTab");
 const galleryTab = $("galleryTab");
 const infoTab = $("infoTab");
 const infoUnreadBadge = $("infoUnreadBadge");
@@ -397,6 +399,7 @@ const menuOrderAdmin = $("menuOrderAdmin");
 const menuOrderList = $("menuOrderList");
 const menuOrderSave = $("menuOrderSave");
 const menuOrderStatus = $("menuOrderStatus");
+const recipesView = $("recipesView");
 const galleryView = $("galleryView");
 const infoView = $("infoView");
 const prayerView = $("prayerView");
@@ -737,7 +740,7 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
+const DEFAULT_TAB_ORDER = ["recipesTab","galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
 
 function menuTabIds(){
   const domIds=Array.from(document.querySelectorAll("#appTabs .app-tab"))
@@ -746,6 +749,7 @@ function menuTabIds(){
   return [...new Set([...domIds,...DEFAULT_TAB_ORDER])];
 }
 const TAB_LABELS = {
+  recipesTab:"🍳 Receta",
   galleryTab:"📢 Reklama",
   infoTab:"ℹ️ Informacion",
   prayerTab:"🕌 Namazi",
@@ -761,7 +765,7 @@ const TAB_LABELS = {
   healthTab:"🔒 Privat"
 };
 const MODULE_IDS = [
-  "galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab",
+  "recipesTab","galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab",
   "tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab","healthTab"
 ];
 let moduleAccessMap={};
@@ -1217,6 +1221,7 @@ function setSection(next) {
   const sectionBackBtn = document.getElementById("sectionBackBtn");
   const appTabsNav = document.getElementById("appTabs");
   const isHome = next === "home";
+  const showRecipes = next === "recipes";
   const showGallery = next === "gallery";
   const showInfo = next === "info";
   const showPrayer = next === "prayer";
@@ -1235,6 +1240,7 @@ function setSection(next) {
   const adminHubView = document.getElementById("adminHubView");
   const adminHubTab = document.getElementById("adminHubTab");
 
+  recipesTab?.classList.toggle("active", showRecipes);
   galleryTab?.classList.toggle("active", showGallery);
   infoTab?.classList.toggle("active", showInfo);
   prayerTab?.classList.toggle("active", showPrayer);
@@ -1251,6 +1257,7 @@ function setSection(next) {
   document.getElementById("healthTab")?.classList.toggle("active", showHealth);
   adminHubTab?.classList.toggle("active", showAdminHub);
 
+  recipesView?.classList.toggle("hidden", !showRecipes);
   galleryView?.classList.toggle("hidden", !showGallery);
   infoView?.classList.toggle("hidden", !showInfo);
   prayerView?.classList.toggle("hidden", !showPrayer);
@@ -1276,6 +1283,7 @@ function setSection(next) {
   if (showClock) startClockPreview(); else stopClockPreview();
   if (showSport) window.PajazitiSports?.activate?.();
   if (showGames) window.PajazitiGames?.activate?.();
+  if (showRecipes) window.DiamondRecipes?.activate?.();
   if (showTv) window.PajazitiTV?.activate?.();
   if (showRadio) window.PajazitiRadio?.activate?.();
   if (showDiet) window.DiamondDiet?.activate?.();
@@ -1284,6 +1292,7 @@ function setSection(next) {
   if (showNews) window.DiamondNews?.activate?.();
   if (showPrivateChat) loadPrivateChat().catch(console.warn);
 }
+recipesTab?.addEventListener("click", () => setSection("recipes"));
 galleryTab?.addEventListener("click", () => setSection("gallery"));
 infoTab?.addEventListener("click", () => setSection("info"));
 prayerTab?.addEventListener("click", () => setSection("prayer"));
@@ -1395,7 +1404,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="6.17";
+    let versionName="6.18";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1773,7 +1782,7 @@ async function registerDeviceInfo(){
   try{
     const {data:{session}}=await supabase.auth.getSession();
     const token=session?.access_token;if(!token)return;
-    let versionName="6.17";
+    let versionName="6.18";
     try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
     const registerResponse=await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",
