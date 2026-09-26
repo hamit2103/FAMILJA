@@ -107,7 +107,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v6.17</span>
+            <span id="appVersionLabel" class="app-version-label">v6.18</span>
             <div class="manual-update-wrap">
               <button id="manualUpdateBtn" class="manual-update-btn" type="button">🔄 Kontrollo dhe instalo update</button>
               <span id="manualUpdateStatus" class="manual-update-status"></span>
@@ -177,6 +177,7 @@
       </section>
 
       <nav id="appTabs" class="app-tabs" aria-label="Menu">
+        <button id="recipesTab" class="app-tab" type="button"><span>🍳 </span><span id="recipesTabLabel">Receta</span></button>
         <button id="galleryTab" class="app-tab active" type="button"><span>📢 </span><span data-i18n="tabs.photos">Reklama</span></button>
         <button id="infoTab" class="app-tab info-tab-button" type="button"><span>ℹ️ </span><span data-i18n="tabs.info">Informacion</span><span id="infoUnreadBadge" class="info-unread-badge hidden">0</span></button>
         <button id="prayerTab" class="app-tab" type="button"><span>🕌 </span><span data-i18n="tabs.prayer">Namazi</span></button>
@@ -262,6 +263,8 @@
 
         <div id="adminHubStack" class="admin-hub-stack"></div>
       </section>
+
+      <section id="recipesView" class="hidden"><div id="recipesRoot"></div></section>
 
       <section id="galleryView">
         <section id="adminPanel" class="card hidden">
@@ -678,7 +681,7 @@
       window.__PAJAZITI_MENU_ORDER_HOTFIX__ = true;
 
       const ADMIN_EMAIL = "admin@familja.local";
-      const BASE_ORDER = ["galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
+      const BASE_ORDER = ["recipesTab","galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
       const menuIds = () => {
         const domIds = Array.from(document.querySelectorAll("#appTabs .app-tab"))
           .map(el => el.id)
@@ -686,6 +689,7 @@
         return [...new Set([...domIds, ...BASE_ORDER])];
       };
       const LABELS = {
+        recipesTab:"🍳 Receta",
         galleryTab:"📢 Reklama",
         infoTab:"ℹ️ Informacion",
         prayerTab:"🕌 Namazi",
@@ -833,20 +837,21 @@
   </script>
   <script>
   (()=>{
-    const pairs={galleryTab:"galleryView",infoTab:"infoView",prayerTab:"prayerView",clockTab:"clockView",sportTab:"sportView",gamesTab:"gamesView",tvTab:"tvView",radioTab:"radioView",dietTab:"dietView",kiTab:"kiView",shareAppTab:"shareAppView",newsTab:"newsView"};
+    const pairs={recipesTab:"recipesView",galleryTab:"galleryView",infoTab:"infoView",prayerTab:"prayerView",clockTab:"clockView",sportTab:"sportView",gamesTab:"gamesView",tvTab:"tvView",radioTab:"radioView",dietTab:"dietView",kiTab:"kiView",shareAppTab:"shareAppView",newsTab:"newsView"};
     const views=[...new Set(Object.values(pairs))];
-    const open=id=>{views.forEach(v=>document.getElementById(v)?.classList.toggle("hidden",v!==id));document.getElementById("appTabs")?.classList.add("hidden");document.getElementById("sectionBackBtn")?.classList.remove("hidden");const hooks={gamesView:"PajazitiGames",tvView:"PajazitiTV",radioView:"PajazitiRadio",dietView:"DiamondDiet",kiView:"DiamondKI",newsView:"DiamondNews",shareAppView:"DiamondShareApp"};try{window[hooks[id]]?.activate?.()}catch(_){}window.scrollTo(0,0)};
+    const open=id=>{views.forEach(v=>document.getElementById(v)?.classList.toggle("hidden",v!==id));document.getElementById("appTabs")?.classList.add("hidden");document.getElementById("sectionBackBtn")?.classList.remove("hidden");const hooks={recipesView:"DiamondRecipes",gamesView:"PajazitiGames",tvView:"PajazitiTV",radioView:"PajazitiRadio",dietView:"DiamondDiet",kiView:"DiamondKI",newsView:"DiamondNews",shareAppView:"DiamondShareApp"};try{window[hooks[id]]?.activate?.()}catch(_){}window.scrollTo(0,0)};
     const home=()=>{views.forEach(v=>document.getElementById(v)?.classList.add("hidden"));document.getElementById("appTabs")?.classList.remove("hidden");document.getElementById("sectionBackBtn")?.classList.add("hidden")};
     Object.entries(pairs).forEach(([tab,view])=>document.getElementById(tab)?.addEventListener("click",()=>open(view)));
     document.getElementById("sectionBackBtn")?.addEventListener("click",home);
     window.DiamondAdminCoreNav={open,home};
   })();
   </script>
-  <script type="module" src="app.js?v=121"></script>
+  <script type="module" src="app.js?v=122"></script>
+  <script type="module" src="recipes.js?v=1"></script>
   <script type="module" src="sports.js?v=11"></script>
   <script type="module" src="games.js?v=106"></script>
-  <script type="module" src="tv.js?v=55"></script>
-  <script type="module" src="radio.js?v=56"></script>
+  <script type="module" src="tv.js?v=56"></script>
+  <script type="module" src="radio.js?v=57"></script>
   <script type="module" src="quran.js?v=2"></script>
   <script type="module" src="prayer-guide.js?v=1"></script>
   <script type="module" src="prayer-extras.js?v=2"></script>
