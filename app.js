@@ -1504,7 +1504,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="6.22";
+    let versionName="6.23";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
