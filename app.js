@@ -1660,7 +1660,8 @@ window.DiamondNearbyContext={
   client:()=>supabase,
   device:()=>presenceDeviceId,
   secret:()=>diamondNotifySecret(),
-  language:()=>currentLanguage
+  language:()=>currentLanguage,
+  ensureRegistered:()=>registerDeviceInfo()
 };
 
 function showAdminMessageBanner(text){
@@ -3945,6 +3946,7 @@ function updateOnlineCount() {
   if(isAdmin()&&adminOnlineUserNames){
     const names=[...new Set(users.map(x=>x?.display_name).filter(Boolean))];
     adminOnlineUserNames.textContent=names.length?names.join(", "):"—";
+    loadAdminUsers().catch(()=>{});
   }
 }
 
