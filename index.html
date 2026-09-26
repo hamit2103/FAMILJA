@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=107">
+  <link rel="stylesheet" href="styles.css?v=108">
   <title>DIAMOND</title>
   <style>
     /* Inline menu-order hotfix */
@@ -113,7 +113,7 @@
         <div>
           <div class="app-title-row" style="display:block">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v6.18</span>
+            <span id="appVersionLabel" class="app-version-label" style="display:block;color:#050505!important;font-weight:900;font-size:.72rem;margin-top:2px">v6.19</span>
             <div class="manual-update-wrap">
               <button id="manualUpdateBtn" class="manual-update-btn" type="button">🔄 Kontrollo dhe instalo update</button>
               <span id="manualUpdateStatus" class="manual-update-status"></span>
@@ -204,6 +204,7 @@
         <button id="kiTab" class="app-tab" type="button"><span>🤖 </span><span id="kiTabLabel">KI</span></button>
         <button id="shareAppTab" class="app-tab" type="button"><span>🔗 </span><span id="shareAppTabLabel">Ndaje appin</span></button>
         <button id="healthTab" class="app-tab health-tab hidden" type="button"><span>🔒 </span><span id="healthTabLabel">Privat</span></button>
+        <button id="nearbyTab" class="app-tab nearby-tab" type="button"><span>📍 </span><span id="nearbyTabLabel">Gjej telefonin</span></button>
         <button id="newsTab" class="app-tab" type="button"><span>📰 </span><span id="newsTabLabel">Lajme</span></button>
       </nav>
       <div id="privateChatMiniWrap" class="private-chat-mini-wrap">
@@ -400,6 +401,10 @@
 
       <section id="newsView" class="hidden">
         <div id="newsRoot"></div>
+      </section>
+
+      <section id="nearbyView" class="hidden">
+        <div id="nearbyRoot"></div>
       </section>
 
       <section id="healthView" class="hidden">
@@ -806,7 +811,7 @@
   })();
   </script>
 
-<script type="module" src="app.js?v=122"></script>
+<script type="module" src="app.js?v=123"></script>
   <script type="module" src="recipes.js?v=1"></script>
   <script type="module" src="sports.js?v=11"></script>
   <script type="module" src="games.js?v=106"></script>
@@ -820,6 +825,7 @@
   <script type="module" src="ki.js?v=1"></script>
   <script type="module" src="share-app.js?v=118"></script>
   <script type="module" src="news.js?v=3"></script>
+  <script type="module" src="nearby.js?v=1"></script>
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
     import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
