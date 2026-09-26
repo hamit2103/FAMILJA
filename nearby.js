@@ -382,7 +382,7 @@ function cleanupSession(){stopTimers();stopLocation();stopRingTone();stopPeer(fa
 async function restore(){
  const saved=readSaved();if(!saved?.id)return false;
  session={id:saved.id,code:saved.code||""};
- try{const s=await rpc("nearby_session_state",{...credentials(),p_session:session.id});if(s.status==="ended"||Number(s.seconds_left)<=0)throw new Error("SESSION_EXPIRED");session.code=s.code||session.code;showSession();startSessionWork();return true}catch(_){cleanupSession();showIdle();return false}
+ try{const s=await rpc("nearby_session_state",{...credentials(),p_session:session.id});if(s.status==="ended"||(!s.permanent&&Number(s.seconds_left)<=0))throw new Error("SESSION_EXPIRED");session.code=s.code||session.code;partnerDevice=s.partner_device||partnerDevice;partnerName=s.partner_name||partnerName;showSession();startSessionWork();return true}catch(_){cleanupSession();showIdle();return false}
 }
 let adminShareWatch=null;
 async function loadAdminLocationShareState(){
