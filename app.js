@@ -313,20 +313,21 @@ function applyLanguage(language = currentLanguage) {
   window.DiamondRuqya?.reloadLanguage?.();
   window.DiamondDiet?.reloadLanguage?.();
   const simple={
-    sq:{diet:"Diet",ki:"KI",share:"Ndaje appin",news:"Lajme",private:"Privat",back:"← Kthehu mbrapa",admin:"Admin",login:"Hyr"},
-    de:{diet:"Ernährung",ki:"KI",share:"App teilen",news:"Nachrichten",private:"Privat",back:"← Zurück",admin:"Admin",login:"Anmelden"},
-    tr:{diet:"Diyet",ki:"YZ",share:"Uygulamayı paylaş",news:"Haberler",private:"Özel",back:"← Geri",admin:"Yönetici",login:"Giriş"},
-    en:{diet:"Diet",ki:"AI",share:"Share app",news:"News",private:"Private",back:"← Back",admin:"Admin",login:"Sign in"},
-    it:{diet:"Dieta",ki:"IA",share:"Condividi app",news:"Notizie",private:"Privato",back:"← Indietro",admin:"Admin",login:"Accedi"},
-    hr:{diet:"Prehrana",ki:"AI",share:"Podijeli aplikaciju",news:"Vijesti",private:"Privatno",back:"← Natrag",admin:"Admin",login:"Prijava"},
-    fr:{diet:"Régime",ki:"IA",share:"Partager l’app",news:"Actualités",private:"Privé",back:"← Retour",admin:"Admin",login:"Connexion"},
-    ar:{diet:"النظام الغذائي",ki:"الذكاء الاصطناعي",share:"مشاركة التطبيق",news:"الأخبار",private:"خاص",back:"← رجوع",admin:"المشرف",login:"دخول"}
+    sq:{diet:"Diet",ki:"KI",share:"Ndaje appin",news:"Lajme",nearby:"Gjej telefonin",private:"Privat",back:"← Kthehu mbrapa",admin:"Admin",login:"Hyr"},
+    de:{diet:"Ernährung",ki:"KI",share:"App teilen",news:"Nachrichten",nearby:"Telefon finden",private:"Privat",back:"← Zurück",admin:"Admin",login:"Anmelden"},
+    tr:{diet:"Diyet",ki:"YZ",share:"Uygulamayı paylaş",news:"Haberler",nearby:"Telefonu bul",private:"Özel",back:"← Geri",admin:"Yönetici",login:"Giriş"},
+    en:{diet:"Diet",ki:"AI",share:"Share app",news:"News",nearby:"Find phone",private:"Private",back:"← Back",admin:"Admin",login:"Sign in"},
+    it:{diet:"Dieta",ki:"IA",share:"Condividi app",news:"Notizie",nearby:"Trova telefono",private:"Privato",back:"← Indietro",admin:"Admin",login:"Accedi"},
+    hr:{diet:"Prehrana",ki:"AI",share:"Podijeli aplikaciju",news:"Vijesti",nearby:"Pronađi telefon",private:"Privatno",back:"← Natrag",admin:"Admin",login:"Prijava"},
+    fr:{diet:"Régime",ki:"IA",share:"Partager l’app",news:"Actualités",nearby:"Trouver le téléphone",private:"Privé",back:"← Retour",admin:"Admin",login:"Connexion"},
+    ar:{diet:"النظام الغذائي",ki:"الذكاء الاصطناعي",share:"مشاركة التطبيق",news:"الأخبار",nearby:"العثور على الهاتف",private:"خاص",back:"← رجوع",admin:"المشرف",login:"دخول"}
   }[language]||{};
-  [["dietTabLabel","diet"],["kiTabLabel","ki"],["shareAppTabLabel","share"],["newsTabLabel","news"],["healthTabLabel","private"],["sectionBackBtn","back"],["adminMode","admin"],["loginBtn","login"]].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&simple[k])el.textContent=simple[k];});
+  [["dietTabLabel","diet"],["kiTabLabel","ki"],["shareAppTabLabel","share"],["newsTabLabel","news"],["nearbyTabLabel","nearby"],["healthTabLabel","private"],["sectionBackBtn","back"],["adminMode","admin"],["loginBtn","login"]].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&simple[k])el.textContent=simple[k];});
   window.DiamondKI?.reloadLanguage?.();
   window.DiamondShareApp?.reloadLanguage?.();
   window.DiamondNews?.reloadLanguage?.();
   window.DiamondRecipes?.reloadLanguage?.();
+  window.DiamondNearby?.reloadLanguage?.();
   loadDiamondWeather().catch(()=>{});
 
   if (typeof mode !== "undefined" && codeInput) {
@@ -394,6 +395,7 @@ const dietTab = $("dietTab");
 const kiTab = $("kiTab");
 const shareAppTab = $("shareAppTab");
 const newsTab = $("newsTab");
+const nearbyTab = $("nearbyTab");
 const privateChatTab = $("privateChatTab");
 const menuOrderAdmin = $("menuOrderAdmin");
 const menuOrderList = $("menuOrderList");
@@ -412,6 +414,7 @@ const dietView = $("dietView");
 const kiView = $("kiView");
 const shareAppView = $("shareAppView");
 const newsView = $("newsView");
+const nearbyView = $("nearbyView");
 const privateChatView = $("privateChatView");
 const infoCompose = $("infoCompose");
 const infoName = $("infoName");
@@ -740,7 +743,7 @@ let qiblaCompassListening = false;
 let nativeCalendarCache = null;
 let nativeCalendarCacheKey = "";
 
-const DEFAULT_TAB_ORDER = ["recipesTab","galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab"];
+const DEFAULT_TAB_ORDER = ["recipesTab","galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab","tvTab","radioTab","dietTab","kiTab","shareAppTab","nearbyTab","newsTab"];
 
 function menuTabIds(){
   const domIds=Array.from(document.querySelectorAll("#appTabs .app-tab"))
@@ -762,11 +765,12 @@ const TAB_LABELS = {
   kiTab:"🤖 KI",
   shareAppTab:"🔗 Ndaje appin",
   newsTab:"📰 Lajme",
+  nearbyTab:"📍 Gjej telefonin",
   healthTab:"🔒 Privat"
 };
 const MODULE_IDS = [
   "recipesTab","galleryTab","infoTab","prayerTab","clockTab","sportTab","gamesTab",
-  "tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab","healthTab"
+  "tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab","healthTab","nearbyTab"
 ];
 let moduleAccessMap={};
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
@@ -833,6 +837,11 @@ async function refreshModuleAccess(){
 
   if(moduleAccessMap.healthTab===false && activeSection==="health"){
     document.getElementById("healthView")?.classList.add("hidden");
+    setSection("home");
+  }
+  if(moduleAccessMap.nearbyTab!==true && activeSection==="nearby"){
+    document.getElementById("nearbyView")?.classList.add("hidden");
+    try{window.DiamondNearby?.deactivate?.();}catch(_){}
     setSection("home");
   }
 
@@ -1234,6 +1243,7 @@ function setSection(next) {
   const showKI = next === "ki";
   const showShareApp = next === "shareapp";
   const showNews = next === "news";
+  const showNearby = next === "nearby";
   const showHealth = next === "health";
   const showPrivateChat = next === "privatechat";
   const showAdminHub = next === "adminhub";
@@ -1253,6 +1263,7 @@ function setSection(next) {
   kiTab?.classList.toggle("active", showKI);
   shareAppTab?.classList.toggle("active", showShareApp);
   newsTab?.classList.toggle("active", showNews);
+  nearbyTab?.classList.toggle("active", showNearby);
   privateChatTab?.classList.toggle("active", showPrivateChat);
   document.getElementById("healthTab")?.classList.toggle("active", showHealth);
   adminHubTab?.classList.toggle("active", showAdminHub);
@@ -1270,6 +1281,7 @@ function setSection(next) {
   kiView?.classList.toggle("hidden", !showKI);
   shareAppView?.classList.toggle("hidden", !showShareApp);
   newsView?.classList.toggle("hidden", !showNews);
+  nearbyView?.classList.toggle("hidden", !showNearby);
   privateChatView?.classList.toggle("hidden", !showPrivateChat);
   document.getElementById("healthView")?.classList.toggle("hidden", !showHealth);
   adminHubView?.classList.toggle("hidden", !showAdminHub);
@@ -1290,6 +1302,8 @@ function setSection(next) {
   if (showKI) window.DiamondKI?.activate?.();
   if (showShareApp) window.DiamondShareApp?.activate?.();
   if (showNews) window.DiamondNews?.activate?.();
+  if (showNearby) window.DiamondNearby?.activate?.();
+  else if(previousSection==="nearby") window.DiamondNearby?.deactivate?.();
   if (showPrivateChat) loadPrivateChat().catch(console.warn);
 }
 recipesTab?.addEventListener("click", () => setSection("recipes"));
@@ -1305,6 +1319,14 @@ dietTab?.addEventListener("click", () => setSection("diet"));
 kiTab?.addEventListener("click", () => setSection("ki"));
 shareAppTab?.addEventListener("click", () => setSection("shareapp"));
 newsTab?.addEventListener("click", () => setSection("news"));
+nearbyTab?.addEventListener("click", async () => {
+  await refreshModuleAccess();
+  if(!isAdmin() && moduleAccessMap.nearbyTab!==true){
+    alert("Ky seksion është privat. Vetëm Admini mund ta aktivizojë për këtë user.");
+    return;
+  }
+  setSection("nearby");
+});
 privateChatTab?.addEventListener("click", () => setSection("privatechat"));
 document.getElementById("healthTab")?.addEventListener("click", openHealthSection);
 document.getElementById("adminHubTab")?.addEventListener("click", () => setSection("adminhub"));
@@ -1404,7 +1426,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="6.18";
+    let versionName="6.19";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1556,6 +1578,13 @@ function diamondNotifySecret(){
   }
   return s;
 }
+window.DiamondNearbyContext={
+  client:()=>supabase,
+  device:()=>presenceDeviceId,
+  secret:()=>diamondNotifySecret(),
+  language:()=>currentLanguage
+};
+
 function showAdminMessageBanner(text){
   if(!adminMessageBanner||!adminMessageBannerText||!text)return;
   adminMessageBannerText.textContent=text;
@@ -1835,7 +1864,8 @@ async function renderAdminModuleAccessControl(users=[]){
     const map=new Map(rows.map(r=>[r.module_id,r]));
     list.innerHTML="";
     for(const id of MODULE_IDS){
-      const row=map.get(id)||{allowed:id!=="healthTab"&&!hiddenTabs.includes(id),overridden:false,default_allowed:id!=="healthTab"&&!hiddenTabs.includes(id)};
+      const privateDefault=id==="healthTab"||id==="nearbyTab";
+      const row=map.get(id)||{allowed:!privateDefault&&!hiddenTabs.includes(id),overridden:false,default_allowed:!privateDefault&&!hiddenTabs.includes(id)};
       const wrap=document.createElement("label");
       wrap.className="module-access-row";
       const cb=document.createElement("input");
