@@ -107,7 +107,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v6.19</span>
+            <span id="appVersionLabel" class="app-version-label">v6.20</span>
             <div class="manual-update-wrap">
               <button id="manualUpdateBtn" class="manual-update-btn" type="button">🔄 Kontrollo dhe instalo update</button>
               <span id="manualUpdateStatus" class="manual-update-status"></span>
@@ -259,6 +259,14 @@
           <div id="moduleAccessList" class="module-access-list"></div>
           <button id="moduleAccessResetBtn" class="secondary" type="button" disabled>↩️ Ktheji modulet standarde</button>
           <div id="moduleAccessStatus" class="message"></div>
+        </section>
+
+        <section id="adminNearbySessionsCard" class="card admin-health-access-card">
+          <h2>📍 Kodet aktive · Gjej telefonin</h2>
+          <p class="muted small">Shihen kodi aktiv, useri që e krijoi, useri i lidhur, statusi dhe koha. Kamera dhe lokacioni nuk hapen nga ky panel.</p>
+          <button id="adminNearbyRefreshBtn" class="secondary" type="button">↻ Rifresko</button>
+          <div id="adminNearbySessionsList" class="module-access-list"></div>
+          <div id="adminNearbySessionsStatus" class="message"></div>
         </section>
 
         <div id="adminHubStack" class="admin-hub-stack"></div>
@@ -846,7 +854,7 @@
     window.DiamondAdminCoreNav={open,home};
   })();
   </script>
-  <script type="module" src="app.js?v=123"></script>
+  <script type="module" src="app.js?v=124"></script>
   <script type="module" src="recipes.js?v=1"></script>
   <script type="module" src="sports.js?v=11"></script>
   <script type="module" src="games.js?v=106"></script>
