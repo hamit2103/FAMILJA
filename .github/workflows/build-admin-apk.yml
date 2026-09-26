@@ -63,6 +63,7 @@ jobs:
             echo "Admin APK already current."
           else
             git commit -m "Publish DIAMOND ADMIN APK [skip ci]"
+            git pull --rebase origin main
             git push
           fi
 
