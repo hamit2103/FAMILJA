@@ -234,6 +234,8 @@ function updateFolderCounts() {
   }
 }
 
+function stationGroupTitle(group){ return { "kosovo-national":"🇽🇰 Nacionale", "kosovo-local":"📍 Lokale", "turkish-nostalgia":"🕰️ Nostalji / Eski Şarkılar", general:"📻 Të gjitha" }[group] || "📻 Të gjitha"; }
+
 function openFolder(folder) {
   const validFolders = ["sq","tr","de","hr","en"];
   activeFolder = validFolders.includes(folder) ? folder : "sq";
@@ -259,12 +261,29 @@ function closeFolder() {
   document.getElementById("radioFolderGrid")?.classList.remove("hidden");
 }
 
+function stationRowHtml(station){
+  const active = station.id === currentStationId ? " active" : "";
+  const deleteButton = isAdmin() ? `<button class="radio-delete-btn" type="button" data-delete-radio="${station.id}">${rt("delete")}</button>` : "";
+  return `<div class="radio-station-row${active}"><button class="radio-station-play" type="button" data-radio-id="${station.id}"><span class="radio-station-icon">📻</span><span class="radio-station-name">${escapeHtml(station.title)}</span><span class="radio-station-action">▶</span></button>${deleteButton}</div>`;
+}
+function bindStationRows(list){
+  list.querySelectorAll("[data-radio-id]").forEach((button) => button.addEventListener("click", () => { const id=Number(button.dataset.radioId); const station=stations.find(item=>item.id===id); if(station) selectStation(station); }));
+  list.querySelectorAll("[data-delete-radio]").forEach((button)=>button.addEventListener("click",()=>deleteStation(Number(button.dataset.deleteRadio))));
+}
+
 function renderStationList() {
   const list = document.getElementById("radioStationList");
   updateFolderCounts();
   if (!list || !activeFolder) return;
 
-  const visibleStations = stations.filter((station) => station.language_group === activeFolder);
+  const baseStations = stations.filter((station) => station.language_group === activeFolder);
+  const groups = [...new Set(baseStations.map(s=>s.station_group||"general"))];
+  if(groups.length>1){
+    list.innerHTML = groups.map(g=>'<div class="radio-group-block"><h3>'+stationGroupTitle(g)+'</h3>'+baseStations.filter(s=>(s.station_group||"general")===g).map(stationRowHtml).join("")+'</div>').join("");
+    bindStationRows(list);
+    return;
+  }
+  const visibleStations = baseStations;
 
   if (!visibleStations.length) {
     list.innerHTML = '<div class="muted">'+rt("empty")+'</div>';
@@ -289,6 +308,9 @@ function renderStationList() {
     `;
   }).join("");
 
+  bindStationRows(list);
+  return;
+
   list.querySelectorAll("[data-radio-id]").forEach((button) => {
     button.addEventListener("click", () => {
       const id = Number(button.dataset.radioId);
@@ -305,7 +327,7 @@ function renderStationList() {
 async function loadStations() {
   const { data, error } = await supabase
     .from(TABLE)
-    .select("id,title,stream_url,language_group,created_at")
+    .select("id,title,stream_url,language_group,station_group,created_at")
     .order("created_at", { ascending: true });
 
   if (error) {
