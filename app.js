@@ -1504,7 +1504,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="6.21";
+    let versionName="6.22";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1656,12 +1656,36 @@ function diamondNotifySecret(){
   }
   return s;
 }
+async function prepareNearbyDevice(){
+  if(!supabase||!currentUser||isAdmin()) throw new Error("AUTH_REQUIRED");
+  const secret=diamondNotifySecret();
+  const {data,error}=await supabase.rpc("nearby_prepare_device",{
+    p_device:presenceDeviceId,
+    p_hardware:stableHardwareId||null,
+    p_secret:secret
+  });
+  if(error) throw error;
+  if(data?.device_id && data.device_id!==presenceDeviceId){
+    presenceDeviceId=data.device_id;
+    localStorage.setItem(PRESENCE_DEVICE_KEY,presenceDeviceId);
+    if(currentAppProfile) currentAppProfile.device_id=presenceDeviceId;
+  }
+  if(data?.display_name){
+    localStorage.setItem("pajaziti-global-user-name",data.display_name);
+    if(currentAppProfile) currentAppProfile.display_name=data.display_name;
+  }
+  if(data?.allowed!==true) throw new Error("NEARBY_NOT_ALLOWED");
+  await registerDeviceInfo();
+  await refreshModuleAccess();
+  return data;
+}
+
 window.DiamondNearbyContext={
   client:()=>supabase,
   device:()=>presenceDeviceId,
   secret:()=>diamondNotifySecret(),
   language:()=>currentLanguage,
-  ensureRegistered:()=>registerDeviceInfo()
+  ensureRegistered:()=>prepareNearbyDevice()
 };
 
 function showAdminMessageBanner(text){
