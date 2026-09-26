@@ -10,7 +10,7 @@ const T={
   fr:{title:"Trouver le téléphone",note:"Privé · seulement pour les utilisateurs autorisés par l'Admin.",create:"Créer un code",join:"Entrer avec un code",duration:"Durée du code",h1:"1 heure",h2:"4 heures",h3:"Sans expiration",codePh:"Saisir le code de 8 caractères",yourCode:"Votre code",copy:"Copier",waiting:"En attente de l'autre téléphone…",connected:"Connecté avec",left:"Temps restant",location:"Position",locOn:"La position est partagée uniquement pendant cette session.",locOff:"Autorisez la position afin que l'autre téléphone puisse vous trouver.",partnerLoc:"Position de l'autre téléphone",noLoc:"Pas encore de position.",navigate:"🧭 Naviguer vers le téléphone",distance:"Distance",camera:"📷 Demander caméra + audio",stopMedia:"⛔ Arrêter caméra/audio",end:"Terminer la session",request:"L'autre téléphone demande l'accès à votre caméra et microphone.",allow:"Autoriser",decline:"Refuser",live:"🔴 LIVE — caméra/microphone partagés",requestSent:"Demande envoyée. L'autre téléphone doit autoriser.",declined:"Demande refusée.",expired:"Session terminée.",copied:"Code copié.",needPermission:"L'autorisation de localisation est requise.",mediaDenied:"Caméra/microphone non autorisés.",notSupported:"Ce téléphone/navigateur ne prend pas en charge cette fonction.",loading:"Connexion…",onlyAllowed:"L'Admin doit activer ce module pour cet utilisateur.",sharePreview:"Votre vue partagée",remote:"Vue de l'autre téléphone"},
   ar:{title:"العثور على الهاتف",note:"خاص · فقط للمستخدمين الذين يسمح لهم المشرف.",create:"إنشاء رمز",join:"الدخول بالرمز",duration:"مدة الرمز",h1:"ساعة",h2:"4 ساعات",h3:"بدون انتهاء",codePh:"أدخل الرمز المكون من 8 أحرف",yourCode:"رمزك",copy:"نسخ",waiting:"بانتظار الهاتف الآخر…",connected:"متصل مع",left:"الوقت المتبقي",location:"الموقع",locOn:"تتم مشاركة الموقع فقط أثناء هذه الجلسة.",locOff:"اسمح بالموقع ليتمكن الهاتف الآخر من العثور عليك.",partnerLoc:"موقع الهاتف الآخر",noLoc:"لا يوجد موقع بعد.",navigate:"🧭 التنقل إلى الهاتف",distance:"المسافة",camera:"📷 طلب الكاميرا + الصوت",stopMedia:"⛔ إيقاف الكاميرا/الصوت",end:"إنهاء الجلسة",request:"الهاتف الآخر يطلب الوصول إلى الكاميرا والميكروفون.",allow:"سماح",decline:"رفض",live:"🔴 مباشر — تتم مشاركة الكاميرا/الميكروفون",requestSent:"تم إرسال الطلب. يجب أن يسمح الهاتف الآخر.",declined:"تم رفض الطلب.",expired:"انتهت الجلسة.",copied:"تم نسخ الرمز.",needPermission:"يجب السماح بالموقع.",mediaDenied:"لم يتم السماح بالكاميرا/الميكروفون.",notSupported:"هذا الهاتف/المتصفح لا يدعم الميزة.",loading:"جارٍ الاتصال…",onlyAllowed:"يجب على المشرف تفعيل هذه الوحدة لهذا المستخدم.",sharePreview:"الصورة التي تشاركها",remote:"صورة الهاتف الآخر"}
 };
-let session=null,stateTimer=null,signalTimer=null,watchId=null,lastLocSent=0,lastSignalId=0,ownLocation=null,pc=null,localStream=null,remoteStream=null,pendingCandidates=[],active=false,requestModal=null,partnerDevice=null,partnerName="",currentFacing="environment",currentMediaMode=null,currentCall=false;
+let session=null,stateTimer=null,signalTimer=null,watchId=null,lastLocSent=0,lastSignalId=0,ownLocation=null,pc=null,localStream=null,remoteStream=null,pendingCandidates=[],active=false,requestModal=null,partnerDevice=null,partnerName="",currentFacing="environment",currentMediaMode=null,currentCall=false,ringTimer=null,ringAudioCtx=null;
 
 const root=()=>document.getElementById("nearbyRoot");
 const ctx=()=>window.DiamondNearbyContext;
@@ -216,6 +216,7 @@ function showPermissionManager(){
  if(requestModal)return;
  const g=grantsForPeer();
  requestModal=document.createElement("div");requestModal.className="nearby-consent-overlay";
+ if(req.call)startRingTone();
  requestModal.innerHTML='<div class="nearby-consent-card"><h3>🔐 '+esc(tx("permissions"))+'</h3><p>'+esc(partnerName||"")+'</p><p>📷 '+(g.camera?"✅":"❌")+' &nbsp; 🎙️ '+(g.audio?"✅":"❌")+'</p><div><button id="nearbyPermClose" class="secondary" type="button">'+esc(tx("decline"))+'</button><button id="nearbyPermRevoke" class="primary" type="button">'+esc(tx("revoke"))+'</button></div></div>';
  document.body.appendChild(requestModal);
  by("nearbyPermClose")?.addEventListener("click",closeConsent);
@@ -252,6 +253,23 @@ async function handleMediaRequest(req){
  }
  incomingRequest({video,audio,call});
 }
+function startRingTone(){
+ stopRingTone();
+ try{
+   ringAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+   const beep=()=>{
+     if(!ringAudioCtx)return;
+     const o=ringAudioCtx.createOscillator(),g=ringAudioCtx.createGain();
+     o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(ringAudioCtx.destination);
+     o.start();setTimeout(()=>{try{o.stop()}catch(_){}},280);
+   };
+   beep();ringTimer=setInterval(beep,900);
+ }catch(_){}
+}
+function stopRingTone(){
+ if(ringTimer)clearInterval(ringTimer);ringTimer=null;
+ if(ringAudioCtx){try{ringAudioCtx.close()}catch(_){}ringAudioCtx=null}
+}
 function incomingRequest(req){
  if(requestModal)return;
  const title=req.call?tx("incomingCall"):tx("request");
@@ -259,11 +277,11 @@ function incomingRequest(req){
  requestModal=document.createElement("div");requestModal.className="nearby-consent-overlay";
  requestModal.innerHTML='<div class="nearby-consent-card"><h3>'+icons+'</h3><p><strong>'+esc(title)+'</strong><br>'+esc(partnerName||"")+'</p><div class="nearby-consent-actions"><button id="nearbyConsentNo" class="secondary" type="button">'+esc(tx("decline"))+'</button><button id="nearbyConsentNow" class="secondary" type="button">'+esc(tx("allowNow"))+'</button><button id="nearbyConsentAlways" class="primary" type="button">'+esc(tx("allowAlways"))+'</button></div></div>';
  document.body.appendChild(requestModal);
- by("nearbyConsentNo")?.addEventListener("click",async()=>{closeConsent();await sendSignal("media_decline",{action:req.call?"call":"media"}).catch(()=>{})});
- by("nearbyConsentNow")?.addEventListener("click",async()=>{closeConsent();await allowMedia({...req,remember:false})});
- by("nearbyConsentAlways")?.addEventListener("click",async()=>{closeConsent();await allowMedia({...req,remember:true})});
+ by("nearbyConsentNo")?.addEventListener("click",async()=>{stopRingTone();closeConsent();await sendSignal("media_decline",{action:req.call?"call":"media"}).catch(()=>{})});
+ by("nearbyConsentNow")?.addEventListener("click",async()=>{stopRingTone();closeConsent();await allowMedia({...req,remember:false})});
+ by("nearbyConsentAlways")?.addEventListener("click",async()=>{stopRingTone();closeConsent();await allowMedia({...req,remember:true})});
 }
-function closeConsent(){requestModal?.remove();requestModal=null}
+function closeConsent(){stopRingTone();requestModal?.remove();requestModal=null}
 async function getMediaStream(video,audio){
  if(!navigator.mediaDevices?.getUserMedia)throw new Error("NOT_SUPPORTED");
  const constraints={
@@ -356,7 +374,7 @@ async function endSession(){
  try{await stopPeer(true);await rpc("nearby_end_session",{...credentials(),p_session:session.id})}catch(_){}
  cleanupSession();showIdle();setMsg(tx("expired"));
 }
-function cleanupSession(){stopTimers();stopLocation();stopPeer(false);closeConsent();session=null;lastSignalId=0;saveSession()}
+function cleanupSession(){stopTimers();stopLocation();stopRingTone();stopPeer(false);closeConsent();session=null;partnerDevice=null;partnerName="";lastSignalId=0;saveSession()}
 async function restore(){
  const saved=readSaved();if(!saved?.id)return false;
  session={id:saved.id,code:saved.code||""};
