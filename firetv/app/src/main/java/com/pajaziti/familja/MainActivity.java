@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
+import android.webkit.PermissionRequest;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -51,12 +52,14 @@ public class MainActivity extends Activity {
     private static final int REQ_FILES = 1002;
     private static final int REQ_NOTIFICATIONS = 1003;
     private static final int REQ_GOAL_NOTIFICATIONS = 1004;
+    private static final int REQ_MEDIA = 1005;
 
     private WebView webView;
     private View customView;
     private WebChromeClient.CustomViewCallback customViewCallback;    private ValueCallback<Uri[]> filePathCallback;
     private GeolocationPermissions.Callback geoCallback;
     private String geoOrigin;
+    private PermissionRequest pendingMediaRequest;
     private boolean openExactAfterNotification = false;
     private long updateDownloadId = -1L;
     private String pendingApkUrl = null;
@@ -160,6 +163,61 @@ public class MainActivity extends Activity {
                     },
                     REQ_LOCATION
                 );
+            }
+
+            @Override
+            public void onPermissionRequest(PermissionRequest request) {
+                if (request == null || request.getOrigin() == null ||
+                    !APP_ASSET_HOST.equals(request.getOrigin().getHost())) {
+                    if (request != null) request.deny();
+                    return;
+                }
+
+                String[] resources = request.getResources();
+                java.util.ArrayList<String> allowedWeb = new java.util.ArrayList<>();
+                java.util.ArrayList<String> androidPerms = new java.util.ArrayList<>();
+                boolean allGranted = true;
+
+                for (String resource : resources) {
+                    if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) {
+                        allowedWeb.add(resource);
+                        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                            allGranted = false;
+                            if (!androidPerms.contains(Manifest.permission.CAMERA)) androidPerms.add(Manifest.permission.CAMERA);
+                        }
+                    } else if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
+                        allowedWeb.add(resource);
+                        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                            allGranted = false;
+                            if (!androidPerms.contains(Manifest.permission.RECORD_AUDIO)) androidPerms.add(Manifest.permission.RECORD_AUDIO);
+                        }
+                    } else {
+                        request.deny();
+                        return;
+                    }
+                }
+
+                if (allowedWeb.isEmpty()) {
+                    request.deny();
+                    return;
+                }
+
+                if (allGranted) {
+                    request.grant(allowedWeb.toArray(new String[0]));
+                    return;
+                }
+
+                if (pendingMediaRequest != null && pendingMediaRequest != request) {
+                    pendingMediaRequest.deny();
+                }
+                pendingMediaRequest = request;
+                requestPermissions(androidPerms.toArray(new String[0]), REQ_MEDIA);
+            }
+
+            @Override
+            public void onPermissionRequestCanceled(PermissionRequest request) {
+                if (pendingMediaRequest == request) pendingMediaRequest = null;
+                super.onPermissionRequestCanceled(request);
             }
 
             @Override
@@ -584,6 +642,10 @@ public class MainActivity extends Activity {
         View view,
         WebChromeClient.CustomViewCallback callback
     ) {
+        if (pendingMediaRequest != null) {
+            try { pendingMediaRequest.deny(); } catch (Exception ignored) {}
+            pendingMediaRequest = null;
+        }
         if (customView != null) {
             hideFullscreenVideo();
         }
@@ -804,6 +866,25 @@ public class MainActivity extends Activity {
             geoCallback.invoke(geoOrigin, granted, false);
             geoCallback = null;
             geoOrigin = null;
+            return;
+        }
+
+        if (requestCode == REQ_MEDIA && pendingMediaRequest != null) {
+            PermissionRequest request = pendingMediaRequest;
+            pendingMediaRequest = null;
+            boolean granted = true;
+            String[] resources = request.getResources();
+            for (String resource : resources) {
+                if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) {
+                    granted = granted && checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+                } else if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
+                    granted = granted && checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+                } else {
+                    granted = false;
+                }
+            }
+            if (granted) request.grant(resources);
+            else request.deny();
             return;
         }
 
