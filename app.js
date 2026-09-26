@@ -773,6 +773,7 @@ const MODULE_IDS = [
   "tvTab","radioTab","dietTab","kiTab","shareAppTab","newsTab","healthTab","nearbyTab"
 ];
 let moduleAccessMap={};
+let moduleAccessPollTimer=null;
 const INFO_SEEN_KEY = "pajaziti-info-seen-id";
 const PRAYER_COORDS_KEY = "pajaziti-prayer-coords";
 const PRAYER_ALARMS_KEY = "pajaziti-prayer-alarms";
@@ -812,6 +813,8 @@ async function refreshModuleAccess(){
     moduleAccessMap={};
     for(const id of MODULE_IDS) document.getElementById(id)?.classList.add("hidden");
     document.getElementById("healthView")?.classList.add("hidden");
+    document.getElementById("nearbyView")?.classList.add("hidden");
+    stopModuleAccessPolling();
     return moduleAccessMap;
   }
 
@@ -846,6 +849,19 @@ async function refreshModuleAccess(){
   }
 
   return moduleAccessMap;
+}
+
+function startModuleAccessPolling(){
+  if(moduleAccessPollTimer) clearInterval(moduleAccessPollTimer);
+  if(!currentUser || isAdmin()) return;
+  moduleAccessPollTimer=setInterval(()=>{
+    refreshModuleAccess().catch(()=>{});
+  },3000);
+}
+
+function stopModuleAccessPolling(){
+  if(moduleAccessPollTimer) clearInterval(moduleAccessPollTimer);
+  moduleAccessPollTimer=null;
 }
 
 async function refreshHealthAccess(){
@@ -3825,6 +3841,7 @@ async function applySession(session) {
     if (storageCard) storageCard.classList.add("hidden");
     if (onlineCount) onlineCount.textContent = "0";
     if (infoUnreadBadge) infoUnreadBadge.classList.add("hidden");
+    stopModuleAccessPolling();
     healthAccessAllowed=false;
     document.getElementById("healthTab")?.classList.add("hidden");
     document.getElementById("healthView")?.classList.add("hidden");
