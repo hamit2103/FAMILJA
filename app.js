@@ -727,6 +727,7 @@ let healthAccessAllowed = false;
 let activeSection = "gallery";
 let adminMessagePollTimer = null;
 let privateChatPollTimer = null;
+let adminNearbyPollTimer = null;
 const ADMIN_MESSAGE_LAST_KEY="diamond-admin-message-last";
 const NOTIFY_SECRET_KEY="diamond-notify-secret";
 let mediaItems = [];
@@ -1348,6 +1349,65 @@ document.getElementById("healthTab")?.addEventListener("click", openHealthSectio
 document.getElementById("adminHubTab")?.addEventListener("click", () => setSection("adminhub"));
 document.getElementById("sectionBackBtn")?.addEventListener("click", () => setSection("home"));
 
+function adminNearbyDurationLabel(minutes){
+  const n=Number(minutes)||0;
+  if(n===0) return "♾️ Pa afat";
+  if(n===60) return "1 orë";
+  if(n===240) return "4 orë";
+  return n+" min";
+}
+
+async function loadAdminNearbySessions(){
+  if(!isAdmin()) return;
+  const list=document.getElementById("adminNearbySessionsList");
+  const status=document.getElementById("adminNearbySessionsStatus");
+  if(!list) return;
+  try{
+    const {data,error}=await supabase.rpc("nearby_admin_live_sessions");
+    if(error) throw error;
+    const rows=Array.isArray(data)?data:[];
+    if(!rows.length){
+      list.innerHTML='<div class="muted small">Nuk ka kode aktive.</div>';
+      if(status) status.textContent="";
+      return;
+    }
+    list.innerHTML=rows.map((row)=>{
+      const linked=row.guest_name
+        ? ('<strong>✅ '+escapeHtml(row.guest_name)+'</strong>')
+        : '<span class="muted">⏳ Ende askush</span>';
+      const state=row.status==="active"?"🟢 Lidhur":"🟡 Duke pritur";
+      const exp=row.expires_at
+        ? new Date(row.expires_at).toLocaleString()
+        : "Derisa useri ta mbyllë";
+      return '<div class="module-access-row">'+
+        '<div class="module-access-copy">'+
+          '<strong>🔑 '+escapeHtml(row.code||"")+'</strong>'+
+          '<span>👤 '+escapeHtml(row.owner_name||"—")+' → '+linked+'</span>'+
+          '<span class="muted small">'+state+' · '+adminNearbyDurationLabel(row.duration_minutes)+' · '+escapeHtml(exp)+'</span>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+    if(status) status.textContent="";
+  }catch(error){
+    console.warn("Admin nearby sessions",error);
+    if(status) showMessage(status,"Kodet aktive nuk u ngarkuan.","error");
+  }
+}
+
+function startAdminNearbyPolling(){
+  if(adminNearbyPollTimer) clearInterval(adminNearbyPollTimer);
+  if(!isAdmin()) return;
+  loadAdminNearbySessions().catch(()=>{});
+  adminNearbyPollTimer=setInterval(()=>loadAdminNearbySessions().catch(()=>{}),3000);
+}
+
+function stopAdminNearbyPolling(){
+  if(adminNearbyPollTimer) clearInterval(adminNearbyPollTimer);
+  adminNearbyPollTimer=null;
+}
+
+document.getElementById("adminNearbyRefreshBtn")?.addEventListener("click",()=>loadAdminNearbySessions().catch(()=>{}));
+
 function setupAdminHub(){
   if(!ADMIN_ONLY || !isAdmin()) return;
   const hub=document.getElementById("adminHubStack");
@@ -1357,6 +1417,8 @@ function setupAdminHub(){
 
   document.getElementById("adminHealthAccessCard")?.classList.remove("hidden");
   document.getElementById("adminUpdateReleaseCard")?.classList.remove("hidden");
+  document.getElementById("adminNearbySessionsCard")?.classList.remove("hidden");
+  startAdminNearbyPolling();
 
   const adminNodes=[
     document.getElementById("menuOrderAdmin"),
@@ -3842,6 +3904,7 @@ async function applySession(session) {
     if (onlineCount) onlineCount.textContent = "0";
     if (infoUnreadBadge) infoUnreadBadge.classList.add("hidden");
     stopModuleAccessPolling();
+    stopAdminNearbyPolling();
     healthAccessAllowed=false;
     document.getElementById("healthTab")?.classList.add("hidden");
     document.getElementById("healthView")?.classList.add("hidden");
