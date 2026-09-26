@@ -3881,6 +3881,7 @@ async function applySession(session) {
   await loadSharedMenuOrder();
   await loadHiddenTabs();
   await refreshModuleAccess();
+  startModuleAccessPolling();
   await loadAdminMenuTheme();
   let savedCoords = savedPrayerCoords();
   if (savedCoords) {
