@@ -31,7 +31,7 @@ function render(){
    </section>
    <section id="nearbyIdle" class="card nearby-idle">
      <label class="nearby-label"><span id="nearbyDurationLabel"></span>
-       <select id="nearbyDuration"><option value="60"></option><option value="240"></option></select>
+       <select id="nearbyDuration"><option value="60"></option><option value="240"></option><option value="0"></option></select>
      </label>
      <button id="nearbyCreate" class="primary" type="button"></button>
      <div class="nearby-divider"><span>—</span></div>
@@ -73,7 +73,7 @@ function reloadLanguage(){
  if(!root())return;
  const map={nearbyTitle:"title",nearbyNote:"note",nearbyDurationLabel:"duration",nearbyCreate:"create",nearbyJoin:"join",nearbyYourCodeLabel:"yourCode",nearbyCopy:"copy",nearbyLeftLabel:"left",nearbyPartnerLocLabel:"partnerLoc",nearbyNavigate:"navigate",nearbyMediaRequest:"camera",nearbyMediaStop:"stopMedia",nearbyEnd:"end",nearbyLiveBadge:"live",nearbyRemoteLabel:"remote",nearbyLocalLabel:"sharePreview"};
  for(const [id,k] of Object.entries(map)){const e=by(id);if(e)e.textContent=tx(k)}
- const d=by("nearbyDuration");if(d){d.options[0].text=tx("h1");d.options[1].text=tx("h2")}
+ const d=by("nearbyDuration");if(d){d.options[0].text=tx("h1");d.options[1].text=tx("h2");d.options[2].text=tx("h3")}
  const ci=by("nearbyCodeInput");if(ci)ci.placeholder=tx("codePh");
  if(session) pollState().catch(()=>{});
 }
@@ -138,7 +138,7 @@ async function pollState(){
  const s=await rpc("nearby_session_state",{...credentials(),p_session:session.id});
  session.code=s.code||session.code;saveSession();showSession();
  if(by("nearbyCode"))by("nearbyCode").textContent=session.code||"--------";
- if(by("nearbyLeft"))by("nearbyLeft").textContent=formatLeft(s.seconds_left);
+ if(by("nearbyLeft"))by("nearbyLeft").textContent=s.permanent?("∞ · "+tx("h3")):formatLeft(s.seconds_left);
  if(by("nearbyPartner"))by("nearbyPartner").innerHTML=s.partner_connected?"✅ "+esc(tx("connected"))+" <strong>"+esc(s.partner_name||"")+"</strong>":"⏳ "+esc(tx("waiting"));
  const loc=s.partner_location;
  const locBox=by("nearbyPartnerLoc"),distBox=by("nearbyDistance"),nav=by("nearbyNavigate");
@@ -147,7 +147,7 @@ async function pollState(){
    const d=distanceMeters(ownLocation,loc);distBox.textContent=d==null?"":tx("distance")+": "+(d<1000?Math.round(d)+" m":(d/1000).toFixed(2)+" km");
    nav.disabled=false;nav.dataset.lat=String(loc.latitude);nav.dataset.lng=String(loc.longitude);
  }else{locBox.textContent=tx("noLoc");distBox.textContent="";nav.disabled=true;delete nav.dataset.lat;delete nav.dataset.lng}
- if(s.status==="ended"||Number(s.seconds_left)<=0){setMsg(tx("expired"),"error");cleanupSession();showIdle()}
+ if(s.status==="ended"||(!s.permanent&&Number(s.seconds_left)<=0)){setMsg(tx("expired"),"error");cleanupSession();showIdle()}
 }
 function navigate(){
  const b=by("nearbyNavigate"),lat=b?.dataset.lat,lng=b?.dataset.lng;if(!lat||!lng)return;
