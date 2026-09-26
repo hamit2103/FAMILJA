@@ -642,10 +642,6 @@ public class MainActivity extends Activity {
         View view,
         WebChromeClient.CustomViewCallback callback
     ) {
-        if (pendingMediaRequest != null) {
-            try { pendingMediaRequest.deny(); } catch (Exception ignored) {}
-            pendingMediaRequest = null;
-        }
         if (customView != null) {
             hideFullscreenVideo();
         }
@@ -925,6 +921,10 @@ public class MainActivity extends Activity {
         try {
             unregisterReceiver(updateDownloadReceiver);
         } catch (Exception ignored) {
+        }
+        if (pendingMediaRequest != null) {
+            try { pendingMediaRequest.deny(); } catch (Exception ignored) {}
+            pendingMediaRequest = null;
         }
         if (customView != null) {
             hideFullscreenVideo();
