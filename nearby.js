@@ -106,6 +106,7 @@ function showIdle(){by("nearbyIdle")?.classList.remove("hidden");by("nearbySessi
 async function createSession(custom=false){
  setMsg(tx("loading"));
  try{
+   await ctx()?.ensureRegistered?.();
    const duration=Number(by("nearbyDuration")?.value||60);
    const customCode=custom?String(by("nearbyCustomCode")?.value||"").trim().toUpperCase():"";
    if(custom && (customCode.length<4||customCode.length>12)){setMsg(tx("customPh"),"error");return}
@@ -122,6 +123,7 @@ async function joinSession(){
  if(code.length<4||code.length>12){setMsg(tx("codePh"),"error");return}
  setMsg(tx("loading"));
  try{
+   await ctx()?.ensureRegistered?.();
    const data=await rpc("nearby_join_session",{...credentials(),p_code:code});
    session={id:data.session_id,code:data.code};lastSignalId=0;saveSession();showSession();startSessionWork();setMsg("");
  }catch(e){handleError(e)}
