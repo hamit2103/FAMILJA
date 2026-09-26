@@ -1504,7 +1504,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="6.20";
+    let versionName="6.21";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1660,7 +1660,8 @@ window.DiamondNearbyContext={
   client:()=>supabase,
   device:()=>presenceDeviceId,
   secret:()=>diamondNotifySecret(),
-  language:()=>currentLanguage
+  language:()=>currentLanguage,
+  ensureRegistered:()=>registerDeviceInfo()
 };
 
 function showAdminMessageBanner(text){
@@ -1889,7 +1890,7 @@ async function registerDeviceInfo(){
   try{
     const {data:{session}}=await supabase.auth.getSession();
     const token=session?.access_token;if(!token)return;
-    let versionName="6.18";
+    let versionName="6.21";
     try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
     const registerResponse=await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",
@@ -1910,6 +1911,7 @@ async function renderAdminModuleAccessControl(users=[]){
   const select=document.getElementById("moduleAccessUserSelect");
   const list=document.getElementById("moduleAccessList");
   const reset=document.getElementById("moduleAccessResetBtn");
+  const saveBtn=document.getElementById("moduleAccessSaveBtn");
   const status=document.getElementById("moduleAccessStatus");
   if(!select||!list) return;
 
@@ -1923,9 +1925,13 @@ async function renderAdminModuleAccessControl(users=[]){
   }
   if([...select.options].some(o=>o.value===previous)) select.value=previous;
 
+  let draft={};
+
   const renderEmpty=()=>{
+    draft={};
     list.innerHTML='<div class="muted small">Zgjidh një user për të rregulluar modulet vetëm për atë user.</div>';
     if(reset) reset.disabled=true;
+    if(saveBtn) saveBtn.disabled=true;
   };
 
   const loadForSelected=async()=>{
@@ -1940,54 +1946,76 @@ async function renderAdminModuleAccessControl(users=[]){
     }
     const rows=Array.isArray(out.data)?out.data:[];
     const map=new Map(rows.map(r=>[r.module_id,r]));
+    draft={};
     list.innerHTML="";
     for(const id of MODULE_IDS){
       const privateDefault=id==="healthTab"||id==="nearbyTab";
       const row=map.get(id)||{allowed:!privateDefault&&!hiddenTabs.includes(id),overridden:false,default_allowed:!privateDefault&&!hiddenTabs.includes(id)};
+      draft[id]=!!row.allowed;
       const wrap=document.createElement("label");
       wrap.className="module-access-row";
       const cb=document.createElement("input");
       cb.type="checkbox";
       cb.checked=!!row.allowed;
+      cb.dataset.moduleId=id;
+      cb.onchange=()=>{
+        draft[id]=cb.checked;
+        if(saveBtn) saveBtn.disabled=false;
+        if(status){status.textContent="Ndryshimet nuk janë ruajtur ende.";status.className="message";}
+      };
       const text=document.createElement("span");
       const base=TAB_LABELS[id]||id;
-      text.innerHTML="<strong>"+base+"</strong><small>"+(row.overridden?"Vendosur vetëm për këtë user":"Standardi i Adminit")+"</small>";
-      cb.onchange=async()=>{
-        cb.disabled=true;
-        const save=await supabase.rpc("module_access_admin_set",{
-          p_device:device,
-          p_module:id,
-          p_allowed:cb.checked
-        });
-        cb.disabled=false;
-        if(save.error){
-          cb.checked=!cb.checked;
-          if(status){status.textContent=save.error.message||"Nuk u ruajt.";status.className="message error";}
-          return;
-        }
-        if(status){status.textContent="✅ Moduli u përditësua vetëm për këtë user.";status.className="message success";}
-        await loadForSelected();
-      };
+      text.innerHTML="<strong>"+base+"</strong><small>"+(row.overridden?"Ruajtur vetëm për këtë user":"Standardi i Adminit")+"</small>";
       wrap.append(cb,text);
       list.appendChild(wrap);
     }
     if(reset) reset.disabled=false;
+    if(saveBtn) saveBtn.disabled=true;
     if(status){status.textContent="";status.className="message";}
   };
 
   select.onchange=loadForSelected;
+
+  if(saveBtn){
+    saveBtn.onclick=async()=>{
+      const device=select.value||"";
+      if(!device)return;
+      saveBtn.disabled=true;
+      if(reset)reset.disabled=true;
+      if(status){status.textContent="Po ruhet...";status.className="message";}
+      try{
+        for(const id of MODULE_IDS){
+          const out=await supabase.rpc("module_access_admin_set",{
+            p_device:device,
+            p_module:id,
+            p_allowed:!!draft[id]
+          });
+          if(out.error) throw out.error;
+        }
+        if(status){status.textContent="✅ U ruajtën modulet vetëm për këtë user.";status.className="message success";}
+        await loadForSelected();
+      }catch(error){
+        if(status){status.textContent=error?.message||"Nuk u ruajt.";status.className="message error";}
+        saveBtn.disabled=false;
+      }finally{
+        if(reset)reset.disabled=false;
+      }
+    };
+  }
+
   if(reset){
     reset.onclick=async()=>{
       const device=select.value||"";
       if(!device)return;
       reset.disabled=true;
+      if(saveBtn)saveBtn.disabled=true;
       const out=await supabase.rpc("module_access_admin_reset",{p_device:device,p_module:null});
       reset.disabled=false;
       if(out.error){
         if(status){status.textContent=out.error.message||"Nuk u rivendos.";status.className="message error";}
         return;
       }
-      if(status){status.textContent="✅ U kthye te modulet standarde të Adminit.";status.className="message success";}
+      if(status){status.textContent="✅ Ky user tani përdor standardin e Adminit.";status.className="message success";}
       await loadForSelected();
     };
   }
@@ -1996,14 +2024,115 @@ async function renderAdminModuleAccessControl(users=[]){
   else renderEmpty();
 }
 
+function adminOnlineDeviceSet(){
+  const set=new Set();
+  try{
+    const state=realtimeChannel?.presenceState?.()||{};
+    for(const entry of Object.values(state).flat()){
+      if(entry?.role==="family"&&entry?.device_id)set.add(String(entry.device_id));
+    }
+  }catch(_){}
+  return set;
+}
+
+let adminUsersLeafletMap=null;
+let adminUsersLeafletLayer=null;
+const adminPlaceCache=new Map();
+
+async function reverseAdminPlace(lat,lng){
+  const key=Number(lat).toFixed(4)+","+Number(lng).toFixed(4);
+  if(adminPlaceCache.has(key)) return adminPlaceCache.get(key);
+  let label=key;
+  try{
+    const url="https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=12&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng);
+    const res=await fetch(url,{headers:{"Accept":"application/json"}});
+    if(res.ok){
+      const data=await res.json();
+      const a=data?.address||{};
+      const city=a.city||a.town||a.village||a.municipality||a.county||"";
+      const region=a.state||a.region||"";
+      const country=a.country||"";
+      label=[city,region,country].filter(Boolean).join(", ")||data?.display_name||key;
+    }
+  }catch(_){}
+  adminPlaceCache.set(key,label);
+  return label;
+}
+
+async function loadAdminUsersMap(){
+  if(!ADMIN_ONLY||!isAdmin())return;
+  const mapEl=document.getElementById("adminUsersMap");
+  const status=document.getElementById("adminUsersMapStatus");
+  if(!mapEl)return;
+  if(typeof window.L==="undefined"){
+    mapEl.innerHTML='<div class="muted small">Harta nuk u ngarkua. Provo Rifresko.</div>';
+    return;
+  }
+  try{
+    const out=await supabase.rpc("admin_location_share_list");
+    if(out.error) throw out.error;
+    const rows=Array.isArray(out.data)?out.data:[];
+    const online=adminOnlineDeviceSet();
+
+    if(!adminUsersLeafletMap){
+      adminUsersLeafletMap=window.L.map(mapEl,{zoomControl:true}).setView([48.7,9.1],5);
+      window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+        maxZoom:19,
+        attribution:"© OpenStreetMap"
+      }).addTo(adminUsersLeafletMap);
+      adminUsersLeafletLayer=window.L.layerGroup().addTo(adminUsersLeafletMap);
+    }
+    adminUsersLeafletLayer.clearLayers();
+
+    if(!rows.length){
+      if(status){status.textContent="Asnjë user nuk e ka aktivizuar ndarjen e lokacionit me Adminin.";status.className="message";}
+      adminUsersLeafletMap.setView([48.7,9.1],5);
+      return;
+    }
+
+    const bounds=[];
+    for(const p of rows){
+      const lat=Number(p.latitude),lng=Number(p.longitude);
+      if(!Number.isFinite(lat)||!Number.isFinite(lng))continue;
+      const isOnline=online.has(String(p.device_id));
+      const place=await reverseAdminPlace(lat,lng);
+      const marker=window.L.circleMarker([lat,lng],{
+        radius:10,
+        color:isOnline?"#16a34a":"#dc2626",
+        fillColor:isOnline?"#16a34a":"#dc2626",
+        fillOpacity:.9,
+        weight:2
+      }).addTo(adminUsersLeafletLayer);
+      marker.bindPopup(
+        "<strong>"+escapeHtml(p.display_name||"User")+"</strong><br>"+
+        (isOnline?"🟢 Online":"🔴 Offline")+"<br>"+
+        escapeHtml(place)+"<br>"+
+        "<small>"+escapeHtml(new Date(p.updated_at).toLocaleString())+"</small>"
+      );
+      bounds.push([lat,lng]);
+    }
+    if(bounds.length===1)adminUsersLeafletMap.setView(bounds[0],13);
+    else if(bounds.length>1)adminUsersLeafletMap.fitBounds(bounds,{padding:[30,30]});
+    setTimeout(()=>adminUsersLeafletMap.invalidateSize(),100);
+    if(status){status.textContent="";status.className="message";}
+  }catch(error){
+    console.warn("admin users map",error);
+    if(status)showMessage(status,"Harta nuk u ngarkua.","error");
+  }
+}
+
+document.getElementById("adminUsersMapRefresh")?.addEventListener("click",()=>loadAdminUsersMap().catch(()=>{}));
+
 async function loadAdminUsers(){
   if(!isAdmin()||!adminUsersList)return;
   try{
     const result=await supabase.rpc("user_profile_admin_list_health");
     if(result.error) throw result.error;
     const users=Array.isArray(result.data)?result.data:[];
+    const online=adminOnlineDeviceSet();
     if(adminUserCount)adminUserCount.textContent=String(users.length);
     await renderAdminModuleAccessControl(users);
+    loadAdminUsersMap().catch(()=>{});
 
     if(adminMessageTarget){
       const previous=adminMessageTarget.value||"";
@@ -2025,24 +2154,39 @@ async function loadAdminUsers(){
     adminUsersList.innerHTML="";
     for(const p of users){
       const seen=p.last_seen_at?new Date(p.last_seen_at).toLocaleString():"—";
+      const isOnline=online.has(String(p.device_id));
       const row=document.createElement("div");
-      row.className="admin-user-row";
+      row.className="admin-user-row compact";
 
       const main=document.createElement("div");
       main.className="admin-user-main";
+      const top=document.createElement("div");
+      top.className="admin-user-title-row";
       const strong=document.createElement("strong");
       strong.textContent=p.display_name||"User";
+      const badge=document.createElement("span");
+      badge.className="admin-user-status-badge "+(isOnline?"online":"offline");
+      badge.textContent=isOnline?"🟢 Online":"🔴 Offline";
+      top.append(strong,badge);
       const status=document.createElement("small");
-      status.textContent=(p.is_blocked?"🔴 Bllokuar":"🟢 Aktiv")+" · "+seen;
-      const tech=document.createElement("small");
-      tech.textContent="🌐 IP: "+(p.ip_address||"—")+" · 📱 ID: "+(p.device_id||"—");
-      main.append(strong,status,tech);
+      status.textContent=(p.is_blocked?"⛔ Bllokuar · ":"")+"Parë: "+seen;
+      main.append(top,status);
 
+      const actions=document.createElement("div");
+      actions.className="admin-user-actions-menu";
+      const actionsBtn=document.createElement("button");
+      actionsBtn.className="secondary admin-user-actions-toggle";
+      actionsBtn.type="button";
+      actionsBtn.textContent="⋯ Veprimet";
+
+      const menu=document.createElement("div");
+      menu.className="admin-user-actions-panel hidden";
+
+      const renameWrap=document.createElement("div");
+      renameWrap.className="admin-user-rename-inline";
       const input=document.createElement("input");
       input.maxLength=20;
       input.value=p.display_name||"";
-      input.dataset.deviceId=p.device_id||"";
-
       const rename=document.createElement("button");
       rename.className="secondary";rename.type="button";rename.textContent="Ndrysho emrin";
       rename.onclick=async()=>{
@@ -2052,18 +2196,18 @@ async function loadAdminUsers(){
         const out=await supabase.rpc("user_profile_admin_rename",{p_device:p.device_id,p_name:name});
         rename.disabled=false;
         if(out.error){const raw=String(out.error.message||out.error);showMessage(adminUsersStatus,raw.includes("NAME_TAKEN")?"Ky emër përdoret nga një user tjetër.":raw,"error");return;}
-        showMessage(adminUsersStatus,"Emri u ndryshua. Pikët mbetën të njëjta.","success");
+        showMessage(adminUsersStatus,"Emri u ndryshua.","success");
         await loadAdminUsers();
       };
+      renameWrap.append(input,rename);
 
       const block=document.createElement("button");
-      block.className="secondary";block.type="button";block.textContent=p.is_blocked?"Lejo":"Blloko";
+      block.className="secondary";block.type="button";block.textContent=p.is_blocked?"✅ Lejo userin":"⛔ Blloko userin";
       block.onclick=async()=>{
         block.disabled=true;
         const out=await supabase.rpc("user_profile_admin_block",{p_device:p.device_id,p_blocked:!p.is_blocked});
         block.disabled=false;
         if(out.error){showMessage(adminUsersStatus,out.error.message||"Gabim.","error");return;}
-        showMessage(adminUsersStatus,p.is_blocked?"Përdoruesi u lejua përsëri.":"Përdoruesi u bllokua.","success");
         await loadAdminUsers();
       };
 
@@ -2082,11 +2226,18 @@ async function loadAdminUsers(){
       message.className="secondary";message.type="button";message.textContent="💬 Mesazh";
       message.onclick=()=>{
         if(adminMessageTarget)adminMessageTarget.value=p.device_id||"";
-        if(adminMessageText)adminMessageText.focus();
         adminMessageCard?.scrollIntoView({behavior:"smooth",block:"center"});
+        setTimeout(()=>adminMessageText?.focus(),250);
       };
 
-      row.append(main,input,rename,block,modules,message);
+      menu.append(renameWrap,block,modules,message);
+      actionsBtn.onclick=()=>{
+        document.querySelectorAll(".admin-user-actions-panel").forEach(el=>{if(el!==menu)el.classList.add("hidden");});
+        menu.classList.toggle("hidden");
+      };
+      actions.append(actionsBtn,menu);
+
+      row.append(main,actions);
       adminUsersList.appendChild(row);
     }
   }catch(error){
@@ -3795,6 +3946,7 @@ function updateOnlineCount() {
   if(isAdmin()&&adminOnlineUserNames){
     const names=[...new Set(users.map(x=>x?.display_name).filter(Boolean))];
     adminOnlineUserNames.textContent=names.length?names.join(", "):"—";
+    loadAdminUsers().catch(()=>{});
   }
 }
 

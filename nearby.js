@@ -1,9 +1,9 @@
 const SESSION_KEY="diamond-nearby-session-v1";
 const T={
-  sq:{title:"Gjej telefonin",note:"Privat · vetëm për userat që i lejon Admini.",create:"Krijo kod",join:"Hyr me kod",duration:"Koha e kodit",h1:"1 orë",h2:"4 orë",h3:"Pa afat",codePh:"Shkruaj kodin 8-shifror",yourCode:"Kodi yt",copy:"Kopjo",waiting:"Duke pritur telefonin tjetër…",connected:"Lidhur me",left:"Koha e mbetur",location:"Vendndodhja",locOn:"Lokacioni po ndahet vetëm gjatë këtij sesioni.",locOff:"Lejo lokacionin që telefoni tjetër të mund të të gjejë.",partnerLoc:"Lokacioni i telefonit tjetër",noLoc:"Ende nuk ka lokacion.",navigate:"🧭 Navigo te telefoni",distance:"Distanca",camera:"📷 Kërko kamerën + zërin",stopMedia:"⛔ Ndalo kamerën/zërin",end:"Mbyll sesionin",request:"Telefoni tjetër kërkon kamerën dhe mikrofonin tënd.",allow:"Lejo",decline:"Refuzo",live:"🔴 LIVE — kamera/mikrofoni po ndahen",requestSent:"Kërkesa u dërgua. Telefoni tjetër duhet ta lejojë.",declined:"Kërkesa u refuzua.",expired:"Sesioni ka përfunduar.",copied:"Kodi u kopjua.",needPermission:"Duhet ta lejosh vendndodhjen.",mediaDenied:"Kamera/mikrofoni nuk u lejuan.",notSupported:"Ky telefon/browser nuk e mbështet këtë funksion.",loading:"Po lidhet…",onlyAllowed:"Ky modul duhet të aktivizohet nga Admini për këtë user.",sharePreview:"Pamja që po ndan",remote:"Pamja e telefonit tjetër"},
-  de:{title:"Telefon finden",note:"Privat · nur für vom Admin freigeschaltete Nutzer.",create:"Code erstellen",join:"Mit Code verbinden",duration:"Code-Dauer",h1:"1 Stunde",h2:"4 Stunden",h3:"Ohne Ablauf",codePh:"8-stelligen Code eingeben",yourCode:"Dein Code",copy:"Kopieren",waiting:"Warte auf das andere Telefon…",connected:"Verbunden mit",left:"Verbleibende Zeit",location:"Standort",locOn:"Der Standort wird nur während dieser Sitzung geteilt.",locOff:"Standort erlauben, damit das andere Telefon dich finden kann.",partnerLoc:"Standort des anderen Telefons",noLoc:"Noch kein Standort.",navigate:"🧭 Zum Telefon navigieren",distance:"Entfernung",camera:"📷 Kamera + Ton anfragen",stopMedia:"⛔ Kamera/Ton stoppen",end:"Sitzung beenden",request:"Das andere Telefon möchte auf deine Kamera und dein Mikrofon zugreifen.",allow:"Erlauben",decline:"Ablehnen",live:"🔴 LIVE — Kamera/Mikrofon werden geteilt",requestSent:"Anfrage gesendet. Das andere Telefon muss zustimmen.",declined:"Anfrage abgelehnt.",expired:"Sitzung beendet.",copied:"Code kopiert.",needPermission:"Standortberechtigung erforderlich.",mediaDenied:"Kamera/Mikrofon wurden nicht erlaubt.",notSupported:"Dieses Telefon/Browser unterstützt die Funktion nicht.",loading:"Verbindung wird hergestellt…",onlyAllowed:"Dieses Modul muss vom Admin für diesen Nutzer aktiviert werden.",sharePreview:"Geteilte Ansicht",remote:"Ansicht des anderen Telefons"},
-  tr:{title:"Telefonu bul",note:"Özel · yalnızca yönetici izin verdiği kullanıcılar.",create:"Kod oluştur",join:"Kodla bağlan",duration:"Kod süresi",h1:"1 saat",h2:"4 saat",h3:"Süresiz",codePh:"8 haneli kodu yaz",yourCode:"Kodun",copy:"Kopyala",waiting:"Diğer telefon bekleniyor…",connected:"Bağlı",left:"Kalan süre",location:"Konum",locOn:"Konum yalnızca bu oturum sırasında paylaşılıyor.",locOff:"Diğer telefonun seni bulabilmesi için konuma izin ver.",partnerLoc:"Diğer telefonun konumu",noLoc:"Henüz konum yok.",navigate:"🧭 Telefona git",distance:"Mesafe",camera:"📷 Kamera + ses iste",stopMedia:"⛔ Kamera/sesi durdur",end:"Oturumu kapat",request:"Diğer telefon kamera ve mikrofonunu açmanı istiyor.",allow:"İzin ver",decline:"Reddet",live:"🔴 CANLI — kamera/mikrofon paylaşılıyor",requestSent:"İstek gönderildi. Diğer telefon izin vermeli.",declined:"İstek reddedildi.",expired:"Oturum sona erdi.",copied:"Kod kopyalandı.",needPermission:"Konuma izin vermelisin.",mediaDenied:"Kamera/mikrofona izin verilmedi.",notSupported:"Bu telefon/tarayıcı bu özelliği desteklemiyor.",loading:"Bağlanıyor…",onlyAllowed:"Bu modülü yönetici bu kullanıcı için açmalıdır.",sharePreview:"Paylaştığın görüntü",remote:"Diğer telefonun görüntüsü"},
-  en:{title:"Find phone",note:"Private · only for users enabled by Admin.",create:"Create code",join:"Join with code",duration:"Code duration",h1:"1 hour",h2:"4 hours",h3:"No expiry",codePh:"Enter 8-character code",yourCode:"Your code",copy:"Copy",waiting:"Waiting for the other phone…",connected:"Connected with",left:"Time left",location:"Location",locOn:"Location is shared only during this session.",locOff:"Allow location so the other phone can find you.",partnerLoc:"Other phone location",noLoc:"No location yet.",navigate:"🧭 Navigate to phone",distance:"Distance",camera:"📷 Request camera + audio",stopMedia:"⛔ Stop camera/audio",end:"End session",request:"The other phone is requesting access to your camera and microphone.",allow:"Allow",decline:"Decline",live:"🔴 LIVE — camera/microphone are being shared",requestSent:"Request sent. The other phone must allow it.",declined:"Request declined.",expired:"Session ended.",copied:"Code copied.",needPermission:"Location permission is required.",mediaDenied:"Camera/microphone permission was not granted.",notSupported:"This phone/browser does not support the feature.",loading:"Connecting…",onlyAllowed:"Admin must enable this module for this user.",sharePreview:"Your shared view",remote:"Other phone view"},
+  sq:{title:"Gjej telefonin",note:"Privat · vetëm për userat që i lejon Admini.",create:"Krijo kod",join:"Hyr me kod",duration:"Koha e kodit",h1:"1 orë",h2:"4 orë",h3:"Pa afat",codePh:"Shkruaj kodin 8-shifror",yourCode:"Kodi yt",copy:"Kopjo",waiting:"Duke pritur telefonin tjetër…",connected:"Lidhur me",left:"Koha e mbetur",location:"Vendndodhja",locOn:"Lokacioni po ndahet vetëm gjatë këtij sesioni.",locOff:"Lejo lokacionin që telefoni tjetër të mund të të gjejë.",partnerLoc:"Lokacioni i telefonit tjetër",noLoc:"Ende nuk ka lokacion.",navigate:"🧭 Navigo te telefoni",distance:"Distanca",camera:"📷 Kërko kamerën + zërin",stopMedia:"⛔ Ndalo kamerën/zërin",end:"Mbyll sesionin",request:"Telefoni tjetër kërkon kamerën dhe mikrofonin tënd.",allow:"Lejo",decline:"Refuzo",live:"🔴 LIVE — kamera/mikrofoni po ndahen",requestSent:"Kërkesa u dërgua. Telefoni tjetër duhet ta lejojë.",declined:"Kërkesa u refuzua.",expired:"Sesioni ka përfunduar.",copied:"Kodi u kopjua.",needPermission:"Duhet ta lejosh vendndodhjen.",mediaDenied:"Kamera/mikrofoni nuk u lejuan.",notSupported:"Ky telefon/browser nuk e mbështet këtë funksion.",loading:"Po lidhet…",onlyAllowed:"Ky modul duhet të aktivizohet nga Admini për këtë user.",sharePreview:"Pamja që po ndan",remote:"Pamja e telefonit tjetër",custom:"Kodi që zgjedh ti",customPh:"4–12 shkronja ose numra",shareAdmin:"Ndaj lokacionin me Adminin",shareAdminOn:"Lokacioni po ndahet me Adminin.",shareAdminOff:"Lokacioni nuk po ndahet me Adminin."},
+  de:{title:"Telefon finden",note:"Privat · nur für vom Admin freigeschaltete Nutzer.",create:"Code erstellen",join:"Mit Code verbinden",duration:"Code-Dauer",h1:"1 Stunde",h2:"4 Stunden",h3:"Ohne Ablauf",codePh:"8-stelligen Code eingeben",yourCode:"Dein Code",copy:"Kopieren",waiting:"Warte auf das andere Telefon…",connected:"Verbunden mit",left:"Verbleibende Zeit",location:"Standort",locOn:"Der Standort wird nur während dieser Sitzung geteilt.",locOff:"Standort erlauben, damit das andere Telefon dich finden kann.",partnerLoc:"Standort des anderen Telefons",noLoc:"Noch kein Standort.",navigate:"🧭 Zum Telefon navigieren",distance:"Entfernung",camera:"📷 Kamera + Ton anfragen",stopMedia:"⛔ Kamera/Ton stoppen",end:"Sitzung beenden",request:"Das andere Telefon möchte auf deine Kamera und dein Mikrofon zugreifen.",allow:"Erlauben",decline:"Ablehnen",live:"🔴 LIVE — Kamera/Mikrofon werden geteilt",requestSent:"Anfrage gesendet. Das andere Telefon muss zustimmen.",declined:"Anfrage abgelehnt.",expired:"Sitzung beendet.",copied:"Code kopiert.",needPermission:"Standortberechtigung erforderlich.",mediaDenied:"Kamera/Mikrofon wurden nicht erlaubt.",notSupported:"Dieses Telefon/Browser unterstützt die Funktion nicht.",loading:"Verbindung wird hergestellt…",onlyAllowed:"Dieses Modul muss vom Admin für diesen Nutzer aktiviert werden.",sharePreview:"Geteilte Ansicht",remote:"Ansicht des anderen Telefons",custom:"Eigener Code",customPh:"4–12 Buchstaben oder Zahlen",shareAdmin:"Standort mit Admin teilen",shareAdminOn:"Standort wird mit Admin geteilt.",shareAdminOff:"Standort wird nicht mit Admin geteilt."},
+  tr:{title:"Telefonu bul",note:"Özel · yalnızca yönetici izin verdiği kullanıcılar.",create:"Kod oluştur",join:"Kodla bağlan",duration:"Kod süresi",h1:"1 saat",h2:"4 saat",h3:"Süresiz",codePh:"8 haneli kodu yaz",yourCode:"Kodun",copy:"Kopyala",waiting:"Diğer telefon bekleniyor…",connected:"Bağlı",left:"Kalan süre",location:"Konum",locOn:"Konum yalnızca bu oturum sırasında paylaşılıyor.",locOff:"Diğer telefonun seni bulabilmesi için konuma izin ver.",partnerLoc:"Diğer telefonun konumu",noLoc:"Henüz konum yok.",navigate:"🧭 Telefona git",distance:"Mesafe",camera:"📷 Kamera + ses iste",stopMedia:"⛔ Kamera/sesi durdur",end:"Oturumu kapat",request:"Diğer telefon kamera ve mikrofonunu açmanı istiyor.",allow:"İzin ver",decline:"Reddet",live:"🔴 CANLI — kamera/mikrofon paylaşılıyor",requestSent:"İstek gönderildi. Diğer telefon izin vermeli.",declined:"İstek reddedildi.",expired:"Oturum sona erdi.",copied:"Kod kopyalandı.",needPermission:"Konuma izin vermelisin.",mediaDenied:"Kamera/mikrofona izin verilmedi.",notSupported:"Bu telefon/tarayıcı bu özelliği desteklemiyor.",loading:"Bağlanıyor…",onlyAllowed:"Bu modülü yönetici bu kullanıcı için açmalıdır.",sharePreview:"Paylaştığın görüntü",remote:"Diğer telefonun görüntüsü",custom:"Kendi kodun",customPh:"4–12 harf veya rakam",shareAdmin:"Konumu Admin ile paylaş",shareAdminOn:"Konum Admin ile paylaşılıyor.",shareAdminOff:"Konum Admin ile paylaşılmıyor."},
+  en:{title:"Find phone",note:"Private · only for users enabled by Admin.",create:"Create code",join:"Join with code",duration:"Code duration",h1:"1 hour",h2:"4 hours",h3:"No expiry",codePh:"Enter 8-character code",yourCode:"Your code",copy:"Copy",waiting:"Waiting for the other phone…",connected:"Connected with",left:"Time left",location:"Location",locOn:"Location is shared only during this session.",locOff:"Allow location so the other phone can find you.",partnerLoc:"Other phone location",noLoc:"No location yet.",navigate:"🧭 Navigate to phone",distance:"Distance",camera:"📷 Request camera + audio",stopMedia:"⛔ Stop camera/audio",end:"End session",request:"The other phone is requesting access to your camera and microphone.",allow:"Allow",decline:"Decline",live:"🔴 LIVE — camera/microphone are being shared",requestSent:"Request sent. The other phone must allow it.",declined:"Request declined.",expired:"Session ended.",copied:"Code copied.",needPermission:"Location permission is required.",mediaDenied:"Camera/microphone permission was not granted.",notSupported:"This phone/browser does not support the feature.",loading:"Connecting…",onlyAllowed:"Admin must enable this module for this user.",sharePreview:"Your shared view",remote:"Other phone view",custom:"Your own code",customPh:"4–12 letters or numbers",shareAdmin:"Share location with Admin",shareAdminOn:"Location is being shared with Admin.",shareAdminOff:"Location is not being shared with Admin."},
   it:{title:"Trova telefono",note:"Privato · solo per utenti autorizzati dall'Admin.",create:"Crea codice",join:"Entra con codice",duration:"Durata del codice",h1:"1 ora",h2:"4 ore",h3:"Senza scadenza",codePh:"Inserisci il codice di 8 caratteri",yourCode:"Il tuo codice",copy:"Copia",waiting:"In attesa dell'altro telefono…",connected:"Connesso con",left:"Tempo rimasto",location:"Posizione",locOn:"La posizione è condivisa solo durante questa sessione.",locOff:"Consenti la posizione per permettere all'altro telefono di trovarti.",partnerLoc:"Posizione dell'altro telefono",noLoc:"Nessuna posizione ancora.",navigate:"🧭 Naviga al telefono",distance:"Distanza",camera:"📷 Richiedi camera + audio",stopMedia:"⛔ Ferma camera/audio",end:"Chiudi sessione",request:"L'altro telefono richiede accesso a fotocamera e microfono.",allow:"Consenti",decline:"Rifiuta",live:"🔴 LIVE — fotocamera/microfono condivisi",requestSent:"Richiesta inviata. L'altro telefono deve consentire.",declined:"Richiesta rifiutata.",expired:"Sessione terminata.",copied:"Codice copiato.",needPermission:"È necessario consentire la posizione.",mediaDenied:"Fotocamera/microfono non autorizzati.",notSupported:"Questo telefono/browser non supporta la funzione.",loading:"Connessione…",onlyAllowed:"L'Admin deve attivare questo modulo per l'utente.",sharePreview:"Vista condivisa",remote:"Vista dell'altro telefono"},
   hr:{title:"Pronađi telefon",note:"Privatno · samo za korisnike kojima Admin dopusti.",create:"Izradi kod",join:"Uđi kodom",duration:"Trajanje koda",h1:"1 sat",h2:"4 sata",h3:"Bez isteka",codePh:"Unesi kod od 8 znakova",yourCode:"Tvoj kod",copy:"Kopiraj",waiting:"Čeka se drugi telefon…",connected:"Povezano s",left:"Preostalo vrijeme",location:"Lokacija",locOn:"Lokacija se dijeli samo tijekom ove sesije.",locOff:"Dopusti lokaciju kako bi te drugi telefon mogao pronaći.",partnerLoc:"Lokacija drugog telefona",noLoc:"Lokacija još nije dostupna.",navigate:"🧭 Navigiraj do telefona",distance:"Udaljenost",camera:"📷 Zatraži kameru + zvuk",stopMedia:"⛔ Zaustavi kameru/zvuk",end:"Završi sesiju",request:"Drugi telefon traži pristup tvojoj kameri i mikrofonu.",allow:"Dopusti",decline:"Odbij",live:"🔴 UŽIVO — kamera/mikrofon se dijele",requestSent:"Zahtjev poslan. Drugi telefon mora dopustiti.",declined:"Zahtjev odbijen.",expired:"Sesija završena.",copied:"Kod kopiran.",needPermission:"Potrebna je dozvola za lokaciju.",mediaDenied:"Kamera/mikrofon nisu dopušteni.",notSupported:"Ovaj telefon/preglednik ne podržava funkciju.",loading:"Povezivanje…",onlyAllowed:"Admin mora omogućiti ovaj modul za korisnika.",sharePreview:"Tvoj prijenos",remote:"Prijenos drugog telefona"},
   fr:{title:"Trouver le téléphone",note:"Privé · seulement pour les utilisateurs autorisés par l'Admin.",create:"Créer un code",join:"Entrer avec un code",duration:"Durée du code",h1:"1 heure",h2:"4 heures",h3:"Sans expiration",codePh:"Saisir le code de 8 caractères",yourCode:"Votre code",copy:"Copier",waiting:"En attente de l'autre téléphone…",connected:"Connecté avec",left:"Temps restant",location:"Position",locOn:"La position est partagée uniquement pendant cette session.",locOff:"Autorisez la position afin que l'autre téléphone puisse vous trouver.",partnerLoc:"Position de l'autre téléphone",noLoc:"Pas encore de position.",navigate:"🧭 Naviguer vers le téléphone",distance:"Distance",camera:"📷 Demander caméra + audio",stopMedia:"⛔ Arrêter caméra/audio",end:"Terminer la session",request:"L'autre téléphone demande l'accès à votre caméra et microphone.",allow:"Autoriser",decline:"Refuser",live:"🔴 LIVE — caméra/microphone partagés",requestSent:"Demande envoyée. L'autre téléphone doit autoriser.",declined:"Demande refusée.",expired:"Session terminée.",copied:"Code copié.",needPermission:"L'autorisation de localisation est requise.",mediaDenied:"Caméra/microphone non autorisés.",notSupported:"Ce téléphone/navigateur ne prend pas en charge cette fonction.",loading:"Connexion…",onlyAllowed:"L'Admin doit activer ce module pour cet utilisateur.",sharePreview:"Votre vue partagée",remote:"Vue de l'autre téléphone"},
@@ -33,10 +33,17 @@ function render(){
      <label class="nearby-label"><span id="nearbyDurationLabel"></span>
        <select id="nearbyDuration"><option value="60"></option><option value="240"></option><option value="0"></option></select>
      </label>
+     <label class="nearby-label"><span id="nearbyCustomLabel"></span>
+       <input id="nearbyCustomCode" maxlength="12" autocomplete="off" autocapitalize="characters">
+     </label>
      <button id="nearbyCreate" class="primary" type="button"></button>
      <div class="nearby-divider"><span>—</span></div>
-     <input id="nearbyCodeInput" maxlength="8" autocomplete="one-time-code" autocapitalize="characters">
+     <input id="nearbyCodeInput" maxlength="12" autocomplete="one-time-code" autocapitalize="characters">
      <button id="nearbyJoin" class="secondary" type="button"></button>
+     <div class="nearby-admin-share">
+       <label><input id="nearbyAdminShareToggle" type="checkbox"> <span id="nearbyAdminShareLabel"></span></label>
+       <small id="nearbyAdminShareStatus" class="muted"></small>
+     </div>
    </section>
    <section id="nearbySession" class="hidden">
      <section class="card nearby-session-head">
@@ -71,16 +78,19 @@ function render(){
 }
 function reloadLanguage(){
  if(!root())return;
- const map={nearbyTitle:"title",nearbyNote:"note",nearbyDurationLabel:"duration",nearbyCreate:"create",nearbyJoin:"join",nearbyYourCodeLabel:"yourCode",nearbyCopy:"copy",nearbyLeftLabel:"left",nearbyPartnerLocLabel:"partnerLoc",nearbyNavigate:"navigate",nearbyMediaRequest:"camera",nearbyMediaStop:"stopMedia",nearbyEnd:"end",nearbyLiveBadge:"live",nearbyRemoteLabel:"remote",nearbyLocalLabel:"sharePreview"};
+ const map={nearbyTitle:"title",nearbyNote:"note",nearbyDurationLabel:"duration",nearbyCreate:"create",nearbyCustomLabel:"custom",nearbyAdminShareLabel:"shareAdmin",nearbyJoin:"join",nearbyYourCodeLabel:"yourCode",nearbyCopy:"copy",nearbyLeftLabel:"left",nearbyPartnerLocLabel:"partnerLoc",nearbyNavigate:"navigate",nearbyMediaRequest:"camera",nearbyMediaStop:"stopMedia",nearbyEnd:"end",nearbyLiveBadge:"live",nearbyRemoteLabel:"remote",nearbyLocalLabel:"sharePreview"};
  for(const [id,k] of Object.entries(map)){const e=by(id);if(e)e.textContent=tx(k)}
  const d=by("nearbyDuration");if(d){d.options[0].text=tx("h1");d.options[1].text=tx("h2");d.options[2].text=tx("h3")}
  const ci=by("nearbyCodeInput");if(ci)ci.placeholder=tx("codePh");
+ const cc=by("nearbyCustomCode");if(cc)cc.placeholder=tx("customPh");
  if(session) pollState().catch(()=>{});
 }
 function bind(){
  by("nearbyCreate")?.addEventListener("click",createSession);
+ by("nearbyAdminShareToggle")?.addEventListener("change",toggleAdminLocationShare);
  by("nearbyJoin")?.addEventListener("click",joinSession);
- by("nearbyCodeInput")?.addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-F0-9]/g,"").slice(0,8)});
+ by("nearbyCodeInput")?.addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12)});
+ by("nearbyCustomCode")?.addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12)});
  by("nearbyCopy")?.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(session?.code||"");setMsg(tx("copied"),"success")}catch(_){}});
  by("nearbyNavigate")?.addEventListener("click",navigate);
  by("nearbyMediaRequest")?.addEventListener("click",requestMedia);
@@ -94,16 +104,24 @@ function showIdle(){by("nearbyIdle")?.classList.remove("hidden");by("nearbySessi
 async function createSession(){
  setMsg(tx("loading"));
  try{
+   await ctx()?.ensureRegistered?.();
    const duration=Number(by("nearbyDuration")?.value||60);
-   const data=await rpc("nearby_create_session",{...credentials(),p_duration:duration});
+   const customCode=String(by("nearbyCustomCode")?.value||"").trim().toUpperCase();
+   if(customCode && (customCode.length<4||customCode.length>12)){setMsg(tx("customPh"),"error");return}
+   const data=await rpc("nearby_create_session_v2",{...credentials(),p_duration:duration,p_code:customCode||null});
    session={id:data.session_id,code:data.code};lastSignalId=0;saveSession();showSession();startSessionWork();setMsg(tx("waiting"));
- }catch(e){handleError(e)}
+ }catch(e){
+   const m=String(e?.message||e||"");
+   if(m.includes("CODE_ALREADY_USED")) setMsg("Ky kod përdoret. Zgjidh një tjetër.","error");
+   else handleError(e);
+ }
 }
 async function joinSession(){
  const code=(by("nearbyCodeInput")?.value||"").trim().toUpperCase();
- if(code.length!==8){setMsg(tx("codePh"),"error");return}
+ if(code.length<4||code.length>12){setMsg(tx("codePh"),"error");return}
  setMsg(tx("loading"));
  try{
+   await ctx()?.ensureRegistered?.();
    const data=await rpc("nearby_join_session",{...credentials(),p_code:code});
    session={id:data.session_id,code:data.code};lastSignalId=0;saveSession();showSession();startSessionWork();setMsg("");
  }catch(e){handleError(e)}
@@ -231,10 +249,53 @@ async function restore(){
  session={id:saved.id,code:saved.code||""};
  try{const s=await rpc("nearby_session_state",{...credentials(),p_session:session.id});if(s.status==="ended"||Number(s.seconds_left)<=0)throw new Error("SESSION_EXPIRED");session.code=s.code||session.code;showSession();startSessionWork();return true}catch(_){cleanupSession();showIdle();return false}
 }
+let adminShareWatch=null;
+async function loadAdminLocationShareState(){
+ try{
+   const data=await rpc("admin_location_share_get",credentials());
+   const t=by("nearbyAdminShareToggle"),st=by("nearbyAdminShareStatus");
+   if(t)t.checked=!!data?.enabled;
+   if(st)st.textContent=data?.enabled?tx("shareAdminOn"):tx("shareAdminOff");
+   if(data?.enabled) startAdminShareWatch();
+ }catch(_){}
+}
+function stopAdminShareWatch(){
+ if(adminShareWatch!==null&&navigator.geolocation){try{navigator.geolocation.clearWatch(adminShareWatch)}catch(_){}}
+ adminShareWatch=null;
+}
+function startAdminShareWatch(){
+ stopAdminShareWatch();
+ if(!navigator.geolocation)return;
+ adminShareWatch=navigator.geolocation.watchPosition(async(pos)=>{
+   try{
+     await rpc("admin_location_share_set",{...credentials(),p_enabled:true,p_lat:pos.coords.latitude,p_lng:pos.coords.longitude,p_accuracy:pos.coords.accuracy});
+     const st=by("nearbyAdminShareStatus");if(st)st.textContent=tx("shareAdminOn");
+   }catch(_){}
+ },()=>{}, {enableHighAccuracy:true,maximumAge:15000,timeout:15000});
+}
+async function toggleAdminLocationShare(){
+ const t=by("nearbyAdminShareToggle"),st=by("nearbyAdminShareStatus");
+ if(!t)return;
+ if(!t.checked){
+   stopAdminShareWatch();
+   try{await rpc("admin_location_share_set",{...credentials(),p_enabled:false,p_lat:null,p_lng:null,p_accuracy:null});}catch(_){}
+   if(st)st.textContent=tx("shareAdminOff");
+   return;
+ }
+ if(!navigator.geolocation){t.checked=false;return}
+ navigator.geolocation.getCurrentPosition(async(pos)=>{
+   try{
+     await rpc("admin_location_share_set",{...credentials(),p_enabled:true,p_lat:pos.coords.latitude,p_lng:pos.coords.longitude,p_accuracy:pos.coords.accuracy});
+     if(st)st.textContent=tx("shareAdminOn");
+     startAdminShareWatch();
+   }catch(e){t.checked=false;handleError(e)}
+ },()=>{t.checked=false;if(st)st.textContent=tx("needPermission")},{enableHighAccuracy:true,timeout:15000});
+}
 async function activate(){
  active=true;if(!root())return; if(!by("nearbyIdle"))render();reloadLanguage();
+ loadAdminLocationShareState().catch(()=>{});
  if(session){showSession();startSessionWork();return}
  await restore();
 }
-function deactivate(){active=false;stopTimers();stopLocation();stopPeer(true);closeConsent()}
+function deactivate(){active=false;stopTimers();stopLocation();stopAdminShareWatch();stopPeer(true);closeConsent()}
 window.DiamondNearby={activate,deactivate,reloadLanguage};

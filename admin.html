@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="DIAMOND ADMIN">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="format-detection" content="telephone=no">
-  <link rel="stylesheet" href="styles.css?v=108">
+  <link rel="stylesheet" href="styles.css?v=109">
   <title>DIAMOND ADMIN</title>
   <style>
     /* Inline menu-order hotfix */
@@ -53,6 +53,7 @@
     .war-message{color:#0f172a!important}
     .war-character,.war-soldier,.war-rifle{display:none!important}
   </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
 </head>
 <body>
   <main class="shell">
@@ -107,7 +108,7 @@
         <div>
           <div class="app-title-row">
             <h1>DIAMOND</h1>
-            <span id="appVersionLabel" class="app-version-label">v6.20</span>
+            <span id="appVersionLabel" class="app-version-label">v6.21</span>
             <div class="manual-update-wrap">
               <button id="manualUpdateBtn" class="manual-update-btn" type="button">🔄 Kontrollo dhe instalo update</button>
               <span id="manualUpdateStatus" class="manual-update-status"></span>
@@ -257,7 +258,10 @@
             <option value="">— Zgjidh userin —</option>
           </select>
           <div id="moduleAccessList" class="module-access-list"></div>
-          <button id="moduleAccessResetBtn" class="secondary" type="button" disabled>↩️ Ktheji modulet standarde</button>
+          <div class="module-access-actions">
+            <button id="moduleAccessResetBtn" class="secondary" type="button" disabled>↩️ Standard</button>
+            <button id="moduleAccessSaveBtn" class="primary" type="button" disabled>💾 Speichern</button>
+          </div>
           <div id="moduleAccessStatus" class="message"></div>
         </section>
 
@@ -301,8 +305,17 @@
         </section>
 
         <section id="adminUsersCard" class="card admin-users-card hidden">
-          <h2>👥 Përdoruesit e DIAMOND · <span id="adminUserCount">0</span></h2><div id="adminOnlineUsers" class="admin-online-users"><strong>🟢 Online:</strong> <span id="adminOnlineUserNames">—</span></div>
-          <p class="muted small">Ndrysho emrin, blloko ose lejo përdoruesin. Pikët e lojërave mbeten.</p>
+          <h2>👥 Përdoruesit e DIAMOND · <span id="adminUserCount">0</span></h2>
+          <div id="adminOnlineUsers" class="admin-online-users"><strong>🟢 Online:</strong> <span id="adminOnlineUserNames">—</span></div>
+          <p class="muted small">Kontrollet e userave shihen vetëm te DIAMOND ADMIN.</p>
+          <div id="adminUsersMapCard" class="admin-users-map-card">
+            <div class="admin-users-map-head">
+              <strong>🗺️ Harta e userave që kanë lejuar lokacionin</strong>
+              <button id="adminUsersMapRefresh" class="secondary" type="button">↻ Rifresko</button>
+            </div>
+            <div id="adminUsersMap" class="admin-users-map"></div>
+            <div id="adminUsersMapStatus" class="message"></div>
+          </div>
           <div id="adminUsersList" class="admin-users-list"></div>
           <div id="adminUsersStatus" class="message"></div>
         </section>
@@ -854,7 +867,7 @@
     window.DiamondAdminCoreNav={open,home};
   })();
   </script>
-  <script type="module" src="app.js?v=124"></script>
+  <script type="module" src="app.js?v=125"></script>
   <script type="module" src="recipes.js?v=1"></script>
   <script type="module" src="sports.js?v=11"></script>
   <script type="module" src="games.js?v=106"></script>
@@ -890,5 +903,6 @@
     privacyClient.auth.onAuthStateChange(()=>setTimeout(enforceTvLinkPrivacy,0));
     enforceTvLinkPrivacy();
   </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </body>
 </html>

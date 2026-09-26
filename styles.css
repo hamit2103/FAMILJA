@@ -5214,3 +5214,28 @@ button.war-weapon-icon:disabled{
   .nearby-time{justify-items:start}
   .nearby-video-grid{grid-template-columns:1fr}
 }
+
+
+/* DIAMOND 6.21 — Admin users compact controls + map */
+.module-access-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.admin-users-map-card{display:grid;gap:10px;margin:14px 0 18px}
+.admin-users-map-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.admin-users-map{width:100%;height:320px;border-radius:18px;overflow:hidden;border:1px solid rgba(148,163,184,.45);background:#e2e8f0}
+.admin-user-row.compact{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative}
+.admin-user-title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.admin-user-status-badge{display:inline-flex;align-items:center;min-height:28px;padding:4px 9px;border-radius:999px;font-size:.78rem;font-weight:900}
+.admin-user-status-badge.online{background:#dcfce7;color:#166534}
+.admin-user-status-badge.offline{background:#fee2e2;color:#991b1b}
+.admin-user-actions-menu{position:relative;flex:0 0 auto}
+.admin-user-actions-toggle{white-space:nowrap}
+.admin-user-actions-panel{position:absolute;right:0;top:calc(100% + 7px);z-index:40;width:min(86vw,320px);display:grid;gap:8px;padding:12px;border-radius:16px;background:#fff;box-shadow:0 18px 45px rgba(15,23,42,.22);border:1px solid #e2e8f0}
+.admin-user-rename-inline{display:grid;grid-template-columns:1fr auto;gap:8px}
+.admin-user-rename-inline input{min-width:0}
+.nearby-admin-share{display:grid;gap:5px;padding:11px 12px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0}
+.nearby-admin-share label{display:flex;align-items:center;gap:9px;font-weight:850}
+@media(max-width:640px){
+  .module-access-actions{grid-template-columns:1fr}
+  .admin-user-row.compact{align-items:flex-start}
+  .admin-user-actions-panel{right:0}
+  .admin-users-map{height:280px}
+}
