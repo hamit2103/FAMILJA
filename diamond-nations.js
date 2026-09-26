@@ -71,7 +71,7 @@ function injectStyle(){
   `;document.head.appendChild(style);
 }
 
-export function startDiamondNationsGame({root,onBack,difficulty="medium",lang="sq"}){
+function startDiamondNationsGame({root,onBack,difficulty="medium",lang="sq"}){
   injectStyle();
   const t=I18N[lang]||I18N.sq;
   let state=safeLoad();
@@ -228,3 +228,6 @@ export function startDiamondNationsGame({root,onBack,difficulty="medium",lang="s
 
   render();
 }
+
+
+globalThis.DiamondNations={startDiamondNationsGame};
