@@ -711,7 +711,7 @@ function openGameInfo(){
   overlay.addEventListener("click",e=>{if(e.target===overlay)closeGameInfo();});
 }
 function ensureGameInfoButton(){
-  if(!root||!root.firstElementChild||document.getElementById("gameInfoButton"))return;
+  if(!root||!selectedType||!root.firstElementChild||document.getElementById("gameInfoButton"))return;
   const runningDiamond=selectedType==="diamondrun"&&!!root.querySelector(".diamond-run-shell");
   const btn=document.createElement("button");
   btn.id="gameInfoButton";
@@ -900,7 +900,7 @@ const WAR_TXT={
 function wtr(k){ return WAR_TXT[lang()]?.[k] || WAR_TXT.sq[k] || k; }
 
 
-let selectedType="chess";
+let selectedType="";
 let room=null;
 let channel=null;
 let selected=null;
@@ -2770,18 +2770,34 @@ function normalizeGameOrder(value){
   return clean;
 }
 
-function gameChoiceLabel(id){
-  if(id==="chess") return "♟️ "+tr("chess");
-  if(id==="morris") return "🟣 "+tr("morris");
-  if(id==="timer") return "⏱️ "+tr("timer");
-  if(id==="tetris") return "🧱 "+tr("tetris");
-  if(id==="war") return "⚔️ "+tr("war");
-  if(id==="kingdom") return "🏰 "+tr("kingdom");
-  if(id==="uck") return "🪖 "+tr("uck");
-  if(id==="diamondrun") return "💎 "+tr("diamondrun");
-  if(id==="diamondadventure") return "💎🏃 Diamond Adventure";
-  if(id==="diamondnations") return "🌍💎 DIAMOND NATIONS";
+function gameChoiceIcon(id){
+  if(id==="chess") return "♟️";
+  if(id==="morris") return "🟣";
+  if(id==="timer") return "⏱️";
+  if(id==="tetris") return "🧱";
+  if(id==="war") return "⚔️";
+  if(id==="kingdom") return "🏰";
+  if(id==="uck") return "🪖";
+  if(id==="diamondrun") return "💎";
+  if(id==="diamondadventure") return "💎🏃";
+  if(id==="diamondnations") return "🌍💎";
+  return "🎮";
+}
+function gameChoiceName(id){
+  if(id==="chess") return tr("chess");
+  if(id==="morris") return tr("morris");
+  if(id==="timer") return tr("timer");
+  if(id==="tetris") return tr("tetris");
+  if(id==="war") return tr("war");
+  if(id==="kingdom") return tr("kingdom");
+  if(id==="uck") return tr("uck");
+  if(id==="diamondrun") return tr("diamondrun");
+  if(id==="diamondadventure") return "Diamond Adventure";
+  if(id==="diamondnations") return "DIAMOND NATIONS";
   return id;
+}
+function gameChoiceLabel(id){
+  return gameChoiceIcon(id)+" "+gameChoiceName(id);
 }
 
 function gameHasOnline(id){
@@ -2843,19 +2859,30 @@ function gameMenuActionText(key){
   return map[l]?.[key]||map.sq[key]||key;
 }
 function renderGameChoices(){
-  return gameOrder.map((id)=>{
+  const tiles=gameOrder.map((id)=>{
     const blocked=activeGameBlock(id)&&!gamesAdmin;
-    const online=gameHasOnline(id);
-    const computer=gameUsesComputer(id);
-    return `<div class="game-choice ${selectedType===id?"active":""} ${blocked?"blocked":""}">
-      <button class="game-choice-title" data-game="${id}" type="button" ${blocked?"disabled":""}>${gameChoiceLabel(id)}</button>
-      <div class="game-choice-actions ${online?"":"single"}">
-        ${online?`<button class="game-choice-online" data-game-online="${id}" type="button" ${blocked?"disabled":""}>${gameMenuActionText("online")}</button>`:""}
-        <button class="game-choice-play" data-game-play="${id}" type="button" ${blocked?"disabled":""}>${gameMenuActionText(computer?"computer":"play")}</button>
-      </div>
+    return `<div class="game-choice game-folder-tile ${selectedType===id?"active":""} ${blocked?"blocked":""}">
+      <button class="game-choice-title game-folder-button" data-game="${id}" type="button" ${blocked?"disabled":""}>
+        <span class="game-folder-icon">${gameChoiceIcon(id)}</span>
+        <span class="game-folder-name">${escapeHtml(gameChoiceName(id))}</span>
+      </button>
       ${activeGameBlock(id)?`<small class="game-block-note">🔒 ${gameBlockText(id)}</small>`:""}
     </div>`;
   }).join("");
+
+  if(!selectedType||!gameOrder.includes(selectedType)) return tiles;
+
+  const blocked=activeGameBlock(selectedType)&&!gamesAdmin;
+  const online=gameHasOnline(selectedType);
+  const computer=gameUsesComputer(selectedType);
+  const actions=`<div class="game-folder-action-panel">
+    <div class="game-folder-action-title"><span>${gameChoiceIcon(selectedType)}</span><strong>${escapeHtml(gameChoiceName(selectedType))}</strong></div>
+    <div class="game-choice-actions ${online?"":"single"}">
+      ${online?`<button class="game-choice-online" data-game-online="${selectedType}" type="button" ${blocked?"disabled":""}>${gameMenuActionText("online")}</button>`:""}
+      <button class="game-choice-play" data-game-play="${selectedType}" type="button" ${blocked?"disabled":""}>${gameMenuActionText(computer?"computer":"play")}</button>
+    </div>
+  </div>`;
+  return tiles+actions;
 }
 async function launchGameFromMenu(id,mode){
   if(activeGameBlock(id)&&!gamesAdmin){
@@ -3170,7 +3197,7 @@ function renderLobby(msg=""){
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
         ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
 
-        ${(selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun" || selectedType==="diamondadventure" || selectedType==="diamondnations" || selectedType==="chess" || selectedType==="morris" || selectedType==="timer") ? "" : `
+        ${(!selectedType || selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun" || selectedType==="diamondadventure" || selectedType==="diamondnations" || selectedType==="chess" || selectedType==="morris" || selectedType==="timer") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
           <button id="createGame" class="secondary" type="button">${tr("create")}</button>
           <div class="game-join-row">
