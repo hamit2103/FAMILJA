@@ -548,7 +548,7 @@ function refreshAppVersionLabel(){
       return;
     }
   }catch(_){}
-  if(!appVersionLabel.textContent.trim()) appVersionLabel.textContent="v6.24";
+  if(!appVersionLabel.textContent.trim()) appVersionLabel.textContent="v6.25";
 }
 refreshAppVersionLabel();
 const manualUpdateBtn = $("manualUpdateBtn");
@@ -1504,7 +1504,7 @@ function isAdmin() {
 async function registerInstall(){
   if(!supabase || !currentUser || ADMIN_ONLY) return;
   try{
-    let versionName="6.24";
+    let versionName="6.25";
     try{
       versionName=window.AndroidApp?.getVersionName?.() || versionName;
     }catch(_){}
@@ -1914,7 +1914,7 @@ async function registerDeviceInfo(){
   try{
     const {data:{session}}=await supabase.auth.getSession();
     const token=session?.access_token;if(!token)return;
-    let versionName="6.24";
+    let versionName="6.25";
     try{versionName=window.AndroidApp?.getVersionName?.()||versionName;}catch(_){}
     const registerResponse=await fetch(SUPABASE_URL+"/functions/v1/diamond-device-register",{
       method:"POST",

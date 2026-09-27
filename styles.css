@@ -5308,3 +5308,36 @@ button.war-weapon-icon:disabled{
 @media (max-width:420px){
   .prayer-folder-grid,.games-choice{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+
+/* Game folder tap popup — action choice appears immediately in the center */
+.game-choice-modal{
+  position:fixed;inset:0;z-index:2147482400;display:grid;place-items:center;
+  padding:22px;background:rgba(5,8,22,.56);backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px)
+}
+.game-choice-modal-card{
+  width:min(92vw,430px);position:relative;text-align:center;padding:24px 20px 20px;
+  border-radius:28px;background:linear-gradient(160deg,#ffffff 0%,#f6f2ff 100%);
+  border:1px solid rgba(86,70,170,.18);box-shadow:0 24px 70px rgba(4,8,30,.34);
+  animation:gameChoicePopupIn .16s ease-out
+}
+.game-choice-modal-close{
+  position:absolute;right:11px;top:10px;width:38px;height:38px;border-radius:50%;
+  border:0;background:#eceaf5;color:#1c2033;font-weight:950;font-size:18px
+}
+.game-choice-modal-icon{font-size:58px;line-height:1;margin:4px 0 8px}
+.game-choice-modal-card h3{margin:0 34px 17px;font-size:clamp(22px,6vw,29px);line-height:1.08}
+.game-choice-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.game-choice-modal-actions.single{grid-template-columns:1fr}
+.game-choice-modal-actions button{
+  min-height:58px;border:0;border-radius:18px;padding:10px 12px;color:#fff;
+  font-weight:950;font-size:15px;line-height:1.15;box-shadow:0 7px 18px rgba(0,0,0,.17)
+}
+.game-choice-modal-actions .game-choice-online{background:linear-gradient(135deg,#2563eb,#312e81)}
+.game-choice-modal-actions .game-choice-play{background:linear-gradient(135deg,#10b981,#047857)}
+@keyframes gameChoicePopupIn{from{transform:scale(.94);opacity:.55}to{transform:scale(1);opacity:1}}
+@media(max-width:390px){
+  .game-choice-modal-actions{grid-template-columns:1fr}
+  .game-choice-modal-card{padding:22px 16px 16px}
+}

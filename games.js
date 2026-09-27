@@ -2859,7 +2859,7 @@ function gameMenuActionText(key){
   return map[l]?.[key]||map.sq[key]||key;
 }
 function renderGameChoices(){
-  const tiles=gameOrder.map((id)=>{
+  return gameOrder.map((id)=>{
     const blocked=activeGameBlock(id)&&!gamesAdmin;
     return `<div class="game-choice game-folder-tile ${selectedType===id?"active":""} ${blocked?"blocked":""}">
       <button class="game-choice-title game-folder-button" data-game="${id}" type="button" ${blocked?"disabled":""}>
@@ -2869,21 +2869,26 @@ function renderGameChoices(){
       ${activeGameBlock(id)?`<small class="game-block-note">🔒 ${gameBlockText(id)}</small>`:""}
     </div>`;
   }).join("");
+}
 
-  if(!selectedType||!gameOrder.includes(selectedType)) return tiles;
-
+function renderGameChoiceModal(){
+  if(!selectedType||!gameOrder.includes(selectedType)) return "";
   const blocked=activeGameBlock(selectedType)&&!gamesAdmin;
   const online=gameHasOnline(selectedType);
   const computer=gameUsesComputer(selectedType);
-  const actions=`<div class="game-folder-action-panel">
-    <div class="game-folder-action-title"><span>${gameChoiceIcon(selectedType)}</span><strong>${escapeHtml(gameChoiceName(selectedType))}</strong></div>
-    <div class="game-choice-actions ${online?"":"single"}">
-      ${online?`<button class="game-choice-online" data-game-online="${selectedType}" type="button" ${blocked?"disabled":""}>${gameMenuActionText("online")}</button>`:""}
-      <button class="game-choice-play" data-game-play="${selectedType}" type="button" ${blocked?"disabled":""}>${gameMenuActionText(computer?"computer":"play")}</button>
+  return `<div id="gameChoiceModal" class="game-choice-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(gameChoiceName(selectedType))}">
+    <div class="game-choice-modal-card">
+      <button id="gameChoiceModalClose" class="game-choice-modal-close" type="button" aria-label="Mbyll">✕</button>
+      <div class="game-choice-modal-icon">${gameChoiceIcon(selectedType)}</div>
+      <h3>${escapeHtml(gameChoiceName(selectedType))}</h3>
+      <div class="game-choice-modal-actions ${online?"":"single"}">
+        ${online?`<button class="game-choice-online" data-game-online="${selectedType}" type="button" ${blocked?"disabled":""}>${gameMenuActionText("online")}</button>`:""}
+        <button class="game-choice-play" data-game-play="${selectedType}" type="button" ${blocked?"disabled":""}>${gameMenuActionText(computer?"computer":"play")}</button>
+      </div>
     </div>
   </div>`;
-  return tiles+actions;
 }
+
 async function launchGameFromMenu(id,mode){
   if(activeGameBlock(id)&&!gamesAdmin){
     const m=document.getElementById("gameMessage");
@@ -3091,6 +3096,7 @@ function renderLobby(msg=""){
         <div class="games-choice">
           ${renderGameChoices()}
         </div>
+        ${renderGameChoiceModal()}
 
         ${gamesAdmin?`
           <section class="game-order-admin">
@@ -3195,7 +3201,7 @@ function renderLobby(msg=""){
           <div class="game-help">👆 Prek një herë ekranin = rrotullo · ✋ Mbaje të shtypur dhe tërhiqe = lëvize ku dëshiron</div>
           <section id="tetrisRecentWins" class="tetris-leaderboard-mini"><div class="muted">🥇 Po ngarkohen fituesit online…</div></section>
           <section id="tetrisLobbyLeaderboard" class="tetris-leaderboard-mini"><div class="muted">🏆 Po ngarkohet renditja…</div></section>
-        ` : `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>`}
+        ` : selectedType ? `<button id="computerGame" class="primary" type="button">🤖 ${tr("computer")}</button>` : ""}
 
         ${(!selectedType || selectedType==="tetris" || selectedType==="war" || selectedType==="kingdom" || selectedType==="uck" || selectedType==="diamondrun" || selectedType==="diamondadventure" || selectedType==="diamondnations" || selectedType==="chess" || selectedType==="morris" || selectedType==="timer") ? "" : `
           <div class="game-help">🌐 ${tr("online")}</div>
@@ -3221,6 +3227,8 @@ function renderLobby(msg=""){
   document.getElementById("saveAdminGameTheme")?.addEventListener("click",saveAdminGameTheme);
   document.getElementById("resetUserGameTheme")?.addEventListener("click",resetUserGameTheme);
   root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.game;if(activeGameBlock(id)&&!gamesAdmin){const m=document.getElementById("gameMessage");if(m)m.textContent="Kjo lojë është e bllokuar nga Admini "+gameBlockText(id)+".";return;}selectedType=id;renderLobby();});
+  document.getElementById("gameChoiceModalClose")?.addEventListener("click",()=>{selectedType="";renderLobby();});
+  document.getElementById("gameChoiceModal")?.addEventListener("click",(event)=>{if(event.target?.id==="gameChoiceModal"){selectedType="";renderLobby();}});
   root.querySelectorAll("[data-game-play]").forEach(btn=>btn.onclick=async()=>{btn.disabled=true;try{await launchGameFromMenu(btn.dataset.gamePlay,"play");}finally{if(btn.isConnected)btn.disabled=false;}});
   root.querySelectorAll("[data-game-online]").forEach(btn=>btn.onclick=async()=>{btn.disabled=true;try{await launchGameFromMenu(btn.dataset.gameOnline,"online");}finally{if(btn.isConnected)btn.disabled=false;}});
   const warChoice=root.querySelector('[data-game="war"]'); if(warChoice) warChoice.addEventListener("click",()=>{selectedType="war";renderLobby();},{once:true});
