@@ -5239,3 +5239,72 @@ button.war-weapon-icon:disabled{
   .admin-user-actions-panel{right:0}
   .admin-users-map{height:280px}
 }
+
+
+/* DIAMOND folder navigation — Namaz + Games */
+.prayer-folder-home{padding:8px 2px 18px}
+.prayer-folder-heading{padding:4px 8px 14px}
+.prayer-folder-heading h2{margin:0 0 4px;font-size:clamp(24px,6vw,34px)}
+.prayer-folder-heading p{margin:0}
+.prayer-folder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.prayer-folder{
+  appearance:none;border:0;background:transparent;padding:0;min-width:0;color:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer
+}
+.prayer-folder::before{
+  content:"";display:block;width:100%;aspect-ratio:1/0.88;border-radius:26px;
+  background:
+    linear-gradient(145deg,rgba(255,255,255,.94),rgba(248,244,255,.88)),
+    linear-gradient(135deg,#dff1ff,#eadcff);
+  border:1px solid rgba(94,71,185,.14);box-shadow:0 10px 24px rgba(49,42,96,.12);
+  position:absolute;opacity:0
+}
+.prayer-folder-icon{
+  width:100%;aspect-ratio:1/0.88;border-radius:26px;display:grid;place-items:center;
+  font-size:clamp(34px,10vw,52px);line-height:1;
+  background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(245,241,255,.92));
+  border:1px solid rgba(94,71,185,.14);box-shadow:0 10px 24px rgba(49,42,96,.12);
+  position:relative;overflow:hidden
+}
+.prayer-folder-icon::before{
+  content:"";position:absolute;top:0;left:13%;width:45%;height:15%;border-radius:0 0 12px 12px;
+  background:linear-gradient(90deg,#6cc7ff,#9a63f4);opacity:.85
+}
+.prayer-folder-name{font-weight:850;text-align:center;font-size:clamp(13px,3.7vw,16px);line-height:1.15}
+.prayer-folder:active .prayer-folder-icon{transform:scale(.98)}
+.prayer-folder-detail-open .prayer-tools-grid{grid-template-columns:1fr}
+.prayer-folder-detail-open .prayer-tool-card{max-width:760px;margin-inline:auto;width:100%}
+.prayer-folder-detail-open .prayer-mini-back{display:block;position:sticky;top:8px;z-index:30;width:100%;margin:0 0 12px}
+
+.games-choice{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;align-items:start!important
+}
+.games-choice .game-choice.game-folder-tile{
+  background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;min-width:0!important
+}
+.game-folder-button{
+  width:100%!important;min-height:0!important;aspect-ratio:1/1!important;border-radius:26px!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:8px!important;padding:14px 8px!important;background:linear-gradient(145deg,#ffffff,#f5f1ff)!important;
+  border:1px solid rgba(80,74,160,.16)!important;box-shadow:0 10px 24px rgba(36,35,82,.12)!important;
+  color:#12152a!important;position:relative!important;overflow:hidden!important
+}
+.game-folder-button::before{
+  content:"";position:absolute;top:0;left:13%;width:45%;height:14%;border-radius:0 0 12px 12px;
+  background:linear-gradient(90deg,#46bfff,#8449ee);opacity:.9
+}
+.game-folder-icon{font-size:clamp(34px,10vw,52px);line-height:1}
+.game-folder-name{font-size:clamp(13px,3.7vw,17px);font-weight:900;line-height:1.08;text-align:center}
+.game-folder-tile.active .game-folder-button{outline:3px solid rgba(56,113,255,.72);box-shadow:0 12px 28px rgba(45,95,224,.22)!important}
+.game-folder-action-panel{
+  grid-column:1/-1;background:rgba(255,255,255,.95);border:1px solid rgba(50,63,134,.12);
+  border-radius:24px;padding:16px;box-shadow:0 12px 32px rgba(22,29,70,.14)
+}
+.game-folder-action-title{display:flex;align-items:center;gap:10px;font-size:22px;margin-bottom:12px}
+.game-folder-action-title>span{font-size:30px}
+.game-folder-action-panel .game-choice-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.game-folder-action-panel .game-choice-actions.single{grid-template-columns:1fr}
+.game-folder-action-panel .game-choice-actions button{min-height:54px;border-radius:17px;font-weight:900}
+@media (max-width:420px){
+  .prayer-folder-grid,.games-choice{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
