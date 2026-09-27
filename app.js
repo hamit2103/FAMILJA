@@ -4283,37 +4283,165 @@ window.DiamondNavigationBack = function(){
 };
 
 
-/* DIAMOND Namaz pages: overview keeps prayer times visible; tools open separately */
+/* DIAMOND Namaz folders: clean folder home, each tool opens on its own page */
 (() => {
   const view=document.getElementById("prayerView");
   const grid=view?.querySelector(".prayer-tools-grid");
   if(!view||!grid)return;
+
   const cards=Array.from(grid.children);
   const qibla=document.getElementById("qiblaToolCard");
   const kerahat=document.getElementById("kerahatToolCard");
-  const panels=["quranPanel","prayerHelpPanel","ruqyaPanel","prayerDuaPanel","quranLearnPanel","tasbihPanel"].map(id=>document.getElementById(id)).filter(Boolean);
+  const quranCard=document.getElementById("quranOpenCard");
+  const prayerGuide=document.getElementById("prayerGuideCard");
+  const wuduGuide=document.getElementById("wuduGuideCard");
+  const duaCard=document.getElementById("prayerDuaCard");
+  const learnCard=document.getElementById("quranLearnCard");
+  const tasbihCard=document.getElementById("tasbihCard");
+  const ruqyaCard=document.getElementById("ruqyaCard");
+  const panels=["quranPanel","prayerHelpPanel","ruqyaPanel","prayerDuaPanel","quranLearnPanel","tasbihPanel"]
+    .map(id=>document.getElementById(id)).filter(Boolean);
   const prayerTop=view.querySelector(":scope > .prayer-card");
   const list=document.getElementById("prayerList");
   const note=view.querySelector(":scope > .prayer-note");
   const back=document.getElementById("prayerMiniBack");
+
+  const folderHome=document.createElement("section");
+  folderHome.id="prayerFolderHome";
+  folderHome.className="prayer-folder-home";
+  folderHome.innerHTML=`
+    <div class="prayer-folder-heading">
+      <h2>🕌 <span id="prayerFolderHomeTitle">Namazi</span></h2>
+      <p class="muted" id="prayerFolderHomeHint">Zgjidh folderin</p>
+    </div>
+    <div class="prayer-folder-grid">
+      <button class="prayer-folder" type="button" data-prayer-folder="times"><span class="prayer-folder-icon">🕰️</span><span class="prayer-folder-name" data-prayer-folder-label="times">Vaktet & alarmet</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="qibla"><span class="prayer-folder-icon">🕋</span><span class="prayer-folder-name" data-prayer-folder-label="qibla">Kibla</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="kerahat"><span class="prayer-folder-icon">⏳</span><span class="prayer-folder-name" data-prayer-folder-label="kerahat">Kerahet vakti</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="quran"><span class="prayer-folder-icon">📖</span><span class="prayer-folder-name" data-prayer-folder-label="quran">Kuran</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="salah"><span class="prayer-folder-icon">🕌</span><span class="prayer-folder-name" data-prayer-folder-label="salah">Namazet & rekatet</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="wudu"><span class="prayer-folder-icon">💧</span><span class="prayer-folder-name" data-prayer-folder-label="wudu">Abdesi & Gusli</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="dua"><span class="prayer-folder-icon">🤲</span><span class="prayer-folder-name" data-prayer-folder-label="dua">Mëso dua</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="learn"><span class="prayer-folder-icon">🔤</span><span class="prayer-folder-name" data-prayer-folder-label="learn">Mëso Kuranin</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="tasbih"><span class="prayer-folder-icon">📿</span><span class="prayer-folder-name" data-prayer-folder-label="tasbih">Tespih</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="ruqya"><span class="prayer-folder-icon">🌿</span><span class="prayer-folder-name" data-prayer-folder-label="ruqya">Shërim me Kuran</span></button>
+    </div>`;
+  view.insertBefore(folderHome, view.firstChild);
+
+  const hideOriginal=()=>{
+    prayerTop?.classList.add("hidden");
+    list?.classList.add("hidden");
+    note?.classList.add("hidden");
+    grid.classList.add("hidden");
+    cards.forEach(x=>x.classList.add("hidden"));
+    panels.forEach(x=>x.classList.add("hidden"));
+  };
+
+  const sourceText=(selector,fallback)=>{
+    const el=document.querySelector(selector);
+    return (el?.textContent||"").trim()||fallback;
+  };
+
+  const syncFolderLabels=()=>{
+    const set=(key,value)=>{const el=folderHome.querySelector('[data-prayer-folder-label="'+key+'"]');if(el)el.textContent=value;};
+    set("times", sourceText('[data-i18n="prayer.title"]',"Vaktet & alarmet"));
+    set("qibla", sourceText('#qiblaToolCard [data-i18n="prayer.qibla"]',"Kibla"));
+    set("kerahat", sourceText('#kerahatToolCard [data-i18n="prayer.kerahat"]',"Kerahet vakti"));
+    set("quran", sourceText('#quranOpenCard [data-i18n="quran.title"]',"Kuran"));
+    set("salah", sourceText("#prayerGuideCardTitle","Namazet & rekatet"));
+    set("wudu", sourceText("#wuduGuideCardTitle","Abdesi & Gusli"));
+    set("dua", sourceText("#prayerDuaCardTitle","Mëso dua"));
+    set("learn", sourceText("#quranLearnCardTitle","Mëso Kuranin"));
+    set("tasbih", sourceText("#tasbihCardTitle","Tespih"));
+    set("ruqya", sourceText("#ruqyaCardTitle","Shërim me Kuran"));
+    const tabText=(document.getElementById("prayerTabLabel")?.textContent||"Namazi").trim();
+    const title=document.getElementById("prayerFolderHomeTitle");if(title)title.textContent=tabText||"Namazi";
+    const l=(localStorage.getItem("pajaziti-language")||"sq").toLowerCase();
+    const hints={sq:"Zgjidh folderin",de:"Ordner auswählen",tr:"Klasör seç",en:"Choose a folder",it:"Scegli una cartella",hr:"Odaberi mapu",fr:"Choisir un dossier",ar:"اختر المجلد"};
+    const hint=document.getElementById("prayerFolderHomeHint");if(hint)hint.textContent=hints[l]||hints.sq;
+  };
+
   const showOverview=()=>{
+    hideOriginal();
+    folderHome.classList.remove("hidden");
+    view.classList.remove("prayer-folder-detail-open");
+    back?.classList.add("hidden");
+    syncFolderLabels();
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+
+  const openBase=()=>{
+    hideOriginal();
+    folderHome.classList.add("hidden");
+    view.classList.add("prayer-folder-detail-open");
+    back?.classList.remove("hidden");
+  };
+
+  const openTimes=()=>{
+    openBase();
     prayerTop?.classList.remove("hidden");
     list?.classList.remove("hidden");
     note?.classList.remove("hidden");
-    grid.classList.remove("hidden");
-    cards.forEach(x=>x.classList.remove("hidden"));
-    panels.forEach(x=>x.classList.add("hidden"));
-    back?.classList.add("hidden");
     window.scrollTo({top:0,behavior:"smooth"});
   };
+
   const openTool=(tool)=>{
-    prayerTop?.classList.add("hidden"); list?.classList.add("hidden"); note?.classList.add("hidden");
-    grid.classList.remove("hidden"); cards.forEach(x=>x.classList.toggle("hidden",x!==tool));
-    panels.forEach(x=>x.classList.add("hidden")); back?.classList.remove("hidden");
+    if(!tool)return;
+    openBase();
+    grid.classList.remove("hidden");
+    tool.classList.remove("hidden");
     window.scrollTo({top:0,behavior:"smooth"});
   };
-  [qibla,kerahat].forEach(tool=>tool?.addEventListener("click",e=>{if(!e.target.closest("button"))openTool(tool);}));
+
+  const openPanel=(card,panel)=>{
+    if(!card)return;
+    openBase();
+    card.click();
+    setTimeout(()=>{
+      panel?.classList.remove("hidden");
+      panel?.scrollIntoView({behavior:"smooth",block:"start"});
+    },0);
+  };
+
+  const actions={
+    times:()=>openTimes(),
+    qibla:()=>openTool(qibla),
+    kerahat:()=>openTool(kerahat),
+    quran:()=>openPanel(quranCard,document.getElementById("quranPanel")),
+    salah:()=>openPanel(prayerGuide,document.getElementById("prayerHelpPanel")),
+    wudu:()=>openPanel(wuduGuide,document.getElementById("prayerHelpPanel")),
+    dua:()=>openPanel(duaCard,document.getElementById("prayerDuaPanel")),
+    learn:()=>openPanel(learnCard,document.getElementById("quranLearnPanel")),
+    tasbih:()=>openPanel(tasbihCard,document.getElementById("tasbihPanel")),
+    ruqya:()=>openPanel(ruqyaCard,document.getElementById("ruqyaPanel"))
+  };
+
+  folderHome.querySelectorAll("[data-prayer-folder]").forEach(btn=>{
+    btn.addEventListener("click",()=>actions[btn.dataset.prayerFolder]?.());
+  });
+
   back?.addEventListener("click",showOverview);
+
+  const sectionBack=document.getElementById("sectionBackBtn");
+  sectionBack?.addEventListener("click",(event)=>{
+    if(!view.classList.contains("hidden")&&folderHome.classList.contains("hidden")){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      showOverview();
+    }
+  },true);
+
+  const oldNavBack=window.DiamondNavigationBack;
+  window.DiamondNavigationBack=()=>{
+    if(!view.classList.contains("hidden")&&folderHome.classList.contains("hidden")){
+      showOverview();
+      return true;
+    }
+    return typeof oldNavBack==="function" ? oldNavBack() : false;
+  };
+
   document.getElementById("prayerTab")?.addEventListener("click",()=>setTimeout(showOverview,0));
+  const labelObserver=new MutationObserver(()=>syncFolderLabels());
+  labelObserver.observe(grid,{subtree:true,childList:true,characterData:true});
   showOverview();
 })();
