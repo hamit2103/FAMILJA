@@ -2861,11 +2861,16 @@ function gameMenuActionText(key){
 function renderGameChoices(){
   return gameOrder.map((id)=>{
     const blocked=activeGameBlock(id)&&!gamesAdmin;
+    const online=gameHasOnline(id);
     return `<div class="game-choice game-folder-tile ${selectedType===id?"active":""} ${blocked?"blocked":""}">
-      <button class="game-choice-title game-folder-button" data-game="${id}" type="button" ${blocked?"disabled":""}>
+      <div class="game-choice-title game-folder-button" aria-label="${escapeHtml(gameChoiceName(id))}">
         <span class="game-folder-icon">${gameChoiceIcon(id)}</span>
         <span class="game-folder-name">${escapeHtml(gameChoiceName(id))}</span>
-      </button>
+      </div>
+      <div class="game-folder-inline-actions ${online?"":"single"}">
+        <button class="game-choice-play" data-game-play="${id}" type="button" ${blocked?"disabled":""}>${gameMenuActionText("play")}</button>
+        ${online?`<button class="game-choice-online" data-game-online="${id}" type="button" ${blocked?"disabled":""}>${gameMenuActionText("online")}</button>`:""}
+      </div>
       ${activeGameBlock(id)?`<small class="game-block-note">🔒 ${gameBlockText(id)}</small>`:""}
     </div>`;
   }).join("");
@@ -3096,7 +3101,6 @@ function renderLobby(msg=""){
         <div class="games-choice">
           ${renderGameChoices()}
         </div>
-        ${renderGameChoiceModal()}
 
         ${gamesAdmin?`
           <section class="game-order-admin">
@@ -3226,9 +3230,6 @@ function renderLobby(msg=""){
   ["gameColorLight","gameColorDark","gameColorPrimary","gameColorSecondary","gameColorArena"].forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{if(!gamesAdmin)saveUserGameTheme();}));
   document.getElementById("saveAdminGameTheme")?.addEventListener("click",saveAdminGameTheme);
   document.getElementById("resetUserGameTheme")?.addEventListener("click",resetUserGameTheme);
-  root.querySelectorAll("[data-game]").forEach(btn=>btn.onclick=()=>{const id=btn.dataset.game;if(activeGameBlock(id)&&!gamesAdmin){const m=document.getElementById("gameMessage");if(m)m.textContent="Kjo lojë është e bllokuar nga Admini "+gameBlockText(id)+".";return;}selectedType=id;renderLobby();});
-  document.getElementById("gameChoiceModalClose")?.addEventListener("click",()=>{selectedType="";renderLobby();});
-  document.getElementById("gameChoiceModal")?.addEventListener("click",(event)=>{if(event.target?.id==="gameChoiceModal"){selectedType="";renderLobby();}});
   root.querySelectorAll("[data-game-play]").forEach(btn=>btn.onclick=async()=>{btn.disabled=true;try{await launchGameFromMenu(btn.dataset.gamePlay,"play");}finally{if(btn.isConnected)btn.disabled=false;}});
   root.querySelectorAll("[data-game-online]").forEach(btn=>btn.onclick=async()=>{btn.disabled=true;try{await launchGameFromMenu(btn.dataset.gameOnline,"online");}finally{if(btn.isConnected)btn.disabled=false;}});
   const warChoice=root.querySelector('[data-game="war"]'); if(warChoice) warChoice.addEventListener("click",()=>{selectedType="war";renderLobby();},{once:true});
