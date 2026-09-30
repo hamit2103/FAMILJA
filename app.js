@@ -548,7 +548,7 @@ function refreshAppVersionLabel(){
       return;
     }
   }catch(_){}
-  if(!appVersionLabel.textContent.trim()) appVersionLabel.textContent="v6.25";
+  if(!appVersionLabel.textContent.trim()) appVersionLabel.textContent="v6.26";
 }
 refreshAppVersionLabel();
 const manualUpdateBtn = $("manualUpdateBtn");
