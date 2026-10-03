@@ -20,8 +20,14 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        );
+
         webView = new WebView(this);
+        webView.setFocusable(true);
+        webView.setFocusableInTouchMode(true);
         setContentView(webView);
 
         WebSettings s = webView.getSettings();
@@ -32,30 +38,66 @@ public class MainActivity extends Activity {
         s.setAllowContentAccess(true);
 
         webView.setWebChromeClient(new WebChromeClient() {
-            @Override public void onShowCustomView(View view, CustomViewCallback callback) {
-                if (customView != null) { callback.onCustomViewHidden(); return; }
-                customView = view;
-                customViewCallback = callback;
-                ((ViewGroup)getWindow().getDecorView()).addView(view, new ViewGroup.LayoutParams(-1,-1));
-                webView.setVisibility(View.GONE);
+            @Override
+            public void onShowCustomView(View view, CustomViewCallback callback) {
+                showFullscreen(view, callback);
             }
-            @Override public void onHideCustomView() {
-                if (customView == null) return;
-                ((ViewGroup)customView.getParent()).removeView(customView);
-                customView = null;
-                webView.setVisibility(View.VISIBLE);
-                if (customViewCallback != null) customViewCallback.onCustomViewHidden();
-                customViewCallback = null;
+
+            @Override
+            public void onHideCustomView() {
+                hideFullscreen();
             }
         });
 
         webView.loadUrl("file:///android_asset/index.html");
     }
 
-    @Override public boolean onKeyDown(int keyCode, KeyEvent event) {
+    private void showFullscreen(View view, WebChromeClient.CustomViewCallback callback) {
+        if (customView != null) {
+            hideFullscreen();
+        }
+
+        customView = view;
+        customViewCallback = callback;
+
+        ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+        decor.addView(
+            customView,
+            new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        );
+        webView.setVisibility(View.GONE);
+    }
+
+    private void hideFullscreen() {
+        if (customView == null) return;
+
+        ViewGroup parent = (ViewGroup) customView.getParent();
+        if (parent != null) parent.removeView(customView);
+
+        customView = null;
+        webView.setVisibility(View.VISIBLE);
+        webView.requestFocus();
+
+        if (customViewCallback != null) {
+            customViewCallback.onCustomViewHidden();
+            customViewCallback = null;
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (customView != null) { webView.getWebChromeClient().onHideCustomView(); return true; }
-            if (webView.canGoBack()) { webView.goBack(); return true; }
+            if (customView != null) {
+                hideFullscreen();
+                return true;
+            }
+            if (webView != null && webView.canGoBack()) {
+                webView.goBack();
+                return true;
+            }
         }
         return super.onKeyDown(keyCode, event);
     }
