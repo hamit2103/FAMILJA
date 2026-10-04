@@ -3401,7 +3401,7 @@ async function startDiamondNationsGame(){
 async function startDiamondSlotGame(){
   stopGameMusic();
   try{
-    const mod=await import("./diamond-slot.js?v=5");
+    const mod=await import("./diamond-slot.js?v=6");
     mod.startDiamondSlotGame({root,onBack:()=>{selectedType="";renderLobby();}});
   }catch(error){
     console.warn("diamond slot",error);

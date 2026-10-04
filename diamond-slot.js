@@ -122,17 +122,45 @@ function playSlotWinSound(){
   slotBeep(523,.11,.14,"sine",0);slotBeep(659,.11,.14,"sine",.10);
   slotBeep(784,.14,.16,"sine",.20);slotBeep(1047,.25,.18,"sine",.34);
 }
-function leftLine(row){
-  const id=row[0][0];let n=1;
-  while(n<row.length&&row[n][0]===id)n++;
-  return{id,n};
+function connectedSymbolGroups(board){
+  const rows=board.length,cols=board[0]?.length||0,seen=new Set(),groups=[];
+  const dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const id=board[r][c]?.[0];
+      if(!SYM_BY_ID[id])continue;
+
+      const key=r+","+c;
+      if(seen.has(key))continue;
+
+      const stack=[[r,c]],cells=[];
+      seen.add(key);
+
+      while(stack.length){
+        const [cr,cc]=stack.pop();
+        cells.push([cr,cc]);
+
+        for(const [dr,dc] of dirs){
+          const nr=cr+dr,nc=cc+dc;
+          if(nr<0||nr>=rows||nc<0||nc>=cols)continue;
+          if(board[nr][nc]?.[0]!==id)continue;
+
+          const nk=nr+","+nc;
+          if(seen.has(nk))continue;
+
+          seen.add(nk);
+          stack.push([nr,nc]);
+        }
+      }
+
+      groups.push({id,cells,count:cells.length});
+    }
+  }
+  return groups;
 }
-function verticalLine(board,col){
-  const id=board[0][col][0];let n=1;
-  while(n<board.length&&board[n][col][0]===id)n++;
-  return{id,n};
-}
-function slotLinePayout(id,n,bet){
+
+function slotConnectedPayout(id,n,bet){
   const p={
     diamond:{3:120,4:400,5:1000},
     heart:{2:80,3:200,4:500,5:1000},
@@ -140,7 +168,8 @@ function slotLinePayout(id,n,bet){
     apple:{3:60,4:180,5:500},
     strawberry:{3:90,4:260,5:700}
   };
-  const base=p[id]?.[n]||0;
+  const tier=Math.min(5,n);
+  const base=p[id]?.[tier]||0;
   return base?scaledPrize(base,bet):0;
 }
 function css(){
@@ -194,7 +223,7 @@ export function startDiamondSlotGame({root,onBack}={}){
  <div class="ds-meters">${SYMS.map(x=>`<div class="ds-meter" style="--c:${x[0]==="diamond"?"#19c7ff":x[0]==="heart"?"#ff3186":x[0]==="star"?"#ffc83d":x[0]==="apple"?"#31e86a":"#d85cff"}"><div class="ic">${x[1]}</div><b>${x[0].toUpperCase()}</b><div class="ds-bar"><i id="b-${x[0]}"></i></div><small id="m-${x[0]}"></small></div>`).join("")}</div>
  <div id="bonusBanner" class="ds-bonus hidden"></div>
  <div class="ds-wrap"><div id="reels" class="ds-reels"></div></div>
- <div id="msg" class="ds-msg">💎 Fitimi fillon nga e majta ose nga lart-poshtë · 2+ ❤️ të lidhura japin bonus.</div>
+ <div id="msg" class="ds-msg">Fitimi numërohet vetëm kur simbolet prekin njëri-tjetrin pa ndërprerje · horizontal, vertikal ose diagonal.</div>
  <div class="ds-controls"><div class="ds-bet"><button id="minus">−</button><small>BAST<b id="bet"></b></small><button id="plus">+</button></div><button id="spin" class="ds-spin">↻<br>RROTULLO</button><button id="auto" class="ds-auto">↻ AUTO</button></div>
  <div id="dsInfo" class="ds-info"></div>
  <div id="hammerOverlay" class="ds-hammer hidden"><div class="ds-hammer-fall"><span class="hammer-icon">🔨</span><span class="hammer-bam">BAM! BAM!</span></div></div>
@@ -316,14 +345,16 @@ export function startDiamondSlotGame({root,onBack}={}){
 
    g.flat().forEach(x=>{if(Object.prototype.hasOwnProperty.call(c,x[0]))c[x[0]]++;});
 
-   for(const row of g){
-     const line=leftLine(row),p=slotLinePayout(line.id,line.n,spinBet);
-     if(p>0){win+=p;const icon=SYM_BY_ID[line.id]?.[1]||"";a.push(icon+" "+line.n+" nga e majta +"+p);}
-   }
-
-   for(let col=0;col<5;col++){
-     const line=verticalLine(g,col),p=slotLinePayout(line.id,line.n,spinBet);
-     if(p>0){win+=p;const icon=SYM_BY_ID[line.id]?.[1]||"";a.push(icon+" "+line.n+" vertikalisht +"+p);}
+   // Një fitim numërohet vetëm kur simbolet janë realisht të lidhura.
+   // Lidhja lejohet horizontalisht, vertikalisht ose diagonalisht, pa boshllëk
+   // dhe pa simbol tjetër ndërmjet. Çdo grup i lidhur numërohet vetëm një herë.
+   for(const group of connectedSymbolGroups(g)){
+     const p=slotConnectedPayout(group.id,group.count,spinBet);
+     if(p>0){
+       win+=p;
+       const icon=SYM_BY_ID[group.id]?.[1]||"";
+       a.push(icon+" "+group.count+" të lidhura +"+p);
+     }
    }
 
    if((st.x2||0)>0&&win>0){win*=2;st.x2--;a.push("⭐ x2 FITIMI");}
