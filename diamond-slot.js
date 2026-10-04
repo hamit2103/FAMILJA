@@ -65,7 +65,7 @@ function buildFinalGrid({bonusActive=false,bonusSymbol=""}={}){
     }
   }
 
-  const hammer=Math.random()<.03;
+  const hammer=!bonusActive&&Math.random()<.03;
   if(hammer)placeSymbol(board,HAMMER,1,x=>x[0]!=="book");
 
   return{board,bookBonus,hammer,filledCols};
@@ -129,7 +129,8 @@ function slotLinePayout(id,n,bet){
 function css(){
  if(document.getElementById("ds-css"))return;
  const s=document.createElement("style");s.id="ds-css";s.textContent=`
-.ds{min-height:100%;padding:10px 8px 90px;box-sizing:border-box;color:#fff;background:radial-gradient(circle at 50% 10%,#59147a,#07102b 38%,#020713);font-family:system-ui}
+.ds{min-height:100%;padding:10px 8px 90px;box-sizing:border-box;color:#fff;background:radial-gradient(circle at 50% 10%,#59147a,#07102b 38%,#020713);font-family:system-ui;transition:background .35s,box-shadow .35s}
+.ds.bonus-active{background:radial-gradient(circle at 50% 8%,#20c96b 0,#087a3b 34%,#043c21 72%,#01150c 100%);box-shadow:inset 0 0 70px #36ff8a55}
 .ds-top{display:flex;align-items:center;gap:8px}.ds-back{width:40px;height:40px;border-radius:12px;border:1px solid #25c8ff;background:#071a3c;color:#fff;font-size:24px}.ds-title{flex:1;font-size:20px;font-weight:1000}.ds-bal{padding:8px 10px;border:1px solid #2e8cff;border-radius:14px;background:#071836;font-weight:900}
 .ds-hero{text-align:center;margin:5px 0 9px}.ds-hero b{display:block;font-size:34px;color:#8edaff;text-shadow:0 0 16px #1680ff;line-height:.9}.ds-hero strong{font-size:26px;color:#ffc34d;text-shadow:0 0 13px #ff6a00}
 .ds-meters{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:8px}.ds-meter{padding:5px 2px;text-align:center;border:1px solid var(--c);border-radius:10px;background:#071027}.ds-meter .ic{font-size:22px}.ds-meter b{display:block;font-size:8px}.ds-bar{height:6px;border-radius:8px;overflow:hidden;background:#0c1d39;border:1px solid #ffffff30}.ds-bar i{display:block;height:100%;background:var(--c)}.ds-meter small{font-size:8px}
@@ -140,11 +141,18 @@ function css(){
 @keyframes dsBonusPulse{50%{transform:scale(1.07);filter:brightness(1.35)}}
 .ds-bonus{margin:5px 0 8px;padding:7px 9px;border:1px solid #ffe85d;border-radius:12px;background:linear-gradient(135deg,#4c1d95,#172554);font-size:11px;font-weight:900;text-align:center;box-shadow:0 0 15px #7c3aed66}
 .ds-bonus.hidden{display:none}
-.ds-hammer{position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;background:rgba(0,0,15,.76);backdrop-filter:blur(5px)}
+.ds-hammer{position:fixed;inset:0;z-index:2147483646;pointer-events:none;overflow:hidden;background:transparent}
 .ds-hammer.hidden{display:none}
-.ds-hammer button{width:min(70vw,290px);aspect-ratio:1;border-radius:50%;border:5px solid #ffcf48;background:radial-gradient(circle,#4c1d95,#111827 65%);color:#fff;box-shadow:0 0 45px #f59e0b;font-weight:1000;font-size:18px;animation:hammerPop .7s ease-in-out infinite alternate}
-.ds-hammer .hammer-icon{display:block;font-size:92px;line-height:1}
-@keyframes hammerPop{to{transform:scale(1.07);box-shadow:0 0 65px #f59e0b}}
+.ds-hammer-fall{position:absolute;left:50%;top:-180px;transform:translateX(-50%);text-align:center;color:#fff;font-weight:1000;text-shadow:0 3px 12px #000;animation:hammerDrop 1.15s cubic-bezier(.2,.75,.35,1) forwards}
+.ds-hammer .hammer-icon{display:block;font-size:112px;line-height:1;filter:drop-shadow(0 0 18px #ffbe2e)}
+.ds-hammer .hammer-bam{display:block;margin-top:8px;font-size:28px;color:#ffd84d;letter-spacing:2px;text-shadow:0 0 16px #ff7900,0 3px 8px #000}
+@keyframes hammerDrop{
+  0%{top:-180px;transform:translateX(-50%) rotate(-28deg) scale(.7);opacity:0}
+  25%{opacity:1}
+  58%{top:42%;transform:translateX(-50%) rotate(18deg) scale(1.22)}
+  70%{top:50%;transform:translateX(-50%) rotate(-8deg) scale(1.05)}
+  100%{top:115%;transform:translateX(-50%) rotate(18deg) scale(.88);opacity:.15}
+}
 .ds-msg{min-height:42px;margin:8px 0 6px;padding:7px;border:1px solid #318eff66;border-radius:12px;background:#06132c;text-align:center;font-size:11px;display:grid;place-items:center}.ds-msg.win{border-color:#ffd64e;color:#fff2a3}
 .ds-controls{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:6px;align-items:center}.ds-bet,.ds-auto{min-height:60px;border:1px solid #3388f5;border-radius:16px;background:#071a3c;color:#fff;font-weight:900}.ds-bet{display:grid;grid-template-columns:30px 1fr 30px;align-items:center;padding:4px;text-align:center}.ds-bet button{width:29px;height:29px;border-radius:50%;border:1px solid #4b91ff;background:#133574;color:#fff;font-size:18px}.ds-bet small{font-size:9px}.ds-bet b{display:block}
 .ds-spin{aspect-ratio:1;max-width:108px;width:100%;justify-self:center;border-radius:50%;border:4px solid #ff7cf5;background:radial-gradient(circle,#dc42ff,#6f25df 65%,#271064);color:#fff;font-weight:1000;box-shadow:0 0 22px #a738ff}.ds-auto.on{background:linear-gradient(135deg,#7629e8,#246aff)}
@@ -152,7 +160,7 @@ function css(){
 `;document.head.appendChild(s);
 }
 export function startDiamondSlotGame({root,onBack}={}){
- if(!root)return;css();let st=load(),g=visualGrid(),busy=false,timer=null,autoTimer=null,bonusCols=new Set(),hammerPending=false;st.auto=false;
+ if(!root)return;css();let st=load(),g=visualGrid(),busy=false,timer=null,autoTimer=null,bonusCols=new Set(),hammerPending=false,bonusRoundActive=false;st.auto=false;
  root.innerHTML=`<section class="ds">
  <div class="ds-top"><button id="dsBack" class="ds-back">‹</button><div class="ds-title">💎 DIAMOND</div><div class="ds-bal">💎 <span id="bal"></span></div></div>
  <div class="ds-hero"><b>DIAMOND</b><strong>SLOT</strong></div>
@@ -162,9 +170,9 @@ export function startDiamondSlotGame({root,onBack}={}){
  <div id="msg" class="ds-msg">💎 Fitimi fillon nga e majta ose nga lart-poshtë · 2+ ❤️ të lidhura japin bonus.</div>
  <div class="ds-controls"><div class="ds-bet"><button id="minus">−</button><small>BAST<b id="bet"></b></small><button id="plus">+</button></div><button id="spin" class="ds-spin">↻<br>RROTULLO</button><button id="auto" class="ds-auto">↻ AUTO</button></div>
  <div id="dsInfo" class="ds-info"></div>
- <div id="hammerOverlay" class="ds-hammer hidden"><button id="hammerHit" type="button"><span class="hammer-icon">🔨</span>PREKE ÇEKIQIN<br><small>Të gjitha shkallët bëhen 0</small></button></div></section>`;
+ <div id="hammerOverlay" class="ds-hammer hidden"><div class="ds-hammer-fall"><span class="hammer-icon">🔨</span><span class="hammer-bam">BAM! BAM!</span></div></div></section>`;
  const sh=root.querySelector(".ds"),re=root.querySelector("#reels"),msg=root.querySelector("#msg"),bal=root.querySelector("#bal"),bet=root.querySelector("#bet"),sp=root.querySelector("#spin"),au=root.querySelector("#auto");
- const minus=root.querySelector("#minus"),plus=root.querySelector("#plus"),bonusBanner=root.querySelector("#bonusBanner"),infoEl=root.querySelector("#dsInfo"),hammerOverlay=root.querySelector("#hammerOverlay"),hammerHit=root.querySelector("#hammerHit");
+ const minus=root.querySelector("#minus"),plus=root.querySelector("#plus"),bonusBanner=root.querySelector("#bonusBanner"),infoEl=root.querySelector("#dsInfo"),hammerOverlay=root.querySelector("#hammerOverlay");
  function rg(){re.innerHTML=g.flat().map((x,i)=>`<div class="ds-cell ${bonusCols.has(i%5)?"bonus-col":""}" style="--col:${i%5}">${x[1]}</div>`).join("");}
  function rs(){
    bal.textContent=Math.floor(st.bal).toLocaleString();bet.textContent=st.bet+" 💎";
@@ -174,7 +182,8 @@ export function startDiamondSlotGame({root,onBack}={}){
      root.querySelector("#b-"+x[0]).style.width=Math.min(100,v/x[2]*100)+"%";
    });
 
-   const bonusOn=(st.bonusSpins||0)>0&&SYM_BY_ID[st.bonusSymbol];
+   const bonusOn=((st.bonusSpins||0)>0||bonusRoundActive)&&SYM_BY_ID[st.bonusSymbol];
+   sh.classList.toggle("bonus-active",!!bonusOn);
    if(bonusOn){
      bonusBanner.classList.remove("hidden");
      bonusBanner.textContent="📖 BONUS "+st.bonusSpins+" lojëra · "+SYM_BY_ID[st.bonusSymbol][1]+" "+st.bonusSymbol.toUpperCase()+" mbush kolonën vertikale";
@@ -203,21 +212,35 @@ export function startDiamondSlotGame({root,onBack}={}){
  }
 
  function showHammer(){
-   hammerPending=true;st.auto=false;rs();
-   hammerOverlay.classList.remove("hidden");
-   slotBeep(145,.22,.11,"sawtooth",0);slotBeep(95,.28,.10,"square",.12);
- }
- function hitHammer(){
-   if(!hammerPending)return;
-   hammerPending=false;
+   if(bonusRoundActive||(st.bonusSpins||0)>0)return;
+   hammerPending=true;
+
    for(const x of SYMS)st.m[x[0]]=0;
-   hammerOverlay.classList.add("hidden");
-   msg.textContent="🔨 Çekiqi i ktheu të gjitha shkallët në 0.";
-   msg.classList.remove("win");
-   slotBeep(120,.25,.10,"sawtooth");
    rs();
+
+   hammerOverlay.classList.remove("hidden");
+   const fall=hammerOverlay.querySelector(".ds-hammer-fall");
+   if(fall){
+     fall.style.animation="none";
+     void fall.offsetWidth;
+     fall.style.animation="";
+   }
+
+   msg.textContent="🔨 BAM! BAM! Çekiqi i ktheu të gjitha shkallët në 0.";
+   msg.classList.remove("win");
+
+   slotBeep(105,.18,.14,"sawtooth",0);
+   slotBeep(72,.24,.15,"square",.22);
+   slotBeep(118,.16,.13,"sawtooth",.48);
+   slotBeep(68,.28,.15,"square",.68);
+
+   setTimeout(()=>{
+     hammerOverlay.classList.add("hidden");
+     hammerPending=false;
+     rs();
+     if(st.auto&&!busy)autoTimer=setTimeout(spin,260);
+   },1250);
  }
- hammerHit.onclick=hitHammer;
 
  function evalSpin(meta={}){
    const c={diamond:0,heart:0,star:0,apple:0,strawberry:0},a=[];
@@ -264,12 +287,13 @@ export function startDiamondSlotGame({root,onBack}={}){
      msg.classList.remove("win");
    }
 
-   if(meta.hammer)showHammer();
+   if(meta.hammer&&!meta.bonusActive)showHammer();
  }
  function spin(){
    if(busy||hammerPending)return;
 
    const bonusActive=(st.bonusSpins||0)>0&&!!SYM_BY_ID[st.bonusSymbol];
+   bonusRoundActive=!!bonusActive;
    const spinBet=bonusActive?(st.bonusBet||st.bet):st.bet;
 
    if(!bonusActive&&(st.free||0)<=0&&st.bal<st.bet){
@@ -306,7 +330,11 @@ export function startDiamondSlotGame({root,onBack}={}){
      evalSpin({bookBonus:result.bookBonus,hammer:result.hammer,spinBet,bonusActive});
 
      if(bonusActive&&st.bonusSpins<=0){
+       bonusRoundActive=false;
        st.bonusSymbol="";st.bonusBet=0;rs();
+     }else if(!bonusActive){
+       bonusRoundActive=false;
+       rs();
      }
 
      if(st.auto&&!hammerPending)autoTimer=setTimeout(spin,850);
