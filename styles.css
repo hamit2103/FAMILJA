@@ -5249,16 +5249,10 @@ button.war-weapon-icon:disabled{
 .prayer-folder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .prayer-folder{
   appearance:none;border:0;background:transparent;padding:0;min-width:0;color:inherit;
-  display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer
+  display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;
+  position:relative;isolation:isolate;touch-action:manipulation
 }
-.prayer-folder::before{
-  content:"";display:block;width:100%;aspect-ratio:1/0.88;border-radius:26px;
-  background:
-    linear-gradient(145deg,rgba(255,255,255,.94),rgba(248,244,255,.88)),
-    linear-gradient(135deg,#dff1ff,#eadcff);
-  border:1px solid rgba(94,71,185,.14);box-shadow:0 10px 24px rgba(49,42,96,.12);
-  position:absolute;opacity:0
-}
+.prayer-folder::before{display:none!important;pointer-events:none!important}
 .prayer-folder-icon{
   width:100%;aspect-ratio:1/0.88;border-radius:26px;display:grid;place-items:center;
   font-size:clamp(34px,10vw,52px);line-height:1;
@@ -5270,6 +5264,7 @@ button.war-weapon-icon:disabled{
   content:"";position:absolute;top:0;left:13%;width:45%;height:15%;border-radius:0 0 12px 12px;
   background:linear-gradient(90deg,#6cc7ff,#9a63f4);opacity:.85
 }
+.prayer-folder-icon,.prayer-folder-name{pointer-events:none}
 .prayer-folder-name{font-weight:850;text-align:center;font-size:clamp(13px,3.7vw,16px);line-height:1.15}
 .prayer-folder:active .prayer-folder-icon{transform:scale(.98)}
 .prayer-folder-detail-open .prayer-tools-grid{grid-template-columns:1fr}

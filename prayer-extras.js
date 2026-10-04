@@ -107,4 +107,4 @@ function reloadLanguage(next){
 }
 window.addEventListener("storage",e=>{if(e.key===LANG_KEY)reloadLanguage(e.newValue)});
 reloadLanguage((document.getElementById("languageSelectApp")||document.getElementById("languageSelectLogin"))?.value||localStorage.getItem(LANG_KEY)||"sq");
-window.DiamondPrayerExtras={back,close:closeAll,reloadLanguage};
+window.DiamondPrayerExtras={back,close:closeAll,reloadLanguage,openDuas,openLearn,openTasbih};

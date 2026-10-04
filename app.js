@@ -4360,6 +4360,10 @@ window.DiamondNavigationBack = function(){
   view.insertBefore(folderHome, view.firstChild);
 
   const hideOriginal=()=>{
+    try{window.DiamondQuran?.close?.();}catch(_){}
+    try{window.DiamondPrayerGuide?.close?.();}catch(_){}
+    try{window.DiamondPrayerExtras?.close?.();}catch(_){}
+    try{window.DiamondRuqya?.close?.();}catch(_){}
     prayerTop?.classList.add("hidden");
     list?.classList.add("hidden");
     note?.classList.add("hidden");
@@ -4424,10 +4428,9 @@ window.DiamondNavigationBack = function(){
     window.scrollTo({top:0,behavior:"smooth"});
   };
 
-  const openPanel=(card,panel)=>{
-    if(!card)return;
+  const openModule=(openFn,panel)=>{
     openBase();
-    card.click();
+    try{openFn?.();}catch(error){console.warn("prayer folder open",error);}
     setTimeout(()=>{
       panel?.classList.remove("hidden");
       panel?.scrollIntoView({behavior:"smooth",block:"start"});
@@ -4438,17 +4441,21 @@ window.DiamondNavigationBack = function(){
     times:()=>openTimes(),
     qibla:()=>openTool(qibla),
     kerahat:()=>openTool(kerahat),
-    quran:()=>openPanel(quranCard,document.getElementById("quranPanel")),
-    salah:()=>openPanel(prayerGuide,document.getElementById("prayerHelpPanel")),
-    wudu:()=>openPanel(wuduGuide,document.getElementById("prayerHelpPanel")),
-    dua:()=>openPanel(duaCard,document.getElementById("prayerDuaPanel")),
-    learn:()=>openPanel(learnCard,document.getElementById("quranLearnPanel")),
-    tasbih:()=>openPanel(tasbihCard,document.getElementById("tasbihPanel")),
-    ruqya:()=>openPanel(ruqyaCard,document.getElementById("ruqyaPanel"))
+    quran:()=>openModule(()=>window.DiamondQuran?.open?.(),document.getElementById("quranPanel")),
+    salah:()=>openModule(()=>window.DiamondPrayerGuide?.open?.("salah"),document.getElementById("prayerHelpPanel")),
+    wudu:()=>openModule(()=>window.DiamondPrayerGuide?.open?.("wudu"),document.getElementById("prayerHelpPanel")),
+    dua:()=>openModule(()=>window.DiamondPrayerExtras?.openDuas?.(),document.getElementById("prayerDuaPanel")),
+    learn:()=>openModule(()=>window.DiamondPrayerExtras?.openLearn?.(),document.getElementById("quranLearnPanel")),
+    tasbih:()=>openModule(()=>window.DiamondPrayerExtras?.openTasbih?.(),document.getElementById("tasbihPanel")),
+    ruqya:()=>openModule(()=>window.DiamondRuqya?.open?.(),document.getElementById("ruqyaPanel"))
   };
 
-  folderHome.querySelectorAll("[data-prayer-folder]").forEach(btn=>{
-    btn.addEventListener("click",()=>actions[btn.dataset.prayerFolder]?.());
+  folderHome.addEventListener("click",(event)=>{
+    const btn=event.target.closest("[data-prayer-folder]");
+    if(!btn||!folderHome.contains(btn))return;
+    event.preventDefault();
+    event.stopPropagation();
+    actions[btn.dataset.prayerFolder]?.();
   });
 
   back?.addEventListener("click",showOverview);
