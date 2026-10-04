@@ -1,3 +1,4 @@
+/* DIAMOND PLAY TV LAYOUT v1 */
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./app-config.js";
 
@@ -994,7 +995,6 @@ async function playChannel(channel){
   const markReady=()=>{
     setPlayerStatus(tr("playerReady"),"success");
     showRetry(null);
-    document.getElementById("tvPlayerCard")?.scrollIntoView({behavior:"smooth",block:"center"});
   };
 
   const markFailed=(message=tr("playerFailed"))=>{
@@ -1092,6 +1092,72 @@ async function playChannel(channel){
   }
 }
 
+
+let tvTapChannel=null;
+let tvTapAt=0;
+
+function ensureDiamondPlayTvStyle(){
+  if(document.getElementById("diamondPlayTvStyle")) return;
+  const st=document.createElement("style");
+  st.id="diamondPlayTvStyle";
+  st.textContent=\`
+    body.angel-tv-open{overflow:hidden!important;background:#020603!important}
+    #tvRoot.angel-tv-fullscreen{position:fixed!important;inset:0!important;z-index:8500!important;background:#020603!important;color:#fff!important;overflow:hidden!important}
+    #tvRoot .tv-app-real{height:100%;min-height:0;background:#020603;color:#fff;display:flex;flex-direction:column;font-family:Arial,sans-serif}
+    #tvRoot .tv-exit-app{position:absolute;top:9px;left:9px;z-index:30;width:42px;height:42px;border-radius:12px;border:1px solid #2c7e49;background:#10351e;color:#fff;font-size:28px;line-height:1}
+    #tvRoot .tv-dp-head{height:62px;min-height:62px;padding:0 12px 0 60px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#07130c;border-bottom:1px solid #174b2b}
+    #tvRoot .tv-dp-head strong{display:block;color:#7dffa2;font-size:19px;letter-spacing:.4px}
+    #tvRoot .tv-dp-head small{display:block;max-width:48vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.72}
+    #tvRoot .tv-dp-head-actions{display:flex;gap:6px}
+    #tvRoot .tv-dp-head button{width:auto!important;height:39px!important;min-height:39px!important;margin:0!important;padding:0 10px!important;border-radius:10px!important;background:#143820!important;color:#fff!important;border:1px solid #2c7e49!important}
+    #tvRoot .tv-dp-home{flex:1;min-height:0;display:grid;place-items:center;padding:18px;overflow:auto}
+    #tvRoot .tv-dp-tiles{width:min(850px,94vw);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    #tvRoot .tv-dp-tile{position:relative;min-height:145px;border-radius:22px;border:1px solid #37bb62;background:linear-gradient(180deg,#12391f,#07180d);color:#fff;font-size:20px;font-weight:800}
+    #tvRoot .tv-dp-tile .tv-dp-icon{display:block;font-size:40px;margin-bottom:8px}
+    #tvRoot .tv-dp-count{position:absolute;right:12px;bottom:9px;font-size:12px;font-weight:700;background:#07180d;border:1px solid #2e8b4d;border-radius:9px;padding:3px 7px}
+    #tvRoot .tv-dp-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(118px,22%) minmax(190px,38%) 1fr}
+    #tvRoot .tv-dp-groups,#tvRoot .tv-dp-list{min-height:0;overflow:auto;padding:8px}
+    #tvRoot .tv-dp-groups{background:#07100a;border-right:1px solid #194d2d}
+    #tvRoot .tv-dp-list{background:#041008;border-right:1px solid #163020}
+    #tvRoot .tv-dp-groups h3,#tvRoot .tv-dp-list h3{margin:7px;color:#9ad7aa;font-size:14px}
+    #tvRoot .tv-dp-group{width:100%;min-height:45px;margin:0 0 6px;padding:8px;text-align:left;border-radius:10px;background:#0d1b12;color:#fff;border:1px solid #183d25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+    #tvRoot .tv-dp-group.active{background:#135b2c;border-color:#39a85c}
+    #tvRoot .tv-dp-group:focus,#tvRoot .tv-dp-row:focus{outline:3px solid #55ff88;outline-offset:-3px}
+    #tvRoot .tv-dp-list-head{display:flex;align-items:center;gap:8px;padding:2px 2px 8px}
+    #tvRoot .tv-dp-list-head h3{flex:1}
+    #tvRoot .tv-dp-search{width:min(180px,42%);height:38px!important;margin:0!important;padding:0 10px!important;border-radius:10px!important;border:1px solid #245b35!important;background:#07180d!important;color:#fff!important}
+    #tvRoot .tv-dp-row{width:100%;display:grid;grid-template-columns:42px 1fr;gap:8px;align-items:center;min-height:56px;padding:5px 4px;border:0;border-bottom:1px solid #163020;background:transparent;color:#fff;text-align:left}
+    #tvRoot .tv-dp-row.active{background:#0f2b19}
+    #tvRoot .tv-dp-logo,#tvRoot .tv-dp-logo-f{width:38px;height:38px;border-radius:7px;background:#12351f}
+    #tvRoot .tv-dp-logo{object-fit:contain}
+    #tvRoot .tv-dp-logo-f{display:grid;place-items:center}
+    #tvRoot .tv-dp-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #tvRoot .tv-dp-name small{display:block;color:#9db7a5;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+    #tvRoot .tv-dp-preview{min-width:0;min-height:0;background:#020403;display:flex;flex-direction:column;padding:8px}
+    #tvRoot .tv-dp-preview-title{min-height:34px;color:#dfffe8;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:6px 4px}
+    #tvRoot .tv-dp-preview .tv-player-card{flex:1;min-height:0;margin:0!important;padding:0!important;background:#000!important;border:1px solid #174b2b!important;border-radius:12px!important;overflow:hidden;display:flex;flex-direction:column}
+    #tvRoot .tv-dp-preview .tv-now-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;background:#07130c}
+    #tvRoot .tv-dp-preview .tv-now-row strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #tvRoot .tv-dp-preview .tv-player-actions{display:flex;gap:5px}
+    #tvRoot .tv-dp-preview .tv-player-actions button,#tvRoot #tvRetry{height:34px!important;min-height:34px!important;padding:0 8px!important;margin:0!important;border-radius:9px!important;background:#143820!important;color:#fff!important;border:1px solid #2c7e49!important;font-size:11px!important}
+    #tvRoot .tv-dp-preview video{width:100%!important;height:100%!important;min-height:0!important;flex:1;object-fit:contain;background:#000}
+    #tvRoot .tv-player-feedback{padding:0 8px 7px;background:#07130c}
+    #tvRoot .tv-player-status{font-size:11px;min-height:16px;margin:4px 0 0}
+    #tvRoot .tv-dp-empty{padding:18px;opacity:.72}
+    #tvRoot .tv-servers-view{height:100%;overflow:auto;padding:70px 14px 20px;background:#020603}
+    @media(max-width:650px){
+      #tvRoot .tv-dp-head{height:54px;min-height:54px;padding-left:54px}
+      #tvRoot .tv-dp-head strong{font-size:14px}
+      #tvRoot .tv-dp-head button{font-size:10px!important;padding:0 7px!important}
+      #tvRoot .tv-dp-body{grid-template-columns:105px minmax(135px,1fr) 42%}
+      #tvRoot .tv-dp-tiles{grid-template-columns:1fr 1fr}
+      #tvRoot .tv-dp-tile{min-height:110px;font-size:16px}
+      #tvRoot .tv-dp-search{width:110px}
+    }
+  \`;
+  document.head.appendChild(st);
+}
+
 function renderChannels(){
   const list=document.getElementById("tvChannels");
   const count=document.getElementById("tvChannelCount");
@@ -1102,26 +1168,67 @@ function renderChannels(){
   list.innerHTML="";
 
   if(!shown.length){
-    list.innerHTML='<div class="tv-empty">'+esc(tr("noChannels"))+'</div>';
+    list.innerHTML='<div class="tv-dp-empty">'+esc(tr("noChannels"))+'</div>';
     return;
   }
 
   const frag=document.createDocumentFragment();
-  for(const ch of shown.slice(0,2500)){
+  shown.slice(0,2500).forEach((ch,i)=>{
     const btn=document.createElement("button");
     btn.type="button";
-    btn.className="tv-channel";
-    const logo=ch.logo
-      ? '<img src="'+esc(ch.logo)+'" alt="">'
-      : '<div class="tv-channel-icon">'+(currentMode==="movies"?"🎬":currentMode==="series"?"🎞️":currentMode==="replay"?"↩️":"📺")+'</div>';
+    btn.className="tv-dp-row";
+    btn.dataset.tvChannelIndex=String(i);
+
+    if(ch.logo){
+      const img=document.createElement("img");
+      img.className="tv-dp-logo";
+      img.alt="";
+      img.src=ch.logo;
+      img.onerror=()=>{
+        const f=document.createElement("div");
+        f.className="tv-dp-logo-f";
+        f.textContent=currentMode==="movies"?"🎬":currentMode==="series"?"🎞️":currentMode==="replay"?"↩️":"📺";
+        img.replaceWith(f);
+      };
+      btn.appendChild(img);
+    }else{
+      const f=document.createElement("div");
+      f.className="tv-dp-logo-f";
+      f.textContent=currentMode==="movies"?"🎬":currentMode==="series"?"🎞️":currentMode==="replay"?"↩️":"📺";
+      btn.appendChild(f);
+    }
+
+    const txt=document.createElement("div");
+    txt.className="tv-dp-name";
     const groupText=[ch.countryGroup||"",ch.sourceGroup||ch.group||""].filter(Boolean).join(" · ");
-    btn.innerHTML=logo+
-      '<div class="tv-channel-text"><strong>'+esc(ch.name)+'</strong>'+
-      (groupText?'<span>'+esc(groupText)+'</span>':"")+'</div>'+
-      (ch.catchup?'<span class="tv-replay-badge">↩️</span>':"");
-    btn.addEventListener("click",()=>playChannel(ch));
+    txt.innerHTML="<strong>"+esc(ch.name||("Kanal "+(i+1)))+"</strong>"+(groupText?"<small>"+esc(groupText)+"</small>":"");
+    btn.appendChild(txt);
+
+    const select=()=>{
+      document.querySelectorAll("#tvChannels .tv-dp-row").forEach(x=>x.classList.remove("active"));
+      btn.classList.add("active");
+      playChannel(ch);
+    };
+
+    btn.addEventListener("focus",()=>{
+      if(currentMode==="live") select();
+    });
+
+    btn.addEventListener("click",()=>{
+      const now=Date.now();
+      const same=tvTapChannel===ch && now-tvTapAt<450;
+      tvTapChannel=ch;
+      tvTapAt=now;
+      select();
+      if(same){
+        setTimeout(()=>toggleTvFullscreen(),80);
+        tvTapChannel=null;
+        tvTapAt=0;
+      }
+    });
+
     frag.appendChild(btn);
-  }
+  });
   list.appendChild(frag);
 }
 
@@ -1144,75 +1251,91 @@ function renderHome(){
   const seriesCount=channels.filter(ch=>classifyChannel(ch)==="series").length;
   const replayCount=channels.filter(ch=>classifyChannel(ch)==="replay").length;
   const server=activeServer();
-
-  return `
-    <section class="tv-hero-real">
-      <div class="tv-brand-real">
-        <div class="tv-brand-main">ANGEL TV</div>
-        <div class="tv-brand-subtitle">${server?esc(server.title):"SMART IPTV"}</div>
+  return \`
+    <div class="tv-dp-head">
+      <div><strong>💎 DIAMOND · TV</strong><small>\${server?esc(server.title):"SMART IPTV"}</small></div>
+      <div class="tv-dp-head-actions">
+        <button id="tvSportsGuide" type="button">⚽ \${tr("sports")}</button>
+        <button id="tvChangeServer" type="button">🗄️ \${tr("server")}</button>
       </div>
-      <div class="tv-top-menu">
-        <button id="tvSportsGuide" type="button">⚽ ${tr("sports")}</button>
-        <button id="tvChangeServer" type="button">🗄️ ${tr("server")}</button>
-        <button id="tvSettingsBtn" type="button">⚙️ ${tr("settings")}</button>
+    </div>
+    <div class="tv-dp-home">
+      <div class="tv-dp-tiles">
+        <button class="tv-dp-tile" data-tv-mode="live" type="button"><span class="tv-dp-icon">📺</span>\${tr("live")}<span class="tv-dp-count">\${liveCount}</span></button>
+        <button class="tv-dp-tile" data-tv-mode="movies" type="button"><span class="tv-dp-icon">🎬</span>\${tr("movies")}<span class="tv-dp-count">\${movieCount}</span></button>
+        <button class="tv-dp-tile" data-tv-mode="series" type="button"><span class="tv-dp-icon">🎞️</span>\${tr("series")}<span class="tv-dp-count">\${seriesCount}</span></button>
+        <button class="tv-dp-tile" data-tv-mode="replay" type="button"><span class="tv-dp-icon">↩️</span>\${tr("replay")}<span class="tv-dp-count">\${replayCount}</span></button>
       </div>
-    </section>
-
-    <section class="tv-home-grid">
-      <button class="tv-home-tile" data-tv-mode="live" type="button">
-        <span class="tv-home-icon">📺</span>
-        <strong>${tr("live")}</strong>
-        <small>${liveCount}</small>
-      </button>
-      <button class="tv-home-tile" data-tv-mode="movies" type="button">
-        <span class="tv-home-icon">🎬</span>
-        <strong>${tr("movies")}</strong>
-        <small>${movieCount}</small>
-      </button>
-      <button class="tv-home-tile" data-tv-mode="series" type="button">
-        <span class="tv-home-icon">🎞️</span>
-        <strong>${tr("series")}</strong>
-        <small>${seriesCount}</small>
-      </button>
-      <button class="tv-home-tile" data-tv-mode="replay" type="button">
-        <span class="tv-home-icon">↩️</span>
-        <strong>${tr("replay")}</strong>
-        <small>${replayCount}</small>
-      </button>
-    </section>
-
-    <section class="tv-home-foot">
-      <span>${server?"🗄️ "+esc(server.title):"🗄️ "+tr("noShared")}</span>
-      <span>📺 ${channels.length} ${tr("channels")}</span>
-    </section>`;
+    </div>\`;
 }
 
 function renderCategory(){
   const groups=groupsForMode();
-  const options=['<option value="">'+esc(tr("allGroups"))+'</option>']
-    .concat(groups.map(g=>'<option value="'+esc(g)+'" '+(g===currentGroup?"selected":"")+'>'+esc(g)+'</option>'))
-    .join("");
+  const groupButtons=[
+    '<button class="tv-dp-group '+(!currentGroup?'active':'')+'" data-tv-group="" type="button">📺 '+esc(tr("allGroups"))+'</button>',
+    ...groups.map(g=>'<button class="tv-dp-group '+(g===currentGroup?'active':'')+'" data-tv-group="'+esc(g)+'" type="button">'+esc(tvFlag(g))+' '+esc(g)+'</button>')
+  ].join("");
 
-  return `
-    <section class="tv-category-head">
-      <button id="tvBackHome" class="tv-back-btn" type="button">← ${tr("back")}</button>
-      <h2>${modeTitle()}</h2>
-      ${currentMode==="replay"?'<p>'+esc(tr("replayInfo"))+'</p>':""}
-    </section>
-
-    <section class="tv-list-card">
-      <div class="tv-list-head tv-list-tools">
-        <div><strong>${tr("channels")}: </strong><span id="tvChannelCount">0</span></div>
-        <select id="tvGroupSelect" class="tv-group-select">${options}</select>
-        <input id="tvSearch" type="text" placeholder="${tr("search")}" value="${esc(currentFilter)}">
+  return \`
+    <div class="tv-dp-head">
+      <div><strong>💎 DIAMOND · \${esc(modeTitle())}</strong><small>\${esc(activeServer()?.title||"TV")}</small></div>
+      <div class="tv-dp-head-actions">
+        <button id="tvSearchBtn" type="button">🔎 \${tr("search")}</button>
+        <button id="tvBackHome" type="button">← \${tr("back")}</button>
       </div>
-      <div id="tvChannels" class="tv-channels"></div>
-    </section>`;
+    </div>
+    <div class="tv-dp-body">
+      <nav class="tv-dp-groups">
+        <h3>\${tr("allGroups")}</h3>
+        <div id="tvGroups">\${groupButtons}</div>
+      </nav>
+      <main class="tv-dp-list">
+        <div class="tv-dp-list-head">
+          <h3>\${esc(modeTitle())} · <span id="tvChannelCount">0</span></h3>
+          <input id="tvSearch" class="tv-dp-search" type="text" placeholder="\${esc(tr("search"))}" value="\${esc(currentFilter)}">
+        </div>
+        <div id="tvChannels"></div>
+      </main>
+      <aside class="tv-dp-preview">
+        <div class="tv-dp-preview-title">\${currentMode==="live"?"📺 "+esc(tr("playerReady")):"🎬 "+esc(modeTitle())}</div>
+        <section id="tvPlayerCard" class="tv-player-card">
+          <div class="tv-now-row">
+            <strong id="tvNow">\${esc(localStorage.getItem(TV_NAME_KEY)||tr("direct"))}</strong>
+            <div class="tv-player-actions">
+              <button id="tvFullscreen" type="button">⛶</button>
+              <button id="tvStop" type="button">■</button>
+            </div>
+          </div>
+          <video id="tvPlayer" class="tv-player" controls playsinline preload="metadata"></video>
+          <div class="tv-player-feedback">
+            <div id="tvPlayerStatus" class="message tv-player-status"></div>
+            <button id="tvRetry" class="hidden" type="button">\${tr("retry")}</button>
+          </div>
+        </section>
+      </aside>
+    </div>\`;
+}
+
+function tvFlag(name=""){
+  const n=String(name).toLowerCase();
+  if(/kosov/.test(n)) return "🇽🇰";
+  if(/alban|shqip/.test(n)) return "🇦🇱";
+  if(/german|deutsch/.test(n)) return "🇩🇪";
+  if(/turk|türk/.test(n)) return "🇹🇷";
+  if(/croat|hrvat/.test(n)) return "🇭🇷";
+  if(/bosn/.test(n)) return "🇧🇦";
+  if(/serb/.test(n)) return "🇷🇸";
+  if(/maced|maked/.test(n)) return "🇲🇰";
+  if(/sloven/.test(n)) return "🇸🇮";
+  if(/ital/.test(n)) return "🇮🇹";
+  if(/fran|france/.test(n)) return "🇫🇷";
+  return "📁";
 }
 
 function render(){
   if(tabLabel) tabLabel.textContent=tr("tv");
   if(!root) return;
+  ensureDiamondPlayTvStyle();
 
   const categoryMode=["live","movies","series","replay"].includes(currentMode);
   const body=currentMode==="home"
@@ -1221,62 +1344,36 @@ function render(){
       ? renderServers()
       : renderCategory();
 
-  root.innerHTML=`
-    <div class="tv-app-real">
-      <button id="tvExitApp" class="tv-exit-app" type="button" aria-label="Back">‹</button>
-      ${body}
-
-      ${categoryMode?`
-      <section id="tvPlayerCard" class="tv-player-card tv-player-real">
-        <div class="tv-now-row">
-          <strong id="tvNow">${esc(localStorage.getItem(TV_NAME_KEY)||tr("direct"))}</strong>
-          <div class="tv-player-actions">
-            <button id="tvFullscreen" class="secondary" type="button">⛶ ${tr("fullscreen")}</button>
-            <button id="tvStop" class="secondary" type="button">${tr("stop")}</button>
-          </div>
-        </div>
-        <video id="tvPlayer" class="tv-player" controls playsinline preload="metadata"></video>
-        <div class="tv-player-feedback">
-          <div id="tvPlayerStatus" class="message tv-player-status"></div>
-          <button id="tvRetry" class="secondary hidden" type="button">${tr("retry")}</button>
-        </div>
-      </section>`:""}
-    </div>`;
+  root.innerHTML='<div class="tv-app-real"><button id="tvExitApp" class="tv-exit-app" type="button" aria-label="Back">‹</button>'+body+'</div>';
 
   document.getElementById("tvExitApp")?.addEventListener("click",()=>exitTvShell("galleryTab"));
   document.getElementById("tvSportsGuide")?.addEventListener("click",()=>exitTvShell("sportTab"));
   document.getElementById("tvChangeServer")?.addEventListener("click",()=>{currentMode="servers";render();});
   document.getElementById("tvSettingsBtn")?.addEventListener("click",()=>{currentMode="servers";render();});
-
-  document.querySelectorAll("[data-tv-mode]").forEach(btn=>{
-    btn.addEventListener("click",()=>openMode(btn.dataset.tvMode));
-  });
+  document.querySelectorAll("[data-tv-mode]").forEach(btn=>btn.addEventListener("click",()=>openMode(btn.dataset.tvMode)));
   document.getElementById("tvBackHome")?.addEventListener("click",()=>openMode("home"));
 
-  document.querySelectorAll("[data-tv-server]").forEach(btn=>{
-    btn.addEventListener("click",()=>useServer(btn.dataset.tvServer));
-  });
-  document.querySelectorAll("[data-tv-delete-server]").forEach(btn=>{
-    btn.addEventListener("click",()=>adminDeleteServer(btn.dataset.tvDeleteServer));
-  });
+  document.querySelectorAll("[data-tv-server]").forEach(btn=>btn.addEventListener("click",()=>useServer(btn.dataset.tvServer)));
+  document.querySelectorAll("[data-tv-delete-server]").forEach(btn=>btn.addEventListener("click",()=>adminDeleteServer(btn.dataset.tvDeleteServer)));
   document.getElementById("tvSavePrivateM3U")?.addEventListener("click",savePrivateM3U);
-  document.querySelectorAll("[data-tv-delete-local]").forEach(btn=>{
-    btn.addEventListener("click",deletePrivateM3U);
-  });
+  document.querySelectorAll("[data-tv-delete-local]").forEach(btn=>btn.addEventListener("click",deletePrivateM3U));
   document.getElementById("tvAddM3U")?.addEventListener("click",adminAddM3U);
   document.getElementById("tvServerFile")?.addEventListener("change",e=>adminAddM3UFile(e.target.files?.[0]));
   document.getElementById("tvAddDirect")?.addEventListener("click",adminAddDirectChannel);
 
-  document.getElementById("tvSearch")?.addEventListener("input",e=>{
-    currentFilter=e.target.value;
-    renderChannels();
-  });
-  document.getElementById("tvGroupSelect")?.addEventListener("change",e=>{
-    currentGroup=e.target.value;
-    renderChannels();
-  });
-
   if(categoryMode){
+    document.querySelectorAll("[data-tv-group]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        currentGroup=btn.dataset.tvGroup||"";
+        document.querySelectorAll("[data-tv-group]").forEach(x=>x.classList.toggle("active",x===btn));
+        renderChannels();
+        setTimeout(()=>document.querySelector("#tvChannels .tv-dp-row")?.focus(),40);
+      });
+    });
+    const search=document.getElementById("tvSearch");
+    search?.addEventListener("input",e=>{currentFilter=e.target.value;renderChannels();});
+    document.getElementById("tvSearchBtn")?.addEventListener("click",()=>search?.focus());
+
     document.getElementById("tvFullscreen")?.addEventListener("click",toggleTvFullscreen);
     document.getElementById("tvStop")?.addEventListener("click",()=>{
       destroyPlayer();
