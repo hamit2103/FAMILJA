@@ -34,7 +34,7 @@ const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
 const COMPUTER_AI_LEVELS_KEY = "diamond-computer-ai-levels-v1";
-const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun","diamondslot","diamondadventure","diamondnations"];
+const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun","diamondslot","diamondgenie","diamondpoker","diamondroulette","diamondadventure","diamondnations"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
 let masterSoundEnabled=localStorage.getItem(GAME_SOUND_MASTER_KEY)!=="off";
@@ -712,6 +712,33 @@ const DIAMOND_SLOT_INFO={
   ar:["DIAMOND SLOT","5 بكرات بثلاثة صفوف. تُحسب الأرباح فقط من اليسار إلى اليمين أو من الأعلى إلى الأسفل."]
 };
 for(const [code,data] of Object.entries(DIAMOND_SLOT_INFO)){if(GAME_INFO[code])GAME_INFO[code].diamondslot=data;}
+const DIAMOND_CASINO_INFO={
+  diamondgenie:{
+    sq:["DIAMOND GENIE – 3 DËSHIRAT","Rrotullo 5 kolona. 3 🪔 hapin 3 dëshira; 3 🧞 hapin Dhomën e Thesarit. 🌙 aktivizon natën magjike."],
+    en:["DIAMOND GENIE – 3 WISHES","Spin 5 reels. Three lamps unlock 3 wishes; three genies open the Treasure Room."],
+    de:["DIAMOND GENIE – 3 WÜNSCHE","Drehe 5 Walzen. Drei Lampen geben 3 Wünsche; drei Dschinns öffnen die Schatzkammer."],
+    tr:["DIAMOND GENIE – 3 DİLEK","5 makarayı çevir. Üç lamba 3 dilek verir; üç cin Hazine Odasını açar."]
+  },
+  diamondpoker:{
+    sq:["DIAMOND TEXAS POKER","Texas Hold’em kundër kompjuterit. Merr 2 karta, 5 karta hapen në tavolinë. Përdor CHECK/CALL, RAISE, ALL-IN ose FOLD."],
+    en:["DIAMOND TEXAS POKER","Texas Hold’em against the computer with CHECK/CALL, RAISE, ALL-IN or FOLD."],
+    de:["DIAMOND TEXAS POKER","Texas Hold’em gegen den Computer mit CHECK/CALL, RAISE, ALL-IN und FOLD."],
+    tr:["DIAMOND TEXAS POKER","Bilgisayara karşı Texas Hold’em. CHECK/CALL, RAISE, ALL-IN veya FOLD kullan."]
+  },
+  diamondroulette:{
+    sq:["DIAMOND ROULETTE","Ruletë europiane 0–36. Vër bast në një numër, kuqe/zezë, çift/tek ose 1–18/19–36."],
+    en:["DIAMOND ROULETTE","European roulette 0–36. Bet on a number, red/black, even/odd or 1–18/19–36."],
+    de:["DIAMOND ROULETTE","Europäisches Roulette 0–36. Setze auf Zahl, Rot/Schwarz, Gerade/Ungerade oder 1–18/19–36."],
+    tr:["DIAMOND ROULETTE","Avrupa ruleti 0–36. Sayı, kırmızı/siyah, tek/çift veya 1–18/19–36 üzerine bahis yap."]
+  }
+};
+for(const id of Object.keys(DIAMOND_CASINO_INFO)){
+  for(const code of Object.keys(GAME_INFO)){
+    const d=DIAMOND_CASINO_INFO[id][code]||DIAMOND_CASINO_INFO[id].en||DIAMOND_CASINO_INFO[id].sq;
+    if(GAME_INFO[code])GAME_INFO[code][id]=d;
+  }
+}
+
 const DIAMOND_NATIONS_INFO={
   sq:["DIAMOND NATIONS","Lojë strategjie origjinale DIAMOND. Zgjidh territorin tënd, pushto fqinjët, rekruto ushtri, rrit mbrojtjen, përdor radar dhe Diamond Strike. Fiton kur pushton kryeqytetin e kompjuterit."],
   de:["DIAMOND NATIONS","Originales DIAMOND-Strategiespiel. Wähle dein Gebiet, erobere Nachbarn, rekrutiere Armee, verstärke die Verteidigung und nutze Radar sowie Diamond Strike. Du gewinnst durch die Eroberung der gegnerischen Hauptstadt."],
@@ -768,6 +795,9 @@ function startPracticeForGame(game=selectedType){
   if(game==="uck"){selectedType=game;startUckGame();return;}
   if(game==="diamondrun"){selectedType=game;startDiamondRunGame();return;}
   if(game==="diamondslot"){selectedType=game;startDiamondSlotGame();return;}
+  if(game==="diamondgenie"){selectedType=game;startDiamondGenieGame();return;}
+  if(game==="diamondpoker"){selectedType=game;startDiamondTexasPokerGame();return;}
+  if(game==="diamondroulette"){selectedType=game;startDiamondRouletteGame();return;}
   if(game==="diamondadventure"){selectedType=game;startDiamondAdventureGame();return;}
 }
 
@@ -2817,6 +2847,9 @@ function gameChoiceIcon(id){
   if(id==="uck") return "🪖";
   if(id==="diamondrun") return "💎";
   if(id==="diamondslot") return "🎰💎";
+  if(id==="diamondgenie") return "🧞";
+  if(id==="diamondpoker") return "♠️";
+  if(id==="diamondroulette") return "🎡";
   if(id==="diamondadventure") return "💎🏃";
   if(id==="diamondnations") return "🌍💎";
   return "🎮";
@@ -2831,6 +2864,9 @@ function gameChoiceName(id){
   if(id==="uck") return tr("uck");
   if(id==="diamondrun") return tr("diamondrun");
   if(id==="diamondslot") return "DIAMOND SLOT";
+  if(id==="diamondgenie") return "DIAMOND GENIE – 3 DËSHIRAT";
+  if(id==="diamondpoker") return "DIAMOND TEXAS POKER";
+  if(id==="diamondroulette") return "DIAMOND ROULETTE";
   if(id==="diamondadventure") return "Diamond Adventure";
   if(id==="diamondnations") return "DIAMOND NATIONS";
   return id;
@@ -2954,6 +2990,9 @@ async function launchGameFromMenu(id,mode){
   if(id==="uck"){startUckGame();return;}
   if(id==="diamondrun"){startDiamondRunGame();return;}
   if(id==="diamondslot"){startDiamondSlotGame();return;}
+  if(id==="diamondgenie"){startDiamondGenieGame();return;}
+  if(id==="diamondpoker"){startDiamondTexasPokerGame();return;}
+  if(id==="diamondroulette"){startDiamondRouletteGame();return;}
   if(id==="diamondadventure"){startDiamondAdventureGame();return;}
   if(id==="diamondnations"){startDiamondNationsGame();return;}
 }
@@ -3175,6 +3214,9 @@ function renderLobby(msg=""){
                 <option value="diamondadventure">Diamond Adventure</option>
                 <option value="diamondnations">DIAMOND NATIONS</option>
                 <option value="diamondslot">DIAMOND SLOT</option>
+                <option value="diamondgenie">DIAMOND GENIE – 3 DËSHIRAT</option>
+                <option value="diamondpoker">DIAMOND TEXAS POKER</option>
+                <option value="diamondroulette">DIAMOND ROULETTE</option>
               </select>
               <input id="gameBlockUntil" type="datetime-local">
               <div class="game-block-actions">
@@ -3407,6 +3449,40 @@ async function startDiamondSlotGame(){
     console.warn("diamond slot",error);
     selectedType="";
     renderLobby("DIAMOND SLOT nuk u hap. Provo përsëri.");
+  }
+}
+
+async function startDiamondGenieGame(){
+  stopGameMusic();
+  try{
+    const mod=await import("./casino-games.js?v=1");
+    mod.startDiamondGenie({root,onBack:()=>{selectedType="";renderLobby();}});
+  }catch(error){
+    console.warn("diamond genie",error);
+    selectedType="";
+    renderLobby("DIAMOND GENIE nuk u hap. Provo përsëri.");
+  }
+}
+async function startDiamondTexasPokerGame(){
+  stopGameMusic();
+  try{
+    const mod=await import("./casino-games.js?v=1");
+    mod.startDiamondTexasPoker({root,onBack:()=>{selectedType="";renderLobby();}});
+  }catch(error){
+    console.warn("diamond poker",error);
+    selectedType="";
+    renderLobby("DIAMOND TEXAS POKER nuk u hap. Provo përsëri.");
+  }
+}
+async function startDiamondRouletteGame(){
+  stopGameMusic();
+  try{
+    const mod=await import("./casino-games.js?v=1");
+    mod.startDiamondRoulette({root,onBack:()=>{selectedType="";renderLobby();}});
+  }catch(error){
+    console.warn("diamond roulette",error);
+    selectedType="";
+    renderLobby("DIAMOND ROULETTE nuk u hap. Provo përsëri.");
   }
 }
 
