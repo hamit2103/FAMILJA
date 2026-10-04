@@ -1100,7 +1100,7 @@ function ensureDiamondPlayTvStyle(){
   if(document.getElementById("diamondPlayTvStyle")) return;
   const st=document.createElement("style");
   st.id="diamondPlayTvStyle";
-  st.textContent=\`
+  st.textContent=`
     body.angel-tv-open{overflow:hidden!important;background:#020603!important}
     #tvRoot.angel-tv-fullscreen{position:fixed!important;inset:0!important;z-index:8500!important;background:#020603!important;color:#fff!important;overflow:hidden!important}
     #tvRoot .tv-app-real{height:100%;min-height:0;background:#020603;color:#fff;display:flex;flex-direction:column;font-family:Arial,sans-serif}
@@ -1154,7 +1154,7 @@ function ensureDiamondPlayTvStyle(){
       #tvRoot .tv-dp-tile{min-height:110px;font-size:16px}
       #tvRoot .tv-dp-search{width:110px}
     }
-  \`;
+  `;
   document.head.appendChild(st);
 }
 
@@ -1251,22 +1251,22 @@ function renderHome(){
   const seriesCount=channels.filter(ch=>classifyChannel(ch)==="series").length;
   const replayCount=channels.filter(ch=>classifyChannel(ch)==="replay").length;
   const server=activeServer();
-  return \`
+  return `
     <div class="tv-dp-head">
-      <div><strong>💎 DIAMOND · TV</strong><small>\${server?esc(server.title):"SMART IPTV"}</small></div>
+      <div><strong>💎 DIAMOND · TV</strong><small>${server?esc(server.title):"SMART IPTV"}</small></div>
       <div class="tv-dp-head-actions">
-        <button id="tvSportsGuide" type="button">⚽ \${tr("sports")}</button>
-        <button id="tvChangeServer" type="button">🗄️ \${tr("server")}</button>
+        <button id="tvSportsGuide" type="button">⚽ ${tr("sports")}</button>
+        <button id="tvChangeServer" type="button">🗄️ ${tr("server")}</button>
       </div>
     </div>
     <div class="tv-dp-home">
       <div class="tv-dp-tiles">
-        <button class="tv-dp-tile" data-tv-mode="live" type="button"><span class="tv-dp-icon">📺</span>\${tr("live")}<span class="tv-dp-count">\${liveCount}</span></button>
-        <button class="tv-dp-tile" data-tv-mode="movies" type="button"><span class="tv-dp-icon">🎬</span>\${tr("movies")}<span class="tv-dp-count">\${movieCount}</span></button>
-        <button class="tv-dp-tile" data-tv-mode="series" type="button"><span class="tv-dp-icon">🎞️</span>\${tr("series")}<span class="tv-dp-count">\${seriesCount}</span></button>
-        <button class="tv-dp-tile" data-tv-mode="replay" type="button"><span class="tv-dp-icon">↩️</span>\${tr("replay")}<span class="tv-dp-count">\${replayCount}</span></button>
+        <button class="tv-dp-tile" data-tv-mode="live" type="button"><span class="tv-dp-icon">📺</span>${tr("live")}<span class="tv-dp-count">${liveCount}</span></button>
+        <button class="tv-dp-tile" data-tv-mode="movies" type="button"><span class="tv-dp-icon">🎬</span>${tr("movies")}<span class="tv-dp-count">${movieCount}</span></button>
+        <button class="tv-dp-tile" data-tv-mode="series" type="button"><span class="tv-dp-icon">🎞️</span>${tr("series")}<span class="tv-dp-count">${seriesCount}</span></button>
+        <button class="tv-dp-tile" data-tv-mode="replay" type="button"><span class="tv-dp-icon">↩️</span>${tr("replay")}<span class="tv-dp-count">${replayCount}</span></button>
       </div>
-    </div>\`;
+    </div>`;
 }
 
 function renderCategory(){
@@ -1276,31 +1276,31 @@ function renderCategory(){
     ...groups.map(g=>'<button class="tv-dp-group '+(g===currentGroup?'active':'')+'" data-tv-group="'+esc(g)+'" type="button">'+esc(tvFlag(g))+' '+esc(g)+'</button>')
   ].join("");
 
-  return \`
+  return `
     <div class="tv-dp-head">
-      <div><strong>💎 DIAMOND · \${esc(modeTitle())}</strong><small>\${esc(activeServer()?.title||"TV")}</small></div>
+      <div><strong>💎 DIAMOND · ${esc(modeTitle())}</strong><small>${esc(activeServer()?.title||"TV")}</small></div>
       <div class="tv-dp-head-actions">
-        <button id="tvSearchBtn" type="button">🔎 \${tr("search")}</button>
-        <button id="tvBackHome" type="button">← \${tr("back")}</button>
+        <button id="tvSearchBtn" type="button">🔎 ${tr("search")}</button>
+        <button id="tvBackHome" type="button">← ${tr("back")}</button>
       </div>
     </div>
     <div class="tv-dp-body">
       <nav class="tv-dp-groups">
-        <h3>\${tr("allGroups")}</h3>
-        <div id="tvGroups">\${groupButtons}</div>
+        <h3>${tr("allGroups")}</h3>
+        <div id="tvGroups">${groupButtons}</div>
       </nav>
       <main class="tv-dp-list">
         <div class="tv-dp-list-head">
-          <h3>\${esc(modeTitle())} · <span id="tvChannelCount">0</span></h3>
-          <input id="tvSearch" class="tv-dp-search" type="text" placeholder="\${esc(tr("search"))}" value="\${esc(currentFilter)}">
+          <h3>${esc(modeTitle())} · <span id="tvChannelCount">0</span></h3>
+          <input id="tvSearch" class="tv-dp-search" type="text" placeholder="${esc(tr("search"))}" value="${esc(currentFilter)}">
         </div>
         <div id="tvChannels"></div>
       </main>
       <aside class="tv-dp-preview">
-        <div class="tv-dp-preview-title">\${currentMode==="live"?"📺 "+esc(tr("playerReady")):"🎬 "+esc(modeTitle())}</div>
+        <div class="tv-dp-preview-title">${currentMode==="live"?"📺 "+esc(tr("playerReady")):"🎬 "+esc(modeTitle())}</div>
         <section id="tvPlayerCard" class="tv-player-card">
           <div class="tv-now-row">
-            <strong id="tvNow">\${esc(localStorage.getItem(TV_NAME_KEY)||tr("direct"))}</strong>
+            <strong id="tvNow">${esc(localStorage.getItem(TV_NAME_KEY)||tr("direct"))}</strong>
             <div class="tv-player-actions">
               <button id="tvFullscreen" type="button">⛶</button>
               <button id="tvStop" type="button">■</button>
@@ -1309,11 +1309,11 @@ function renderCategory(){
           <video id="tvPlayer" class="tv-player" controls playsinline preload="metadata"></video>
           <div class="tv-player-feedback">
             <div id="tvPlayerStatus" class="message tv-player-status"></div>
-            <button id="tvRetry" class="hidden" type="button">\${tr("retry")}</button>
+            <button id="tvRetry" class="hidden" type="button">${tr("retry")}</button>
           </div>
         </section>
       </aside>
-    </div>\`;
+    </div>`;
 }
 
 function tvFlag(name=""){
