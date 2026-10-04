@@ -1,6 +1,6 @@
 const K="diamond-slot-state-v1";
 const SYMS=[["diamond","💎",50],["heart","❤️",30],["star","⭐",25],["apple","🍎",20],["strawberry","🍓",15]];
-const BOOK=["book","📖",0],HAMMER=["hammer","🔨",0],POISON=["poison","🧪",0],EGG=["egg","🥚",0],ANGEL=["angel","👼",0];
+const BOOK=["book","📖",0],HAMMER=["hammer","🔨",0],POISON=["poison","🧪",0],EGG=["egg","🥚",0],ANGEL=["angel","👼",0],DEVIL=["devil","😈",0],FORMULA=["formula","⚗️",0],SUN=["sun","☀️",0];
 const BETS=[1,5,10,20,50,100,200,500,1000,5000,10000,100000,500000,1000000,5000000,10000000];
 const SYM_BY_ID=Object.fromEntries(SYMS.map(x=>[x[0],x]));
 
@@ -40,7 +40,7 @@ function save(s){
     localStorage.setItem(K,JSON.stringify({...s,auto:false}));
   }catch(_){}
 }
-function pickBase(){const q=Math.random();if(q<.12)return SYMS[0];if(q<.32)return SYMS[1];if(q<.50)return SYMS[2];if(q<.78)return SYMS[3];return SYMS[4];}
+function pickBase(){const q=Math.random();if(q<.06)return SUN;if(q<.17)return SYMS[0];if(q<.36)return SYMS[1];if(q<.53)return SYMS[2];if(q<.79)return SYMS[3];return SYMS[4];}
 function visualPick(){return Math.random()<.20?BOOK:pickBase();}
 function visualGrid(){return Array.from({length:3},()=>Array.from({length:5},()=>visualPick()));}
 function baseGrid(){return Array.from({length:3},()=>Array.from({length:5},()=>pickBase()));}
@@ -58,28 +58,22 @@ function placeSymbol(board,symbol,count,filter=()=>true){
     board[row][col]=symbol;left--;
   }
 }
-function buildFinalGrid({bonusActive=false,bonusSymbol="",poisonCount=0}={}){
+function buildFinalGrid({bonusActive=false,bonusSymbol="",poisonCount=0,meters=null}={}){
   const board=baseGrid();
-  const bookBonus=!bonusActive&&Math.random()<.05;
-
-  if(bookBonus){
-    placeSymbol(board,BOOK,3);
-  }else{
-    const z=Math.random(),books=z<.10?0:z<.70?1:2;
-    placeSymbol(board,BOOK,books);
-  }
+  let bookBonus=!bonusActive&&Math.random()<.05;
+  if(bookBonus) placeSymbol(board,BOOK,3);
+  else{const z=Math.random(),books=z<.10?0:z<.70?1:2;placeSymbol(board,BOOK,books);}
 
   const filledCols=new Set();
   if(bonusActive&&SYM_BY_ID[bonusSymbol]){
     for(let col=0;col<5;col++){
-      if(board.some(row=>row[col][0]===bonusSymbol)){
+      if(board.some(row=>row[col][0]===bonusSymbol||row[col][0]==="sun")){
         filledCols.add(col);
         for(let row=0;row<3;row++)board[row][col]=SYM_BY_ID[bonusSymbol];
       }
     }
   }
 
-  // 🧪 Xeheri nuk del kurrë në bonus.
   const poison=!bonusActive?Math.max(0,Math.floor(Number(poisonCount)||0)):0;
   if(poison>0)placeSymbol(board,POISON,poison,x=>x[0]!=="book");
 
@@ -92,7 +86,49 @@ function buildFinalGrid({bonusActive=false,bonusSymbol="",poisonCount=0}={}){
   const angel=!bonusActive&&Math.random()<.01;
   if(angel)placeSymbol(board,ANGEL,1,x=>!["book","poison","hammer","egg"].includes(x[0]));
 
-  return{board,bookBonus,hammer,egg,angel,poisonCount:poison,filledCols};
+  let devilCount=0,devilTarget="";
+  if(!bonusActive){
+    const dr=Math.random();
+    if(dr<.05)devilCount=3;
+    else if(dr<.15)devilCount=2;
+    else if(dr<.45)devilCount=1;
+    if(devilCount>0){
+      placeSymbol(board,DEVIL,devilCount,x=>!["book","poison","hammer","egg","angel"].includes(x[0]));
+      if(devilCount===1){
+        const eligible=SYMS.filter(x=>(Number(meters?.[x[0]])||0)>=3);
+        if(eligible.length)devilTarget=eligible[Math.floor(Math.random()*eligible.length)][0];
+      }
+    }
+  }
+
+  let formula=false,formulaCol=-1,formulaTarget=null,resolvedBoard=board.map(row=>row.slice());
+  if(!bonusActive&&Math.random()<.05){
+    const candidates=[0,1,2,3,4].filter(c=>{
+      const id=board[0][c]?.[0];
+      return !!SYM_BY_ID[id]||id==="sun";
+    });
+    if(candidates.length){
+      formula=true;
+      formulaCol=candidates[Math.floor(Math.random()*candidates.length)];
+      formulaTarget=board[0][formulaCol];
+      board[1][formulaCol]=FORMULA;
+      resolvedBoard=board.map(row=>row.slice());
+      for(let c=0;c<5;c++)resolvedBoard[1][c]=formulaTarget;
+    }
+  }
+
+  const finalBoard=formula?resolvedBoard:board;
+  const flat=finalBoard.flat();
+  return{
+    board,resolvedBoard:finalBoard,
+    bookBonus:flat.filter(x=>x[0]==="book").length>=3,
+    hammer:flat.some(x=>x[0]==="hammer"),
+    egg:flat.some(x=>x[0]==="egg"),
+    angel:flat.some(x=>x[0]==="angel"),
+    poisonCount:flat.filter(x=>x[0]==="poison").length,
+    devilCount:flat.filter(x=>x[0]==="devil").length,
+    devilTarget,formula,formulaCol,formulaTarget,filledCols
+  };
 }
 function scaledPrize(base,bet){return Math.max(1,Math.round(Number(base||0)*(Number(bet)||1)/25));}
 function longest(row,id){let b=0,n=0;for(const x of row){if(x[0]===id){n++;b=Math.max(b,n);}else n=0;}return b;}
@@ -146,6 +182,23 @@ function playSlotWinSound(){
   slotBeep(523,.11,.14,"sine",0);slotBeep(659,.11,.14,"sine",.10);
   slotBeep(784,.14,.16,"sine",.20);slotBeep(1047,.25,.18,"sine",.34);
 }
+function resolveWildBoard(board){
+  const out=board.map(row=>row.map(x=>x));
+  const dirs=[[0,-1],[0,1],[-1,0],[1,0],[-1,-1],[-1,1],[1,-1],[1,1]];
+  for(let r=0;r<out.length;r++){
+    for(let c=0;c<(out[r]?.length||0);c++){
+      if(out[r][c]?.[0]!=="sun")continue;
+      let target=null;
+      for(const [dr,dc] of dirs){
+        const nr=r+dr,nc=c+dc,id=out[nr]?.[nc]?.[0];
+        if(SYM_BY_ID[id]){target=SYM_BY_ID[id];break;}
+      }
+      out[r][c]=target||SYM_BY_ID.diamond;
+    }
+  }
+  return out;
+}
+
 function connectedSymbolGroups(board){
   const rows=board.length,cols=board[0]?.length||0,seen=new Set(),groups=[];
   const dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
@@ -312,7 +365,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    minus.disabled=!!bonusOn||busy;plus.disabled=!!bonusOn||busy;
    au.classList.toggle("on",st.auto);au.textContent=st.auto?"■ NDAL AUTO":"↻ AUTO";
    const b=st.bet;
-   infoEl.textContent="BAST "+b+" 💎 · çdo bast ka shkallët e veta · 🥚 1%=10×bast · 👼 1%=mbrojtje · 🔨 7% · 📖 3 libra 5% · 🧪 1=pa efekt, 2=−1, 3+=0";
+   infoEl.textContent="BAST "+b+" 💎 · 😈 1=30% −3, 2=10% −10 nga shkallët 10+, 3=5% shkallët 0 · 👼 mbron 1 herë · ⚗️ 5% kopjon rreshtin · ☀️ WILD";
    save(st);
  }
  function updateMetersOnly(counts){
@@ -382,6 +435,33 @@ export function startDiamondSlotGame({root,onBack}={}){
    slotBeep(65,.34,.24,"square",.48);
  }
 
+ function applyDevil(count,target,a){
+   const n=Math.max(0,Math.floor(Number(count)||0));
+   if(n<=0)return;
+   if(st.angelShield>0){
+     st.angelShield=0;a.push("👼 Melaqja të mbrojti nga shejtani");
+     showSpecial("👼","MBROJTJE NGA 😈",950);
+     slotBeep(740,.16,.16,"sine",0);slotBeep(980,.20,.17,"sine",.14);return;
+   }
+   if(n===1){
+     const id=SYM_BY_ID[target]?target:"";
+     if(id&&(Number(st.m[id])||0)>=3){st.m[id]=Math.max(0,(Number(st.m[id])||0)-3);a.push("😈 −3 "+SYM_BY_ID[id][1]+" nga shkalla");}
+     else a.push("😈 nuk gjeti shkallë me 3+");
+     showSpecial("😈","−3 NGA NJË SHKALLË",800);slotBeep(175,.18,.15,"sawtooth");return;
+   }
+   if(n===2){
+     let hit=0;
+     for(const x of SYMS){const id=x[0],v=Number(st.m[id])||0;if(v>=10){st.m[id]=Math.max(0,v-10);hit++;}}
+     a.push("😈😈 −10 nga çdo shkallë me 10+");
+     showSpecial("😈😈",hit?"−10 NGA SHKALLËT":"ASNJË SHKALLË 10+",900);
+     slotBeep(150,.20,.17,"sawtooth",0);slotBeep(112,.24,.18,"square",.18);return;
+   }
+   for(const x of SYMS)st.m[x[0]]=0;
+   a.push("😈😈😈 të gjitha shkallët = 0");
+   showSpecial("😈","HE HE HE 😈 · SHKALLËT = 0",1150);
+   slotBeep(125,.20,.20,"sawtooth",0);slotBeep(85,.28,.22,"square",.20);slotBeep(60,.38,.24,"square",.48);
+ }
+
  function showSpecial(icon,text,duration=1150){
    specialIcon.textContent=icon;specialText.textContent=text;specialOverlay.classList.remove("hidden");
    setTimeout(()=>specialOverlay.classList.add("hidden"),duration);
@@ -392,6 +472,12 @@ export function startDiamondSlotGame({root,onBack}={}){
  }
  function applyAngel(a){
    st.angelShield=1;a.push("👼 Mbrojtje aktive");showSpecial("👼","MBROJTJE NGA 🔨 / 🧪",1200);slotBeep(660,.14,.14,"sine",0);slotBeep(990,.24,.18,"sine",.16);
+ }
+
+ function showFormula(target){
+   const symbol=target?.[1]||"💎";
+   showSpecial("⚗️","FORMULA PO LËVIZ… → "+symbol,700);
+   slotBeep(330,.10,.12,"triangle",0);slotBeep(440,.10,.12,"triangle",.12);slotBeep(550,.14,.14,"triangle",.24);
  }
 
  function showBookBonus(chosen,spinBet){
@@ -437,8 +523,8 @@ export function startDiamondSlotGame({root,onBack}={}){
    const c={diamond:0,heart:0,star:0,apple:0,strawberry:0},a=[];
    const spinBet=Number(meta.spinBet)||st.bet;
    let win=0;
-
-   g.flat().forEach(x=>{
+   const evalBoard=resolveWildBoard(g);
+   evalBoard.flat().forEach(x=>{
      if(Object.prototype.hasOwnProperty.call(c,x[0]))c[x[0]]++;
    });
 
@@ -448,10 +534,11 @@ export function startDiamondSlotGame({root,onBack}={}){
    // 🧪 Efekti aplikohet pas mbushjes së këtij rrotullimi.
    // 1 = pa efekt, 2 = -1 nga çdo shkallë, 3+ = të gjitha në 0.
    applyPoison(meta.poisonCount||0,a);
+   applyDevil(meta.devilCount||0,meta.devilTarget||"",a);
 
    // Pasi shkalla është full, vetëm grupet me 2+ simbole të lidhura japin fitim.
    // Çdo grup i lidhur numërohet vetëm një herë.
-   for(const group of connectedSymbolGroups(g)){
+   for(const group of connectedSymbolGroups(evalBoard)){
      if(group.count<2)continue;
      const p=meterConnectedReward(st,group.id,group.count,spinBet);
      if(p>0){
@@ -492,16 +579,27 @@ export function startDiamondSlotGame({root,onBack}={}){
 
    if(meta.hammer&&!meta.bonusActive)showHammer();
  }
- function finishSpinNow(){
-   if(!busy||!pendingResult)return;
-   if(timer){clearInterval(timer);timer=null;}if(finishTimer){clearTimeout(finishTimer);finishTimer=null;}stopSlotSpinSound();
-   const data=pendingResult;pendingResult=null;g=data.result.board;bonusCols=data.result.filledCols;rg();sh.classList.remove("spinning");busy=false;
+ function completeSpinEvaluation(data){
+   g=data.result.resolvedBoard||data.result.board;bonusCols=data.result.filledCols;rg();sh.classList.remove("spinning");busy=false;
    try{
-     evalSpin({bookBonus:data.result.bookBonus,hammer:data.result.hammer,poisonCount:data.result.poisonCount,egg:data.result.egg,angel:data.result.angel,spinBet:data.spinBet,bonusActive:data.bonusActive});
+     evalSpin({bookBonus:data.result.bookBonus,hammer:data.result.hammer,poisonCount:data.result.poisonCount,devilCount:data.result.devilCount,devilTarget:data.result.devilTarget,egg:data.result.egg,angel:data.result.angel,spinBet:data.spinBet,bonusActive:data.bonusActive});
    }catch(error){console.error("DIAMOND SLOT eval error",error);msg.textContent="Gabimi i lojës u kap. Provo rrotullimin përsëri.";msg.classList.remove("win");}
    if(data.bonusActive&&st.bonusSpins<=0){bonusRoundActive=false;st.bonusSymbol="";st.bonusBet=0;stopBonusMusic();rs();}
    else if(!data.bonusActive){bonusRoundActive=false;rs();}
    if(st.auto&&!hammerPending&&!bookPending)autoTimer=setTimeout(spin,850);
+ }
+
+ function finishSpinNow(){
+   if(!busy||!pendingResult)return;
+   if(timer){clearInterval(timer);timer=null;}if(finishTimer){clearTimeout(finishTimer);finishTimer=null;}stopSlotSpinSound();
+   const data=pendingResult;pendingResult=null;
+   if(data.result.formula){
+     g=data.result.board;bonusCols=data.result.filledCols;rg();sh.classList.remove("spinning");
+     showFormula(data.result.formulaTarget);
+     msg.textContent="⚗️ Formula po kopjon "+(data.result.formulaTarget?.[1]||"💎")+" në rreshtin e dytë…";
+     setTimeout(()=>completeSpinEvaluation(data),700);return;
+   }
+   completeSpinEvaluation(data);
  }
  function spin(){
    if(busy){finishSpinNow();return;}
@@ -520,7 +618,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    }
    busy=true;bonusCols=new Set();sh.classList.add("spinning");
    if(bonusActive)st.bonusSpins=Math.max(0,st.bonusSpins-1);else if((st.free||0)>0)st.free--;else{st.bal-=st.bet;walletDelta(-st.bet);}
-   const result=buildFinalGrid({bonusActive,bonusSymbol:st.bonusSymbol,poisonCount});pendingResult={result,spinBet,bonusActive};
+   const result=buildFinalGrid({bonusActive,bonusSymbol:st.bonusSymbol,poisonCount,meters:{...st.m}});pendingResult={result,spinBet,bonusActive};
    rs();msg.textContent=bonusActive?"📖 BONUS po rrotullohet…":"Po rrotullohet… · shtype përsëri për NDAL";msg.classList.remove("win");startSlotSpinSound();
    timer=setInterval(()=>{g=visualGrid();bonusCols=new Set();rg();},70);
    finishTimer=setTimeout(finishSpinNow,980);
