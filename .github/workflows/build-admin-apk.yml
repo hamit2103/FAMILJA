@@ -10,6 +10,7 @@ on:
       - "app-config.js"
       - "styles.css"
       - "games.js"
+      - "diamond-slot.js"
       - "sports.js"
       - "tv.js"
       - "radio.js"
@@ -47,7 +48,7 @@ jobs:
 
       - name: Sync current web assets
         run: |
-          cp index.html admin.html styles.css app.js app-config.js games.js kingdom.js uck.js diamond-run.js diamond-adventure.js sports.js tv.js radio.js recipes.js nearby.js manifest.webmanifest admin-manifest.webmanifest icon.svg angel-icon.jpg sw.js war.js kosovo-free-https.m3u rtk-free.m3u firetv/app/src/main/assets/
+          cp index.html admin.html styles.css app.js app-config.js games.js kingdom.js uck.js diamond-run.js diamond-adventure.js diamond-slot.js sports.js tv.js radio.js recipes.js nearby.js manifest.webmanifest admin-manifest.webmanifest icon.svg angel-icon.jpg sw.js war.js kosovo-free-https.m3u rtk-free.m3u firetv/app/src/main/assets/
 
       - name: Build separate Admin APK
         run: |
