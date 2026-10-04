@@ -1,14 +1,15 @@
 const K="diamond-slot-state-v1";
 const SYMS=[["diamond","💎",50],["heart","❤️",30],["star","⭐",25],["apple","🍎",20],["strawberry","🍓",15]];
-const BOOK=["book","📖",0],HAMMER=["hammer","🔨",0],POISON=["poison","🧪",0];
-const BETS=[1,5,10,20,50,100,200,500,1000,5000,10000];
+const BOOK=["book","📖",0],HAMMER=["hammer","🔨",0],POISON=["poison","🧪",0],EGG=["egg","🥚",0],ANGEL=["angel","👼",0];
+const BETS=[1,5,10,20,50,100,200,500,1000,5000,10000,100000,500000,1000000,5000000,10000000];
 const SYM_BY_ID=Object.fromEntries(SYMS.map(x=>[x[0],x]));
 
 function nearestBet(v){
   const n=Number(v)||20;
   return BETS.reduce((best,x)=>Math.abs(x-n)<Math.abs(best-n)?x:best,BETS[0]);
 }
-function fresh(){return{bal:2850,bet:20,m:{diamond:0,heart:0,star:0,apple:0,strawberry:0},free:0,x2:0,best:0,bonusSpins:0,bonusSymbol:"",bonusBet:0,poisonCounter:0,poisonNext:3};}
+function emptyMeters(){return{diamond:0,heart:0,star:0,apple:0,strawberry:0};}
+function fresh(){return{bal:2850,bet:20,m:emptyMeters(),metersByBet:{},free:0,x2:0,best:0,bonusSpins:0,bonusSymbol:"",bonusBet:0,poisonCounter:0,poisonNext:3,angelShield:0};}
 function load(){
   try{
     const raw=JSON.parse(localStorage.getItem(K)||"{}")||{},d=fresh();
@@ -22,12 +23,23 @@ function load(){
     d.bonusBet=nearestBet(raw.bonusBet||d.bet);
     d.poisonCounter=Math.max(0,Math.floor(Number(raw.poisonCounter)||0));
     d.poisonNext=[3,4].includes(Number(raw.poisonNext))?Number(raw.poisonNext):3;
-    d.m={...d.m,...(raw.m||{})};
-    for(const x of SYMS)d.m[x[0]]=Math.max(0,Math.floor(Number(d.m[x[0]])||0))%x[2];
+    d.angelShield=Math.max(0,Math.min(1,Math.floor(Number(raw.angelShield)||0)));
+    d.metersByBet=(raw.metersByBet&&typeof raw.metersByBet==="object")?raw.metersByBet:{};
+    if(raw.m && !d.metersByBet[String(d.bet)]) d.metersByBet[String(d.bet)]={...emptyMeters(),...raw.m};
+    if(!d.metersByBet[String(d.bet)]) d.metersByBet[String(d.bet)]=emptyMeters();
+    d.m={...emptyMeters(),...d.metersByBet[String(d.bet)]};
+    for(const x of SYMS)d.m[x[0]]=Math.max(0,Math.min(x[2],Math.floor(Number(d.m[x[0]])||0)));
+    d.metersByBet[String(d.bet)]={...d.m};
     return d;
   }catch(_){return fresh();}
 }
-function save(s){try{localStorage.setItem(K,JSON.stringify({...s,auto:false}));}catch(_){}}
+function save(s){
+  try{
+    if(!s.metersByBet||typeof s.metersByBet!=="object")s.metersByBet={};
+    s.metersByBet[String(s.bet)]={...emptyMeters(),...s.m};
+    localStorage.setItem(K,JSON.stringify({...s,auto:false}));
+  }catch(_){}
+}
 function pickBase(){const q=Math.random();if(q<.12)return SYMS[0];if(q<.32)return SYMS[1];if(q<.50)return SYMS[2];if(q<.78)return SYMS[3];return SYMS[4];}
 function visualPick(){return Math.random()<.20?BOOK:pickBase();}
 function visualGrid(){return Array.from({length:3},()=>Array.from({length:5},()=>visualPick()));}
@@ -74,7 +86,13 @@ function buildFinalGrid({bonusActive=false,bonusSymbol="",poisonCount=0}={}){
   const hammer=!bonusActive&&Math.random()<.07;
   if(hammer)placeSymbol(board,HAMMER,1,x=>x[0]!=="book"&&x[0]!=="poison");
 
-  return{board,bookBonus,hammer,poisonCount:poison,filledCols};
+  const egg=!bonusActive&&Math.random()<.01;
+  if(egg)placeSymbol(board,EGG,1,x=>!["book","poison","hammer"].includes(x[0]));
+
+  const angel=!bonusActive&&Math.random()<.01;
+  if(angel)placeSymbol(board,ANGEL,1,x=>!["book","poison","hammer","egg"].includes(x[0]));
+
+  return{board,bookBonus,hammer,egg,angel,poisonCount:poison,filledCols};
 }
 function scaledPrize(base,bet){return Math.max(1,Math.round(Number(base||0)*(Number(bet)||1)/25));}
 function longest(row,id){let b=0,n=0;for(const x of row){if(x[0]===id){n++;b=Math.max(b,n);}else n=0;}return b;}
@@ -197,7 +215,7 @@ function css(){
  const s=document.createElement("style");s.id="ds-css";s.textContent=`
 .ds{min-height:100%;padding:10px 8px 90px;box-sizing:border-box;color:#fff;background:radial-gradient(circle at 50% 10%,#59147a,#07102b 38%,#020713);font-family:system-ui;transition:background .35s,box-shadow .35s}
 .ds.bonus-active{background:radial-gradient(circle at 50% 8%,#20c96b 0,#087a3b 34%,#043c21 72%,#01150c 100%);box-shadow:inset 0 0 70px #36ff8a55}
-.ds-top{display:flex;align-items:center;gap:8px}.ds-back{width:40px;height:40px;border-radius:12px;border:1px solid #25c8ff;background:#071a3c;color:#fff;font-size:24px}.ds-title{flex:1;font-size:20px;font-weight:1000}.ds-bal{padding:8px 10px;border:1px solid #2e8cff;border-radius:14px;background:#071836;font-weight:900}
+.ds-top{display:flex;align-items:center;gap:8px}.ds-user{font-size:10px;font-weight:900;opacity:.92;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ds-shield{font-size:22px;filter:drop-shadow(0 0 7px #fff)}.ds-back{width:40px;height:40px;border-radius:12px;border:1px solid #25c8ff;background:#071a3c;color:#fff;font-size:24px}.ds-title{flex:1;font-size:20px;font-weight:1000}.ds-bal{padding:8px 10px;border:1px solid #2e8cff;border-radius:14px;background:#071836;font-weight:900}
 .ds-hero{text-align:center;margin:5px 0 9px}.ds-hero b{display:block;font-size:34px;color:#8edaff;text-shadow:0 0 16px #1680ff;line-height:.9}.ds-hero strong{font-size:26px;color:#ffc34d;text-shadow:0 0 13px #ff6a00}
 .ds-meters{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:8px}.ds-meter{padding:5px 2px;text-align:center;border:1px solid var(--c);border-radius:10px;background:#071027}.ds-meter .ic{font-size:22px}.ds-meter b{display:block;font-size:8px}.ds-bar{height:6px;border-radius:8px;overflow:hidden;background:#0c1d39;border:1px solid #ffffff30}.ds-bar i{display:block;height:100%;background:var(--c)}.ds-meter small{font-size:8px}
 .ds-wrap{padding:6px;border-radius:18px;background:linear-gradient(135deg,#d34cff,#2c79ff,#ffbd3f);box-shadow:0 0 22px #6a27d7;overflow:hidden}.ds-reels{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:5px;border:2px solid #ffd569;border-radius:14px;background:#020817;overflow:hidden}.ds-cell{aspect-ratio:1;display:grid;place-items:center;font-size:clamp(29px,10vw,55px);background:linear-gradient(#0a1940,#03091d);border:1px solid #20366f;will-change:transform,opacity}
@@ -229,6 +247,7 @@ function css(){
 .ds-book-overlay.done .ds-book-symbol{animation:bookChosen .55s ease-in-out 2}
 @keyframes bookFlip{from{transform:perspective(500px) rotateY(-34deg) scale(.94)}to{transform:perspective(500px) rotateY(34deg) scale(1.05)}}
 @keyframes bookChosen{50%{transform:scale(1.23);filter:drop-shadow(0 0 30px #fff)}}
+.ds-special{position:fixed;inset:0;z-index:2147483644;display:grid;place-items:center;background:rgba(0,0,0,.68);pointer-events:none}.ds-special.hidden{display:none}.ds-special-card{padding:22px 28px;border-radius:24px;background:radial-gradient(circle,#fff7b0,#9b6b00 70%);border:4px solid #ffe66e;text-align:center;color:#241500;font-weight:1000;box-shadow:0 0 55px #ffd700}.ds-special-icon{display:block;font-size:110px;line-height:1;animation:specialPop .35s ease-in-out 4 alternate}.ds-special-text{display:block;font-size:18px;margin-top:9px}@keyframes specialPop{to{transform:scale(1.18) rotate(5deg)}}
 .ds-msg{min-height:42px;margin:8px 0 6px;padding:7px;border:1px solid #318eff66;border-radius:12px;background:#06132c;text-align:center;font-size:11px;display:grid;place-items:center}.ds-msg.win{border-color:#ffd64e;color:#fff2a3}
 .ds-controls{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:6px;align-items:center}.ds-bet,.ds-auto{min-height:60px;border:1px solid #3388f5;border-radius:16px;background:#071a3c;color:#fff;font-weight:900}.ds-bet{display:grid;grid-template-columns:30px 1fr 30px;align-items:center;padding:4px;text-align:center}.ds-bet button{width:29px;height:29px;border-radius:50%;border:1px solid #4b91ff;background:#133574;color:#fff;font-size:18px}.ds-bet small{font-size:9px}.ds-bet b{display:block}
 .ds-spin{aspect-ratio:1;max-width:108px;width:100%;justify-self:center;border-radius:50%;border:4px solid #ff7cf5;background:radial-gradient(circle,#dc42ff,#6f25df 65%,#271064);color:#fff;font-weight:1000;box-shadow:0 0 22px #a738ff}.ds-auto.on{background:linear-gradient(135deg,#7629e8,#246aff)}
@@ -236,9 +255,9 @@ function css(){
 `;document.head.appendChild(s);
 }
 export function startDiamondSlotGame({root,onBack}={}){
- if(!root)return;css();let st=load(),g=visualGrid(),busy=false,timer=null,autoTimer=null,bonusCols=new Set(),hammerPending=false,bookPending=false,bonusRoundActive=false;st.auto=false;
+ if(!root)return;css();let st=load(),g=visualGrid(),busy=false,timer=null,autoTimer=null,finishTimer=null,pendingResult=null,bonusCols=new Set(),hammerPending=false,bookPending=false,bonusRoundActive=false,walletBusy=false,walletRevision=0;st.auto=false;
  root.innerHTML=`<section class="ds">
- <div class="ds-top"><button id="dsBack" class="ds-back">‹</button><div class="ds-title">💎 DIAMOND</div><div class="ds-bal">💎 <span id="bal"></span></div></div>
+ <div class="ds-top"><button id="dsBack" class="ds-back">‹</button><div class="ds-title">💎 DIAMOND</div><div id="dsUser" class="ds-user">User</div><div id="dsShield" class="ds-shield"></div><div class="ds-bal">💎 <span id="bal"></span></div></div>
  <div class="ds-hero"><b>DIAMOND</b><strong>SLOT</strong></div>
  <div class="ds-meters">${SYMS.map(x=>`<div class="ds-meter" style="--c:${x[0]==="diamond"?"#19c7ff":x[0]==="heart"?"#ff3186":x[0]==="star"?"#ffc83d":x[0]==="apple"?"#31e86a":"#d85cff"}"><div class="ic">${x[1]}</div><b>${x[0].toUpperCase()}</b><div class="ds-bar"><i id="b-${x[0]}"></i></div><small id="m-${x[0]}"></small></div>`).join("")}</div>
  <div id="bonusBanner" class="ds-bonus hidden"></div>
@@ -247,12 +266,33 @@ export function startDiamondSlotGame({root,onBack}={}){
  <div class="ds-controls"><div class="ds-bet"><button id="minus">−</button><small>BAST<b id="bet"></b></small><button id="plus">+</button></div><button id="spin" class="ds-spin">↻<br>RROTULLO</button><button id="auto" class="ds-auto">↻ AUTO</button></div>
  <div id="dsInfo" class="ds-info"></div>
  <div id="hammerOverlay" class="ds-hammer hidden"><div class="ds-hammer-fall"><span class="hammer-icon">🔨</span><span class="hammer-bam">BAM! BAM!</span></div></div>
- <div id="bookOverlay" class="ds-book-overlay hidden"><div class="ds-book-card"><span class="ds-book-icon">📖</span><span id="bookSymbol" class="ds-book-symbol">💎</span><span id="bookText" class="ds-book-text">BONUS PO ZGJEDH SIMBOLIN…</span></div></div></section>`;
+ <div id="bookOverlay" class="ds-book-overlay hidden"><div class="ds-book-card"><span class="ds-book-icon">📖</span><span id="bookSymbol" class="ds-book-symbol">💎</span><span id="bookText" class="ds-book-text">BONUS PO ZGJEDH SIMBOLIN…</span></div></div><div id="specialOverlay" class="ds-special hidden"><div class="ds-special-card"><span id="specialIcon" class="ds-special-icon">🥚</span><span id="specialText" class="ds-special-text"></span></div></div></section>`;
  const sh=root.querySelector(".ds"),re=root.querySelector("#reels"),msg=root.querySelector("#msg"),bal=root.querySelector("#bal"),bet=root.querySelector("#bet"),sp=root.querySelector("#spin"),au=root.querySelector("#auto");
- const minus=root.querySelector("#minus"),plus=root.querySelector("#plus"),bonusBanner=root.querySelector("#bonusBanner"),infoEl=root.querySelector("#dsInfo"),hammerOverlay=root.querySelector("#hammerOverlay"),bookOverlay=root.querySelector("#bookOverlay"),bookSymbol=root.querySelector("#bookSymbol"),bookText=root.querySelector("#bookText");
+ const minus=root.querySelector("#minus"),plus=root.querySelector("#plus"),bonusBanner=root.querySelector("#bonusBanner"),infoEl=root.querySelector("#dsInfo"),hammerOverlay=root.querySelector("#hammerOverlay"),bookOverlay=root.querySelector("#bookOverlay"),bookSymbol=root.querySelector("#bookSymbol"),bookText=root.querySelector("#bookText"),userEl=root.querySelector("#dsUser"),shieldEl=root.querySelector("#dsShield"),specialOverlay=root.querySelector("#specialOverlay"),specialIcon=root.querySelector("#specialIcon"),specialText=root.querySelector("#specialText");
+ const slotCtx=window.DiamondSlotContext||{};
+ userEl.textContent=(slotCtx.name?.()||localStorage.getItem("pajaziti-global-user-name")||"User").trim()||"User";
+ async function walletLoad(){
+   const client=slotCtx.client?.(),device=slotCtx.device?.();if(!client||!device)return;
+   try{const out=await client.rpc("diamond_slot_wallet_get",{p_device:device,p_initial:Math.max(0,Math.floor(st.bal||2850))});if(!out.error&&out.data){st.bal=Math.max(0,Math.floor(Number(out.data.balance)||0));walletRevision=Number(out.data.revision)||0;rs();}}catch(_){}
+ }
+ async function walletDelta(delta){
+   const d=Math.trunc(Number(delta)||0);if(!d)return;
+   const client=slotCtx.client?.(),device=slotCtx.device?.();if(!client||!device)return;
+   try{walletBusy=true;const out=await client.rpc("diamond_slot_wallet_apply_delta",{p_device:device,p_delta:d,p_initial:2850});if(!out.error&&out.data){st.bal=Math.max(0,Math.floor(Number(out.data.balance)||0));walletRevision=Number(out.data.revision)||walletRevision;rs();}}catch(_){}finally{walletBusy=false;}
+ }
+ async function walletRefresh(){
+   const client=slotCtx.client?.(),device=slotCtx.device?.();if(!client||!device||walletBusy)return;
+   try{const out=await client.rpc("diamond_slot_wallet_get",{p_device:device,p_initial:Math.max(0,Math.floor(st.bal||2850))});const rev=Number(out.data?.revision)||0;if(!out.error&&out.data&&rev>walletRevision){st.bal=Math.max(0,Math.floor(Number(out.data.balance)||0));walletRevision=rev;rs();}}catch(_){}
+ }
+ function switchBetMeters(nextBet){
+   st.metersByBet[String(st.bet)]={...emptyMeters(),...st.m};
+   st.bet=nextBet;
+   st.m={...emptyMeters(),...(st.metersByBet[String(nextBet)]||{})};
+   st.metersByBet[String(nextBet)]={...st.m};
+ }
  function rg(){re.innerHTML=g.flat().map((x,i)=>`<div class="ds-cell ${bonusCols.has(i%5)?"bonus-col":""}" style="--col:${i%5}">${x[1]}</div>`).join("");}
  function rs(){
-   bal.textContent=Math.floor(st.bal).toLocaleString();bet.textContent=st.bet+" 💎";
+   bal.textContent=Math.floor(st.bal).toLocaleString();bet.textContent=st.bet+" 💎";shieldEl.textContent=st.angelShield>0?"👼":"";sp.innerHTML=busy?"■<br>NDAL":"↻<br>RROTULLO";
    SYMS.forEach(x=>{
      const v=st.m[x[0]]||0;
      root.querySelector("#m-"+x[0]).textContent=v+" / "+x[2];
@@ -272,7 +312,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    minus.disabled=!!bonusOn||busy;plus.disabled=!!bonusOn||busy;
    au.classList.toggle("on",st.auto);au.textContent=st.auto?"■ NDAL AUTO":"↻ AUTO";
    const b=st.bet;
-   infoEl.textContent="BAST "+b+" 💎 · FULL: 💎50 ❤️30 ⭐25 🍎20 🍓15 · BAST 1 me 2 të lidhura: 💎10 ❤️5 ⭐3 🍎2 🍓1 · 🔨 7% · 📖 3 libra 5% · 🧪 1=pa efekt, 2=−1, 3+=0";
+   infoEl.textContent="BAST "+b+" 💎 · çdo bast ka shkallët e veta · 🥚 1%=10×bast · 👼 1%=mbrojtje · 🔨 7% · 📖 3 libra 5% · 🧪 1=pa efekt, 2=−1, 3+=0";
    save(st);
  }
  function updateMetersOnly(counts){
@@ -282,6 +322,10 @@ export function startDiamondSlotGame({root,onBack}={}){
  function showHammer(){
    if(bonusRoundActive||(st.bonusSpins||0)>0)return;
    hammerPending=true;
+   if(st.angelShield>0){
+     st.angelShield=0;msg.textContent="👼 Melaqja të mbrojti nga çekiqi.";msg.classList.add("win");playSlotWinSound();rs();
+     setTimeout(()=>{hammerPending=false;rs();if(st.auto&&!busy&&!bookPending)autoTimer=setTimeout(spin,260);},650);return;
+   }
 
    for(const x of SYMS)st.m[x[0]]=0;
    rs();
@@ -320,6 +364,9 @@ export function startDiamondSlotGame({root,onBack}={}){
      return;
    }
 
+   if(n>=2&&st.angelShield>0){
+     st.angelShield=0;a.push("👼 Melaqja të mbrojti nga xeheri");slotBeep(740,.16,.16,"sine",0);slotBeep(980,.20,.17,"sine",.14);return;
+   }
    if(n===2){
      for(const x of SYMS)st.m[x[0]]=Math.max(0,(Number(st.m[x[0]])||0)-1);
      a.push("🧪🧪 −1 nga çdo shkallë");
@@ -333,6 +380,18 @@ export function startDiamondSlotGame({root,onBack}={}){
    slotBeep(130,.20,.20,"sawtooth",0);
    slotBeep(90,.28,.22,"square",.20);
    slotBeep(65,.34,.24,"square",.48);
+ }
+
+ function showSpecial(icon,text,duration=1150){
+   specialIcon.textContent=icon;specialText.textContent=text;specialOverlay.classList.remove("hidden");
+   setTimeout(()=>specialOverlay.classList.add("hidden"),duration);
+ }
+ function applyEgg(spinBet,a){
+   const reward=Math.max(1,10*(Number(spinBet)||1));st.bal+=reward;a.push("🥚 VEZA E ARTË +"+reward+" 💎");
+   showSpecial("🥚","BONUS +"+reward+" 💎",1200);slotBeep(520,.12,.17,"sine",0);slotBeep(780,.16,.18,"sine",.14);slotBeep(1040,.22,.20,"sine",.30);walletDelta(reward);
+ }
+ function applyAngel(a){
+   st.angelShield=1;a.push("👼 Mbrojtje aktive");showSpecial("👼","MBROJTJE NGA 🔨 / 🧪",1200);slotBeep(660,.14,.14,"sine",0);slotBeep(990,.24,.18,"sine",.16);
  }
 
  function showBookBonus(chosen,spinBet){
@@ -403,6 +462,9 @@ export function startDiamondSlotGame({root,onBack}={}){
    }
 
    st.bal+=win;
+   if(win>0)walletDelta(win);
+   if(meta.egg)applyEgg(spinBet,a);
+   if(meta.angel)applyAngel(a);
 
    if(meta.bookBonus){
      const chosen=SYMS[Math.floor(Math.random()*SYMS.length)];
@@ -411,7 +473,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    }
 
    if(st.bal<BETS[0]&&(st.free||0)<=0&&(st.bonusSpins||0)<=0){
-     st.bal=500;
+     const refill=500-st.bal;st.bal=500;if(refill>0)walletDelta(refill);
      a.push("🎁 +500 diamante për të vazhduar");
    }
 
@@ -430,102 +492,47 @@ export function startDiamondSlotGame({root,onBack}={}){
 
    if(meta.hammer&&!meta.bonusActive)showHammer();
  }
+ function finishSpinNow(){
+   if(!busy||!pendingResult)return;
+   if(timer){clearInterval(timer);timer=null;}if(finishTimer){clearTimeout(finishTimer);finishTimer=null;}stopSlotSpinSound();
+   const data=pendingResult;pendingResult=null;g=data.result.board;bonusCols=data.result.filledCols;rg();sh.classList.remove("spinning");busy=false;
+   try{
+     evalSpin({bookBonus:data.result.bookBonus,hammer:data.result.hammer,poisonCount:data.result.poisonCount,egg:data.result.egg,angel:data.result.angel,spinBet:data.spinBet,bonusActive:data.bonusActive});
+   }catch(error){console.error("DIAMOND SLOT eval error",error);msg.textContent="Gabimi i lojës u kap. Provo rrotullimin përsëri.";msg.classList.remove("win");}
+   if(data.bonusActive&&st.bonusSpins<=0){bonusRoundActive=false;st.bonusSymbol="";st.bonusBet=0;stopBonusMusic();rs();}
+   else if(!data.bonusActive){bonusRoundActive=false;rs();}
+   if(st.auto&&!hammerPending&&!bookPending)autoTimer=setTimeout(spin,850);
+ }
  function spin(){
-   if(busy||hammerPending||bookPending)return;
-
-   const bonusActive=(st.bonusSpins||0)>0&&!!SYM_BY_ID[st.bonusSymbol];
-   bonusRoundActive=!!bonusActive;
+   if(busy){finishSpinNow();return;}
+   if(hammerPending||bookPending)return;
+   const bonusActive=(st.bonusSpins||0)>0&&!!SYM_BY_ID[st.bonusSymbol];bonusRoundActive=!!bonusActive;
    const spinBet=bonusActive?(st.bonusBet||st.bet):st.bet;
-
    let poisonCount=0;
    if(!bonusActive){
      const pr=Math.random();
-     if(pr<.01){
-       poisonCount=3;
-     }else if(pr<.06){
-       poisonCount=2;
-     }else{
-       st.poisonCounter=(Number(st.poisonCounter)||0)+1;
-       if(st.poisonCounter>=Math.max(3,Math.min(4,Number(st.poisonNext)||3))){
-         poisonCount=1;
-       }
-     }
-
-     if(poisonCount>0){
-       st.poisonCounter=0;
-       st.poisonNext=Math.random()<.5?3:4;
-     }
+     if(pr<.01)poisonCount=3;else if(pr<.06)poisonCount=2;else{st.poisonCounter=(Number(st.poisonCounter)||0)+1;if(st.poisonCounter>=Math.max(3,Math.min(4,Number(st.poisonNext)||3)))poisonCount=1;}
+     if(poisonCount>0){st.poisonCounter=0;st.poisonNext=Math.random()<.5?3:4;}
    }
-
    if(!bonusActive&&(st.free||0)<=0&&st.bal<st.bet){
-     if(st.bal<BETS[0]){
-       st.bal=500;st.auto=false;rs();
-       msg.textContent="🎁 More 500 diamante për të vazhduar.";
-       msg.classList.add("win");playSlotWinSound();return;
-     }
+     if(st.bal<BETS[0]){const refill=500-st.bal;st.bal=500;st.auto=false;rs();if(refill>0)walletDelta(refill);msg.textContent="🎁 More 500 diamante për të vazhduar.";msg.classList.add("win");playSlotWinSound();return;}
      st.auto=false;rs();msg.textContent="Nuk ke diamante të mjaftueshme.";return;
    }
-
    busy=true;bonusCols=new Set();sh.classList.add("spinning");
-   if(bonusActive)st.bonusSpins=Math.max(0,st.bonusSpins-1);
-   else if((st.free||0)>0)st.free--;
-   else st.bal-=st.bet;
-
-   rs();msg.textContent=bonusActive?"📖 BONUS po rrotullohet…":"Po rrotullohet…";msg.classList.remove("win");
-   startSlotSpinSound();
-
-   let n=0;
-   timer=setInterval(()=>{
-     g=visualGrid();bonusCols=new Set();rg();
-     if(++n>12){clearInterval(timer);timer=null;}
-   },70);
-
-   setTimeout(()=>{
-     if(timer){clearInterval(timer);timer=null;}
-     stopSlotSpinSound();
-
-     const result=buildFinalGrid({bonusActive,bonusSymbol:st.bonusSymbol,poisonCount});
-     g=result.board;bonusCols=result.filledCols;rg();
-     sh.classList.remove("spinning");busy=false;
-
-     try{
-       evalSpin({bookBonus:result.bookBonus,hammer:result.hammer,poisonCount:result.poisonCount,spinBet,bonusActive});
-     }catch(error){
-       console.error("DIAMOND SLOT eval error",error);
-       msg.textContent="Gabimi i lojës u kap. Provo rrotullimin përsëri.";
-       msg.classList.remove("win");
-       if(result.hammer&&!bonusActive)showHammer();
-       if(result.poisonCount&&!bonusActive){
-         const temp=[];
-         applyPoison(result.poisonCount,temp);
-         rs();
-       }
-       if(result.bookBonus&&!bonusActive){
-         const chosen=SYMS[Math.floor(Math.random()*SYMS.length)];
-         showBookBonus(chosen,spinBet);
-       }
-     }
-
-     if(bonusActive&&st.bonusSpins<=0){
-       bonusRoundActive=false;
-       st.bonusSymbol="";st.bonusBet=0;
-       stopBonusMusic();
-       rs();
-     }else if(!bonusActive){
-       bonusRoundActive=false;
-       rs();
-     }
-
-     if(st.auto&&!hammerPending&&!bookPending)autoTimer=setTimeout(spin,850);
-   },980);
+   if(bonusActive)st.bonusSpins=Math.max(0,st.bonusSpins-1);else if((st.free||0)>0)st.free--;else{st.bal-=st.bet;walletDelta(-st.bet);}
+   const result=buildFinalGrid({bonusActive,bonusSymbol:st.bonusSymbol,poisonCount});pendingResult={result,spinBet,bonusActive};
+   rs();msg.textContent=bonusActive?"📖 BONUS po rrotullohet…":"Po rrotullohet… · shtype përsëri për NDAL";msg.classList.remove("win");startSlotSpinSound();
+   timer=setInterval(()=>{g=visualGrid();bonusCols=new Set();rg();},70);
+   finishTimer=setTimeout(finishSpinNow,980);
  }
  function cb(d){
    if(busy||hammerPending||(st.bonusSpins||0)>0)return;
    let i=BETS.indexOf(st.bet);if(i<0)i=BETS.indexOf(nearestBet(st.bet));
-   i=Math.max(0,Math.min(BETS.length-1,i+d));st.bet=BETS[i];rs();
+   i=Math.max(0,Math.min(BETS.length-1,i+d));const next=BETS[i];if(next!==st.bet)switchBetMeters(next);rs();
  }
  minus.onclick=()=>cb(-1);plus.onclick=()=>cb(1);sp.onclick=spin;
  au.onclick=()=>{if(hammerPending)return;st.auto=!st.auto;rs();if(st.auto&&!busy)spin();};
- root.querySelector("#dsBack").onclick=()=>{st.auto=false;stopSlotSpinSound();stopBonusMusic();if(timer)clearInterval(timer);if(autoTimer)clearTimeout(autoTimer);save(st);onBack?.();};
- rg();rs();if((st.bonusSpins||0)>0&&SYM_BY_ID[st.bonusSymbol])startBonusMusic();
+ const walletPoll=setInterval(()=>walletRefresh(),5000);
+ root.querySelector("#dsBack").onclick=()=>{st.auto=false;stopSlotSpinSound();stopBonusMusic();if(timer)clearInterval(timer);if(autoTimer)clearTimeout(autoTimer);if(finishTimer)clearTimeout(finishTimer);clearInterval(walletPoll);save(st);onBack?.();};
+ rg();rs();walletLoad();if((st.bonusSpins||0)>0&&SYM_BY_ID[st.bonusSymbol])startBonusMusic();
 }

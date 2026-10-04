@@ -25,8 +25,8 @@ android {
         applicationId project.findProperty("appId") ?: "com.pajaziti.familja"
         minSdk 23
         targetSdk 35
-        versionCode 2100000050
-        versionName "6.40"
+        versionCode 2100000051
+        versionName "6.41"
         buildConfigField "boolean", "ADMIN_BUILD", adminBuild ? "true" : "false"
         manifestPlaceholders = [appLabel: adminBuild ? "DIAMOND ADMIN" : "DIAMOND"]
     }

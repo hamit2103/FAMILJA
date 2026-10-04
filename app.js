@@ -1688,6 +1688,13 @@ window.DiamondNearbyContext={
   ensureRegistered:()=>prepareNearbyDevice()
 };
 
+window.DiamondSlotContext={
+  client:()=>supabase,
+  device:()=>presenceDeviceId,
+  name:()=>isAdmin()?"Administrator":globalUserName(),
+  isAdmin:()=>isAdmin()
+};
+
 function showAdminMessageBanner(text){
   if(!adminMessageBanner||!adminMessageBannerText||!text)return;
   adminMessageBannerText.textContent=text;
@@ -2153,6 +2160,9 @@ async function loadAdminUsers(){
     const result=await supabase.rpc("user_profile_admin_list_health");
     if(result.error) throw result.error;
     const users=Array.isArray(result.data)?result.data:[];
+    const walletResult=await supabase.rpc("diamond_slot_wallet_admin_list");
+    const walletRows=Array.isArray(walletResult.data)?walletResult.data:[];
+    const walletMap=new Map(walletRows.map(w=>[String(w.device_id||""),Number(w.balance||0)]));
     const online=adminOnlineDeviceSet();
     if(adminUserCount)adminUserCount.textContent=String(users.length);
     await renderAdminModuleAccessControl(users);
@@ -2254,7 +2264,28 @@ async function loadAdminUsers(){
         setTimeout(()=>adminMessageText?.focus(),250);
       };
 
-      menu.append(renameWrap,block,modules,message);
+      const slotWallet=document.createElement("div");
+      slotWallet.className="admin-user-rename-inline";
+      const walletLabel=document.createElement("small");
+      walletLabel.textContent="🎰 DIAMOND SLOT: "+Number(walletMap.get(String(p.device_id||""))||2850).toLocaleString()+" 💎";
+      walletLabel.style.width="100%";
+      const walletInput=document.createElement("input");
+      walletInput.type="number";walletInput.step="1";walletInput.placeholder="p.sh. 500 ose -200";
+      const walletBtn=document.createElement("button");
+      walletBtn.className="secondary";walletBtn.type="button";walletBtn.textContent="💎 Ndrysho";
+      walletBtn.onclick=async()=>{
+        const delta=Math.trunc(Number(walletInput.value)||0);
+        if(!delta){showMessage(adminUsersStatus,"Shkruaj sa diamante do të shtosh ose heqësh.","error");return;}
+        walletBtn.disabled=true;
+        const out=await supabase.rpc("diamond_slot_wallet_admin_adjust",{p_device:p.device_id,p_delta:delta});
+        walletBtn.disabled=false;
+        if(out.error){showMessage(adminUsersStatus,out.error.message||"Gabim.","error");return;}
+        showMessage(adminUsersStatus,"Diamantet DIAMOND SLOT u ndryshuan.","success");
+        await loadAdminUsers();
+      };
+      slotWallet.append(walletLabel,walletInput,walletBtn);
+
+      menu.append(renameWrap,block,modules,message,slotWallet);
       actionsBtn.onclick=()=>{
         document.querySelectorAll(".admin-user-actions-panel").forEach(el=>{if(el!==menu)el.classList.add("hidden");});
         menu.classList.toggle("hidden");
