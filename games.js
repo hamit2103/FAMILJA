@@ -91,6 +91,11 @@ const UNIVERSAL_GAME_UI={
 };
 let universalGameFullscreen=false;
 let universalGameSyncQueued=false;
+let universalChromeTimer=null;
+let universalChromeHiddenForRun=false;
+function clearUniversalChromeTimer(){
+  if(universalChromeTimer){clearTimeout(universalChromeTimer);universalChromeTimer=null;}
+}
 function universalGameText(key){
   const l=localStorage.getItem(LANG_KEY)||"sq";
   return UNIVERSAL_GAME_UI[l]?.[key]||UNIVERSAL_GAME_UI.sq[key]||key;
@@ -153,12 +158,14 @@ function ensureUniversalGameStyle(){
   document.head.appendChild(style);
 }
 function universalExitSelector(){
-  return "#drBack,#daBack,#uckBack,#kgbk,#warBack,#warMultiBack,#warRetryBack,#tetrisBack,#timerBackGames,#leaveGame,#arcadeLeave";
+  return "#drBack,#daBack,#dsBack,#uckBack,#kgbk,#warBack,#warMultiBack,#warRetryBack,#tetrisBack,#timerBackGames,#leaveGame,#arcadeLeave";
 }
 function visibleRootButton(selector){
   return [...root.querySelectorAll(selector)].find(el=>el&&el.offsetParent!==null&&!el.disabled)||null;
 }
 async function deactivateUniversalGameFullscreen(){
+  clearUniversalChromeTimer();
+  universalChromeHiddenForRun=false;
   if(!universalGameFullscreen&&!document.getElementById("diamondUniversalGameChrome"))return;
   universalGameFullscreen=false;
   document.body.classList.remove("diamond-game-fullscreen-active");
@@ -197,6 +204,10 @@ async function restartUniversalGame(){
     const back=visibleRootButton("#daBack");if(back)back.click();
     setTimeout(()=>startDiamondAdventureGame(),20);return;
   }
+  if(selectedType==="diamondslot"){
+    const back=visibleRootButton("#dsBack");if(back)back.click();
+    setTimeout(()=>startDiamondSlotGame(),20);return;
+  }
   if(selectedType==="uck"){startUckGame();return;}
   if(selectedType==="diamondnations"){startDiamondNationsGame();return;}
   if(selectedType==="kingdom"){startKingdomGame();return;}
@@ -231,6 +242,7 @@ async function restartUniversalGame(){
   startPracticeForGame(selectedType);
 }
 function renderUniversalGameChrome(){
+  if(universalChromeHiddenForRun)return;
   let chrome=document.getElementById("diamondUniversalGameChrome");
   if(!chrome){
     chrome=document.createElement("div");
@@ -250,17 +262,30 @@ function renderUniversalGameChrome(){
   document.getElementById("diamondUniversalGameLeave").onclick=leaveUniversalGame;
   document.getElementById("diamondUniversalGameAgain").onclick=restartUniversalGame;
   document.getElementById("diamondControlLayoutBtn").onclick=openGameControlLayoutEditor;
+
+  clearUniversalChromeTimer();
+  universalChromeTimer=setTimeout(()=>{
+    if(!universalGameFullscreen)return;
+    universalChromeHiddenForRun=true;
+    document.getElementById("diamondUniversalGameChrome")?.remove();
+  },3000);
+
+  chrome.addEventListener("pointerdown",()=>{
+    clearUniversalChromeTimer();
+  },{once:true,capture:true});
 }
 async function activateUniversalGameFullscreen(){
   ensureUniversalGameStyle();
+  if(!universalGameFullscreen){
+    universalChromeHiddenForRun=false;
+    universalGameFullscreen=true;
+    document.body.classList.add("diamond-game-fullscreen-active");
+    try{
+      const el=document.documentElement;
+      if(!document.fullscreenElement&&el.requestFullscreen)await el.requestFullscreen({navigationUI:"hide"});
+    }catch(_){}
+  }
   renderUniversalGameChrome();
-  if(universalGameFullscreen)return;
-  universalGameFullscreen=true;
-  document.body.classList.add("diamond-game-fullscreen-active");
-  try{
-    const el=document.documentElement;
-    if(!document.fullscreenElement&&el.requestFullscreen)await el.requestFullscreen({navigationUI:"hide"});
-  }catch(_){}
 }
 function syncUniversalGameFullscreen(){
   universalGameSyncQueued=false;
@@ -676,6 +701,17 @@ const DIAMOND_RUN_INFO={
   ar:["Diamond Run","لعبة منصات أصلية من DIAMOND: اركض واقفز واجمع الألماس وتجنب الأعداء والعوائق وفعّل نقاط الحفظ حتى تصل إلى العلم. تحتوي على 5 مستويات تزداد صعوبة."]
 };
 for(const [code,data] of Object.entries(DIAMOND_RUN_INFO)){if(GAME_INFO[code])GAME_INFO[code].diamondrun=data;}
+const DIAMOND_SLOT_INFO={
+  sq:["DIAMOND SLOT","Rrotullo 5 kolona me 3 rreshta. Fitimet numërohen vetëm nga e majta drejt djathtas ose nga lart drejt poshtë. Shkallët 💎 ❤️ ⭐ 🍎 🍓 mbushen me çdo simbol që del."],
+  de:["DIAMOND SLOT","5 Walzen mit 3 Reihen. Gewinne zählen nur von links nach rechts oder von oben nach unten. Die Anzeigen 💎 ❤️ ⭐ 🍎 🍓 füllen sich mit jedem Symbol."],
+  tr:["DIAMOND SLOT","3 sıralı 5 makara. Kazançlar yalnızca soldan sağa veya yukarıdan aşağı sayılır. 💎 ❤️ ⭐ 🍎 🍓 göstergeleri çıkan sembollerle dolar."],
+  en:["DIAMOND SLOT","Spin 5 reels with 3 rows. Wins count only left-to-right or top-to-bottom. The 💎 ❤️ ⭐ 🍎 🍓 meters fill from every symbol shown."],
+  it:["DIAMOND SLOT","5 rulli con 3 righe. Le vincite contano solo da sinistra a destra o dall'alto verso il basso."],
+  hr:["DIAMOND SLOT","5 koluta s 3 reda. Dobici se računaju samo slijeva nadesno ili odozgo prema dolje."],
+  fr:["DIAMOND SLOT","5 rouleaux sur 3 rangées. Les gains comptent seulement de gauche à droite ou de haut en bas."],
+  ar:["DIAMOND SLOT","5 بكرات بثلاثة صفوف. تُحسب الأرباح فقط من اليسار إلى اليمين أو من الأعلى إلى الأسفل."]
+};
+for(const [code,data] of Object.entries(DIAMOND_SLOT_INFO)){if(GAME_INFO[code])GAME_INFO[code].diamondslot=data;}
 const DIAMOND_NATIONS_INFO={
   sq:["DIAMOND NATIONS","Lojë strategjie origjinale DIAMOND. Zgjidh territorin tënd, pushto fqinjët, rekruto ushtri, rrit mbrojtjen, përdor radar dhe Diamond Strike. Fiton kur pushton kryeqytetin e kompjuterit."],
   de:["DIAMOND NATIONS","Originales DIAMOND-Strategiespiel. Wähle dein Gebiet, erobere Nachbarn, rekrutiere Armee, verstärke die Verteidigung und nutze Radar sowie Diamond Strike. Du gewinnst durch die Eroberung der gegnerischen Hauptstadt."],
@@ -731,6 +767,7 @@ function startPracticeForGame(game=selectedType){
   if(game==="kingdom"){selectedType=game;startKingdomGame();return;}
   if(game==="uck"){selectedType=game;startUckGame();return;}
   if(game==="diamondrun"){selectedType=game;startDiamondRunGame();return;}
+  if(game==="diamondslot"){selectedType=game;startDiamondSlotGame();return;}
   if(game==="diamondadventure"){selectedType=game;startDiamondAdventureGame();return;}
 }
 
@@ -3137,6 +3174,7 @@ function renderLobby(msg=""){
                 <option value="diamondrun">Diamond Run</option>
                 <option value="diamondadventure">Diamond Adventure</option>
                 <option value="diamondnations">DIAMOND NATIONS</option>
+                <option value="diamondslot">DIAMOND SLOT</option>
               </select>
               <input id="gameBlockUntil" type="datetime-local">
               <div class="game-block-actions">
@@ -3363,7 +3401,7 @@ async function startDiamondNationsGame(){
 async function startDiamondSlotGame(){
   stopGameMusic();
   try{
-    const mod=await import("./diamond-slot.js?v=1");
+    const mod=await import("./diamond-slot.js?v=2");
     mod.startDiamondSlotGame({root,onBack:()=>{selectedType="";renderLobby();}});
   }catch(error){
     console.warn("diamond slot",error);
