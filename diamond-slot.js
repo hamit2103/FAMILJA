@@ -160,15 +160,15 @@ function connectedSymbolGroups(board){
   return groups;
 }
 
-function fillMeter(id,count){
+function fillMeter(state,id,count){
   const cap=SYM_BY_ID[id]?.[2]||0;
-  if(!cap)return;
-  st.m[id]=Math.min(cap,(Number(st.m[id])||0)+Math.max(0,Number(count)||0));
+  if(!cap||!state?.m)return;
+  state.m[id]=Math.min(cap,(Number(state.m[id])||0)+Math.max(0,Number(count)||0));
 }
-function meterConnectedReward(id,count,bet){
+function meterConnectedReward(state,id,count,bet){
   const cap=SYM_BY_ID[id]?.[2]||0;
-  if(!cap||count<2)return 0;
-  if((Number(st.m[id])||0)<cap)return 0;
+  if(!cap||count<2||!state?.m)return 0;
+  if((Number(state.m[id])||0)<cap)return 0;
   return Math.round(cap*(count/2)*(Number(bet)||1));
 }
 function css(){
@@ -255,7 +255,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    save(st);
  }
  function updateMetersOnly(counts){
-   for(const x of SYMS)fillMeter(x[0],counts[x[0]]||0);
+   for(const x of SYMS)fillMeter(st,x[0],counts[x[0]]||0);
  }
 
  function showHammer(){
@@ -344,7 +344,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    // Çdo grup i lidhur numërohet vetëm një herë.
    for(const group of connectedSymbolGroups(g)){
      if(group.count<2)continue;
-     const p=meterConnectedReward(group.id,group.count,spinBet);
+     const p=meterConnectedReward(st,group.id,group.count,spinBet);
      if(p>0){
        win+=p;
        const icon=SYM_BY_ID[group.id]?.[1]||"";
@@ -418,7 +418,18 @@ export function startDiamondSlotGame({root,onBack}={}){
      g=result.board;bonusCols=result.filledCols;rg();
      sh.classList.remove("spinning");busy=false;
 
-     evalSpin({bookBonus:result.bookBonus,hammer:result.hammer,spinBet,bonusActive});
+     try{
+       evalSpin({bookBonus:result.bookBonus,hammer:result.hammer,spinBet,bonusActive});
+     }catch(error){
+       console.error("DIAMOND SLOT eval error",error);
+       msg.textContent="Gabimi i lojës u kap. Provo rrotullimin përsëri.";
+       msg.classList.remove("win");
+       if(result.hammer&&!bonusActive)showHammer();
+       if(result.bookBonus&&!bonusActive){
+         const chosen=SYMS[Math.floor(Math.random()*SYMS.length)];
+         showBookBonus(chosen,spinBet);
+       }
+     }
 
      if(bonusActive&&st.bonusSpins<=0){
        bonusRoundActive=false;
