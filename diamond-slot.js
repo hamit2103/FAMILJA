@@ -65,7 +65,7 @@ function buildFinalGrid({bonusActive=false,bonusSymbol=""}={}){
     }
   }
 
-  const hammer=!bonusActive&&Math.random()<.03;
+  const hammer=!bonusActive&&Math.random()<.07;
   if(hammer)placeSymbol(board,HAMMER,1,x=>x[0]!=="book");
 
   return{board,bookBonus,hammer,filledCols};
@@ -73,7 +73,24 @@ function buildFinalGrid({bonusActive=false,bonusSymbol=""}={}){
 function scaledPrize(base,bet){return Math.max(1,Math.round(Number(base||0)*(Number(bet)||1)/25));}
 function longest(row,id){let b=0,n=0;for(const x of row){if(x[0]===id){n++;b=Math.max(b,n);}else n=0;}return b;}
 
-let slotAudio=null,slotSpinToneTimer=null;
+let slotAudio=null,slotSpinToneTimer=null,slotBonusMusicTimer=null,slotBonusMusicStep=0;
+function stopBonusMusic(){
+  if(slotBonusMusicTimer){clearInterval(slotBonusMusicTimer);slotBonusMusicTimer=null;}
+  slotBonusMusicStep=0;
+}
+function startBonusMusic(){
+  stopBonusMusic();
+  const melody=[392,523,659,523,440,587,698,587];
+  const play=()=>{
+    if(localStorage.getItem("diamond-game-sound-master")==="off")return;
+    const f=melody[slotBonusMusicStep%melody.length];
+    slotBeep(f,.22,.085,"triangle",0);
+    if(slotBonusMusicStep%2===0)slotBeep(f/2,.18,.045,"sine",.02);
+    slotBonusMusicStep++;
+  };
+  play();
+  slotBonusMusicTimer=setInterval(play,360);
+}
 function slotAudioContext(){
   if(localStorage.getItem("diamond-game-sound-master")==="off")return null;
   try{
@@ -86,7 +103,7 @@ function slotAudioContext(){
     return slotAudio;
   }catch(_){return null;}
 }
-function slotBeep(freq,duration=.05,volume=.035,type="square",delay=0){
+function slotBeep(freq,duration=.05,volume=.08,type="square",delay=0){
   const ctx=slotAudioContext();if(!ctx)return;
   try{
     const osc=ctx.createOscillator(),gain=ctx.createGain(),t=ctx.currentTime+delay;
@@ -98,12 +115,12 @@ function slotBeep(freq,duration=.05,volume=.035,type="square",delay=0){
 }
 function startSlotSpinSound(){
   stopSlotSpinSound();let n=0;
-  slotSpinToneTimer=setInterval(()=>{slotBeep(190+(n%7)*35,.045,.025,"square");n++;},75);
+  slotSpinToneTimer=setInterval(()=>{slotBeep(190+(n%7)*35,.055,.065,"square");n++;},75);
 }
 function stopSlotSpinSound(){if(slotSpinToneTimer){clearInterval(slotSpinToneTimer);slotSpinToneTimer=null;}}
 function playSlotWinSound(){
-  slotBeep(523,.10,.07,"sine",0);slotBeep(659,.10,.07,"sine",.10);
-  slotBeep(784,.12,.08,"sine",.20);slotBeep(1047,.22,.09,"sine",.32);
+  slotBeep(523,.11,.14,"sine",0);slotBeep(659,.11,.14,"sine",.10);
+  slotBeep(784,.14,.16,"sine",.20);slotBeep(1047,.25,.18,"sine",.34);
 }
 function leftLine(row){
   const id=row[0][0];let n=1;
@@ -153,6 +170,16 @@ function css(){
   70%{top:50%;transform:translateX(-50%) rotate(-8deg) scale(1.05)}
   100%{top:115%;transform:translateX(-50%) rotate(18deg) scale(.88);opacity:.15}
 }
+.ds-book-overlay{position:fixed;inset:0;z-index:2147483645;display:grid;place-items:center;background:rgba(2,10,18,.82);backdrop-filter:blur(5px)}
+.ds-book-overlay.hidden{display:none}
+.ds-book-card{width:min(82vw,340px);padding:20px 16px;border:3px solid #f7d65b;border-radius:24px;background:radial-gradient(circle at 50% 25%,#1f8f51,#073a22 62%,#02190f);box-shadow:0 0 48px #30ff8c88;text-align:center;color:#fff}
+.ds-book-icon{font-size:108px;line-height:1;display:block;transform-origin:center;animation:bookFlip .22s ease-in-out infinite alternate;filter:drop-shadow(0 0 20px #ffe46a)}
+.ds-book-symbol{font-size:82px;line-height:1.05;display:block;margin-top:8px;filter:drop-shadow(0 0 18px #fff6)}
+.ds-book-text{display:block;margin-top:10px;font-size:17px;font-weight:1000;letter-spacing:.5px}
+.ds-book-overlay.done .ds-book-icon{animation:none;transform:scale(1.05)}
+.ds-book-overlay.done .ds-book-symbol{animation:bookChosen .55s ease-in-out 2}
+@keyframes bookFlip{from{transform:perspective(500px) rotateY(-34deg) scale(.94)}to{transform:perspective(500px) rotateY(34deg) scale(1.05)}}
+@keyframes bookChosen{50%{transform:scale(1.23);filter:drop-shadow(0 0 30px #fff)}}
 .ds-msg{min-height:42px;margin:8px 0 6px;padding:7px;border:1px solid #318eff66;border-radius:12px;background:#06132c;text-align:center;font-size:11px;display:grid;place-items:center}.ds-msg.win{border-color:#ffd64e;color:#fff2a3}
 .ds-controls{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:6px;align-items:center}.ds-bet,.ds-auto{min-height:60px;border:1px solid #3388f5;border-radius:16px;background:#071a3c;color:#fff;font-weight:900}.ds-bet{display:grid;grid-template-columns:30px 1fr 30px;align-items:center;padding:4px;text-align:center}.ds-bet button{width:29px;height:29px;border-radius:50%;border:1px solid #4b91ff;background:#133574;color:#fff;font-size:18px}.ds-bet small{font-size:9px}.ds-bet b{display:block}
 .ds-spin{aspect-ratio:1;max-width:108px;width:100%;justify-self:center;border-radius:50%;border:4px solid #ff7cf5;background:radial-gradient(circle,#dc42ff,#6f25df 65%,#271064);color:#fff;font-weight:1000;box-shadow:0 0 22px #a738ff}.ds-auto.on{background:linear-gradient(135deg,#7629e8,#246aff)}
@@ -160,7 +187,7 @@ function css(){
 `;document.head.appendChild(s);
 }
 export function startDiamondSlotGame({root,onBack}={}){
- if(!root)return;css();let st=load(),g=visualGrid(),busy=false,timer=null,autoTimer=null,bonusCols=new Set(),hammerPending=false,bonusRoundActive=false;st.auto=false;
+ if(!root)return;css();let st=load(),g=visualGrid(),busy=false,timer=null,autoTimer=null,bonusCols=new Set(),hammerPending=false,bookPending=false,bonusRoundActive=false;st.auto=false;
  root.innerHTML=`<section class="ds">
  <div class="ds-top"><button id="dsBack" class="ds-back">‹</button><div class="ds-title">💎 DIAMOND</div><div class="ds-bal">💎 <span id="bal"></span></div></div>
  <div class="ds-hero"><b>DIAMOND</b><strong>SLOT</strong></div>
@@ -170,9 +197,10 @@ export function startDiamondSlotGame({root,onBack}={}){
  <div id="msg" class="ds-msg">💎 Fitimi fillon nga e majta ose nga lart-poshtë · 2+ ❤️ të lidhura japin bonus.</div>
  <div class="ds-controls"><div class="ds-bet"><button id="minus">−</button><small>BAST<b id="bet"></b></small><button id="plus">+</button></div><button id="spin" class="ds-spin">↻<br>RROTULLO</button><button id="auto" class="ds-auto">↻ AUTO</button></div>
  <div id="dsInfo" class="ds-info"></div>
- <div id="hammerOverlay" class="ds-hammer hidden"><div class="ds-hammer-fall"><span class="hammer-icon">🔨</span><span class="hammer-bam">BAM! BAM!</span></div></div></section>`;
+ <div id="hammerOverlay" class="ds-hammer hidden"><div class="ds-hammer-fall"><span class="hammer-icon">🔨</span><span class="hammer-bam">BAM! BAM!</span></div></div>
+ <div id="bookOverlay" class="ds-book-overlay hidden"><div class="ds-book-card"><span class="ds-book-icon">📖</span><span id="bookSymbol" class="ds-book-symbol">💎</span><span id="bookText" class="ds-book-text">BONUS PO ZGJEDH SIMBOLIN…</span></div></div></section>`;
  const sh=root.querySelector(".ds"),re=root.querySelector("#reels"),msg=root.querySelector("#msg"),bal=root.querySelector("#bal"),bet=root.querySelector("#bet"),sp=root.querySelector("#spin"),au=root.querySelector("#auto");
- const minus=root.querySelector("#minus"),plus=root.querySelector("#plus"),bonusBanner=root.querySelector("#bonusBanner"),infoEl=root.querySelector("#dsInfo"),hammerOverlay=root.querySelector("#hammerOverlay");
+ const minus=root.querySelector("#minus"),plus=root.querySelector("#plus"),bonusBanner=root.querySelector("#bonusBanner"),infoEl=root.querySelector("#dsInfo"),hammerOverlay=root.querySelector("#hammerOverlay"),bookOverlay=root.querySelector("#bookOverlay"),bookSymbol=root.querySelector("#bookSymbol"),bookText=root.querySelector("#bookText");
  function rg(){re.innerHTML=g.flat().map((x,i)=>`<div class="ds-cell ${bonusCols.has(i%5)?"bonus-col":""}" style="--col:${i%5}">${x[1]}</div>`).join("");}
  function rs(){
    bal.textContent=Math.floor(st.bal).toLocaleString();bet.textContent=st.bet+" 💎";
@@ -195,7 +223,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    minus.disabled=!!bonusOn||busy;plus.disabled=!!bonusOn||busy;
    au.classList.toggle("on",st.auto);au.textContent=st.auto?"■ NDAL AUTO":"↻ AUTO";
    const b=st.bet;
-   infoEl.textContent="BAST "+b+" 💎 · 💎 shkalla +"+scaledPrize(1000,b)+" · ❤️ +"+scaledPrize(750,b)+" · ⭐ x2 · 🍎 3 falas · 🍓 +"+scaledPrize(1500,b)+" · 🔨 3% · 📖 3 libra 5%";
+   infoEl.textContent="BAST "+b+" 💎 · 💎 shkalla +"+scaledPrize(1000,b)+" · ❤️ +"+scaledPrize(750,b)+" · ⭐ x2 · 🍎 3 falas · 🍓 +"+scaledPrize(1500,b)+" · 🔨 7% · 📖 3 libra 5%";
    save(st);
  }
  function reward(id,n,a,spinBet){
@@ -229,17 +257,56 @@ export function startDiamondSlotGame({root,onBack}={}){
    msg.textContent="🔨 BAM! BAM! Çekiqi i ktheu të gjitha shkallët në 0.";
    msg.classList.remove("win");
 
-   slotBeep(105,.18,.14,"sawtooth",0);
-   slotBeep(72,.24,.15,"square",.22);
-   slotBeep(118,.16,.13,"sawtooth",.48);
-   slotBeep(68,.28,.15,"square",.68);
+   slotBeep(105,.20,.24,"sawtooth",0);
+   slotBeep(72,.27,.25,"square",.22);
+   slotBeep(118,.19,.23,"sawtooth",.48);
+   slotBeep(68,.31,.25,"square",.68);
 
    setTimeout(()=>{
      hammerOverlay.classList.add("hidden");
      hammerPending=false;
      rs();
-     if(st.auto&&!busy)autoTimer=setTimeout(spin,260);
+     if(st.auto&&!busy&&!bookPending)autoTimer=setTimeout(spin,260);
    },1250);
+ }
+
+ function showBookBonus(chosen,spinBet){
+   if(!chosen)return;
+   bookPending=true;st.auto=!!st.auto;
+   bookOverlay.classList.remove("hidden","done");
+   bookText.textContent="BONUS PO ZGJEDH SIMBOLIN…";
+
+   let step=0;
+   const cycle=setInterval(()=>{
+     const s=SYMS[step%SYMS.length];
+     bookSymbol.textContent=s[1];
+     slotBeep(360+(step%5)*70,.055,.11,"triangle");
+     step++;
+   },150);
+
+   setTimeout(()=>{
+     clearInterval(cycle);
+     bookSymbol.textContent=chosen[1];
+     bookText.textContent=chosen[1]+" "+chosen[0].toUpperCase()+" · 10 LOJËRA BONUS";
+     bookOverlay.classList.add("done");
+     slotBeep(660,.16,.16,"sine",0);
+     slotBeep(880,.20,.18,"sine",.14);
+
+     st.bonusSpins=(st.bonusSpins||0)+10;
+     st.bonusSymbol=chosen[0];
+     st.bonusBet=spinBet;
+     bonusRoundActive=false;
+     rs();
+     startBonusMusic();
+
+     setTimeout(()=>{
+       bookOverlay.classList.add("hidden");
+       bookOverlay.classList.remove("done");
+       bookPending=false;
+       rs();
+       if(st.auto&&!busy&&!hammerPending)autoTimer=setTimeout(spin,350);
+     },1200);
+   },1650);
  }
 
  function evalSpin(meta={}){
@@ -266,10 +333,8 @@ export function startDiamondSlotGame({root,onBack}={}){
 
    if(meta.bookBonus){
      const chosen=SYMS[Math.floor(Math.random()*SYMS.length)];
-     st.bonusSpins=(st.bonusSpins||0)+10;
-     st.bonusSymbol=chosen[0];
-     st.bonusBet=spinBet;
-     a.push("📖 3 LIBRA = 10 BONUS · "+chosen[1]+" "+chosen[0].toUpperCase());
+     a.push("📖 3 LIBRA = 10 BONUS");
+     showBookBonus(chosen,spinBet);
    }
 
    if(st.bal<BETS[0]&&(st.free||0)<=0&&(st.bonusSpins||0)<=0){
@@ -290,7 +355,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    if(meta.hammer&&!meta.bonusActive)showHammer();
  }
  function spin(){
-   if(busy||hammerPending)return;
+   if(busy||hammerPending||bookPending)return;
 
    const bonusActive=(st.bonusSpins||0)>0&&!!SYM_BY_ID[st.bonusSymbol];
    bonusRoundActive=!!bonusActive;
@@ -331,13 +396,15 @@ export function startDiamondSlotGame({root,onBack}={}){
 
      if(bonusActive&&st.bonusSpins<=0){
        bonusRoundActive=false;
-       st.bonusSymbol="";st.bonusBet=0;rs();
+       st.bonusSymbol="";st.bonusBet=0;
+       stopBonusMusic();
+       rs();
      }else if(!bonusActive){
        bonusRoundActive=false;
        rs();
      }
 
-     if(st.auto&&!hammerPending)autoTimer=setTimeout(spin,850);
+     if(st.auto&&!hammerPending&&!bookPending)autoTimer=setTimeout(spin,850);
    },980);
  }
  function cb(d){
@@ -347,6 +414,6 @@ export function startDiamondSlotGame({root,onBack}={}){
  }
  minus.onclick=()=>cb(-1);plus.onclick=()=>cb(1);sp.onclick=spin;
  au.onclick=()=>{if(hammerPending)return;st.auto=!st.auto;rs();if(st.auto&&!busy)spin();};
- root.querySelector("#dsBack").onclick=()=>{st.auto=false;stopSlotSpinSound();if(timer)clearInterval(timer);if(autoTimer)clearTimeout(autoTimer);save(st);onBack?.();};
- rg();rs();
+ root.querySelector("#dsBack").onclick=()=>{st.auto=false;stopSlotSpinSound();stopBonusMusic();if(timer)clearInterval(timer);if(autoTimer)clearTimeout(autoTimer);save(st);onBack?.();};
+ rg();rs();if((st.bonusSpins||0)>0&&SYM_BY_ID[st.bonusSymbol])startBonusMusic();
 }
