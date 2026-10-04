@@ -788,11 +788,25 @@ function renderServers(){
     </section>`;
 }
 
-function exitTvShell(target="galleryTab"){
+function exitTvShell(target=""){
   destroyPlayer();
   document.body.classList.remove("angel-tv-open");
+  document.body.classList.remove("tv-fullscreen-fallback");
   root?.classList.remove("angel-tv-fullscreen");
-  document.getElementById(target)?.click();
+  document.getElementById("tvPlayerCard")?.classList.remove("tv-fullscreen-card");
+
+  if(target){
+    document.getElementById(target)?.click();
+    return;
+  }
+
+  // Always return from TV to DIAMOND's main module menu.
+  const back=document.getElementById("sectionBackBtn");
+  if(back){
+    back.click();
+    return;
+  }
+  try{ window.DiamondNavigationBack?.(); }catch(_){}
 }
 
 function setPlayerStatus(text="",kind=""){
@@ -1346,7 +1360,7 @@ function render(){
 
   root.innerHTML='<div class="tv-app-real"><button id="tvExitApp" class="tv-exit-app" type="button" aria-label="Back">‹</button>'+body+'</div>';
 
-  document.getElementById("tvExitApp")?.addEventListener("click",()=>exitTvShell("galleryTab"));
+  document.getElementById("tvExitApp")?.addEventListener("click",()=>exitTvShell());
   document.getElementById("tvSportsGuide")?.addEventListener("click",()=>exitTvShell("sportTab"));
   document.getElementById("tvChangeServer")?.addEventListener("click",()=>{currentMode="servers";render();});
   document.getElementById("tvSettingsBtn")?.addEventListener("click",()=>{currentMode="servers";render();});
@@ -1400,5 +1414,5 @@ async function activate(){
   render();
 }
 
-window.PajazitiTV={activate,reloadLanguage:()=>render(),exit:()=>exitTvShell("galleryTab")};
+window.PajazitiTV={activate,reloadLanguage:()=>render(),exit:()=>exitTvShell()};
 if(tabLabel) tabLabel.textContent=tr("tv");
