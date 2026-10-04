@@ -1405,12 +1405,39 @@ function render(){
 async function activate(){
   document.body.classList.add("angel-tv-open");
   root?.classList.add("angel-tv-fullscreen");
-  await refreshUser();
-  await loadSharedRecord();
-  await loadCatalog();
+
+  // Show the DIAMOND PLAY-style TV home immediately.
+  // Network/catalog loading must never leave the TV section blank.
   currentMode="home";
   currentFilter="";
   currentGroup="";
+  render();
+
+  try{
+    await refreshUser();
+  }catch(error){
+    console.warn("TV user load failed",error);
+  }
+
+  try{
+    await loadSharedRecord();
+  }catch(error){
+    console.warn("TV shared list load failed",error);
+  }
+
+  try{
+    await Promise.race([
+      loadCatalog(),
+      new Promise(resolve=>setTimeout(resolve,8000))
+    ]);
+  }catch(error){
+    console.warn("TV catalog load failed",error);
+    try{
+      appendBuiltInFreeServers();
+      syncActiveChannels();
+    }catch(_){}
+  }
+
   render();
 }
 
