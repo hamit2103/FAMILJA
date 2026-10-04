@@ -160,17 +160,16 @@ function connectedSymbolGroups(board){
   return groups;
 }
 
-function slotConnectedPayout(id,n,bet){
-  const p={
-    diamond:{3:120,4:400,5:1000},
-    heart:{2:80,3:200,4:500,5:1000},
-    star:{3:70,4:220,5:600},
-    apple:{3:60,4:180,5:500},
-    strawberry:{3:90,4:260,5:700}
-  };
-  const tier=Math.min(5,n);
-  const base=p[id]?.[tier]||0;
-  return base?scaledPrize(base,bet):0;
+function fillMeter(id,count){
+  const cap=SYM_BY_ID[id]?.[2]||0;
+  if(!cap)return;
+  st.m[id]=Math.min(cap,(Number(st.m[id])||0)+Math.max(0,Number(count)||0));
+}
+function meterConnectedReward(id,count,bet){
+  const cap=SYM_BY_ID[id]?.[2]||0;
+  if(!cap||count<2)return 0;
+  if((Number(st.m[id])||0)<cap)return 0;
+  return Math.round(cap*(count/2)*(Number(bet)||1));
 }
 function css(){
  if(document.getElementById("ds-css"))return;
@@ -223,7 +222,7 @@ export function startDiamondSlotGame({root,onBack}={}){
  <div class="ds-meters">${SYMS.map(x=>`<div class="ds-meter" style="--c:${x[0]==="diamond"?"#19c7ff":x[0]==="heart"?"#ff3186":x[0]==="star"?"#ffc83d":x[0]==="apple"?"#31e86a":"#d85cff"}"><div class="ic">${x[1]}</div><b>${x[0].toUpperCase()}</b><div class="ds-bar"><i id="b-${x[0]}"></i></div><small id="m-${x[0]}"></small></div>`).join("")}</div>
  <div id="bonusBanner" class="ds-bonus hidden"></div>
  <div class="ds-wrap"><div id="reels" class="ds-reels"></div></div>
- <div id="msg" class="ds-msg">Fitimi numërohet vetëm kur simbolet prekin njëri-tjetrin pa ndërprerje · horizontal, vertikal ose diagonal.</div>
+ <div id="msg" class="ds-msg">Shkalla duhet të jetë FULL. Pastaj 2+ simbole të lidhura japin fitim sipas bastit.</div>
  <div class="ds-controls"><div class="ds-bet"><button id="minus">−</button><small>BAST<b id="bet"></b></small><button id="plus">+</button></div><button id="spin" class="ds-spin">↻<br>RROTULLO</button><button id="auto" class="ds-auto">↻ AUTO</button></div>
  <div id="dsInfo" class="ds-info"></div>
  <div id="hammerOverlay" class="ds-hammer hidden"><div class="ds-hammer-fall"><span class="hammer-icon">🔨</span><span class="hammer-bam">BAM! BAM!</span></div></div>
@@ -252,20 +251,11 @@ export function startDiamondSlotGame({root,onBack}={}){
    minus.disabled=!!bonusOn||busy;plus.disabled=!!bonusOn||busy;
    au.classList.toggle("on",st.auto);au.textContent=st.auto?"■ NDAL AUTO":"↻ AUTO";
    const b=st.bet;
-   infoEl.textContent="BAST "+b+" 💎 · 💎 shkalla +"+scaledPrize(1000,b)+" · ❤️ +"+scaledPrize(750,b)+" · ⭐ x2 · 🍎 3 falas · 🍓 +"+scaledPrize(1500,b)+" · 🔨 7% · 📖 3 libra 5%";
+   infoEl.textContent="BAST "+b+" 💎 · FULL: 💎50 ❤️30 ⭐25 🍎20 🍓15 · pastaj 2+ të lidhura japin sipas bastit · 🔨 7% · 📖 3 libra 5%";
    save(st);
  }
- function reward(id,n,a,spinBet){
-   st.m[id]=(st.m[id]||0)+n;
-   const t=SYMS.find(x=>x[0]===id)[2];
-   while(st.m[id]>=t){
-     st.m[id]-=t;
-     if(id==="diamond"){const p=scaledPrize(1000,spinBet);st.bal+=p;a.push("💎 shkalla +"+p);}
-     if(id==="heart"){const p=scaledPrize(750,spinBet);st.bal+=p;a.push("❤️ shkalla +"+p);}
-     if(id==="star"){st.x2=(st.x2||0)+1;a.push("⭐ x2");}
-     if(id==="apple"){st.free=(st.free||0)+3;a.push("🍎 +3 falas");}
-     if(id==="strawberry"){const p=scaledPrize(1500,spinBet);st.bal+=p;a.push("🍓 +"+p);}
-   }
+ function updateMetersOnly(counts){
+   for(const x of SYMS)fillMeter(x[0],counts[x[0]]||0);
  }
 
  function showHammer(){
@@ -343,13 +333,18 @@ export function startDiamondSlotGame({root,onBack}={}){
    const spinBet=Number(meta.spinBet)||st.bet;
    let win=0;
 
-   g.flat().forEach(x=>{if(Object.prototype.hasOwnProperty.call(c,x[0]))c[x[0]]++;});
+   g.flat().forEach(x=>{
+     if(Object.prototype.hasOwnProperty.call(c,x[0]))c[x[0]]++;
+   });
 
-   // Një fitim numërohet vetëm kur simbolet janë realisht të lidhura.
-   // Lidhja lejohet horizontalisht, vertikalisht ose diagonalisht, pa boshllëk
-   // dhe pa simbol tjetër ndërmjet. Çdo grup i lidhur numërohet vetëm një herë.
+   // Shkallët vetëm mbushen deri në maksimum; nuk japin para para se të jenë full.
+   updateMetersOnly(c);
+
+   // Pasi shkalla është full, vetëm grupet me 2+ simbole të lidhura japin fitim.
+   // Çdo grup i lidhur numërohet vetëm një herë.
    for(const group of connectedSymbolGroups(g)){
-     const p=slotConnectedPayout(group.id,group.count,spinBet);
+     if(group.count<2)continue;
+     const p=meterConnectedReward(group.id,group.count,spinBet);
      if(p>0){
        win+=p;
        const icon=SYM_BY_ID[group.id]?.[1]||"";
@@ -357,10 +352,7 @@ export function startDiamondSlotGame({root,onBack}={}){
      }
    }
 
-   if((st.x2||0)>0&&win>0){win*=2;st.x2--;a.push("⭐ x2 FITIMI");}
    st.bal+=win;
-
-   SYMS.forEach(x=>reward(x[0],c[x[0]],a,spinBet));
 
    if(meta.bookBonus){
      const chosen=SYMS[Math.floor(Math.random()*SYMS.length)];
@@ -369,17 +361,20 @@ export function startDiamondSlotGame({root,onBack}={}){
    }
 
    if(st.bal<BETS[0]&&(st.free||0)<=0&&(st.bonusSpins||0)<=0){
-     st.bal=500;a.push("🎁 +500 diamante për të vazhduar");
+     st.bal=500;
+     a.push("🎁 +500 diamante për të vazhduar");
    }
 
+   st.x2=0;
    st.best=Math.max(st.best||0,win);
    rs();
 
    if(a.length){
      msg.textContent=(win>0?"FITOVE "+win+" 💎 · ":"")+a.slice(0,4).join(" · ");
-     msg.classList.add("win");playSlotWinSound();
+     msg.classList.add("win");
+     playSlotWinSound();
    }else{
-     msg.textContent="Pa fitim këtë herë. Shkallët u mbushën.";
+     msg.textContent="Shkallët po mbushen. Fitim vetëm kur shkalla është full dhe ka 2+ simbole të lidhura.";
      msg.classList.remove("win");
    }
 
