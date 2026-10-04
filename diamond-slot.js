@@ -175,7 +175,22 @@ function meterConnectedReward(state,id,count,bet){
   const cap=SYM_BY_ID[id]?.[2]||0;
   if(!cap||count<2||!state?.m)return 0;
   if((Number(state.m[id])||0)<cap)return 0;
-  return Math.round(cap*(count/2)*(Number(bet)||1));
+
+  // Fitimi bazë për BAST 1 dhe 2 simbole të lidhura:
+  // 🍓=1, 🍎=2, ⭐=3, ❤️=5, 💎=10.
+  const baseBySymbol={
+    strawberry:1,
+    apple:2,
+    star:3,
+    heart:5,
+    diamond:10
+  };
+  const base=Number(baseBySymbol[id]||0);
+  if(base<=0)return 0;
+
+  // Çdo simbol shtesë rrit fitimin proporcionalisht:
+  // 2 simbole = 1x, 3 = 1.5x, 4 = 2x, 5 = 2.5x...
+  return Math.max(1,Math.round(base*(count/2)*(Number(bet)||1)));
 }
 function css(){
  if(document.getElementById("ds-css"))return;
@@ -257,7 +272,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    minus.disabled=!!bonusOn||busy;plus.disabled=!!bonusOn||busy;
    au.classList.toggle("on",st.auto);au.textContent=st.auto?"■ NDAL AUTO":"↻ AUTO";
    const b=st.bet;
-   infoEl.textContent="BAST "+b+" 💎 · FULL: 💎50 ❤️30 ⭐25 🍎20 🍓15 · 2+ të lidhura japin sipas bastit · 🔨 7% · 📖 3 libra 5% · 🧪 1=pa efekt, 2=−1, 3+=0";
+   infoEl.textContent="BAST "+b+" 💎 · FULL: 💎50 ❤️30 ⭐25 🍎20 🍓15 · BAST 1 me 2 të lidhura: 💎10 ❤️5 ⭐3 🍎2 🍓1 · 🔨 7% · 📖 3 libra 5% · 🧪 1=pa efekt, 2=−1, 3+=0";
    save(st);
  }
  function updateMetersOnly(counts){
