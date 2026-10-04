@@ -34,7 +34,7 @@ const GAME_MUSIC_KEY = "diamond-game-music";
 const GAME_USER_THEME_KEY = "diamond-game-user-theme";
 const BOARD_AI_LEVEL_KEY = "diamond-board-ai-level";
 const COMPUTER_AI_LEVELS_KEY = "diamond-computer-ai-levels-v1";
-const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun","diamondadventure","diamondnations"];
+const DEFAULT_GAME_ORDER = ["chess","morris","timer","tetris","war","kingdom","uck","diamondrun","diamondslot","diamondadventure","diamondnations"];
 let gameOrder = [...DEFAULT_GAME_ORDER];
 let gamesAdmin = false;
 let masterSoundEnabled=localStorage.getItem(GAME_SOUND_MASTER_KEY)!=="off";
@@ -2779,6 +2779,7 @@ function gameChoiceIcon(id){
   if(id==="kingdom") return "🏰";
   if(id==="uck") return "🪖";
   if(id==="diamondrun") return "💎";
+  if(id==="diamondslot") return "🎰💎";
   if(id==="diamondadventure") return "💎🏃";
   if(id==="diamondnations") return "🌍💎";
   return "🎮";
@@ -2792,6 +2793,7 @@ function gameChoiceName(id){
   if(id==="kingdom") return tr("kingdom");
   if(id==="uck") return tr("uck");
   if(id==="diamondrun") return tr("diamondrun");
+  if(id==="diamondslot") return "DIAMOND SLOT";
   if(id==="diamondadventure") return "Diamond Adventure";
   if(id==="diamondnations") return "DIAMOND NATIONS";
   return id;
@@ -2914,6 +2916,7 @@ async function launchGameFromMenu(id,mode){
   if(id==="kingdom"){startKingdomGame();return;}
   if(id==="uck"){startUckGame();return;}
   if(id==="diamondrun"){startDiamondRunGame();return;}
+  if(id==="diamondslot"){startDiamondSlotGame();return;}
   if(id==="diamondadventure"){startDiamondAdventureGame();return;}
   if(id==="diamondnations"){startDiamondNationsGame();return;}
 }
@@ -3354,6 +3357,18 @@ async function startDiamondNationsGame(){
   }catch(error){
     console.warn("diamond nations",error);
     renderLobby("DIAMOND NATIONS nuk u hap. Provo përsëri.");
+  }
+}
+
+async function startDiamondSlotGame(){
+  stopGameMusic();
+  try{
+    const mod=await import("./diamond-slot.js?v=1");
+    mod.startDiamondSlotGame({root,onBack:()=>{selectedType="";renderLobby();}});
+  }catch(error){
+    console.warn("diamond slot",error);
+    selectedType="";
+    renderLobby("DIAMOND SLOT nuk u hap. Provo përsëri.");
   }
 }
 
