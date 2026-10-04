@@ -1,6 +1,6 @@
 const K="diamond-slot-state-v1";
 const SYMS=[["diamond","💎",50],["heart","❤️",30],["star","⭐",25],["apple","🍎",20],["strawberry","🍓",15]];
-const BOOK=["book","📖",0],HAMMER=["hammer","🔨",0];
+const BOOK=["book","📖",0],HAMMER=["hammer","🔨",0],POISON=["poison","🧪",0];
 const BETS=[1,5,10,20,50,100,200,500,1000,5000,10000];
 const SYM_BY_ID=Object.fromEntries(SYMS.map(x=>[x[0],x]));
 
@@ -8,7 +8,7 @@ function nearestBet(v){
   const n=Number(v)||20;
   return BETS.reduce((best,x)=>Math.abs(x-n)<Math.abs(best-n)?x:best,BETS[0]);
 }
-function fresh(){return{bal:2850,bet:20,m:{diamond:0,heart:0,star:0,apple:0,strawberry:0},free:0,x2:0,best:0,bonusSpins:0,bonusSymbol:"",bonusBet:0};}
+function fresh(){return{bal:2850,bet:20,m:{diamond:0,heart:0,star:0,apple:0,strawberry:0},free:0,x2:0,best:0,bonusSpins:0,bonusSymbol:"",bonusBet:0,poisonCounter:0,poisonNext:3};}
 function load(){
   try{
     const raw=JSON.parse(localStorage.getItem(K)||"{}")||{},d=fresh();
@@ -20,6 +20,8 @@ function load(){
     d.bonusSpins=Math.max(0,Math.floor(Number(raw.bonusSpins)||0));
     d.bonusSymbol=SYM_BY_ID[raw.bonusSymbol]?raw.bonusSymbol:"";
     d.bonusBet=nearestBet(raw.bonusBet||d.bet);
+    d.poisonCounter=Math.max(0,Math.floor(Number(raw.poisonCounter)||0));
+    d.poisonNext=[3,4].includes(Number(raw.poisonNext))?Number(raw.poisonNext):3;
     d.m={...d.m,...(raw.m||{})};
     for(const x of SYMS)d.m[x[0]]=Math.max(0,Math.floor(Number(d.m[x[0]])||0))%x[2];
     return d;
@@ -44,7 +46,7 @@ function placeSymbol(board,symbol,count,filter=()=>true){
     board[row][col]=symbol;left--;
   }
 }
-function buildFinalGrid({bonusActive=false,bonusSymbol=""}={}){
+function buildFinalGrid({bonusActive=false,bonusSymbol="",poisonCount=0}={}){
   const board=baseGrid();
   const bookBonus=!bonusActive&&Math.random()<.05;
 
@@ -65,10 +67,14 @@ function buildFinalGrid({bonusActive=false,bonusSymbol=""}={}){
     }
   }
 
-  const hammer=!bonusActive&&Math.random()<.07;
-  if(hammer)placeSymbol(board,HAMMER,1,x=>x[0]!=="book");
+  // 🧪 Xeheri nuk del kurrë në bonus.
+  const poison=!bonusActive?Math.max(0,Math.floor(Number(poisonCount)||0)):0;
+  if(poison>0)placeSymbol(board,POISON,poison,x=>x[0]!=="book");
 
-  return{board,bookBonus,hammer,filledCols};
+  const hammer=!bonusActive&&Math.random()<.07;
+  if(hammer)placeSymbol(board,HAMMER,1,x=>x[0]!=="book"&&x[0]!=="poison");
+
+  return{board,bookBonus,hammer,poisonCount:poison,filledCols};
 }
 function scaledPrize(base,bet){return Math.max(1,Math.round(Number(base||0)*(Number(bet)||1)/25));}
 function longest(row,id){let b=0,n=0;for(const x of row){if(x[0]===id){n++;b=Math.max(b,n);}else n=0;}return b;}
@@ -251,7 +257,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    minus.disabled=!!bonusOn||busy;plus.disabled=!!bonusOn||busy;
    au.classList.toggle("on",st.auto);au.textContent=st.auto?"■ NDAL AUTO":"↻ AUTO";
    const b=st.bet;
-   infoEl.textContent="BAST "+b+" 💎 · FULL: 💎50 ❤️30 ⭐25 🍎20 🍓15 · pastaj 2+ të lidhura japin sipas bastit · 🔨 7% · 📖 3 libra 5%";
+   infoEl.textContent="BAST "+b+" 💎 · FULL: 💎50 ❤️30 ⭐25 🍎20 🍓15 · 2+ të lidhura japin sipas bastit · 🔨 7% · 📖 3 libra 5% · 🧪 1=pa efekt, 2=−1, 3+=0";
    save(st);
  }
  function updateMetersOnly(counts){
@@ -287,6 +293,31 @@ export function startDiamondSlotGame({root,onBack}={}){
      rs();
      if(st.auto&&!busy&&!bookPending)autoTimer=setTimeout(spin,260);
    },1250);
+ }
+
+ function applyPoison(count,a){
+   const n=Math.max(0,Math.floor(Number(count)||0));
+   if(n<=0)return;
+
+   if(n===1){
+     a.push("🧪 1 shishe · pa efekt");
+     slotBeep(250,.10,.10,"triangle");
+     return;
+   }
+
+   if(n===2){
+     for(const x of SYMS)st.m[x[0]]=Math.max(0,(Number(st.m[x[0]])||0)-1);
+     a.push("🧪🧪 −1 nga çdo shkallë");
+     slotBeep(180,.16,.16,"sawtooth",0);
+     slotBeep(140,.20,.16,"sawtooth",.18);
+     return;
+   }
+
+   for(const x of SYMS)st.m[x[0]]=0;
+   a.push("🧪🧪🧪 XEHER · të gjitha shkallët = 0");
+   slotBeep(130,.20,.20,"sawtooth",0);
+   slotBeep(90,.28,.22,"square",.20);
+   slotBeep(65,.34,.24,"square",.48);
  }
 
  function showBookBonus(chosen,spinBet){
@@ -340,6 +371,10 @@ export function startDiamondSlotGame({root,onBack}={}){
    // Shkallët vetëm mbushen deri në maksimum; nuk japin para para se të jenë full.
    updateMetersOnly(c);
 
+   // 🧪 Efekti aplikohet pas mbushjes së këtij rrotullimi.
+   // 1 = pa efekt, 2 = -1 nga çdo shkallë, 3+ = të gjitha në 0.
+   applyPoison(meta.poisonCount||0,a);
+
    // Pasi shkalla është full, vetëm grupet me 2+ simbole të lidhura japin fitim.
    // Çdo grup i lidhur numërohet vetëm një herë.
    for(const group of connectedSymbolGroups(g)){
@@ -387,6 +422,26 @@ export function startDiamondSlotGame({root,onBack}={}){
    bonusRoundActive=!!bonusActive;
    const spinBet=bonusActive?(st.bonusBet||st.bet):st.bet;
 
+   let poisonCount=0;
+   if(!bonusActive){
+     const pr=Math.random();
+     if(pr<.01){
+       poisonCount=3;
+     }else if(pr<.06){
+       poisonCount=2;
+     }else{
+       st.poisonCounter=(Number(st.poisonCounter)||0)+1;
+       if(st.poisonCounter>=Math.max(3,Math.min(4,Number(st.poisonNext)||3))){
+         poisonCount=1;
+       }
+     }
+
+     if(poisonCount>0){
+       st.poisonCounter=0;
+       st.poisonNext=Math.random()<.5?3:4;
+     }
+   }
+
    if(!bonusActive&&(st.free||0)<=0&&st.bal<st.bet){
      if(st.bal<BETS[0]){
        st.bal=500;st.auto=false;rs();
@@ -414,17 +469,22 @@ export function startDiamondSlotGame({root,onBack}={}){
      if(timer){clearInterval(timer);timer=null;}
      stopSlotSpinSound();
 
-     const result=buildFinalGrid({bonusActive,bonusSymbol:st.bonusSymbol});
+     const result=buildFinalGrid({bonusActive,bonusSymbol:st.bonusSymbol,poisonCount});
      g=result.board;bonusCols=result.filledCols;rg();
      sh.classList.remove("spinning");busy=false;
 
      try{
-       evalSpin({bookBonus:result.bookBonus,hammer:result.hammer,spinBet,bonusActive});
+       evalSpin({bookBonus:result.bookBonus,hammer:result.hammer,poisonCount:result.poisonCount,spinBet,bonusActive});
      }catch(error){
        console.error("DIAMOND SLOT eval error",error);
        msg.textContent="Gabimi i lojës u kap. Provo rrotullimin përsëri.";
        msg.classList.remove("win");
        if(result.hammer&&!bonusActive)showHammer();
+       if(result.poisonCount&&!bonusActive){
+         const temp=[];
+         applyPoison(result.poisonCount,temp);
+         rs();
+       }
        if(result.bookBonus&&!bonusActive){
          const chosen=SYMS[Math.floor(Math.random()*SYMS.length)];
          showBookBonus(chosen,spinBet);
