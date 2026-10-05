@@ -314,13 +314,13 @@ function applyLanguage(language = currentLanguage) {
   window.DiamondBeliefs?.reloadLanguage?.(language);
   window.DiamondDiet?.reloadLanguage?.();
   const simple={
-    sq:{diet:"Diet",ki:"KI",share:"Ndaje appin",news:"Lajme",nearby:"Gjej telefonin",private:"Privat",back:"← Kthehu mbrapa",admin:"Admin",login:"Hyr"},
-    de:{diet:"Ernährung",ki:"KI",share:"App teilen",news:"Nachrichten",nearby:"Telefon finden",private:"Privat",back:"← Zurück",admin:"Admin",login:"Anmelden"},
-    tr:{diet:"Diyet",ki:"YZ",share:"Uygulamayı paylaş",news:"Haberler",nearby:"Telefonu bul",private:"Özel",back:"← Geri",admin:"Yönetici",login:"Giriş"},
-    en:{diet:"Diet",ki:"AI",share:"Share app",news:"News",nearby:"Find phone",private:"Private",back:"← Back",admin:"Admin",login:"Sign in"},
-    it:{diet:"Dieta",ki:"IA",share:"Condividi app",news:"Notizie",nearby:"Trova telefono",private:"Privato",back:"← Indietro",admin:"Admin",login:"Accedi"},
-    hr:{diet:"Prehrana",ki:"AI",share:"Podijeli aplikaciju",news:"Vijesti",nearby:"Pronađi telefon",private:"Privatno",back:"← Natrag",admin:"Admin",login:"Prijava"},
-    fr:{diet:"Régime",ki:"IA",share:"Partager l’app",news:"Actualités",nearby:"Trouver le téléphone",private:"Privé",back:"← Retour",admin:"Admin",login:"Connexion"},
+    sq:{diet:"Diet",ki:"Shënime",share:"Ndaje appin",news:"Lajme",nearby:"Gjej telefonin",private:"Privat",back:"← Kthehu mbrapa",admin:"Admin",login:"Hyr"},
+    de:{diet:"Ernährung",ki:"Shënime",share:"App teilen",news:"Nachrichten",nearby:"Telefon finden",private:"Privat",back:"← Zurück",admin:"Admin",login:"Anmelden"},
+    tr:{diet:"Diyet",ki:"Notlar",share:"Uygulamayı paylaş",news:"Haberler",nearby:"Telefonu bul",private:"Özel",back:"← Geri",admin:"Yönetici",login:"Giriş"},
+    en:{diet:"Diet",ki:"Notes",share:"Share app",news:"News",nearby:"Find phone",private:"Private",back:"← Back",admin:"Admin",login:"Sign in"},
+    it:{diet:"Dieta",ki:"Note",share:"Condividi app",news:"Notizie",nearby:"Trova telefono",private:"Privato",back:"← Indietro",admin:"Admin",login:"Accedi"},
+    hr:{diet:"Prehrana",ki:"Notes",share:"Podijeli aplikaciju",news:"Vijesti",nearby:"Pronađi telefon",private:"Privatno",back:"← Natrag",admin:"Admin",login:"Prijava"},
+    fr:{diet:"Régime",ki:"Note",share:"Partager l’app",news:"Actualités",nearby:"Trouver le téléphone",private:"Privé",back:"← Retour",admin:"Admin",login:"Connexion"},
     ar:{diet:"النظام الغذائي",ki:"الذكاء الاصطناعي",share:"مشاركة التطبيق",news:"الأخبار",nearby:"العثور على الهاتف",private:"خاص",back:"← رجوع",admin:"المشرف",login:"دخول"}
   }[language]||{};
   [["dietTabLabel","diet"],["kiTabLabel","ki"],["shareAppTabLabel","share"],["newsTabLabel","news"],["nearbyTabLabel","nearby"],["healthTabLabel","private"],["sectionBackBtn","back"],["adminMode","admin"],["loginBtn","login"]].forEach(([id,k])=>{const el=document.getElementById(id);if(el&&simple[k])el.textContent=simple[k];});
@@ -764,7 +764,7 @@ const TAB_LABELS = {
   tvTab:"📺 TV",
   radioTab:"📻 Radio",
   dietTab:"🥗 Diet",
-  kiTab:"🤖 KI",
+  kiTab:"📝 Shënime",
   shareAppTab:"🔗 Ndaje appin",
   newsTab:"📰 Lajme",
   nearbyTab:"📍 Gjej telefonin",
