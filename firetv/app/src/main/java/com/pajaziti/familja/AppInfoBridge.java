@@ -2,6 +2,7 @@ package com.pajaziti.familja;
 
 import android.webkit.JavascriptInterface;
 import android.provider.Settings;
+import android.content.pm.ActivityInfo;
 
 public class AppInfoBridge {
     private final MainActivity activity;
@@ -21,6 +22,24 @@ public class AppInfoBridge {
         } catch (Exception ignored) {
             return "";
         }
+    }
+
+    @JavascriptInterface
+    public void setTvLandscape() {
+        try {
+            activity.runOnUiThread(() ->
+                activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+            );
+        } catch (Exception ignored) {}
+    }
+
+    @JavascriptInterface
+    public void setPortraitMode() {
+        try {
+            activity.runOnUiThread(() ->
+                activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+            );
+        } catch (Exception ignored) {}
     }
 
     @JavascriptInterface
