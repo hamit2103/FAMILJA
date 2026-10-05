@@ -726,10 +726,10 @@ const DIAMOND_CASINO_INFO={
     tr:["DIAMOND TEXAS POKER","Bilgisayara karşı Texas Hold’em. CHECK/CALL, RAISE, ALL-IN veya FOLD kullan."]
   },
   diamondroulette:{
-    sq:["DIAMOND ROULETTE","Ruletë europiane 0–36. Vër bast në një numër, kuqe/zezë, çift/tek ose 1–18/19–36."],
-    en:["DIAMOND ROULETTE","European roulette 0–36. Bet on a number, red/black, even/odd or 1–18/19–36."],
-    de:["DIAMOND ROULETTE","Europäisches Roulette 0–36. Setze auf Zahl, Rot/Schwarz, Gerade/Ungerade oder 1–18/19–36."],
-    tr:["DIAMOND ROULETTE","Avrupa ruleti 0–36. Sayı, kırmızı/siyah, tek/çift veya 1–18/19–36 üzerine bahis yap."]
+    sq:["DIAMOND ROULETTE","Ruletë europiane 0–36 me tavolinë origjinale. Vendos zhitona në sa numra të duash dhe luaj me bonuset ⚡100×, ⚡300× dhe ⚡500×."],
+    en:["DIAMOND ROULETTE","European roulette 0–36 with a real-style table, multi-number chip bets and lightning bonuses."],
+    de:["DIAMOND ROULETTE","Europäisches Roulette 0–36 mit realistischer Tabelle, Mehrfach-Zahlwetten und Blitz-Boni."],
+    tr:["DIAMOND ROULETTE","Gerçek görünümlü masa, çoklu sayı jetonları ve yıldırım bonuslarıyla Avrupa ruleti 0–36."]
   }
 };
 for(const id of Object.keys(DIAMOND_CASINO_INFO)){
@@ -3455,7 +3455,7 @@ async function startDiamondSlotGame(){
 async function startDiamondGenieGame(){
   stopGameMusic();
   try{
-    const mod=await import("./casino-games.js?v=1");
+    const mod=await import("./casino-games.js?v=2");
     mod.startDiamondGenie({root,onBack:()=>{selectedType="";renderLobby();}});
   }catch(error){
     console.warn("diamond genie",error);
@@ -3466,7 +3466,7 @@ async function startDiamondGenieGame(){
 async function startDiamondTexasPokerGame(){
   stopGameMusic();
   try{
-    const mod=await import("./casino-games.js?v=1");
+    const mod=await import("./casino-games.js?v=2");
     mod.startDiamondTexasPoker({root,onBack:()=>{selectedType="";renderLobby();}});
   }catch(error){
     console.warn("diamond poker",error);
@@ -3477,7 +3477,7 @@ async function startDiamondTexasPokerGame(){
 async function startDiamondRouletteGame(){
   stopGameMusic();
   try{
-    const mod=await import("./casino-games.js?v=1");
+    const mod=await import("./casino-games.js?v=2");
     mod.startDiamondRoulette({root,onBack:()=>{selectedType="";renderLobby();}});
   }catch(error){
     console.warn("diamond roulette",error);
