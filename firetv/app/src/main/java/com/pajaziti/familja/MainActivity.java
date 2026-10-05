@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -53,6 +54,18 @@ public class MainActivity extends Activity {
     private static final int REQ_NOTIFICATIONS = 1003;
     private static final int REQ_GOAL_NOTIFICATIONS = 1004;
     private static final int REQ_MEDIA = 1005;
+
+    private final class ScreenOrientationBridge {
+        @android.webkit.JavascriptInterface
+        public void landscape() {
+            runOnUiThread(() -> setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE));
+        }
+
+        @android.webkit.JavascriptInterface
+        public void portrait() {
+            runOnUiThread(() -> setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT));
+        }
+    }
 
     private WebView webView;
     private View customView;
@@ -110,6 +123,7 @@ public class MainActivity extends Activity {
         webView.addJavascriptInterface(new GoalAlertBridge(this), "AndroidGoal");
         webView.addJavascriptInterface(new AdminAlertBridge(this), "AndroidAdmin");
         webView.addJavascriptInterface(new MessageBridge(this), "AndroidMessages");
+        webView.addJavascriptInterface(new ScreenOrientationBridge(), "AndroidScreen");
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(
@@ -904,7 +918,7 @@ public class MainActivity extends Activity {
         }
         if (keyCode == KeyEvent.KEYCODE_BACK && webView != null) {
             webView.evaluateJavascript(
-                "(function(){try{return !!window.DiamondNavigationBack?.();}catch(e){return false;}})();",
+                "(function(){try{if(window.PajazitiTV?.back?.()) return true;return !!window.DiamondNavigationBack?.();}catch(e){return false;}})();",
                 value -> {
                     if (!"true".equals(value) && webView.canGoBack()) {
                         webView.goBack();
