@@ -1165,11 +1165,14 @@ function ensureDiamondPlayTvStyle(){
     #tvRoot .tv-dp-head small{display:block;max-width:48vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.72}
     #tvRoot .tv-dp-head-actions{display:flex;gap:6px}
     #tvRoot .tv-dp-head button{width:auto!important;height:39px!important;min-height:39px!important;margin:0!important;padding:0 10px!important;border-radius:10px!important;background:#143820!important;color:#fff!important;border:1px solid #2c7e49!important}
-    #tvRoot .tv-dp-home{flex:1;min-height:0;display:grid;place-items:center;padding:10px;overflow:hidden}
-    #tvRoot .tv-dp-tiles{width:min(720px,96vw);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-    #tvRoot .tv-dp-tile{position:relative;min-width:0;min-height:88px;padding:8px 4px;border-radius:14px;border:1px solid #37bb62;background:linear-gradient(180deg,#12391f,#07180d);color:#fff;font-size:12px;font-weight:800;overflow:hidden}
-    #tvRoot .tv-dp-tile .tv-dp-icon{display:block;font-size:27px;margin-bottom:5px}
-    #tvRoot .tv-dp-count{position:absolute;right:5px;bottom:4px;font-size:9px;font-weight:700;background:#07180d;border:1px solid #2e8b4d;border-radius:7px;padding:2px 4px}
+    #tvRoot .tv-dp-home{flex:1;min-height:0;display:grid;place-items:center;padding:12px;overflow:auto}
+    #tvRoot .tv-dp-home-stack{width:min(560px,94vw);display:grid;gap:10px}
+    #tvRoot .tv-dp-tiles{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    #tvRoot .tv-dp-tile{position:relative;min-width:0;min-height:102px;padding:10px 6px;border-radius:16px;border:1px solid #37bb62;background:linear-gradient(180deg,#12391f,#07180d);color:#fff;font-size:13px;font-weight:800;overflow:hidden}
+    #tvRoot .tv-dp-tile .tv-dp-icon{display:block;font-size:31px;margin-bottom:6px}
+    #tvRoot .tv-dp-count{position:absolute;right:7px;bottom:6px;font-size:10px;font-weight:700;background:#07180d;border:1px solid #2e8b4d;border-radius:7px;padding:2px 5px}
+    #tvRoot .tv-dp-server-strip{width:100%;min-height:58px;margin:0!important;padding:0 16px!important;border-radius:15px!important;border:1px solid #37bb62!important;background:linear-gradient(90deg,#12391f,#0a2413)!important;color:#fff!important;display:flex!important;align-items:center;justify-content:center;gap:10px;font-size:14px!important;font-weight:900!important;box-shadow:0 7px 22px #0006}
+    #tvRoot .tv-dp-server-strip .tv-dp-server-icon{font-size:24px}
     #tvRoot .tv-dp-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(118px,22%) minmax(190px,38%) 1fr}
     #tvRoot .tv-dp-groups,#tvRoot .tv-dp-list{min-height:0;overflow:auto;padding:8px}
     #tvRoot .tv-dp-groups{background:#07100a;border-right:1px solid #194d2d}
@@ -1205,9 +1208,11 @@ function ensureDiamondPlayTvStyle(){
       #tvRoot .tv-dp-head strong{font-size:14px}
       #tvRoot .tv-dp-head button{font-size:10px!important;padding:0 7px!important}
       #tvRoot .tv-dp-body{grid-template-columns:105px minmax(135px,1fr) 42%}
-      #tvRoot .tv-dp-tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;width:98vw}
-      #tvRoot .tv-dp-tile{min-height:76px;font-size:10px;padding:6px 2px}
-      #tvRoot .tv-dp-tile .tv-dp-icon{font-size:23px;margin-bottom:3px}
+      #tvRoot .tv-dp-home-stack{width:min(430px,94vw)}
+      #tvRoot .tv-dp-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
+      #tvRoot .tv-dp-tile{min-height:92px;font-size:12px;padding:8px 4px}
+      #tvRoot .tv-dp-tile .tv-dp-icon{font-size:28px;margin-bottom:4px}
+      #tvRoot .tv-dp-server-strip{min-height:54px!important;font-size:13px!important}
       #tvRoot .tv-dp-search{width:110px}
     }
   `;
@@ -1317,11 +1322,14 @@ function renderHome(){
       </div>
     </div>
     <div class="tv-dp-home">
-      <div class="tv-dp-tiles">
-        <button class="tv-dp-tile" data-tv-mode="live" type="button"><span class="tv-dp-icon">📺</span>${tr("live")}<span class="tv-dp-count">${liveCount}</span></button>
-        <button class="tv-dp-tile" data-tv-mode="movies" type="button"><span class="tv-dp-icon">🎬</span>${tr("movies")}<span class="tv-dp-count">${movieCount}</span></button>
-        <button class="tv-dp-tile" data-tv-mode="series" type="button"><span class="tv-dp-icon">🎞️</span>${tr("series")}<span class="tv-dp-count">${seriesCount}</span></button>
-        <button class="tv-dp-tile" data-tv-mode="servers" type="button"><span class="tv-dp-icon">⚙️</span>${tr("manage")}</button>
+      <div class="tv-dp-home-stack">
+        <div class="tv-dp-tiles">
+          <button class="tv-dp-tile" data-tv-mode="live" type="button"><span class="tv-dp-icon">📺</span>${tr("live")}<span class="tv-dp-count">${liveCount}</span></button>
+          <button class="tv-dp-tile" data-tv-mode="movies" type="button"><span class="tv-dp-icon">🎬</span>${tr("movies")}<span class="tv-dp-count">${movieCount}</span></button>
+          <button class="tv-dp-tile" data-tv-mode="series" type="button"><span class="tv-dp-icon">🎞️</span>${tr("series")}<span class="tv-dp-count">${seriesCount}</span></button>
+          <button class="tv-dp-tile" data-tv-mode="servers" type="button"><span class="tv-dp-icon">⚙️</span>${tr("manage")}</button>
+        </div>
+        <button id="tvChangeServer" class="tv-dp-server-strip" type="button"><span class="tv-dp-server-icon">🗄️</span><span>${tr("server")}</span></button>
       </div>
     </div>`;
 }
