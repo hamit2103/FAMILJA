@@ -789,23 +789,23 @@ function renderServers(){
 }
 
 function exitTvShell(target=""){
-  clearWatchTimer();
-  tvWatchingChannel=null;
   destroyPlayer();
-  restorePortrait();
   document.body.classList.remove("angel-tv-open");
   document.body.classList.remove("tv-fullscreen-fallback");
   root?.classList.remove("angel-tv-fullscreen");
   document.getElementById("tvPlayerCard")?.classList.remove("tv-fullscreen-card");
 
   if(target){
-    const section=target==="sportTab"?"sport":"home";
-    if(window.DiamondSetSection){window.DiamondSetSection(section);return;}
     document.getElementById(target)?.click();
     return;
   }
 
-  if(window.DiamondSetSection){window.DiamondSetSection("home");return;}
+  // Always return from TV to DIAMOND's main module menu.
+  const back=document.getElementById("sectionBackBtn");
+  if(back){
+    back.click();
+    return;
+  }
   try{ window.DiamondNavigationBack?.(); }catch(_){}
 }
 
@@ -1109,8 +1109,6 @@ async function playChannel(channel){
 
 let tvTapChannel=null;
 let tvTapAt=0;
-let tvWatchTimer=null;
-let tvWatchingChannel=null;
 
 function ensureDiamondPlayTvStyle(){
   if(document.getElementById("diamondPlayTvStyle")) return;
@@ -1161,27 +1159,6 @@ function ensureDiamondPlayTvStyle(){
     #tvRoot .tv-player-status{font-size:11px;min-height:16px;margin:4px 0 0}
     #tvRoot .tv-dp-empty{padding:18px;opacity:.72}
     #tvRoot .tv-servers-view{height:100%;overflow:auto;padding:70px 14px 20px;background:#020603}
-
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-head{display:none!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-body{position:relative!important;display:block!important;flex:1!important;min-height:0!important;background:#000!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-groups{display:none!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-preview{position:absolute!important;inset:0!important;z-index:1!important;padding:0!important;background:#000!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-preview-title{display:none!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-player-card{position:absolute!important;inset:0!important;border:0!important;border-radius:0!important;background:#000!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-player-card video{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;background:#000!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-now-row{position:absolute!important;top:0!important;left:0!important;right:0!important;z-index:13!important;background:linear-gradient(#000c,transparent)!important;padding:12px 64px 22px 58px!important;pointer-events:none}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-player-actions{display:none!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-player-feedback{display:none!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-list{position:absolute!important;top:0!important;bottom:0!important;left:0!important;z-index:12!important;width:min(330px,34vw)!important;padding:62px 8px 10px!important;background:linear-gradient(90deg,rgba(2,8,5,.97),rgba(2,8,5,.87))!important;border-right:1px solid #2c7e49!important;overflow-y:auto!important;transition:opacity .22s ease,transform .22s ease!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-list-head{display:none!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-row{min-height:52px!important;background:rgba(7,24,13,.86)!important;border:1px solid #1d4a2b!important;border-radius:9px!important;margin-bottom:5px!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-dp-row.active{background:#155f31!important;border-color:#55ff88!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-exit-app{display:grid!important;place-items:center!important;z-index:30!important;font-size:23px!important;background:rgba(7,24,13,.92)!important}
-    #tvRoot .tv-app-real.tv-watch-mode.tv-watch-ui-hidden .tv-dp-list{opacity:0!important;transform:translateX(-105%)!important;pointer-events:none!important}
-    #tvRoot .tv-app-real.tv-watch-mode.tv-watch-ui-hidden .tv-exit-app,
-    #tvRoot .tv-app-real.tv-watch-mode.tv-watch-ui-hidden .tv-now-row{opacity:0!important;pointer-events:none!important}
-    #tvRoot .tv-app-real.tv-watch-mode .tv-exit-app,
-    #tvRoot .tv-app-real.tv-watch-mode .tv-now-row{transition:opacity .22s ease!important}
     @media(max-width:650px){
       #tvRoot .tv-dp-head{height:54px;min-height:54px;padding-left:54px}
       #tvRoot .tv-dp-head strong{font-size:14px}
@@ -1193,59 +1170,6 @@ function ensureDiamondPlayTvStyle(){
     }
   `;
   document.head.appendChild(st);
-}
-
-function requestTvLandscape(){
-  try{window.AndroidApp?.setTvLandscape?.();}catch(_){}
-  try{
-    const p=screen.orientation?.lock?.("landscape");
-    if(p?.catch)p.catch(()=>{});
-  }catch(_){}
-}
-function restorePortrait(){
-  try{window.AndroidApp?.setPortraitMode?.();}catch(_){}
-  try{screen.orientation?.unlock?.();}catch(_){}
-}
-function clearWatchTimer(){
-  if(tvWatchTimer){clearTimeout(tvWatchTimer);tvWatchTimer=null;}
-}
-function showWatchUi(){
-  const shell=root?.querySelector(".tv-app-real");
-  if(!shell?.classList.contains("tv-watch-mode"))return;
-  shell.classList.remove("tv-watch-ui-hidden");
-  clearWatchTimer();
-  tvWatchTimer=setTimeout(()=>shell.classList.add("tv-watch-ui-hidden"),3000);
-}
-function enterWatchMode(channel){
-  if(currentMode!=="live"||!channel)return;
-  tvWatchingChannel=channel;
-  currentGroup=channel.countryGroup||channel.group||"Tjera";
-  currentFilter="";
-  renderChannels();
-  const shell=root?.querySelector(".tv-app-real");
-  shell?.classList.add("tv-watch-mode");
-  shell?.classList.remove("tv-watch-ui-hidden");
-  const back=document.getElementById("tvExitApp");
-  if(back){back.textContent="←";back.setAttribute("aria-label","Back to channels");}
-  const video=document.getElementById("tvPlayer");
-  if(video)video.removeAttribute("controls");
-  showWatchUi();
-}
-function leaveWatchMode(){
-  const shell=root?.querySelector(".tv-app-real");
-  if(!shell?.classList.contains("tv-watch-mode"))return false;
-  clearWatchTimer();
-  shell.classList.remove("tv-watch-mode","tv-watch-ui-hidden");
-  const back=document.getElementById("tvExitApp");
-  if(back){back.textContent="‹";back.setAttribute("aria-label","Back");}
-  const video=document.getElementById("tvPlayer");
-  if(video)video.setAttribute("controls","");
-  tvWatchingChannel=null;
-  return true;
-}
-function handleTvShellBack(){
-  if(leaveWatchMode())return;
-  exitTvShell();
 }
 
 function renderChannels(){
@@ -1305,15 +1229,11 @@ function renderChannels(){
     });
 
     btn.addEventListener("click",()=>{
-      select();
-      if(currentMode==="live"){
-        enterWatchMode(ch);
-        return;
-      }
       const now=Date.now();
       const same=tvTapChannel===ch && now-tvTapAt<450;
       tvTapChannel=ch;
       tvTapAt=now;
+      select();
       if(same){
         setTimeout(()=>toggleTvFullscreen(),80);
         tvTapChannel=null;
@@ -1440,7 +1360,7 @@ function render(){
 
   root.innerHTML='<div class="tv-app-real"><button id="tvExitApp" class="tv-exit-app" type="button" aria-label="Back">‹</button>'+body+'</div>';
 
-  document.getElementById("tvExitApp")?.addEventListener("click",handleTvShellBack);
+  document.getElementById("tvExitApp")?.addEventListener("click",()=>exitTvShell());
   document.getElementById("tvSportsGuide")?.addEventListener("click",()=>exitTvShell("sportTab"));
   document.getElementById("tvChangeServer")?.addEventListener("click",()=>{currentMode="servers";render();});
   document.getElementById("tvSettingsBtn")?.addEventListener("click",()=>{currentMode="servers";render();});
@@ -1479,21 +1399,10 @@ function render(){
     const retry=document.getElementById("tvRetry");
     if(retry) retry.onclick=()=>{ if(lastTriedChannel) playChannel(lastTriedChannel); };
     renderChannels();
-
-    const preview=document.querySelector("#tvRoot .tv-dp-preview");
-    preview?.addEventListener("pointerdown",()=>{
-      const shell=root?.querySelector(".tv-app-real");
-      if(shell?.classList.contains("tv-watch-mode"))showWatchUi();
-    },{passive:true});
-    root?.querySelector(".tv-app-real")?.addEventListener("pointerdown",(event)=>{
-      const shell=root?.querySelector(".tv-app-real");
-      if(shell?.classList.contains("tv-watch-mode") && (event.target.closest(".tv-dp-list")||event.target.closest(".tv-exit-app")))showWatchUi();
-    },{passive:true});
   }
 }
 
 async function activate(){
-  requestTvLandscape();
   document.body.classList.add("angel-tv-open");
   root?.classList.add("angel-tv-fullscreen");
 

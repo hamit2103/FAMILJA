@@ -1324,7 +1324,6 @@ function setSection(next) {
   else if(previousSection==="nearby") window.DiamondNearby?.deactivate?.();
   if (showPrivateChat) loadPrivateChat().catch(console.warn);
 }
-window.DiamondSetSection=(next)=>setSection(next);
 recipesTab?.addEventListener("click", () => setSection("recipes"));
 galleryTab?.addEventListener("click", () => setSection("gallery"));
 infoTab?.addEventListener("click", () => setSection("info"));
