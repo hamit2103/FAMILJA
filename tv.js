@@ -73,7 +73,7 @@ const BUILTIN_FREE_SERVERS = [
 
 const TXT = {
   sq:{
-    tv:"TV", brand:"Shtime TV", live:"Live TV", movies:"Filmat", series:"Serialet", replay:"Përsëritje",
+    tv:"TV", brand:"Shtime TV", live:"TV", movies:"Filmat", series:"Serialet", replay:"Përsëritje", manage:"Menaxho",
     sports:"Sports guide", server:"Change Server", settings:"Cilësimet",
     title:"📺 TV / M3U Player", url:"M3U ose URL", urlPlaceholder:"Ngjit M3U, M3U8 ose URL direkte të videos",
     loadUrl:"Hape URL", file:"Ngarko skedar M3U", channels:"Kanale", search:"Kërko kanal",
@@ -88,7 +88,7 @@ const TXT = {
     source:"Burimi", allGroups:"Të gjitha grupet", playerLoading:"Po provoj stream-in…", playerReady:"Stream-i është gati.", playerNetworkError:"Stream-i nuk po përgjigjet ose është bllokuar nga serveri.", playerMediaError:"Player-i pati problem me videon. Po provoj përsëri…", playerFailed:"Ky stream nuk po hapet në këtë pajisje.", retry:"Provo përsëri", fullscreen:"Ekran i plotë", exitFullscreen:"Dil nga ekrani i plotë"
   },
   de:{
-    tv:"TV", brand:"Shtime TV", live:"Live TV", movies:"Filme", series:"Serien", replay:"Replay",
+    tv:"TV", brand:"Shtime TV", live:"TV", movies:"Filme", series:"Serien", replay:"Replay", manage:"Verwalten",
     sports:"Sportguide", server:"Server wechseln", settings:"Einstellungen",
     title:"📺 TV / M3U Player", url:"M3U oder URL", urlPlaceholder:"M3U-, M3U8- oder direkte Video-URL einfügen",
     loadUrl:"URL öffnen", file:"M3U-Datei laden", channels:"Sender", search:"Sender suchen",
@@ -103,7 +103,7 @@ const TXT = {
     source:"Quelle", allGroups:"Alle Gruppen", playerLoading:"Stream wird getestet…", playerReady:"Stream ist bereit.", playerNetworkError:"Der Stream antwortet nicht oder wird vom Server blockiert.", playerMediaError:"Der Player hat ein Medienproblem. Erneuter Versuch…", playerFailed:"Dieser Stream kann auf diesem Gerät nicht geöffnet werden.", retry:"Erneut versuchen", fullscreen:"Vollbild", exitFullscreen:"Vollbild beenden"
   },
   tr:{
-    tv:"TV", brand:"Shtime TV", live:"Canlı TV", movies:"Filmler", series:"Diziler", replay:"Tekrar",
+    tv:"TV", brand:"Shtime TV", live:"TV", movies:"Filmler", series:"Diziler", replay:"Tekrar", manage:"Yönet",
     sports:"Spor rehberi", server:"Sunucu değiştir", settings:"Ayarlar",
     title:"📺 TV / M3U Player", url:"M3U veya URL", urlPlaceholder:"M3U, M3U8 veya doğrudan video URL'si yapıştır",
     loadUrl:"URL'yi aç", file:"M3U dosyası yükle", channels:"Kanallar", search:"Kanal ara",
@@ -117,11 +117,11 @@ const TXT = {
     replayInfo:"Yalnızca M3U listesinde catch-up/replay olarak işaretlenen kanallar gösterilir.",
     source:"Kaynak", allGroups:"Tüm gruplar", playerLoading:"Yayın deneniyor…", playerReady:"Yayın hazır.", playerNetworkError:"Yayın yanıt vermiyor veya sunucu tarafından engelleniyor.", playerMediaError:"Oynatıcı video hatası verdi. Tekrar deneniyor…", playerFailed:"Bu yayın bu cihazda açılamıyor.", retry:"Tekrar dene", fullscreen:"Tam ekran", exitFullscreen:"Tam ekrandan çık"
   },
-  en:{tv:"TV",brand:"Shtime TV",live:"Live TV",movies:"Movies",series:"Series",replay:"Replay",sports:"Sports guide",server:"Change server",settings:"Settings",title:"📺 TV / M3U Player",url:"M3U or URL",urlPlaceholder:"Paste M3U, M3U8 or direct video URL",loadUrl:"Open URL",file:"Load M3U file",channels:"Channels",search:"Search channel",noChannels:"No channels in this category.",direct:"Direct stream",loading:"Loading…",cors:"This URL does not allow direct access from the app (CORS). Try an M3U file or another URL.",invalid:"URL or list could not be read.",stop:"Stop",shared:"Shared list",local:"My list on this device",publish:"Publish for everyone",published:"Published for everyone.",adminOnly:"Only the administrator can publish for everyone.",noShared:"No shared list yet.",saveLocal:"Save only on this device",savedLocal:"Saved only on this device.",useShared:"Open shared list",useLocal:"Open my list",back:"Back to TV menu",replayInfo:"Only channels marked with catch-up/replay in the M3U list are shown.",source:"Source",allGroups:"All groups",playerLoading:"Testing stream…",playerReady:"Stream is ready.",playerNetworkError:"The stream is not responding or is blocked by the server.",playerMediaError:"The player had a video problem. Retrying…",playerFailed:"This stream cannot be opened on this device.",retry:"Try again",fullscreen:"Fullscreen",exitFullscreen:"Exit fullscreen"},
-  it:{tv:"TV",brand:"Shtime TV",live:"TV in diretta",movies:"Film",series:"Serie",replay:"Replay",sports:"Guida sport",server:"Cambia server",settings:"Impostazioni",title:"📺 TV / Player M3U",url:"M3U o URL",urlPlaceholder:"Incolla M3U, M3U8 o URL video diretto",loadUrl:"Apri URL",file:"Carica file M3U",channels:"Canali",search:"Cerca canale",noChannels:"Nessun canale in questa categoria.",direct:"Stream diretto",loading:"Caricamento…",cors:"Questo URL non consente accesso diretto dall'app (CORS). Prova un file M3U o un altro URL.",invalid:"URL o lista non leggibile.",stop:"Ferma",shared:"Lista condivisa",local:"La mia lista su questo dispositivo",publish:"Pubblica per tutti",published:"Pubblicato per tutti.",adminOnly:"Solo l'amministratore può pubblicare per tutti.",noShared:"Nessuna lista condivisa.",saveLocal:"Salva solo su questo dispositivo",savedLocal:"Salvato solo su questo dispositivo.",useShared:"Apri lista condivisa",useLocal:"Apri la mia lista",back:"Torna al menu TV",replayInfo:"Vengono mostrati solo i canali con catch-up/replay nella lista M3U.",source:"Fonte",allGroups:"Tutti i gruppi",playerLoading:"Prova dello stream…",playerReady:"Stream pronto.",playerNetworkError:"Lo stream non risponde o è bloccato dal server.",playerMediaError:"Problema video. Nuovo tentativo…",playerFailed:"Questo stream non si apre su questo dispositivo.",retry:"Riprova",fullscreen:"Schermo intero",exitFullscreen:"Esci dallo schermo intero"},
-  hr:{tv:"TV",brand:"Shtime TV",live:"TV uživo",movies:"Filmovi",series:"Serije",replay:"Ponovno",sports:"Sportski vodič",server:"Promijeni server",settings:"Postavke",title:"📺 TV / M3U Player",url:"M3U ili URL",urlPlaceholder:"Zalijepi M3U, M3U8 ili izravni video URL",loadUrl:"Otvori URL",file:"Učitaj M3U datoteku",channels:"Kanali",search:"Traži kanal",noChannels:"Nema kanala u ovoj kategoriji.",direct:"Izravni stream",loading:"Učitavanje…",cors:"Ovaj URL ne dopušta izravan pristup iz aplikacije (CORS). Pokušaj M3U datoteku ili drugi URL.",invalid:"URL ili popis nije moguće pročitati.",stop:"Zaustavi",shared:"Zajednički popis",local:"Moj popis na ovom uređaju",publish:"Objavi svima",published:"Objavljeno svima.",adminOnly:"Samo administrator može objaviti svima.",noShared:"Još nema zajedničkog popisa.",saveLocal:"Spremi samo na ovom uređaju",savedLocal:"Spremljeno samo na ovom uređaju.",useShared:"Otvori zajednički popis",useLocal:"Otvori moj popis",back:"Natrag na TV izbornik",replayInfo:"Prikazuju se samo kanali označeni catch-up/replay u M3U popisu.",source:"Izvor",allGroups:"Sve grupe",playerLoading:"Testiranje streama…",playerReady:"Stream je spreman.",playerNetworkError:"Stream ne odgovara ili ga server blokira.",playerMediaError:"Player ima problem s videom. Pokušavam ponovno…",playerFailed:"Ovaj stream se ne može otvoriti na ovom uređaju.",retry:"Pokušaj ponovno",fullscreen:"Cijeli zaslon",exitFullscreen:"Izađi iz cijelog zaslona"},
-  ar:{tv:"TV",brand:"Shtime TV",live:"بث مباشر",movies:"أفلام",series:"مسلسلات",replay:"إعادة",sports:"دليل الرياضة",server:"تغيير الخادم",settings:"الإعدادات",title:"📺 TV / مشغل M3U",url:"M3U أو URL",urlPlaceholder:"الصق M3U أو M3U8 أو رابط فيديو مباشر",loadUrl:"فتح الرابط",file:"تحميل ملف M3U",channels:"القنوات",search:"بحث عن قناة",noChannels:"لا توجد قنوات في هذه الفئة.",direct:"بث مباشر",loading:"جارٍ التحميل…",cors:"هذا الرابط لا يسمح بالوصول المباشر من التطبيق (CORS). جرّب ملف M3U أو رابطًا آخر.",invalid:"تعذر قراءة الرابط أو القائمة.",stop:"إيقاف",shared:"القائمة المشتركة",local:"قائمتي على هذا الجهاز",publish:"نشر للجميع",published:"تم النشر للجميع.",adminOnly:"المشرف فقط يمكنه النشر للجميع.",noShared:"لا توجد قائمة مشتركة بعد.",saveLocal:"حفظ على هذا الجهاز فقط",savedLocal:"تم الحفظ على هذا الجهاز فقط.",useShared:"فتح القائمة المشتركة",useLocal:"فتح قائمتي",back:"العودة لقائمة TV",replayInfo:"تظهر فقط القنوات المعلّمة catch-up/replay في قائمة M3U.",source:"المصدر",allGroups:"كل المجموعات",playerLoading:"جارٍ اختبار البث…",playerReady:"البث جاهز.",playerNetworkError:"البث لا يستجيب أو محظور من الخادم.",playerMediaError:"حدثت مشكلة في الفيديو. إعادة المحاولة…",playerFailed:"لا يمكن فتح هذا البث على هذا الجهاز.",retry:"حاول مرة أخرى",fullscreen:"ملء الشاشة",exitFullscreen:"الخروج من ملء الشاشة"},
-  fr:{tv:"TV",brand:"Shtime TV",live:"TV en direct",movies:"Films",series:"Séries",replay:"Replay",sports:"Guide sport",server:"Changer de serveur",settings:"Paramètres",title:"📺 TV / Lecteur M3U",url:"M3U ou URL",urlPlaceholder:"Collez M3U, M3U8 ou une URL vidéo directe",loadUrl:"Ouvrir URL",file:"Charger fichier M3U",channels:"Chaînes",search:"Rechercher une chaîne",noChannels:"Aucune chaîne dans cette catégorie.",direct:"Flux direct",loading:"Chargement…",cors:"Cette URL n'autorise pas l'accès direct depuis l'application (CORS). Essayez un fichier M3U ou une autre URL.",invalid:"Impossible de lire l'URL ou la liste.",stop:"Arrêter",shared:"Liste partagée",local:"Ma liste sur cet appareil",publish:"Publier pour tous",published:"Publié pour tous.",adminOnly:"Seul l'administrateur peut publier pour tous.",noShared:"Aucune liste partagée pour l'instant.",saveLocal:"Enregistrer uniquement sur cet appareil",savedLocal:"Enregistré uniquement sur cet appareil.",useShared:"Ouvrir la liste partagée",useLocal:"Ouvrir ma liste",back:"Retour au menu TV",replayInfo:"Seules les chaînes marquées catch-up/replay dans la liste M3U sont affichées.",source:"Source",allGroups:"Tous les groupes",playerLoading:"Test du flux…",playerReady:"Flux prêt.",playerNetworkError:"Le flux ne répond pas ou est bloqué par le serveur.",playerMediaError:"Le lecteur a rencontré un problème vidéo. Nouvel essai…",playerFailed:"Ce flux ne peut pas être ouvert sur cet appareil.",retry:"Réessayer",fullscreen:"Plein écran",exitFullscreen:"Quitter le plein écran"}
+  en:{tv:"TV",brand:"Shtime TV",live:"TV",movies:"Movies",series:"Series",replay:"Replay",manage:"Manage",sports:"Sports guide",server:"Change server",settings:"Settings",title:"📺 TV / M3U Player",url:"M3U or URL",urlPlaceholder:"Paste M3U, M3U8 or direct video URL",loadUrl:"Open URL",file:"Load M3U file",channels:"Channels",search:"Search channel",noChannels:"No channels in this category.",direct:"Direct stream",loading:"Loading…",cors:"This URL does not allow direct access from the app (CORS). Try an M3U file or another URL.",invalid:"URL or list could not be read.",stop:"Stop",shared:"Shared list",local:"My list on this device",publish:"Publish for everyone",published:"Published for everyone.",adminOnly:"Only the administrator can publish for everyone.",noShared:"No shared list yet.",saveLocal:"Save only on this device",savedLocal:"Saved only on this device.",useShared:"Open shared list",useLocal:"Open my list",back:"Back to TV menu",replayInfo:"Only channels marked with catch-up/replay in the M3U list are shown.",source:"Source",allGroups:"All groups",playerLoading:"Testing stream…",playerReady:"Stream is ready.",playerNetworkError:"The stream is not responding or is blocked by the server.",playerMediaError:"The player had a video problem. Retrying…",playerFailed:"This stream cannot be opened on this device.",retry:"Try again",fullscreen:"Fullscreen",exitFullscreen:"Exit fullscreen"},
+  it:{tv:"TV",brand:"Shtime TV",live:"TV",movies:"Film",series:"Serie",replay:"Replay",manage:"Gestisci",sports:"Guida sport",server:"Cambia server",settings:"Impostazioni",title:"📺 TV / Player M3U",url:"M3U o URL",urlPlaceholder:"Incolla M3U, M3U8 o URL video diretto",loadUrl:"Apri URL",file:"Carica file M3U",channels:"Canali",search:"Cerca canale",noChannels:"Nessun canale in questa categoria.",direct:"Stream diretto",loading:"Caricamento…",cors:"Questo URL non consente accesso diretto dall'app (CORS). Prova un file M3U o un altro URL.",invalid:"URL o lista non leggibile.",stop:"Ferma",shared:"Lista condivisa",local:"La mia lista su questo dispositivo",publish:"Pubblica per tutti",published:"Pubblicato per tutti.",adminOnly:"Solo l'amministratore può pubblicare per tutti.",noShared:"Nessuna lista condivisa.",saveLocal:"Salva solo su questo dispositivo",savedLocal:"Salvato solo su questo dispositivo.",useShared:"Apri lista condivisa",useLocal:"Apri la mia lista",back:"Torna al menu TV",replayInfo:"Vengono mostrati solo i canali con catch-up/replay nella lista M3U.",source:"Fonte",allGroups:"Tutti i gruppi",playerLoading:"Prova dello stream…",playerReady:"Stream pronto.",playerNetworkError:"Lo stream non risponde o è bloccato dal server.",playerMediaError:"Problema video. Nuovo tentativo…",playerFailed:"Questo stream non si apre su questo dispositivo.",retry:"Riprova",fullscreen:"Schermo intero",exitFullscreen:"Esci dallo schermo intero"},
+  hr:{tv:"TV",brand:"Shtime TV",live:"TV",movies:"Filmovi",series:"Serije",replay:"Ponovno",manage:"Upravljaj",sports:"Sportski vodič",server:"Promijeni server",settings:"Postavke",title:"📺 TV / M3U Player",url:"M3U ili URL",urlPlaceholder:"Zalijepi M3U, M3U8 ili izravni video URL",loadUrl:"Otvori URL",file:"Učitaj M3U datoteku",channels:"Kanali",search:"Traži kanal",noChannels:"Nema kanala u ovoj kategoriji.",direct:"Izravni stream",loading:"Učitavanje…",cors:"Ovaj URL ne dopušta izravan pristup iz aplikacije (CORS). Pokušaj M3U datoteku ili drugi URL.",invalid:"URL ili popis nije moguće pročitati.",stop:"Zaustavi",shared:"Zajednički popis",local:"Moj popis na ovom uređaju",publish:"Objavi svima",published:"Objavljeno svima.",adminOnly:"Samo administrator može objaviti svima.",noShared:"Još nema zajedničkog popisa.",saveLocal:"Spremi samo na ovom uređaju",savedLocal:"Spremljeno samo na ovom uređaju.",useShared:"Otvori zajednički popis",useLocal:"Otvori moj popis",back:"Natrag na TV izbornik",replayInfo:"Prikazuju se samo kanali označeni catch-up/replay u M3U popisu.",source:"Izvor",allGroups:"Sve grupe",playerLoading:"Testiranje streama…",playerReady:"Stream je spreman.",playerNetworkError:"Stream ne odgovara ili ga server blokira.",playerMediaError:"Player ima problem s videom. Pokušavam ponovno…",playerFailed:"Ovaj stream se ne može otvoriti na ovom uređaju.",retry:"Pokušaj ponovno",fullscreen:"Cijeli zaslon",exitFullscreen:"Izađi iz cijelog zaslona"},
+  ar:{tv:"TV",brand:"Shtime TV",live:"TV",movies:"أفلام",series:"مسلسلات",replay:"إعادة",manage:"إدارة",sports:"دليل الرياضة",server:"تغيير الخادم",settings:"الإعدادات",title:"📺 TV / مشغل M3U",url:"M3U أو URL",urlPlaceholder:"الصق M3U أو M3U8 أو رابط فيديو مباشر",loadUrl:"فتح الرابط",file:"تحميل ملف M3U",channels:"القنوات",search:"بحث عن قناة",noChannels:"لا توجد قنوات في هذه الفئة.",direct:"بث مباشر",loading:"جارٍ التحميل…",cors:"هذا الرابط لا يسمح بالوصول المباشر من التطبيق (CORS). جرّب ملف M3U أو رابطًا آخر.",invalid:"تعذر قراءة الرابط أو القائمة.",stop:"إيقاف",shared:"القائمة المشتركة",local:"قائمتي على هذا الجهاز",publish:"نشر للجميع",published:"تم النشر للجميع.",adminOnly:"المشرف فقط يمكنه النشر للجميع.",noShared:"لا توجد قائمة مشتركة بعد.",saveLocal:"حفظ على هذا الجهاز فقط",savedLocal:"تم الحفظ على هذا الجهاز فقط.",useShared:"فتح القائمة المشتركة",useLocal:"فتح قائمتي",back:"العودة لقائمة TV",replayInfo:"تظهر فقط القنوات المعلّمة catch-up/replay في قائمة M3U.",source:"المصدر",allGroups:"كل المجموعات",playerLoading:"جارٍ اختبار البث…",playerReady:"البث جاهز.",playerNetworkError:"البث لا يستجيب أو محظور من الخادم.",playerMediaError:"حدثت مشكلة في الفيديو. إعادة المحاولة…",playerFailed:"لا يمكن فتح هذا البث على هذا الجهاز.",retry:"حاول مرة أخرى",fullscreen:"ملء الشاشة",exitFullscreen:"الخروج من ملء الشاشة"},
+  fr:{tv:"TV",brand:"Shtime TV",live:"TV",movies:"Films",series:"Séries",replay:"Replay",manage:"Gérer",sports:"Guide sport",server:"Changer de serveur",settings:"Paramètres",title:"📺 TV / Lecteur M3U",url:"M3U ou URL",urlPlaceholder:"Collez M3U, M3U8 ou une URL vidéo directe",loadUrl:"Ouvrir URL",file:"Charger fichier M3U",channels:"Chaînes",search:"Rechercher une chaîne",noChannels:"Aucune chaîne dans cette catégorie.",direct:"Flux direct",loading:"Chargement…",cors:"Cette URL n'autorise pas l'accès direct depuis l'application (CORS). Essayez un fichier M3U ou une autre URL.",invalid:"Impossible de lire l'URL ou la liste.",stop:"Arrêter",shared:"Liste partagée",local:"Ma liste sur cet appareil",publish:"Publier pour tous",published:"Publié pour tous.",adminOnly:"Seul l'administrateur peut publier pour tous.",noShared:"Aucune liste partagée pour l'instant.",saveLocal:"Enregistrer uniquement sur cet appareil",savedLocal:"Enregistré uniquement sur cet appareil.",useShared:"Ouvrir la liste partagée",useLocal:"Ouvrir ma liste",back:"Retour au menu TV",replayInfo:"Seules les chaînes marquées catch-up/replay dans la liste M3U sont affichées.",source:"Source",allGroups:"Tous les groupes",playerLoading:"Test du flux…",playerReady:"Flux prêt.",playerNetworkError:"Le flux ne répond pas ou est bloqué par le serveur.",playerMediaError:"Le lecteur a rencontré un problème vidéo. Nouvel essai…",playerFailed:"Ce flux ne peut pas être ouvert sur cet appareil.",retry:"Réessayer",fullscreen:"Plein écran",exitFullscreen:"Quitter le plein écran"}
 };
 
 function lang(){ const l=localStorage.getItem(LANG_KEY)||"sq"; return TXT[l]?l:"sq"; }
@@ -788,8 +788,49 @@ function renderServers(){
     </section>`;
 }
 
+function setTvOrientation(mode="portrait"){
+  try{
+    if(window.AndroidScreen){
+      if(mode==="landscape") window.AndroidScreen.landscape?.();
+      else window.AndroidScreen.portrait?.();
+      return;
+    }
+  }catch(_){}
+  try{
+    if(screen?.orientation?.lock){
+      screen.orientation.lock(mode==="landscape"?"landscape":"portrait").catch(()=>{});
+    }
+  }catch(_){}
+}
+
+function tvInternalBack(){
+  if(!document.body.classList.contains("angel-tv-open")) return false;
+
+  if(document.fullscreenElement){
+    try{ document.exitFullscreen(); }catch(_){}
+    return true;
+  }
+
+  if(currentMode!=="home"){
+    destroyPlayer();
+    currentMode="home";
+    currentFilter="";
+    currentGroup="";
+    setTvOrientation("portrait");
+    render();
+    return true;
+  }
+
+  exitTvShell();
+  return true;
+}
+
 function exitTvShell(target=""){
   destroyPlayer();
+  setTvOrientation("portrait");
+  currentMode="home";
+  currentFilter="";
+  currentGroup="";
   document.body.classList.remove("angel-tv-open");
   document.body.classList.remove("tv-fullscreen-fallback");
   root?.classList.remove("angel-tv-fullscreen");
@@ -1124,11 +1165,11 @@ function ensureDiamondPlayTvStyle(){
     #tvRoot .tv-dp-head small{display:block;max-width:48vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.72}
     #tvRoot .tv-dp-head-actions{display:flex;gap:6px}
     #tvRoot .tv-dp-head button{width:auto!important;height:39px!important;min-height:39px!important;margin:0!important;padding:0 10px!important;border-radius:10px!important;background:#143820!important;color:#fff!important;border:1px solid #2c7e49!important}
-    #tvRoot .tv-dp-home{flex:1;min-height:0;display:grid;place-items:center;padding:18px;overflow:auto}
-    #tvRoot .tv-dp-tiles{width:min(850px,94vw);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-    #tvRoot .tv-dp-tile{position:relative;min-height:145px;border-radius:22px;border:1px solid #37bb62;background:linear-gradient(180deg,#12391f,#07180d);color:#fff;font-size:20px;font-weight:800}
-    #tvRoot .tv-dp-tile .tv-dp-icon{display:block;font-size:40px;margin-bottom:8px}
-    #tvRoot .tv-dp-count{position:absolute;right:12px;bottom:9px;font-size:12px;font-weight:700;background:#07180d;border:1px solid #2e8b4d;border-radius:9px;padding:3px 7px}
+    #tvRoot .tv-dp-home{flex:1;min-height:0;display:grid;place-items:center;padding:10px;overflow:hidden}
+    #tvRoot .tv-dp-tiles{width:min(720px,96vw);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+    #tvRoot .tv-dp-tile{position:relative;min-width:0;min-height:88px;padding:8px 4px;border-radius:14px;border:1px solid #37bb62;background:linear-gradient(180deg,#12391f,#07180d);color:#fff;font-size:12px;font-weight:800;overflow:hidden}
+    #tvRoot .tv-dp-tile .tv-dp-icon{display:block;font-size:27px;margin-bottom:5px}
+    #tvRoot .tv-dp-count{position:absolute;right:5px;bottom:4px;font-size:9px;font-weight:700;background:#07180d;border:1px solid #2e8b4d;border-radius:7px;padding:2px 4px}
     #tvRoot .tv-dp-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(118px,22%) minmax(190px,38%) 1fr}
     #tvRoot .tv-dp-groups,#tvRoot .tv-dp-list{min-height:0;overflow:auto;padding:8px}
     #tvRoot .tv-dp-groups{background:#07100a;border-right:1px solid #194d2d}
@@ -1164,8 +1205,9 @@ function ensureDiamondPlayTvStyle(){
       #tvRoot .tv-dp-head strong{font-size:14px}
       #tvRoot .tv-dp-head button{font-size:10px!important;padding:0 7px!important}
       #tvRoot .tv-dp-body{grid-template-columns:105px minmax(135px,1fr) 42%}
-      #tvRoot .tv-dp-tiles{grid-template-columns:1fr 1fr}
-      #tvRoot .tv-dp-tile{min-height:110px;font-size:16px}
+      #tvRoot .tv-dp-tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;width:98vw}
+      #tvRoot .tv-dp-tile{min-height:76px;font-size:10px;padding:6px 2px}
+      #tvRoot .tv-dp-tile .tv-dp-icon{font-size:23px;margin-bottom:3px}
       #tvRoot .tv-dp-search{width:110px}
     }
   `;
@@ -1256,6 +1298,8 @@ function openMode(mode){
   currentMode=mode;
   currentFilter="";
   currentGroup="";
+  if(["live","movies","series","replay","servers"].includes(mode)) setTvOrientation("landscape");
+  else setTvOrientation("portrait");
   render();
 }
 
@@ -1270,7 +1314,6 @@ function renderHome(){
       <div><strong>💎 DIAMOND · TV</strong><small>${server?esc(server.title):"SMART IPTV"}</small></div>
       <div class="tv-dp-head-actions">
         <button id="tvSportsGuide" type="button">⚽ ${tr("sports")}</button>
-        <button id="tvChangeServer" type="button">🗄️ ${tr("server")}</button>
       </div>
     </div>
     <div class="tv-dp-home">
@@ -1278,7 +1321,7 @@ function renderHome(){
         <button class="tv-dp-tile" data-tv-mode="live" type="button"><span class="tv-dp-icon">📺</span>${tr("live")}<span class="tv-dp-count">${liveCount}</span></button>
         <button class="tv-dp-tile" data-tv-mode="movies" type="button"><span class="tv-dp-icon">🎬</span>${tr("movies")}<span class="tv-dp-count">${movieCount}</span></button>
         <button class="tv-dp-tile" data-tv-mode="series" type="button"><span class="tv-dp-icon">🎞️</span>${tr("series")}<span class="tv-dp-count">${seriesCount}</span></button>
-        <button class="tv-dp-tile" data-tv-mode="replay" type="button"><span class="tv-dp-icon">↩️</span>${tr("replay")}<span class="tv-dp-count">${replayCount}</span></button>
+        <button class="tv-dp-tile" data-tv-mode="servers" type="button"><span class="tv-dp-icon">⚙️</span>${tr("manage")}</button>
       </div>
     </div>`;
 }
@@ -1362,8 +1405,8 @@ function render(){
 
   document.getElementById("tvExitApp")?.addEventListener("click",()=>exitTvShell());
   document.getElementById("tvSportsGuide")?.addEventListener("click",()=>exitTvShell("sportTab"));
-  document.getElementById("tvChangeServer")?.addEventListener("click",()=>{currentMode="servers";render();});
-  document.getElementById("tvSettingsBtn")?.addEventListener("click",()=>{currentMode="servers";render();});
+  document.getElementById("tvChangeServer")?.addEventListener("click",()=>openMode("servers"));
+  document.getElementById("tvSettingsBtn")?.addEventListener("click",()=>openMode("servers"));
   document.querySelectorAll("[data-tv-mode]").forEach(btn=>btn.addEventListener("click",()=>openMode(btn.dataset.tvMode)));
   document.getElementById("tvBackHome")?.addEventListener("click",()=>openMode("home"));
 
@@ -1405,6 +1448,7 @@ function render(){
 async function activate(){
   document.body.classList.add("angel-tv-open");
   root?.classList.add("angel-tv-fullscreen");
+  setTvOrientation("portrait");
 
   // Show the DIAMOND PLAY-style TV home immediately.
   // Network/catalog loading must never leave the TV section blank.
@@ -1441,5 +1485,5 @@ async function activate(){
   render();
 }
 
-window.PajazitiTV={activate,reloadLanguage:()=>render(),exit:()=>exitTvShell()};
+window.PajazitiTV={activate,reloadLanguage:()=>render(),exit:()=>exitTvShell(),back:()=>tvInternalBack()};
 if(tabLabel) tabLabel.textContent=tr("tv");
