@@ -1314,7 +1314,34 @@ function setSection(next) {
   if (showSport) window.PajazitiSports?.activate?.();
   if (showGames) window.PajazitiGames?.activate?.();
   if (showRecipes) window.DiamondRecipes?.activate?.();
-  if (showTv) window.PajazitiTV?.activate?.();
+  if (showTv) {
+    const tvRootEl=document.getElementById("tvRoot");
+    document.body.classList.add("angel-tv-open");
+    tvRootEl?.classList.add("angel-tv-fullscreen");
+    if(tvRootEl && !tvRootEl.firstElementChild){
+      tvRootEl.innerHTML='<div style="min-height:100dvh;display:grid;place-items:center;background:#020603;color:#fff;font:700 18px system-ui">📺 TV po hapet…</div>';
+    }
+    (async()=>{
+      try{
+        if(!window.PajazitiTV?.activate){
+          await import("./tv.js?v=63");
+        }
+        if(window.PajazitiTV?.activate){
+          await window.PajazitiTV.activate();
+          return;
+        }
+        throw new Error("TV module unavailable");
+      }catch(error){
+        console.warn("TV module load failed",error);
+        document.body.classList.remove("angel-tv-open");
+        tvRootEl?.classList.remove("angel-tv-fullscreen");
+        if(tvRootEl){
+          tvRootEl.innerHTML='<div style="padding:24px;text-align:center"><strong>TV nuk u ngarkua.</strong><br><button id="tvSafeRetry" class="primary" type="button" style="margin-top:14px">Provo përsëri</button></div>';
+          document.getElementById("tvSafeRetry")?.addEventListener("click",()=>setSection("tv"));
+        }
+      }
+    })();
+  }
   if (showRadio) window.PajazitiRadio?.activate?.();
   if (showDiet) window.DiamondDiet?.activate?.();
   if (showKI) window.DiamondKI?.activate?.();
