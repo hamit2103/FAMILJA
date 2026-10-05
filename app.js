@@ -4295,6 +4295,7 @@ if ("serviceWorker" in navigator) {
 
 window.DiamondNavigationBack = function(){
   try {
+    if (window.PajazitiTV?.back?.()) return true;
     if (window.DiamondPrayerExtras?.back?.()) return true;
     if (window.DiamondBeliefs?.back?.()) return true;
     if (window.DiamondQuran?.back?.()) return true;
