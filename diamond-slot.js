@@ -1,6 +1,6 @@
 const K="diamond-slot-state-v1";
 const SYMS=[["diamond","💎",50],["heart","❤️",30],["star","⭐",25],["apple","🍎",20],["strawberry","🍓",15]];
-const BOOK=["book","📖",0],HAMMER=["hammer","🔨",0],POISON=["poison","🧪",0],EGG=["egg","🥚",0],ANGEL=["angel","👼",0],DEVIL=["devil","😈",0],FORMULA=["formula","⚗️",0],SUN=["sun","☀️",0];
+const BOOK=["book","📖",0],HAMMER=["hammer","🔨",0],POISON=["poison","🧪",0],EGG=["egg","🥚",0],ANGEL=["angel","👼",0],DEVIL=["devil","😈",0],FORMULA=["formula","⚗️",0],SUN=["sun","☀️",0],EMPTY=["empty","",0];
 const BETS=[1,5,10,20,50,100,200,500,1000,5000,10000,100000,500000,1000000,5000000,10000000];
 const SYM_BY_ID=Object.fromEntries(SYMS.map(x=>[x[0],x]));
 
@@ -94,15 +94,15 @@ function buildFinalGrid({bonusActive=false,bonusSymbol="",poisonCount=0,meters=n
     else if(dr<.45)devilCount=1;
     if(devilCount>0){
       placeSymbol(board,DEVIL,devilCount,x=>!["book","poison","hammer","egg","angel"].includes(x[0]));
-      if(devilCount===1){
-        const eligible=SYMS.filter(x=>(Number(meters?.[x[0]])||0)>=3);
-        if(eligible.length)devilTarget=eligible[Math.floor(Math.random()*eligible.length)][0];
+      if(devilCount===3){
+        const present=SYMS.filter(sym=>board.flat().some(cell=>cell?.[0]===sym[0]));
+        if(present.length)devilTarget=present[Math.floor(Math.random()*present.length)][0];
       }
     }
   }
 
   let formula=false,formulaCol=-1,formulaTarget=null,resolvedBoard=board.map(row=>row.slice());
-  if(!bonusActive&&Math.random()<.05){
+  if(!bonusActive&&devilCount<3&&Math.random()<.05){
     const candidates=[0,1,2,3,4].filter(c=>{
       const id=board[0][c]?.[0];
       return !!SYM_BY_ID[id]||id==="sun";
@@ -113,20 +113,31 @@ function buildFinalGrid({bonusActive=false,bonusSymbol="",poisonCount=0,meters=n
       formulaTarget=board[0][formulaCol];
       board[1][formulaCol]=FORMULA;
       resolvedBoard=board.map(row=>row.slice());
-      for(let c=0;c<5;c++)resolvedBoard[1][c]=formulaTarget;
+      for(let c=0;c<5;c++){
+        const top=board[0][c];
+        if(SYM_BY_ID[top?.[0]]||top?.[0]==="sun") resolvedBoard[1][c]=top;
+      }
     }
   }
 
   const finalBoard=formula?resolvedBoard:board;
-  const flat=finalBoard.flat();
+  const devilResolvedBoard=finalBoard.map(row=>row.slice());
+  if(devilCount===3&&devilTarget){
+    for(let r=0;r<devilResolvedBoard.length;r++){
+      for(let c=0;c<(devilResolvedBoard[r]?.length||0);c++){
+        if(devilResolvedBoard[r][c]?.[0]===devilTarget) devilResolvedBoard[r][c]=EMPTY;
+      }
+    }
+  }
+  const flat=(devilCount===3?devilResolvedBoard:finalBoard).flat();
   return{
-    board,resolvedBoard:finalBoard,
+    board,resolvedBoard:finalBoard,devilResolvedBoard,
     bookBonus:flat.filter(x=>x[0]==="book").length>=3,
     hammer:flat.some(x=>x[0]==="hammer"),
     egg:flat.some(x=>x[0]==="egg"),
     angel:flat.some(x=>x[0]==="angel"),
     poisonCount:flat.filter(x=>x[0]==="poison").length,
-    devilCount:flat.filter(x=>x[0]==="devil").length,
+    devilCount,
     devilTarget,formula,formulaCol,formulaTarget,filledCols
   };
 }
@@ -276,6 +287,12 @@ function css(){
 .ds.spinning .ds-cell{animation:dsFall .20s linear infinite;animation-delay:calc(var(--col,0) * -0.03s);filter:drop-shadow(0 0 8px #8948ff)}
 .ds-cell.bonus-col{outline:2px solid #ffe55d;box-shadow:inset 0 0 15px #ffcb2e,0 0 12px #8b5cff;animation:dsBonusPulse .45s ease-in-out 2}
 @keyframes dsBonusPulse{50%{transform:scale(1.07);filter:brightness(1.35)}}
+.ds-cell.formula-active{outline:3px solid #72e7ff;box-shadow:inset 0 0 20px #6ee7ff,0 0 18px #51d8ff;animation:dsFormulaCell .22s ease-in-out infinite alternate}
+.ds-cell.formula-active::after{content:"⚗️";position:absolute;font-size:.9em;filter:drop-shadow(0 0 9px #7df4ff)}
+@keyframes dsFormulaCell{to{transform:scale(1.08);filter:brightness(1.45)}}
+.ds-cell.devil-target{outline:2px solid #ff4a78;box-shadow:inset 0 0 18px #ff183f88,0 0 12px #ff234d88}
+.ds-cell.devil-strike{animation:dsDevilStrike .18s ease-in-out 2;background:radial-gradient(circle,#7a071c,#1a0207)!important}
+@keyframes dsDevilStrike{50%{transform:scale(1.16) rotate(-4deg);filter:brightness(1.65)}}
 .ds-bonus{margin:5px 0 8px;padding:7px 9px;border:1px solid #ffe85d;border-radius:12px;background:linear-gradient(135deg,#4c1d95,#172554);font-size:11px;font-weight:900;text-align:center;box-shadow:0 0 15px #7c3aed66}
 .ds-bonus.hidden{display:none}
 .ds-hammer{position:fixed;inset:0;z-index:2147483646;pointer-events:none;overflow:hidden;background:transparent}
@@ -308,7 +325,7 @@ function css(){
 `;document.head.appendChild(s);
 }
 export function startDiamondSlotGame({root,onBack}={}){
- if(!root)return;css();let st=load(),g=visualGrid(),busy=false,timer=null,autoTimer=null,finishTimer=null,pendingResult=null,bonusCols=new Set(),hammerPending=false,bookPending=false,bonusRoundActive=false,walletBusy=false,walletRevision=0;st.auto=false;
+ if(!root)return;css();let st=load(),g=visualGrid(),busy=false,timer=null,autoTimer=null,finishTimer=null,pendingResult=null,bonusCols=new Set(),formulaAnimCell=-1,devilAnimCell=-1,devilTargetCells=new Set(),hammerPending=false,bookPending=false,bonusRoundActive=false,walletBusy=false,walletRevision=0;st.auto=false;
  root.innerHTML=`<section class="ds">
  <div class="ds-top"><button id="dsBack" class="ds-back">‹</button><div class="ds-title">💎 DIAMOND</div><div id="dsUser" class="ds-user">User</div><div id="dsShield" class="ds-shield"></div><div class="ds-bal">💎 <span id="bal"></span></div></div>
  <div class="ds-hero"><b>DIAMOND</b><strong>SLOT</strong></div>
@@ -343,7 +360,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    st.m={...emptyMeters(),...(st.metersByBet[String(nextBet)]||{})};
    st.metersByBet[String(nextBet)]={...st.m};
  }
- function rg(){re.innerHTML=g.flat().map((x,i)=>`<div class="ds-cell ${bonusCols.has(i%5)?"bonus-col":""}" style="--col:${i%5}">${x[1]}</div>`).join("");}
+ function rg(){re.innerHTML=g.flat().map((x,i)=>`<div class="ds-cell ${bonusCols.has(i%5)?"bonus-col":""} ${i===formulaAnimCell?"formula-active":""} ${devilTargetCells.has(i)?"devil-target":""} ${i===devilAnimCell?"devil-strike":""}" style="--col:${i%5};position:relative">${x?.[1]||""}</div>`).join("");}
  function rs(){
    bal.textContent=Math.floor(st.bal).toLocaleString();bet.textContent=st.bet+" 💎";shieldEl.textContent=st.angelShield>0?"👼":"";sp.innerHTML=busy?"■<br>NDAL":"↻<br>RROTULLO";
    SYMS.forEach(x=>{
@@ -365,7 +382,7 @@ export function startDiamondSlotGame({root,onBack}={}){
    minus.disabled=!!bonusOn||busy;plus.disabled=!!bonusOn||busy;
    au.classList.toggle("on",st.auto);au.textContent=st.auto?"■ NDAL AUTO":"↻ AUTO";
    const b=st.bet;
-   infoEl.textContent="BAST "+b+" 💎 · 😈 1=30% −3, 2=10% −10 nga shkallët 10+, 3=5% shkallët 0 · 👼 mbron 1 herë · ⚗️ 5% kopjon rreshtin · ☀️ WILD";
+   infoEl.textContent="BAST "+b+" 💎 · 😈 1 ose 2 = pa efekt, vetëm 3 heqin një figurë nga kutitë · 👼 mbron 1 herë · ⚗️ lëviz vetëm në rreshtin e dytë dhe kopjon figurat nga rreshti i parë · ☀️ WILD";
    save(st);
  }
  function updateMetersOnly(counts){
@@ -438,27 +455,21 @@ export function startDiamondSlotGame({root,onBack}={}){
  function applyDevil(count,target,a){
    const n=Math.max(0,Math.floor(Number(count)||0));
    if(n<=0)return;
-   if(st.angelShield>0){
-     st.angelShield=0;a.push("👼 Melaqja të mbrojti nga shejtani");
-     showSpecial("👼","MBROJTJE NGA 😈",950);
-     slotBeep(740,.16,.16,"sine",0);slotBeep(980,.20,.17,"sine",.14);return;
-   }
    if(n===1){
-     const id=SYM_BY_ID[target]?target:"";
-     if(id&&(Number(st.m[id])||0)>=3){st.m[id]=Math.max(0,(Number(st.m[id])||0)-3);a.push("😈 −3 "+SYM_BY_ID[id][1]+" nga shkalla");}
-     else a.push("😈 nuk gjeti shkallë me 3+");
-     showSpecial("😈","−3 NGA NJË SHKALLË",800);slotBeep(175,.18,.15,"sawtooth");return;
+     a.push("😈 1 shejtan · pa efekt");
+     slotBeep(190,.08,.08,"sawtooth");return;
    }
    if(n===2){
-     let hit=0;
-     for(const x of SYMS){const id=x[0],v=Number(st.m[id])||0;if(v>=10){st.m[id]=Math.max(0,v-10);hit++;}}
-     a.push("😈😈 −10 nga çdo shkallë me 10+");
-     showSpecial("😈😈",hit?"−10 NGA SHKALLËT":"ASNJË SHKALLË 10+",900);
-     slotBeep(150,.20,.17,"sawtooth",0);slotBeep(112,.24,.18,"square",.18);return;
+     a.push("😈😈 2 shejtanë · pa efekt");
+     slotBeep(175,.08,.08,"sawtooth",0);slotBeep(145,.10,.08,"sawtooth",.10);return;
    }
-   for(const x of SYMS)st.m[x[0]]=0;
-   a.push("😈😈😈 të gjitha shkallët = 0");
-   showSpecial("😈","HE HE HE 😈 · SHKALLËT = 0",1150);
+   if(st.angelShield>0){
+     st.angelShield=0;a.push("👼 Melaqja të mbrojti nga 3 shejtanët");
+     slotBeep(740,.16,.16,"sine",0);slotBeep(980,.20,.17,"sine",.14);return;
+   }
+   const id=SYM_BY_ID[target]?target:"";
+   if(id)a.push("😈😈😈 hoqën të gjitha "+SYM_BY_ID[id][1]+" nga kutitë");
+   else a.push("😈😈😈 nuk gjetën figurë për të hequr");
    slotBeep(125,.20,.20,"sawtooth",0);slotBeep(85,.28,.22,"square",.20);slotBeep(60,.38,.24,"square",.48);
  }
 
@@ -474,10 +485,56 @@ export function startDiamondSlotGame({root,onBack}={}){
    st.angelShield=1;a.push("👼 Mbrojtje aktive");showSpecial("👼","MBROJTJE NGA 🔨 / 🧪",1200);slotBeep(660,.14,.14,"sine",0);slotBeep(990,.24,.18,"sine",.16);
  }
 
- function showFormula(target){
-   const symbol=target?.[1]||"💎";
-   showSpecial("⚗️","FORMULA PO LËVIZ… → "+symbol,700);
-   slotBeep(330,.10,.12,"triangle",0);slotBeep(440,.10,.12,"triangle",.12);slotBeep(550,.14,.14,"triangle",.24);
+ function animateFormula(data,done){
+   const start=Math.max(0,Math.min(4,Number(data.result.formulaCol)||0));
+   const order=Array.from({length:5},(_,i)=>(start+i)%5);
+   const work=data.result.board.map(row=>row.slice());
+   const final=data.result.resolvedBoard.map(row=>row.slice());
+   sh.classList.remove("spinning");
+   let step=0;
+   const next=()=>{
+     if(step>=order.length){
+       formulaAnimCell=-1;g=final;rg();done(final);return;
+     }
+     const c=order[step],idx=5+c;
+     formulaAnimCell=idx;
+     work[1][c]=FORMULA;
+     g=work.map(row=>row.slice());rg();
+     slotBeep(330+(step%5)*55,.08,.10,"triangle");
+     setTimeout(()=>{
+       work[1][c]=final[1][c];
+       formulaAnimCell=-1;
+       g=work.map(row=>row.slice());rg();
+       step++;
+       setTimeout(next,70);
+     },190);
+   };
+   next();
+ }
+
+ function animateDevils(data,done){
+   const target=data.result.devilTarget;
+   const final=(data.result.devilResolvedBoard||data.result.board).map(row=>row.slice());
+   const work=data.result.board.map(row=>row.slice());
+   const cells=[];
+   for(let r=0;r<work.length;r++)for(let c=0;c<(work[r]?.length||0);c++)if(work[r][c]?.[0]===target)cells.push(r*5+c);
+   if(!cells.length){done(data.result.board);return;}
+   devilTargetCells=new Set(cells);
+   g=work.map(row=>row.slice());rg();
+   let step=0;
+   const next=()=>{
+     if(step>=cells.length){
+       devilAnimCell=-1;devilTargetCells.clear();g=final;rg();done(final);return;
+     }
+     const idx=cells[step],r=Math.floor(idx/5),c=idx%5;
+     devilAnimCell=idx;work[r][c]=DEVIL;g=work.map(row=>row.slice());rg();
+     slotBeep(150-(step%3)*18,.10,.12,"sawtooth");
+     setTimeout(()=>{
+       work[r][c]=EMPTY;devilAnimCell=-1;devilTargetCells.delete(idx);g=work.map(row=>row.slice());rg();
+       step++;setTimeout(next,75);
+     },190);
+   };
+   setTimeout(next,180);
  }
 
  function showBookBonus(chosen,spinBet){
@@ -579,8 +636,9 @@ export function startDiamondSlotGame({root,onBack}={}){
 
    if(meta.hammer&&!meta.bonusActive)showHammer();
  }
- function completeSpinEvaluation(data){
-   g=data.result.resolvedBoard||data.result.board;bonusCols=data.result.filledCols;rg();sh.classList.remove("spinning");busy=false;
+ function completeSpinEvaluation(data,boardOverride=null){
+   formulaAnimCell=-1;devilAnimCell=-1;devilTargetCells.clear();
+   g=boardOverride||data.result.resolvedBoard||data.result.board;bonusCols=data.result.filledCols;rg();sh.classList.remove("spinning");busy=false;
    try{
      evalSpin({bookBonus:data.result.bookBonus,hammer:data.result.hammer,poisonCount:data.result.poisonCount,devilCount:data.result.devilCount,devilTarget:data.result.devilTarget,egg:data.result.egg,angel:data.result.angel,spinBet:data.spinBet,bonusActive:data.bonusActive});
    }catch(error){console.error("DIAMOND SLOT eval error",error);msg.textContent="Gabimi i lojës u kap. Provo rrotullimin përsëri.";msg.classList.remove("win");}
@@ -595,9 +653,13 @@ export function startDiamondSlotGame({root,onBack}={}){
    const data=pendingResult;pendingResult=null;
    if(data.result.formula){
      g=data.result.board;bonusCols=data.result.filledCols;rg();sh.classList.remove("spinning");
-     showFormula(data.result.formulaTarget);
-     msg.textContent="⚗️ Formula po kopjon "+(data.result.formulaTarget?.[1]||"💎")+" në rreshtin e dytë…";
-     setTimeout(()=>completeSpinEvaluation(data),700);return;
+     msg.textContent="⚗️ Formula po lëviz në rreshtin e dytë dhe po kopjon figurat sipër…";
+     animateFormula(data,finalBoard=>completeSpinEvaluation(data,finalBoard));return;
+   }
+   if((data.result.devilCount||0)>=3&&data.result.devilTarget&&st.angelShield<=0){
+     g=data.result.board;bonusCols=data.result.filledCols;rg();sh.classList.remove("spinning");
+     msg.textContent="😈😈😈 po shkojnë te "+(SYM_BY_ID[data.result.devilTarget]?.[1]||"figurat")+" dhe po i heqin…";
+     animateDevils(data,finalBoard=>completeSpinEvaluation(data,finalBoard));return;
    }
    completeSpinEvaluation(data);
  }
