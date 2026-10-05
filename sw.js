@@ -1,5 +1,5 @@
-const CACHE = "diamond-v177";
-const SHELL = ["./", "./index.html", "./admin.html", "./admin-manifest.webmanifest", "./styles.css?v=113", "./app.js?v=123", "./app-config.js", "./manifest.webmanifest", "./angel-icon.jpg", "./sports.js?v=11", "./games.js?v=123", "./tv.js?v=56", "./radio.js?v=57", "./recipes.js?v=1", "./quran.js?v=1", "./prayer-extras.js?v=3", "./news.js?v=3", "./nearby.js?v=6", "./diet.js?v=8", "./kingdom.js?v=2", "./uck.js?v=1", "./diamond-run.js?v=4", "./diamond-adventure.js?v=1", "./diamond-nations.js?v=2", "./diamond-slot.js?v=12", "./casino-games.js?v=1"];
+const CACHE = "diamond-v178";
+const SHELL = ["./", "./index.html", "./admin.html", "./admin-manifest.webmanifest", "./styles.css?v=113", "./app.js?v=124", "./app-config.js", "./manifest.webmanifest", "./angel-icon.jpg", "./sports.js?v=11", "./games.js?v=123", "./tv.js?v=56", "./radio.js?v=57", "./recipes.js?v=1", "./quran.js?v=1", "./prayer-extras.js?v=3", "./news.js?v=3", "./nearby.js?v=6", "./diet.js?v=8", "./kingdom.js?v=2", "./uck.js?v=1", "./diamond-run.js?v=4", "./diamond-adventure.js?v=1", "./diamond-nations.js?v=2", "./diamond-slot.js?v=12", "./casino-games.js?v=1"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));

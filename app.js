@@ -311,6 +311,7 @@ function applyLanguage(language = currentLanguage) {
   window.DiamondPrayerGuide?.reloadLanguage?.();
   window.DiamondPrayerExtras?.reloadLanguage?.(language);
   window.DiamondRuqya?.reloadLanguage?.();
+  window.DiamondBeliefs?.reloadLanguage?.(language);
   window.DiamondDiet?.reloadLanguage?.();
   const simple={
     sq:{diet:"Diet",ki:"KI",share:"Ndaje appin",news:"Lajme",nearby:"Gjej telefonin",private:"Privat",back:"← Kthehu mbrapa",admin:"Admin",login:"Hyr"},
