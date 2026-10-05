@@ -4295,6 +4295,7 @@ if ("serviceWorker" in navigator) {
 window.DiamondNavigationBack = function(){
   try {
     if (window.DiamondPrayerExtras?.back?.()) return true;
+    if (window.DiamondBeliefs?.back?.()) return true;
     if (window.DiamondQuran?.back?.()) return true;
     const quranPanel=document.getElementById("quranPanel");
     if(quranPanel && !quranPanel.classList.contains("hidden")){
@@ -4330,7 +4331,7 @@ window.DiamondNavigationBack = function(){
   const learnCard=document.getElementById("quranLearnCard");
   const tasbihCard=document.getElementById("tasbihCard");
   const ruqyaCard=document.getElementById("ruqyaCard");
-  const panels=["quranPanel","prayerHelpPanel","ruqyaPanel","prayerDuaPanel","quranLearnPanel","tasbihPanel"]
+  const panels=["quranPanel","prayerHelpPanel","ruqyaPanel","prayerDuaPanel","quranLearnPanel","tasbihPanel","beliefPanel"]
     .map(id=>document.getElementById(id)).filter(Boolean);
   const prayerTop=view.querySelector(":scope > .prayer-card");
   const list=document.getElementById("prayerList");
@@ -4356,6 +4357,11 @@ window.DiamondNavigationBack = function(){
       <button class="prayer-folder" type="button" data-prayer-folder="learn"><span class="prayer-folder-icon">🔤</span><span class="prayer-folder-name" data-prayer-folder-label="learn">Mëso Kuranin</span></button>
       <button class="prayer-folder" type="button" data-prayer-folder="tasbih"><span class="prayer-folder-icon">📿</span><span class="prayer-folder-name" data-prayer-folder-label="tasbih">Tespih</span></button>
       <button class="prayer-folder" type="button" data-prayer-folder="ruqya"><span class="prayer-folder-icon">🌿</span><span class="prayer-folder-name" data-prayer-folder-label="ruqya">Shërim me Kuran</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="angels"><span class="prayer-folder-icon">👼</span><span class="prayer-folder-name" data-prayer-folder-label="angels">Melaqet</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="devil"><span class="prayer-folder-icon">😈</span><span class="prayer-folder-name" data-prayer-folder-label="devil">Shejtani & Vesveset</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="prophets"><span class="prayer-folder-icon">📜</span><span class="prayer-folder-name" data-prayer-folder-label="prophets">Pejgamberët</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="qadr"><span class="prayer-folder-icon">📖</span><span class="prayer-folder-name" data-prayer-folder-label="qadr">Kaderi</span></button>
+      <button class="prayer-folder" type="button" data-prayer-folder="death"><span class="prayer-folder-icon">⚰️</span><span class="prayer-folder-name" data-prayer-folder-label="death">Vdekja & Ringjallja</span></button>
     </div>`;
   view.insertBefore(folderHome, view.firstChild);
 
@@ -4364,6 +4370,7 @@ window.DiamondNavigationBack = function(){
     try{window.DiamondPrayerGuide?.close?.();}catch(_){}
     try{window.DiamondPrayerExtras?.close?.();}catch(_){}
     try{window.DiamondRuqya?.close?.();}catch(_){}
+    try{window.DiamondBeliefs?.close?.();}catch(_){}
     prayerTop?.classList.add("hidden");
     list?.classList.add("hidden");
     note?.classList.add("hidden");
@@ -4389,9 +4396,21 @@ window.DiamondNavigationBack = function(){
     set("learn", sourceText("#quranLearnCardTitle","Mëso Kuranin"));
     set("tasbih", sourceText("#tasbihCardTitle","Tespih"));
     set("ruqya", sourceText("#ruqyaCardTitle","Shërim me Kuran"));
+    const l=(localStorage.getItem("pajaziti-language")||"sq").toLowerCase();
+    const beliefLabels={
+      sq:{angels:"Melaqet",devil:"Shejtani & Vesveset",prophets:"Pejgamberët",qadr:"Kaderi",death:"Vdekja & Ringjallja"},
+      de:{angels:"Die Engel",devil:"Satan & Einflüsterungen",prophets:"Die Propheten",qadr:"Qadar",death:"Tod & Auferstehung"},
+      tr:{angels:"Melekler",devil:"Şeytan & Vesvese",prophets:"Peygamberler",qadr:"Kader",death:"Ölüm & Diriliş"},
+      en:{angels:"Angels",devil:"Satan & Whispers",prophets:"Prophets",qadr:"Divine Decree",death:"Death & Resurrection"},
+      it:{angels:"Angeli",devil:"Satana & sussurri",prophets:"Profeti",qadr:"Destino divino",death:"Morte & Resurrezione"},
+      hr:{angels:"Meleki",devil:"Šejtan & došaptavanja",prophets:"Poslanici",qadr:"Kader",death:"Smrt & proživljenje"},
+      fr:{angels:"Les anges",devil:"Satan & tentations",prophets:"Les prophètes",qadr:"Décret divin",death:"Mort & Résurrection"},
+      ar:{angels:"الملائكة",devil:"الشيطان والوساوس",prophets:"الأنبياء",qadr:"القدر",death:"الموت والبعث"}
+    };
+    const bl=beliefLabels[l]||beliefLabels.sq;
+    set("angels",bl.angels);set("devil",bl.devil);set("prophets",bl.prophets);set("qadr",bl.qadr);set("death",bl.death);
     const tabText=(document.getElementById("prayerTabLabel")?.textContent||"Namazi").trim();
     const title=document.getElementById("prayerFolderHomeTitle");if(title)title.textContent=tabText||"Namazi";
-    const l=(localStorage.getItem("pajaziti-language")||"sq").toLowerCase();
     const hints={sq:"Zgjidh folderin",de:"Ordner auswählen",tr:"Klasör seç",en:"Choose a folder",it:"Scegli una cartella",hr:"Odaberi mapu",fr:"Choisir un dossier",ar:"اختر المجلد"};
     const hint=document.getElementById("prayerFolderHomeHint");if(hint)hint.textContent=hints[l]||hints.sq;
   };
@@ -4447,7 +4466,12 @@ window.DiamondNavigationBack = function(){
     dua:()=>openModule(()=>window.DiamondPrayerExtras?.openDuas?.(),document.getElementById("prayerDuaPanel")),
     learn:()=>openModule(()=>window.DiamondPrayerExtras?.openLearn?.(),document.getElementById("quranLearnPanel")),
     tasbih:()=>openModule(()=>window.DiamondPrayerExtras?.openTasbih?.(),document.getElementById("tasbihPanel")),
-    ruqya:()=>openModule(()=>window.DiamondRuqya?.open?.(),document.getElementById("ruqyaPanel"))
+    ruqya:()=>openModule(()=>window.DiamondRuqya?.open?.(),document.getElementById("ruqyaPanel")),
+    angels:()=>openModule(()=>window.DiamondBeliefs?.open?.("angels"),document.getElementById("beliefPanel")),
+    devil:()=>openModule(()=>window.DiamondBeliefs?.open?.("devil"),document.getElementById("beliefPanel")),
+    prophets:()=>openModule(()=>window.DiamondBeliefs?.open?.("prophets"),document.getElementById("beliefPanel")),
+    qadr:()=>openModule(()=>window.DiamondBeliefs?.open?.("qadr"),document.getElementById("beliefPanel")),
+    death:()=>openModule(()=>window.DiamondBeliefs?.open?.("death"),document.getElementById("beliefPanel"))
   };
 
   folderHome.addEventListener("click",(event)=>{
